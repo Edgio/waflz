@@ -1,0 +1,1455 @@
+{
+    "hidden": false,
+    "display_name": "OWASP",
+    "policies": [
+        {
+            "index": "41",
+            "name": "Xss attacks",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "XSS Filter - Category 1: Script Tag Vector",
+                    "hidden": false,
+                    "id": "973336"
+                },
+                {
+                    "msg": "XSS Filter - Category 2: Event Handler Vector",
+                    "hidden": false,
+                    "id": "973337"
+                },
+                {
+                    "msg": "XSS Filter - Category 3: Javascript URI Vector",
+                    "hidden": false,
+                    "id": "973338"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958016"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958414"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958032"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958026"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958027"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958054"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958418"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958034"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958019"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958013"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958408"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958012"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958423"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958002"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958017"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958007"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958047"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958410"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958415"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958022"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958405"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958419"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958028"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958057"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958031"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958006"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958033"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958038"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958409"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958001"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958005"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958404"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958023"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958010"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958411"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958422"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958036"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958000"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958018"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958406"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958040"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958052"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958037"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958049"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958030"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958041"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958416"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958024"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958059"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958417"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958020"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958045"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958004"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958421"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958009"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958025"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958413"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958051"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958420"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958407"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958056"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958011"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958412"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958008"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958046"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958039"
+                },
+                {
+                    "msg": "Cross-site Scripting (XSS) Attack",
+                    "hidden": false,
+                    "id": "958003"
+                },
+                {
+                    "msg": "Possible XSS Attack Detected - HTML Tag Handler",
+                    "hidden": false,
+                    "id": "973300"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973301"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973302"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973303"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973304"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973305"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973306"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973307"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973308"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973309"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973310"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973311"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973312"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973313"
+                },
+                {
+                    "msg": "XSS Attack Detected",
+                    "hidden": false,
+                    "id": "973314"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973331"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973315"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973330"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973327"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973326"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973346"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973345"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973324"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973323"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973322"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973348"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973321"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973320"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973318"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973317"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973347"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973335"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973334"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973333"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973344"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973332"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973329"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973328"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973316"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973325"
+                },
+                {
+                    "msg": "IE XSS Filters - Attack Detected.",
+                    "hidden": false,
+                    "id": "973319"
+                }
+            ],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_41_xss_attacks.conf"
+        },
+        {
+            "index": "20",
+            "name": "Protocol violations",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Invalid HTTP Request Line",
+                    "hidden": false,
+                    "id": "960911"
+                },
+                {
+                    "msg": "Apache Error: Invalid URI in Request.",
+                    "hidden": false,
+                    "id": "981227"
+                },
+                {
+                    "msg": "Attempted multipart/form-data bypass",
+                    "hidden": false,
+                    "id": "960000"
+                },
+                {
+                    "msg": "Failed to parse request body.",
+                    "hidden": false,
+                    "id": "960912"
+                },
+                {
+                    "msg": "Multipart request body failed strict validation: PE %{REQBODY_PROCESSOR_ERROR}",
+                    "hidden": false,
+                    "id": "960914"
+                },
+                {
+                    "msg": "Multipart parser detected a possible unmatched boundary.",
+                    "hidden": false,
+                    "id": "960915"
+                },
+                {
+                    "msg": "Content-Length HTTP header is not numeric.",
+                    "hidden": false,
+                    "id": "960016"
+                },
+                {
+                    "msg": "GET or HEAD Request with Body Content.",
+                    "hidden": false,
+                    "id": "960011"
+                },
+                {
+                    "msg": "POST request missing Content-Length Header.",
+                    "hidden": false,
+                    "id": "960012"
+                },
+                {
+                    "msg": "Invalid Use of Identity Encoding.",
+                    "hidden": false,
+                    "id": "960902"
+                },
+                {
+                    "msg": "Expect Header Not Allowed for HTTP 1.0.",
+                    "hidden": false,
+                    "id": "960022"
+                },
+                {
+                    "msg": "Pragma Header requires Cache-Control Header for HTTP/1.1 requests.",
+                    "hidden": false,
+                    "id": "960020"
+                },
+                {
+                    "msg": "Range: field exists and begins with 0.",
+                    "hidden": false,
+                    "id": "958291"
+                },
+                {
+                    "msg": "Range: Invalid Last Byte Value.",
+                    "hidden": false,
+                    "id": "958230"
+                },
+                {
+                    "msg": "Range: Too many fields",
+                    "hidden": false,
+                    "id": "958231"
+                },
+                {
+                    "msg": "Multiple/Conflicting Connection Header Data Found.",
+                    "hidden": false,
+                    "id": "958295"
+                },
+                {
+                    "msg": "URL Encoding Abuse Attack Attempt",
+                    "hidden": false,
+                    "id": "950107"
+                },
+                {
+                    "msg": "Multiple URL Encoding Detected",
+                    "hidden": false,
+                    "id": "950109"
+                },
+                {
+                    "msg": "URL Encoding Abuse Attack Attempt",
+                    "hidden": false,
+                    "id": "950108"
+                },
+                {
+                    "msg": "UTF8 Encoding Abuse Attack Attempt",
+                    "hidden": false,
+                    "id": "950801"
+                },
+                {
+                    "msg": "Unicode Full/Half Width Abuse Attack Attempt",
+                    "hidden": false,
+                    "id": "950116"
+                },
+                {
+                    "msg": "Invalid character in request",
+                    "hidden": false,
+                    "id": "960901"
+                },
+                {
+                    "msg": "Invalid character in request",
+                    "hidden": false,
+                    "id": "960018"
+                }
+            ],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_20_protocol_violations.conf"
+        },
+        {
+            "index": "50",
+            "name": "Outbound",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Zope Information Leakage",
+                    "hidden": false,
+                    "id": "970007"
+                },
+                {
+                    "msg": "Cold Fusion Information Leakage",
+                    "hidden": false,
+                    "id": "970008"
+                },
+                {
+                    "msg": "PHP Information Leakage",
+                    "hidden": false,
+                    "id": "970009"
+                },
+                {
+                    "msg": "ISA server existence revealed",
+                    "hidden": false,
+                    "id": "970010"
+                },
+                {
+                    "msg": "Microsoft Office document properties leakage",
+                    "hidden": false,
+                    "id": "970012"
+                },
+                {
+                    "msg": "ASP/JSP source code leakage",
+                    "hidden": false,
+                    "id": "970903"
+                },
+                {
+                    "msg": "Cold Fusion source code leakage",
+                    "hidden": false,
+                    "id": "970016"
+                },
+                {
+                    "msg": "IIS installed in default location",
+                    "hidden": false,
+                    "id": "970018"
+                },
+                {
+                    "msg": "The application is not available",
+                    "hidden": false,
+                    "id": "970901"
+                },
+                {
+                    "msg": "The application is not available",
+                    "hidden": false,
+                    "id": "970118"
+                },
+                {
+                    "msg": "WebLogic information disclosure",
+                    "hidden": false,
+                    "id": "970021"
+                },
+                {
+                    "msg": "File or Directory Names Leakage",
+                    "hidden": false,
+                    "id": "970011"
+                },
+                {
+                    "msg": "Possibly malicious iframe tag in output",
+                    "hidden": false,
+                    "id": "981000"
+                },
+                {
+                    "msg": "Possibly malicious iframe tag in output",
+                    "hidden": false,
+                    "id": "981001"
+                },
+                {
+                    "msg": "Malicious iframe+javascript tag in output",
+                    "hidden": false,
+                    "id": "981003"
+                },
+                {
+                    "msg": "Potential Obfuscated Javascript in Output - Excessive fromCharCode",
+                    "hidden": false,
+                    "id": "981004"
+                },
+                {
+                    "msg": "Potential Obfuscated Javascript in Output - Eval+Unescape",
+                    "hidden": false,
+                    "id": "981005"
+                },
+                {
+                    "msg": "Potential Obfuscated Javascript in Output - Unescape",
+                    "hidden": false,
+                    "id": "981006"
+                },
+                {
+                    "msg": "Potential Obfuscated Javascript in Output - Heap Spray",
+                    "hidden": false,
+                    "id": "981007"
+                },
+                {
+                    "msg": "ASP/JSP source code leakage",
+                    "hidden": false,
+                    "id": "970014"
+                },
+                {
+                    "msg": "PHP source code leakage",
+                    "hidden": false,
+                    "id": "970015"
+                },
+                {
+                    "msg": "PHP source code leakage",
+                    "hidden": false,
+                    "id": "970902"
+                },
+                {
+                    "msg": "Statistics Information Leakage",
+                    "hidden": false,
+                    "id": "970002"
+                },
+                {
+                    "msg": "SQL Information Leakage",
+                    "hidden": false,
+                    "id": "970003"
+                },
+                {
+                    "msg": "IIS Information Leakage",
+                    "hidden": false,
+                    "id": "970004"
+                },
+                {
+                    "msg": "IIS Information Leakage",
+                    "hidden": false,
+                    "id": "970904"
+                },
+                {
+                    "msg": "Directory Listing",
+                    "hidden": false,
+                    "id": "970013"
+                }
+            ],
+            "mutable": false,
+            "hidden": true,
+            "id": "modsecurity_crs_50_outbound.conf"
+        },
+        {
+            "index": "60",
+            "name": "Correlation",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Correlated Successful Attack Identified: (Total Score: %{tx.anomaly_score}",
+                    "hidden": false,
+                    "id": "981201"
+                },
+                {
+                    "msg": "Correlated Attack Attempt Identified: (Total Score: %{tx.anomaly_score}",
+                    "hidden": false,
+                    "id": "981202"
+                },
+                {
+                    "msg": "Inbound Anomaly Score (Total Inbound Score: %{TX.INBOUND_ANOMALY_SCORE}",
+                    "hidden": false,
+                    "id": "981203"
+                },
+                {
+                    "msg": "Inbound Anomaly Score Exceeded (Total Inbound Score: %{TX.INBOUND_ANOMALY_SCORE}",
+                    "hidden": false,
+                    "id": "981204"
+                },
+                {
+                    "msg": "Outbound Anomaly Score Exceeded (score %{TX.OUTBOUND_ANOMALY_SCORE}): %{tx.msg}'\"",
+                    "hidden": false,
+                    "id": "981205"
+                }
+            ],
+            "mutable": false,
+            "hidden": true,
+            "id": "modsecurity_crs_60_correlation.conf"
+        },
+        {
+            "index": "45",
+            "name": "Trojans",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Backdoor access",
+                    "hidden": false,
+                    "id": "950110"
+                },
+                {
+                    "msg": "Backdoor access",
+                    "hidden": false,
+                    "id": "950921"
+                },
+                {
+                    "msg": "Backdoor access",
+                    "hidden": false,
+                    "id": "950922"
+                }
+            ],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_45_trojans.conf"
+        },
+        {
+            "index": "22",
+            "name": "Custom ec rules",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Bash shellshock attack detected",
+                    "hidden": false,
+                    "id": "431000"
+                }
+            ],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_22_custom_ec_rules.conf"
+        },
+        {
+            "index": "42",
+            "name": "Tight security",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Path Traversal Attack",
+                    "hidden": false,
+                    "id": "950103"
+                }
+            ],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_42_tight_security.conf"
+        },
+        {
+            "index": "30",
+            "name": "Http policy",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Method is not allowed by policy",
+                    "hidden": false,
+                    "id": "960032"
+                },
+                {
+                    "msg": "Request content type is not allowed by policy",
+                    "hidden": false,
+                    "id": "960010"
+                },
+                {
+                    "msg": "HTTP protocol version is not allowed by policy",
+                    "hidden": false,
+                    "id": "960034"
+                },
+                {
+                    "msg": "URL file extension is restricted by policy",
+                    "hidden": false,
+                    "id": "960035"
+                },
+                {
+                    "msg": "HTTP header is restricted by policy",
+                    "hidden": false,
+                    "id": "960038"
+                }
+            ],
+            "mutable": false,
+            "hidden": true,
+            "id": "modsecurity_crs_30_http_policy.conf"
+        },
+        {
+            "index": "21",
+            "name": "Protocol anomalies",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Request Missing a Host Header",
+                    "hidden": false,
+                    "id": "960008"
+                },
+                {
+                    "msg": "Empty Host Header",
+                    "hidden": false,
+                    "id": "960007"
+                },
+                {
+                    "msg": "Request Missing an Accept Header",
+                    "hidden": false,
+                    "id": "960015"
+                },
+                {
+                    "msg": "Request Has an Empty Accept Header",
+                    "hidden": false,
+                    "id": "960021"
+                },
+                {
+                    "msg": "Request Missing a User Agent Header",
+                    "hidden": false,
+                    "id": "960009"
+                },
+                {
+                    "msg": "Empty User Agent Header",
+                    "hidden": false,
+                    "id": "960006"
+                },
+                {
+                    "msg": "Request Containing Content",
+                    "hidden": false,
+                    "id": "960904"
+                },
+                {
+                    "msg": "Host header is a numeric IP address",
+                    "hidden": false,
+                    "id": "960017"
+                }
+            ],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_21_protocol_anomalies.conf"
+        },
+        {
+            "index": "49",
+            "name": "Inbound blocking",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Inbound Attack Targeting OSVDB Flagged Resource.",
+                    "hidden": false,
+                    "id": "981175"
+                },
+                {
+                    "msg": "Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}",
+                    "hidden": false,
+                    "id": "981176"
+                }
+            ],
+            "mutable": false,
+            "hidden": true,
+            "id": "modsecurity_crs_49_inbound_blocking.conf"
+        },
+        {
+            "index": "23",
+            "name": "Request limits",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Argument name too long",
+                    "hidden": false,
+                    "id": "960209"
+                },
+                {
+                    "msg": "Argument value too long",
+                    "hidden": false,
+                    "id": "960208"
+                },
+                {
+                    "msg": "Too many arguments in request",
+                    "hidden": false,
+                    "id": "960335"
+                },
+                {
+                    "msg": "Total arguments size exceeded",
+                    "hidden": false,
+                    "id": "960341"
+                },
+                {
+                    "msg": "Uploaded file size too large",
+                    "hidden": false,
+                    "id": "960342"
+                },
+                {
+                    "msg": "Total uploaded files size too large",
+                    "hidden": false,
+                    "id": "960343"
+                }
+            ],
+            "mutable": false,
+            "hidden": true,
+            "id": "modsecurity_crs_23_request_limits.conf"
+        },
+        {
+            "index": "47",
+            "name": "Common exceptions",
+            "exclusive": false,
+            "rules": [],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_47_common_exceptions.conf"
+        },
+        {
+            "index": "40",
+            "name": "Generic attacks",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "System Command Injection",
+                    "hidden": false,
+                    "id": "950907"
+                },
+                {
+                    "msg": "Meta-Character Anomaly Detection Alert - Repetative Non-Word Characters",
+                    "hidden": false,
+                    "id": "960024"
+                },
+                {
+                    "msg": "Injection of Undocumented ColdFusion Tags",
+                    "hidden": false,
+                    "id": "950008"
+                },
+                {
+                    "msg": "LDAP Injection Attack",
+                    "hidden": false,
+                    "id": "950010"
+                },
+                {
+                    "msg": "SSI injection Attack",
+                    "hidden": false,
+                    "id": "950011"
+                },
+                {
+                    "msg": "Universal PDF XSS URL Detected.",
+                    "hidden": false,
+                    "id": "950018"
+                },
+                {
+                    "msg": "Email Injection Attack",
+                    "hidden": false,
+                    "id": "950019"
+                },
+                {
+                    "msg": "HTTP Request Smuggling Attack.",
+                    "hidden": false,
+                    "id": "950012"
+                },
+                {
+                    "msg": "HTTP Response Splitting Attack",
+                    "hidden": false,
+                    "id": "950910"
+                },
+                {
+                    "msg": "HTTP Response Splitting Attack",
+                    "hidden": false,
+                    "id": "950911"
+                },
+                {
+                    "msg": "Remote File Inclusion Attack",
+                    "hidden": false,
+                    "id": "950117"
+                },
+                {
+                    "msg": "Remote File Inclusion Attack",
+                    "hidden": false,
+                    "id": "950118"
+                },
+                {
+                    "msg": "Remote File Inclusion Attack",
+                    "hidden": false,
+                    "id": "950119"
+                },
+                {
+                    "msg": "Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link",
+                    "hidden": false,
+                    "id": "950120"
+                },
+                {
+                    "msg": "Session Fixation Attack",
+                    "hidden": false,
+                    "id": "950009"
+                },
+                {
+                    "msg": "Session Fixation",
+                    "hidden": false,
+                    "id": "950003"
+                },
+                {
+                    "msg": "Session Fixation",
+                    "hidden": false,
+                    "id": "950000"
+                },
+                {
+                    "msg": "Remote File Access Attempt",
+                    "hidden": false,
+                    "id": "950005"
+                },
+                {
+                    "msg": "System Command Access",
+                    "hidden": false,
+                    "id": "950002"
+                },
+                {
+                    "msg": "System Command Injection",
+                    "hidden": false,
+                    "id": "950006"
+                },
+                {
+                    "msg": "PHP Injection Attack",
+                    "hidden": false,
+                    "id": "959151"
+                },
+                {
+                    "msg": "PHP Injection Attack",
+                    "hidden": false,
+                    "id": "958976"
+                },
+                {
+                    "msg": "PHP Injection Attack",
+                    "hidden": false,
+                    "id": "958977"
+                }
+            ],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_40_generic_attacks.conf"
+        },
+        {
+            "index": "41",
+            "name": "Sql injection attacks",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "SQL Comment Sequence Detected.",
+                    "hidden": false,
+                    "id": "981231"
+                },
+                {
+                    "msg": "SQL Hex Encoding Identified",
+                    "hidden": false,
+                    "id": "981260"
+                },
+                {
+                    "msg": "SQL Injection Attack: Common Injection Testing Detected",
+                    "hidden": false,
+                    "id": "981318"
+                },
+                {
+                    "msg": "SQL Injection Attack: SQL Operator Detected",
+                    "hidden": false,
+                    "id": "981319"
+                },
+                {
+                    "msg": "SQL Injection Attack: SQL Tautology Detected.",
+                    "hidden": false,
+                    "id": "950901"
+                },
+                {
+                    "msg": "SQL Injection Attack: Common DB Names Detected",
+                    "hidden": false,
+                    "id": "981320"
+                },
+                {
+                    "msg": "SQL SELECT Statement Anomaly Detection Alert",
+                    "hidden": false,
+                    "id": "981317"
+                },
+                {
+                    "msg": "Blind SQL Injection Attack",
+                    "hidden": false,
+                    "id": "950007"
+                },
+                {
+                    "msg": "SQL Injection Attack",
+                    "hidden": false,
+                    "id": "950001"
+                },
+                {
+                    "msg": "SQL Injection Attack",
+                    "hidden": false,
+                    "id": "959070"
+                },
+                {
+                    "msg": "SQL Injection Attack",
+                    "hidden": false,
+                    "id": "959071"
+                },
+                {
+                    "msg": "SQL Injection Attack",
+                    "hidden": false,
+                    "id": "959072"
+                },
+                {
+                    "msg": "SQL Injection Attack.",
+                    "hidden": false,
+                    "id": "950908"
+                },
+                {
+                    "msg": "SQL Injection Attack",
+                    "hidden": false,
+                    "id": "959073"
+                },
+                {
+                    "msg": "Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded",
+                    "hidden": false,
+                    "id": "981172"
+                },
+                {
+                    "msg": "Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded",
+                    "hidden": false,
+                    "id": "981173"
+                },
+                {
+                    "msg": "Detects blind sqli tests using sleep() or benchmark().",
+                    "hidden": false,
+                    "id": "981272"
+                },
+                {
+                    "msg": "Detects basic SQL authentication bypass attempts 1/3",
+                    "hidden": false,
+                    "id": "981244"
+                },
+                {
+                    "msg": "Detects MSSQL code execution and information gathering attempts",
+                    "hidden": false,
+                    "id": "981255"
+                },
+                {
+                    "msg": "Detects MySQL comment-/space-obfuscated injections and backtick termination",
+                    "hidden": false,
+                    "id": "981257"
+                },
+                {
+                    "msg": "Detects chained SQL injection attempts 1/2",
+                    "hidden": false,
+                    "id": "981248"
+                },
+                {
+                    "msg": "Looking for integer overflow attacks",
+                    "hidden": false,
+                    "id": "981277"
+                },
+                {
+                    "msg": "Detects SQL benchmark and sleep injection attempts including conditional queries",
+                    "hidden": false,
+                    "id": "981250"
+                },
+                {
+                    "msg": "Detects conditional SQL injection attempts",
+                    "hidden": false,
+                    "id": "981241"
+                },
+                {
+                    "msg": "Detects MySQL charset switch and MSSQL DoS attempts",
+                    "hidden": false,
+                    "id": "981252"
+                },
+                {
+                    "msg": "Detects MATCH AGAINST",
+                    "hidden": false,
+                    "id": "981256"
+                },
+                {
+                    "msg": "Detects basic SQL authentication bypass attempts 2/3",
+                    "hidden": false,
+                    "id": "981245"
+                },
+                {
+                    "msg": "Looking for basic sql injection. Common attack string for mysql",
+                    "hidden": false,
+                    "id": "981276"
+                },
+                {
+                    "msg": "Detects Postgres pg_sleep injection",
+                    "hidden": false,
+                    "id": "981254"
+                },
+                {
+                    "msg": "Finds basic MongoDB SQL injection attempts",
+                    "hidden": false,
+                    "id": "981270"
+                },
+                {
+                    "msg": "Detects MySQL comments",
+                    "hidden": false,
+                    "id": "981240"
+                },
+                {
+                    "msg": "Detects chained SQL injection attempts 2/2",
+                    "hidden": false,
+                    "id": "981249"
+                },
+                {
+                    "msg": "Detects MySQL and PostgreSQL stored procedure/function injections",
+                    "hidden": false,
+                    "id": "981253"
+                },
+                {
+                    "msg": "Detects classic SQL injection probings 1/2",
+                    "hidden": false,
+                    "id": "981242"
+                },
+                {
+                    "msg": "Detects basic SQL authentication bypass attempts 3/3",
+                    "hidden": false,
+                    "id": "981246"
+                },
+                {
+                    "msg": "Detects MySQL UDF injection and other data/structure manipulation attempts",
+                    "hidden": false,
+                    "id": "981251"
+                },
+                {
+                    "msg": "Detects concatenated basic SQL injection and SQLLFI attempts",
+                    "hidden": false,
+                    "id": "981247"
+                },
+                {
+                    "msg": "Detects classic SQL injection probings 2/2",
+                    "hidden": false,
+                    "id": "981243"
+                }
+            ],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_41_sql_injection_attacks.conf"
+        },
+        {
+            "index": "59",
+            "name": "Outbound blocking",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Outbound Anomaly Score Exceeded (score %{TX.OUTBOUND_ANOMALY_SCORE}): Last Matched Message: %{tx.msg}",
+                    "hidden": false,
+                    "id": "981200"
+                }
+            ],
+            "mutable": false,
+            "hidden": true,
+            "id": "modsecurity_crs_59_outbound_blocking.conf"
+        },
+        {
+            "index": "35",
+            "name": "Bad robots",
+            "exclusive": false,
+            "rules": [
+                {
+                    "msg": "Request Indicates a Security Scanner Scanned the Site",
+                    "hidden": false,
+                    "id": "990002"
+                },
+                {
+                    "msg": "Request Indicates a Security Scanner Scanned the Site",
+                    "hidden": false,
+                    "id": "990901"
+                },
+                {
+                    "msg": "Request Indicates a Security Scanner Scanned the Site",
+                    "hidden": false,
+                    "id": "990902"
+                },
+                {
+                    "msg": "Rogue web site crawler",
+                    "hidden": false,
+                    "id": "990012"
+                }
+            ],
+            "mutable": false,
+            "hidden": false,
+            "id": "modsecurity_crs_35_bad_robots.conf"
+        }
+    ]
+}

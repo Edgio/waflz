@@ -1,0 +1,24 @@
+package waflz_pb;
+//: ----------------------------------------------------------------------------
+//: access control list (acl)
+//: ----------------------------------------------------------------------------
+message acl {
+        // -------------------------------------------------
+        // lists
+        // -------------------------------------------------
+        message lists_t {
+                repeated string blacklist = 1;
+                repeated string whitelist = 2;
+        }
+        message lists_asn_t {
+                repeated uint32 blacklist = 1;
+                repeated uint32 whitelist = 2;
+        }
+        optional lists_t country = 1;
+        optional lists_t ip = 2;
+        optional lists_t referer = 3;
+        optional lists_t url = 4;
+        optional lists_t cookie = 5;
+        optional lists_t user_agent = 6;
+        optional lists_asn_t asn = 7;
+}

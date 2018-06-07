@@ -1,0 +1,363 @@
+package waflz_pb;
+//: ----------------------------------------------------------------------------
+//: variable
+//: ----------------------------------------------------------------------------
+message variable_t {
+        // -------------------------------------------------
+        // var type...
+        // -------------------------------------------------
+        enum type_t {
+                ARGS = 1;
+                ARGS_COMBINED_SIZE = 2;
+                ARGS_NAMES = 3;
+                ARGS_GET = 4;
+                ARGS_GET_NAMES = 5;
+                ARGS_POST = 6;
+                ARGS_POST_NAMES = 7;
+                FILES = 8;
+                FILES_COMBINED_SIZE = 9;
+                FILES_NAMES = 10;
+                GLOBAL = 11;
+                MULTIPART_STRICT_ERROR = 12;
+                MULTIPART_UNMATCHED_BOUNDARY = 13;
+                QUERY_STRING = 14;
+                REMOTE_ADDR = 15;
+                REQBODY_ERROR = 16;
+                REQUEST_BASENAME = 17;
+                REQUEST_BODY = 18;
+                REQUEST_COOKIES = 19;
+                REQUEST_COOKIES_NAMES = 20;
+                REQUEST_FILENAME = 21;
+                REQUEST_HEADERS = 22;
+                REQUEST_HEADERS_NAMES = 23;
+                REQUEST_LINE = 24;
+                REQUEST_METHOD = 25;
+                REQUEST_PROTOCOL = 26;
+                REQUEST_URI = 27;
+                RESOURCE = 28;
+                RESPONSE_BODY = 29;
+                RESPONSE_STATUS = 30;
+                TX = 31;
+                WEBSERVER_ERROR_LOG = 32;
+                XML = 33;
+                REQBODY_PROCESSOR = 34;
+                MATCHED_VAR = 100;
+                MATCHED_VAR_NAME = 101;
+                MATCHED_VARS = 102;
+                MATCHED_VARS_NAMES = 103;
+                RESPONSE_HEADERS = 200;
+                SESSION = 201;
+                GEO = 202;
+                REQUEST_URI_RAW = 203;
+                DURATION = 204;
+                UNIQUE_ID = 300;
+                IP = 400;
+                FILE_EXT = 501;
+        }
+        // -------------------------------------------------
+        // match type
+        // -------------------------------------------------
+        message match_t {
+                optional string value = 1;
+                optional bool is_negated = 10;
+                optional bool is_regex = 11;
+                // -----------------------------------------
+                // reserved for internal use
+                // -----------------------------------------
+                optional uint64 _reserved_1 = 1000;
+        }
+        optional type_t type = 1;
+        repeated match_t match = 2;
+        optional bool is_count = 3;
+}
+//: ----------------------------------------------------------------------------
+//: target update
+//: ----------------------------------------------------------------------------
+message update_target_t {
+        optional string id = 1;
+        repeated variable_t variable = 2;
+        optional string replace = 3;
+}
+//: ----------------------------------------------------------------------------
+//: ModSecurity SecAction Object
+//: Syntax:        [ACTIONS]
+//: Example Usage: "phase:1,log,deny,id:1"
+//: ----------------------------------------------------------------------------
+message sec_action_t {
+        // -------------------------------------------------
+        // transformation
+        // -------------------------------------------------
+        enum transformation_type_t {
+                CMDLINE = 1;
+                COMPRESSWHITESPACE = 2;
+                CSSDECODE = 3;
+                HEXENCODE = 4;
+                HEXDECODE = 5;
+                HTMLENTITYDECODE = 6;
+                JSDECODE = 7;
+                LENGTH = 8;
+                LOWERCASE = 9;
+                MD5 = 10;
+                NONE = 11;
+                NORMALIZEPATH = 12;
+                NORMALIZEPATHWIN = 13;
+                REMOVENULLS = 14;
+                REMOVEWHITESPACE = 15;
+                REPLACECOMMENTS = 16;
+                SHA1 = 17;
+                URLDECODEUNI = 18;
+                UTF8TOUNICODE = 19;
+                URLDECODE = 20;
+                NORMALISEPATH = 21;
+                REMOVECOMMENTS = 22;
+        }
+        // -------------------------------------------------
+        // action type
+        // -------------------------------------------------
+        enum action_type_t {
+                PASS = 1;
+                BLOCK = 2;
+                DENY = 3;
+                DROP = 4;
+        }
+        // -------------------------------------------------
+        // setvar
+        // -------------------------------------------------
+        message setvar_t {
+                enum op_t {
+                        ASSIGN = 1;
+                        DELETE = 2;
+                        INCREMENT = 3;
+                        DECREMENT = 4;
+                }
+                enum scope_t {
+                        TX = 1;
+                        IP = 2;
+                        GLOBAL = 3;
+                }
+                optional scope_t scope = 1;
+                optional string var = 2;
+                optional op_t op = 3;
+                optional string val = 4;
+        }
+        // -------------------------------------------------
+        // Properties
+        // -------------------------------------------------
+        optional string id = 1;
+        optional string msg = 2;
+        optional action_type_t action_type = 10;
+        optional bool capture = 11;
+        optional bool nolog = 12;
+        optional bool log = 13;
+        optional bool multimatch = 14;
+        optional bool noauditlog = 15;
+        optional bool auditlog = 16;
+        optional string initcol = 20;
+        optional string status = 21;
+        optional uint32 skip = 22;
+        optional bool sanitisematched = 31;
+        optional string accuracy = 100;
+        optional string maturity = 101;
+        optional uint32 phase = 102;
+        optional string rev = 103;
+        optional string ver = 104;
+        optional string file = 105;
+        optional string expirevar = 106;
+        optional string severity = 200;
+        repeated string tag = 300;
+        repeated setvar_t setvar = 400;
+        optional string logdata = 401;
+        // -------------------------------------------------
+        // Tranformations (t)
+        // -------------------------------------------------
+        repeated transformation_type_t t = 500;
+        // -------------------------------------------------
+        // control (ctl)
+        // -------------------------------------------------
+        optional string audit_engine = 600;
+        optional string audit_log_parts = 601;
+        optional string force_request_body_variable = 602;
+        optional string request_body_access = 603;
+        optional string rule_engine = 604;
+        optional string rule_remove_by_id = 605;
+        optional update_target_t rule_remove_target_by_id = 606;
+        optional update_target_t rule_remove_target_by_tag = 607;
+        optional string request_body_processor = 608;
+        optional string skipafter = 700;
+        optional string allow = 701;
+}
+//: ----------------------------------------------------------------------------
+//: ModSecurity SecRule Object
+//: Syntax:        SecRule  VARIABLES  OPERATOR      [ACTIONS]
+//: Example Usage: SecRule  ARGS       "@rx attack"  "phase:1,log,deny,id:1"
+//: ----------------------------------------------------------------------------
+message sec_rule_t {
+        // -------------------------------------------------
+        // operator
+        // -------------------------------------------------
+        message operator_t {
+                // -----------------------------------------
+                // operator type
+                // -----------------------------------------
+                enum type_t {
+                        BEGINSWITH = 1;
+                        CONTAINS = 2;
+                        CONTAINSWORD = 3;
+                        DETECTSQLI = 4;
+                        DETECTXSS = 5;
+                        ENDSWITH = 6;
+                        EQ = 7;
+                        GE = 8;
+                        GEOLOOKUP = 9;
+                        GSBLOOKUP = 10;
+                        GT = 11;
+                        INSPECTFILE = 12;
+                        IPMATCH = 13;
+                        IPMATCHF = 14;
+                        IPMATCHFROMFILE = 15;
+                        LE = 16;
+                        LT = 17;
+                        NOMATCH = 18;
+                        PM = 19;
+                        PMF = 20;
+                        PMFROMFILE = 21;
+                        RBL = 22;
+                        RSUB = 23;
+                        RX = 24;
+                        STREQ = 25;
+                        STRMATCH = 26;
+                        UNCONDITIONALMATCH = 27;
+                        VALIDATEBYTERANGE = 28;
+                        VALIDATEDTD = 29;
+                        VALIDATEHASH = 30;
+                        VALIDATESCHEMA = 31;
+                        VALIDATEURLENCODING = 32;
+                        VALIDATEUTF8ENCODING = 33;
+                        VERIFYCC = 34;
+                        VERIFYCPF = 35;
+                        VERIFYSSN = 36;
+                        WITHIN = 37;
+                }
+                optional type_t type = 1;
+                optional string value = 2;
+                optional bool is_regex = 3;
+                optional bool is_negated = 10;
+                // -----------------------------------------
+                // NON-STD-ADDITION.
+                // allow pre-split series of values operator
+                // that accepts multiple values, like PM.
+                // rather than requiring producer to
+                // serialized, and consumer to split.
+                // -----------------------------------------
+                repeated string values = 4;
+                // -----------------------------------------
+                // reserved for internal use
+                // -----------------------------------------
+                optional uint64 _reserved_1 = 1000;
+        }
+        // rule bits
+        repeated variable_t variable = 1000;
+        optional operator_t operator = 1001;
+        optional sec_action_t action = 1002;
+        // -------------------------------------------------
+        // Chained rules
+        // -------------------------------------------------
+        // NOTE:
+        // whilst this does make it possible to
+        // create trees of rules, this is not
+        // supported.
+        // There should be a single top-level rule,
+        // with a flat sequence of chained_rule
+        // entries under it
+        // -------------------------------------------------
+        repeated sec_rule_t chained_rule = 2000;
+        // Ordering
+        optional uint32 order = 3000;
+        // Hidden
+        optional bool hidden = 4000;
+        // Properties
+        optional string id = 5000;
+        optional string name = 5001;
+}
+//: ----------------------------------------------------------------------------
+//: directives
+//: ----------------------------------------------------------------------------
+message directive_t {
+        // directives who needs ordering
+        optional string marker = 1;
+        optional sec_rule_t sec_rule = 2;
+        optional sec_action_t sec_action = 3;
+        // include
+        optional string include = 100;
+}
+//: ----------------------------------------------------------------------------
+//: ModSecurity Config Object
+//: ----------------------------------------------------------------------------
+message sec_config_t {
+        // -------------------------------------------------
+        // limit action
+        // -------------------------------------------------
+        enum limit_action_type_t {
+                REJECT = 1;
+                PROCESS_PARTIAL = 2;
+        }
+        // -------------------------------------------------
+        // engine
+        // -------------------------------------------------
+        enum engine_type_t {
+                ON = 1;
+                OFF = 2;
+                DETECTION_ONLY = 3;
+        }
+        // -------------------------------------------------
+        // id
+        // -------------------------------------------------
+        optional string ruleset_id = 100;
+        optional string ruleset_version = 101;
+        // -------------------------------------------------
+        // properties...
+        // -------------------------------------------------
+        optional engine_type_t rule_engine = 1000;
+        optional uint32 argument_separator = 1001;
+        optional string component_signature = 1002;
+        optional uint32 cookie_format = 1003;
+        optional string data_dir = 1004;
+        optional string tmp_dir = 1005;
+        optional string geo_lookup_db = 1006;
+        // -------------------------------------------------
+        // request settings
+        // -------------------------------------------------
+        optional bool request_body_access = 2000;
+        optional uint32 request_body_in_memory_limit = 2001;
+        optional uint32 request_body_limit = 2002;
+        optional limit_action_type_t request_body_limit_action = 2003;
+        optional uint32 request_body_no_files_limit = 2004;
+        // -------------------------------------------------
+        // response settings
+        // -------------------------------------------------
+        optional bool response_body_access = 3000;
+        optional uint32 response_body_limit = 3001;
+        optional limit_action_type_t response_body_limit_action = 3002;
+        optional string response_body_mime_type = 3003;
+        // -------------------------------------------------
+        // pcre config
+        // -------------------------------------------------
+        optional uint32 pcre_match_limit = 4000;
+        optional uint32 pcre_match_limit_recursion = 4001;
+        // -------------------------------------------------
+        // actions
+        // -------------------------------------------------
+        optional sec_action_t default_action = 5000;
+        repeated string rule_remove_by_id = 5100;
+        repeated update_target_t update_target_by_id = 5101;
+        // -------------------------------------------------
+        // directives
+        // -------------------------------------------------
+        repeated directive_t directive = 6000;
+        // -------------------------------------------------
+        // debug
+        // -------------------------------------------------
+        optional string debug_log = 8000;
+        optional uint32 debug_log_level = 8001;
+        
+}

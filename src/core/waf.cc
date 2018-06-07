@@ -156,7 +156,7 @@ int32_t waf::get_str(std::string &ao_str, config_parser::format_t a_format)
                 // convert protobuf message to JsonCpp object
                 try
                 {
-                        ns_jspb::convert_to_json(ao_str, *m_pb);
+                        convert_to_json(ao_str, *m_pb);
                 }
                 catch(int e)
                 {

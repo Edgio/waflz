@@ -62,5 +62,26 @@ Operators
 
 Transformations
 ===============
-| ...
-| ...
+| BEGINSWITH
+| CONTAINS
+| DETECTSQLI
+| DETECTXSS
+| ENDSWITH
+| EQ
+| GE
+| GT
+| PM
+| PMF
+| PMFROMFILE
+| RX
+| STREQ
+| STRMATCH
+| VERIFYCC
+| VALIDATEBYTERANGE
+| VALIDATEUTF8ENCODING
+| VALIDATEURLENCODING
+| WITHIN
+
+Rule target updates
+===================
+Rule target update by ID

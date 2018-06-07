@@ -266,7 +266,7 @@ TEST_CASE( "instances test", "[instances]" ) {
                 std::string l_rule_dir = l_cwd;
                 l_rule_dir += "/../../../../tests/data/waf/ruleset/";
                 //l_rule_dir += "/../tests/data/waf/ruleset/";
-                //ns_jspb::set_trace(true);
+                //set_trace(true);
                 // -----------------------------------------
                 // callbacks
                 // -----------------------------------------

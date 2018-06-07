@@ -161,11 +161,11 @@ int32_t profile::load_config(const char *a_buf,
         // -------------------------------------------------
         m_pb = new waflz_pb::profile();
         int32_t l_s;
-        l_s = ns_jspb::update_from_json(*m_pb, a_buf, a_buf_len);
+        l_s = update_from_json(*m_pb, a_buf, a_buf_len);
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != JSPB_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "parsing json. reason: %s", ns_jspb::get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "parsing json. reason: %s", get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------

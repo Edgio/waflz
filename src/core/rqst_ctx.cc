@@ -351,6 +351,9 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                         return WAFLZ_STATUS_ERROR;
                 }
         }
+        // Feature not supported
+        // the access setting allowed_http_protocol is NOP atm
+#if 0
         // -------------------------------------------------
         // protocol
         // -------------------------------------------------
@@ -367,6 +370,10 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                         return WAFLZ_STATUS_ERROR;
                 }
         }
+#endif
+        // set the protocol to http/1.1
+        m_protocol.m_data = "HTTP/1.1";
+        m_protocol.m_len = strlen(m_protocol.m_data);
         // -------------------------------------------------
         // line
         // -------------------------------------------------

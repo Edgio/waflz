@@ -31,17 +31,12 @@ $ ./build.sh
 
 ### Running a standalone WAFLZ server
 
-You can run waflz server with any standalone modsecurity rule.
-```sh
-$ cd build 
-```
-Sample rule
 ```sh
 $ cat rule.conf
   SecRule &REQUEST_HEADERS:Host "@eq 0" \
         "skipAfter:END_HOST_CHECK,phase:2,rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'9',t:none,block,msg:'Request Missing a Host Header',id:'960008',tag:'OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_HOST',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',severity:'4',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER-%{matched_var_name}=%{matched_var}"
 
-$ ./util/waflz_server/waflz_server --conf-file=rule.conf
+$ ./build/util/waflz_server/waflz_server --conf-file=rule.conf
 
 ```
 

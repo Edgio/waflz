@@ -1,0 +1,58 @@
+package waflz_pb;
+//: ----------------------------------------------------------------------------
+//: request info
+//: ----------------------------------------------------------------------------
+message request_info {
+        message timespec_t {
+                optional uint32 sec  = 1;
+                optional uint32 nsec = 2;
+        }
+        enum log_status_t {
+                        LOG_STATUS_NONE                    = 0;
+                        LOG_STATUS_CONFIG_NOCACHE          = 1;
+                        LOG_STATUS_UNCACHEABLE             = 2;
+                        LOG_STATUS_TCP_MISS                = 3;
+                        LOG_STATUS_TCP_HIT                 = 4;
+                        LOG_STATUS_TCP_PARTIAL_HIT         = 5;
+                        LOG_STATUS_TCP_EXPIRED_HIT         = 6;
+                        LOG_STATUS_TCP_EXPIRED_MISS        = 7;
+                        LOG_STATUS_TCP_MEM_HIT             = 8;
+                        LOG_STATUS_TCP_CLIENT_REFRESH_MISS = 9;
+        }
+        message common_header_t {
+
+                optional bytes host            = 1;
+                optional bytes user_agent      = 2;
+                optional bytes x_forwarded_for = 3;
+                optional bytes x_ec_tag        = 4;
+                optional bytes referer         = 5;
+                optional bytes via             = 6;
+                optional bytes x_midgress      = 7;
+                optional bytes x_ec_psa_fetch  = 8;
+                optional bytes cache_control   = 9;
+                optional bytes content_type    = 10;
+                optional bytes range           = 11;
+        }
+        // Accesslog specific
+        optional timespec_t epoch_time = 1;
+        optional timespec_t write_time_used = 2;
+        optional bytes virt_remote_host = 3;
+        optional bytes country_code = 4;
+        optional uint64 file_size = 5;
+        optional bytes local_addr = 6;
+        optional uint32 server_canonical_port  = 7;
+        optional log_status_t apparent_cache_log_status = 8;
+        optional bytes status = 9;
+        optional uint64 bytes_out = 10;
+        optional bytes request_method = 11;
+        optional bytes orig_url = 12;
+        optional bytes url = 13;
+        optional bytes query_string = 14;
+        optional common_header_t common_header = 15;
+        optional uint64 customer_id = 16;
+        optional uint32 request_id = 17;
+        optional uint64 bytes_in = 18;
+        optional timespec_t total_conn_time = 19;
+        optional bytes req_uuid = 20;
+        optional bytes hostname = 21;
+}

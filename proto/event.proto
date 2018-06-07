@@ -1,0 +1,129 @@
+package waflz_pb;
+import "enforcement.proto";
+import "request_info.proto";
+//: ----------------------------------------------------------------------------
+//: event
+//: ----------------------------------------------------------------------------
+message event {
+        // -------------------------------------------------
+        // modsecurity action
+        // -------------------------------------------------
+        enum action_t {
+                ACTION_NONE               = 0;
+                ACTION_DENY               = 1;
+                ACTION_REDIRECT           = 2;
+                ACTION_PROXY              = 3;
+                ACTION_DROP               = 4;
+                ACTION_ALLOW              = 5;
+                ACTION_ALLOW_REQUEST      = 6;
+                ACTION_ALLOW_PHASE        = 7;
+                ACTION_PAUSE              = 8;
+        }
+        // -------------------------------------------------
+        // mirrors RULE_TYPE_X definitions in re.h        
+        // -------------------------------------------------
+        enum rule_type_t {
+                RULE_TYPE_NORMAL = 0;
+                RULE_TYPE_ACTION = 1;
+                RULE_TYPE_MARKER = 2;
+                RULE_TYPE_LUA = 3;
+        }
+        // -------------------------------------------------
+        // var
+        // -------------------------------------------------
+        message var_t {
+                optional string name = 1;
+                optional bytes value = 2;
+                optional string param = 3;
+                optional bytes param_data = 4;
+                optional bool is_negated = 5;
+                optional bool is_counting = 6;
+        }
+
+        message timespec_t {
+                optional uint32 sec  = 1;
+                optional uint32 nsec = 2;
+        }
+        // -------------------------------------------------
+        // Request specific
+        // -------------------------------------------------
+        optional waflz_pb.request_info req_info = 1;
+        // -------------------------------------------------
+        // msre_actionset entries
+        // -------------------------------------------------
+        optional uint32 rule_id = 2;
+        optional uint32 rule_rev = 3;
+        optional string rule_msg = 4;
+        optional string rule_version = 5;
+        optional uint32 rule_maturity = 6;
+        optional uint32 rule_accuracy = 7;
+        optional uint32 rule_severity = 8;
+        optional uint32 rule_phase = 9;
+        optional uint32 rule_arg_min = 10;
+        optional uint32 rule_arg_max = 11;
+        optional bool rule_is_chained = 12;
+        optional uint32 rule_skip_count = 13;
+        optional string rule_skip_after = 14;      
+        optional action_t rule_intercept_action = 15;
+        optional string rule_intercept_uri = 16;
+        // -------------------------------------------------
+        // TODO
+        // -use http status enum???
+        // optional http.status_t rule_intercept_status
+        // -------------------------------------------------
+        optional uint32 rule_intercept_status = 17;
+        optional uint32 rule_intercept_pause = 18;
+        optional uint32 rule_block = 19;
+        // -------------------------------------------------
+        // uint32 msre_rule entries
+        // -------------------------------------------------
+        repeated var_t rule_target = 30;
+        optional string rule_op_name = 31;
+        optional string rule_op_param = 32;
+        optional bytes rule_op_param_data = 33;
+        optional string rule_op_metadata = 34;
+        optional bool rule_op_negated = 35;
+        optional string rule_unparsed = 36;
+        optional string rule_file = 37;
+        optional uint32 rule_line = 38;
+        optional rule_type_t rule_type = 39;
+        optional string rule_regex_string = 40;
+        optional string rule_replace_string = 41;
+        //optional string rule_ip_matches = 42;
+        repeated string rule_tag = 43;
+        // -------------------------------------------------
+        // request specific entries
+        // -------------------------------------------------
+        optional var_t matched_var = 50;
+        // #################################################
+        // DEPRECATED
+        // #################################################
+        optional var_t matched_data = 51;
+        optional uint32 total_anomaly_score = 52;
+        optional uint32 total_sql_injection_score = 53;
+        optional uint32 total_xss_score = 54;
+        optional uint32 anomaly_score = 55;
+        optional uint32 sql_injection_score = 56;
+        optional uint32 xss_score = 57;
+        optional uint32 paranoia_level = 58;
+        // -------------------------------------------------
+        // child events
+        // -------------------------------------------------
+        repeated event sub_event = 100;
+        //waf instance specific
+        optional string waf_instance_id = 200;
+        optional string waf_instance_name = 201;
+        //waf profile specific
+        optional string waf_profile_id = 220;
+        optional string waf_profile_name = 221;
+        // Using enums defined in enforcement.proto
+        optional uint32 waf_profile_action = 222;
+        optional bytes waf_profile_type = 223;
+        // -------------------------------------------------
+        // !!!DEPRECATED!!!
+        // -------------------------------------------------
+        optional waflz_pb.enforcement prod_profile_enforcements = 240;
+        optional string response_header_name = 241;
+        optional string ruleset_id = 242;
+        optional string ruleset_version = 243;
+}

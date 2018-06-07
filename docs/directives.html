@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Supported Functionality &#8212; Waflz 0.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Known Issues with Modsecurity" href="issues.html" />
+    <link rel="prev" title="waflz" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="supported-functionality">
+<h1>Supported Functionality<a class="headerlink" href="#supported-functionality" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="configuration-directives">
+<h2>Configuration Directives<a class="headerlink" href="#configuration-directives" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">SecAction</div>
+<div class="line">SecMarker</div>
+<div class="line">SecRule</div>
+<div class="line">SecMarker</div>
+</div>
+</div>
+<div class="section" id="variables">
+<h2>Variables<a class="headerlink" href="#variables" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">ARGS</div>
+<div class="line">ARGS_COMBINED_SIZE</div>
+<div class="line">ARGS_NAMES</div>
+<div class="line">ARGS_GET</div>
+<div class="line">ARGS_GET_NAMES</div>
+<div class="line">ARGS_POST</div>
+<div class="line">ARGS_POST_NAMES</div>
+<div class="line">MATCHED_VAR</div>
+<div class="line">MATCHED_VAR_NAME</div>
+<div class="line">MATCHED_VARS</div>
+<div class="line">MATCHED_VARS_NAMES</div>
+<div class="line">QUERY_STRING</div>
+<div class="line">REMOTE_ADDR</div>
+<div class="line">REQUEST_BASENAME</div>
+<div class="line">REQUEST_BODY</div>
+<div class="line">REQUEST_COOKIES</div>
+<div class="line">REQUEST_COOKIES_NAMES</div>
+<div class="line">REQUEST_FILENAME</div>
+<div class="line">REQUEST_HEADERS</div>
+<div class="line">REQUEST_HEADERS_NAMES</div>
+<div class="line">REQUEST_LINE</div>
+<div class="line">REQUEST_METHOD</div>
+<div class="line">REQUEST_PROTOCOL</div>
+<div class="line">REQUEST_URI</div>
+<div class="line">REQUEST_URI_RAW</div>
+<div class="line">TX</div>
+<div class="line">XML</div>
+</div>
+</div>
+<div class="section" id="operators">
+<h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">BEGINSWITH</div>
+<div class="line">CONTAINS</div>
+<div class="line">DETECTSQLI</div>
+<div class="line">DETECTXSS</div>
+<div class="line">ENDSWITH</div>
+<div class="line">EQ</div>
+<div class="line">GE</div>
+<div class="line">GT</div>
+<div class="line">PM</div>
+<div class="line">PMF</div>
+<div class="line">PMFROMFILE</div>
+<div class="line">RX</div>
+<div class="line">STREQ</div>
+<div class="line">STRMATCH</div>
+<div class="line">VERIFYCC</div>
+<div class="line">VALIDATEBYTERANGE</div>
+<div class="line">VALIDATEUTF8ENCODING</div>
+<div class="line">VALIDATEURLENCODING</div>
+<div class="line">WITHIN</div>
+</div>
+</div>
+<div class="section" id="transformations">
+<h2>Transformations<a class="headerlink" href="#transformations" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">...</div>
+<div class="line">...</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Supported Functionality</a><ul>
+<li><a class="reference internal" href="#configuration-directives">Configuration Directives</a></li>
+<li><a class="reference internal" href="#variables">Variables</a></li>
+<li><a class="reference internal" href="#operators">Operators</a></li>
+<li><a class="reference internal" href="#transformations">Transformations</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter"><strong>waflz</strong></a></li>
+      <li>Next: <a href="issues.html" title="next chapter">Known Issues with Modsecurity</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/directives.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Reed Morrison, Devender Singh.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/directives.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

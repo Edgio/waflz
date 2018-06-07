@@ -1,0 +1,209 @@
+package waflz_pb;
+import "enforcement.proto";
+//: ----------------------------------------------------------------------------
+//: waf profile
+//: ----------------------------------------------------------------------------
+message profile {
+        // -------------------------------------------------
+        // general settings
+        // -------------------------------------------------
+        message general_settings_t {
+                // -------------------------------
+                // TODO make engine types in json
+                // line up with 
+                // -------------------------------
+                enum engine_t {
+                        SIGNATURE = 0;
+                        ANOMALY =1;
+                }
+                // -------------------------------
+                // anomaly settings
+                // -------------------------------
+                message anomaly_settings_t {
+                        optional uint32 critical_score = 1;
+                        optional uint32 error_score = 2;
+                        optional uint32 inbound_threshold = 3;
+                        optional uint32 notice_score = 4;
+                        optional uint32 outbound_threshold = 5;
+                        optional uint32 warning_score = 6;
+                }
+                // -------------------------------
+                // allowed
+                // -------------------------------
+                repeated string allowed_http_methods = 100;
+                repeated string allowed_http_versions = 101;
+                repeated string allowed_request_content_types = 102;
+                repeated string disallowed_extensions = 103;
+                repeated string disallowed_headers = 104;
+                // -------------------------------
+                // args
+                // -------------------------------
+                optional uint32 arg_length = 200;
+                optional uint32 arg_name_length = 201;
+                optional uint32 max_num_args = 202;
+                optional uint32 total_arg_length = 203;
+                // -------------------------------
+                // file
+                // -------------------------------
+                optional uint64 combined_file_sizes = 300;
+                optional uint64 max_file_size = 301;
+                // -------------------------------
+                // response
+                // -------------------------------
+                optional string response_header_name = 400;
+                repeated string response_mime_types = 401;
+                // -------------------------------
+                // engine
+                // -------------------------------
+                optional string engine = 500;
+                optional anomaly_settings_t anomaly_settings = 501;
+                optional bool validate_utf8_encoding = 502;
+                optional bool xml_parser = 503;
+                optional bool process_request_body = 504;
+                optional bool process_response_body = 505;
+                optional uint32 paranoia_level = 550;
+                // -------------------------------
+                // logging
+                // -------------------------------
+                optional bool dont_log_matched_data = 600;
+                // -------------------------------
+                // debug
+                // -------------------------------
+                optional uint32 debug_level = 900;
+                optional string debug_log = 901;
+        }
+        // -------------------------------------------------
+        // access settings
+        // -------------------------------------------------
+        message access_settings_t {
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                // *******************************
+                // moved to acl deprecated -BEGIN
+                // *******************************
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                // -------------------------------
+                // lists
+                // -------------------------------
+                message lists_t {
+                        repeated string blacklist = 1;
+                        repeated string whitelist = 2;
+                }
+                message lists_asn_t {
+                        repeated uint32 blacklist = 1;
+                        repeated uint32 whitelist = 2;
+                }
+                optional lists_t country = 1;
+                optional lists_t ip = 2;
+                optional lists_t referer = 3;
+                optional lists_t url = 4;
+                optional lists_t cookie = 5;
+                // --------------------------------
+                // TODO -actual field name in json
+                // uses dash
+                // --------------------------------
+                optional lists_t user_agent = 6;
+                optional lists_asn_t asn = 7;
+                // --------------------------------
+                // TODO -deprecate 'referrer' in
+                // favor of 'referer'
+                // --------------------------------
+                optional lists_t referrer = 50;
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                // *******************************
+                // moved to acl deprecated -END
+                // *******************************
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                repeated string ignore_cookie = 100;
+                repeated string ignore_header = 101;
+                repeated string ignore_query_args = 102;
+        }
+        // -------------------------------------------------
+        // rule target update
+        // -------------------------------------------------
+        message rule_target_update_t {
+                optional string target = 1;
+                optional string replace_target = 2;
+                optional string target_match = 3;
+                optional bool is_regex = 4;
+                optional bool is_negated = 5;
+                optional string rule_id = 6;
+        }
+        // -------------------------------------------------
+        // disabled policy
+        // -------------------------------------------------
+        message disabled_policy_t {
+                optional string policy_id = 1;
+        }
+        // -------------------------------------------------
+        // disabled rule
+        // -------------------------------------------------
+        message disabled_rule_t {
+                optional string policy_id = 1;
+                optional string rule_id = 2;                
+        }
+        // -------------------------------------------------
+        // customer rule
+        // -------------------------------------------------
+        message custom_rule_t {
+                optional string rule_id = 1;
+                optional string description = 2;                
+        }
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        optional string id = 1;
+        optional string name = 2;
+        optional string enabled_date = 5;
+        optional string created_date = 6;
+        optional string last_modified_date = 7;
+        // -------------------------------------------------
+        // settings
+        // -------------------------------------------------
+        optional general_settings_t general_settings = 100;
+        optional access_settings_t access_settings = 101;
+        // -------------------------------------------------
+        // modsecurity config
+        // -------------------------------------------------
+        optional string ruleset_id = 200;
+        optional string ruleset_version = 201;
+        repeated custom_rule_t custom_rules = 210;
+        repeated disabled_policy_t disabled_policies = 211;
+        repeated disabled_rule_t disabled_rules = 212;
+        repeated rule_target_update_t rule_target_updates = 213;
+        repeated string policies = 214;
+}
+//: ----------------------------------------------------------------------------
+//: instance
+//: ----------------------------------------------------------------------------
+message instance {
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        optional string id = 1;
+        optional string name = 2;
+        optional string type = 3;
+        optional string customer_id = 4;
+        optional string enabled_date = 5;
+        optional string deleted_on = 6;
+        optional string last_modified_date = 7;
+        // -------------------------------------------------
+        // production
+        // -------------------------------------------------
+        optional profile prod_profile = 100;
+        optional string prod_profile_action = 101;
+        repeated waflz_pb.enforcement prod_profile_enforcements = 102;
+        optional string prod_profile_id = 110;
+        optional string prod_profile_name = 111;
+        optional string prod_profile_ruleset_id = 112;
+        optional string prod_profile_ruleset_version = 113;
+        // -------------------------------------------------
+        // audit
+        // -------------------------------------------------
+        optional profile audit_profile = 200;
+        optional string audit_profile_action = 201;
+        repeated waflz_pb.enforcement audit_profile_enforcements = 202;
+        optional string audit_profile_id = 210;
+        optional string audit_profile_name = 211;
+        optional string audit_profile_ruleset_id = 212;
+        optional string audit_profile_ruleset_version = 213;
+}

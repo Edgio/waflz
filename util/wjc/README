@@ -1,0 +1,6 @@
+
+Waf Json Compiler:
+Compiles Waf configuration file (in json) to modsec rules format and verifies.
+
+
+

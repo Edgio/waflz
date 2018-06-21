@@ -30,7 +30,6 @@
 #include "support/time_util.h"
 #include "support/geoip2_mmdb.h"
 #include "waflz/engine.h"
-#include "standalone/api.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -51,8 +50,6 @@
 //: Constants
 //: ----------------------------------------------------------------------------
 // the maximum size of json configuration for modsecurity instance (1MB)
-// NOTE: taken from implementation file:
-//       src/modules/security/mod_security.cc
 #define CONFIG_SECURITY_CONFIG_MAX_SIZE (1<<20)
 //: ----------------------------------------------------------------------------
 //: Macros

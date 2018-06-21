@@ -744,13 +744,26 @@ int32_t normalize_path(char **ao_buf,
         char *l_buf = NULL;
         l_buf = strndup(a_buf, a_len);
         // -------------------------------------------------
+        // calc new length
+        // -------------------------------------------------
+        uint32_t l_buf_len = a_len;
+        l_buf_len = strnlen(l_buf, a_len);
+        if(!l_buf ||
+           !l_buf_len)
+        {
+                *ao_buf = NULL;
+                ao_len = 0;
+                if(l_buf) { free(l_buf); l_buf = NULL; }
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
         // set vars
         // -------------------------------------------------
         bool l_done = false;
         bool l_root = false;
         char *l_src = l_buf;
         char *l_dst = l_buf;
-        const char *l_end = l_buf + (a_len - 1);
+        const char *l_end = l_buf + (l_buf_len - 1);
         bool l_relative = ((l_buf[0] == '/') ||
                           (a_is_windows && (l_buf[0] == '\\'))) ? false : true;
         bool l_trailing = ((l_end[0] == '/') ||
@@ -762,9 +775,7 @@ int32_t normalize_path(char **ao_buf,
               (l_src <= l_end) &&
               (l_dst <= l_end))
         {
-                //NDBG_PRINT("l_src[%p]: %c\n", l_src, l_src[0]);
-                //NDBG_PRINT("l_dst[%p]: %c\n", l_dst, l_dst[0]);
-                // -----------------------------------------
+                 // -----------------------------------------
                 // convert backslash to fwd slash on Windows
                 // -----------------------------------------
                 if(a_is_windows)
@@ -939,7 +950,7 @@ copy:
         // l_done...
         // -------------------------------------------------
         *ao_buf = l_buf;
-        ao_len = strnlen(l_buf, a_len);
+        ao_len = strnlen(l_buf, l_buf_len);
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -1378,6 +1389,7 @@ int32_t urldecode_uni_ns(char **ao_buf, uint32_t &ao_len, const char *a_buf, uin
                 {
                         // skip %u
                         _SET_AND_SKIP();
+                        continue;
                 }
                 // -----------------------------------------
                 // decode a %xx combo only if it is valid
@@ -1388,6 +1400,7 @@ int32_t urldecode_uni_ns(char **ao_buf, uint32_t &ao_len, const char *a_buf, uin
                    !VALID_HEX(l_c2))
                 {
                         _SET_AND_SKIP();
+                        continue;
                 }
                 // -----------------------------------------
                 // decode...
@@ -1487,7 +1500,7 @@ int32_t utf8_to_unicode(char **ao_buf,
                         }
                         if(l_c == 0)
                         {
-                                *l_data = x2c(&l_c);
+                                *l_data = '\0';
                         }
                         else
                         {

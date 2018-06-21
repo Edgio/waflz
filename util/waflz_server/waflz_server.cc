@@ -329,7 +329,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 if(l_event)
                 {
                         int32_t l_s;
-                        l_s = ns_jspb::convert_to_json(l_event_str, *l_event);
+                        l_s = ns_waflz::convert_to_json(l_event_str, *l_event);
                         if(l_s != JSPB_OK)
                         {
                                 NDBG_PRINT("error performing convert_to_json.\n");
@@ -432,7 +432,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 if(l_event)
                 {
                         int32_t l_s;
-                        l_s = ns_jspb::convert_to_json(l_prod_event, *l_event);
+                        l_s = ns_waflz::convert_to_json(l_prod_event, *l_event);
                         if(l_s != JSPB_OK)
                         {
                                 NDBG_PRINT("error performing convert_to_json.\n");
@@ -472,7 +472,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 if(l_event)
                 {
                         int32_t l_s;
-                        l_s = ns_jspb::convert_to_json(l_audit_event, *l_event);
+                        l_s = ns_waflz::convert_to_json(l_audit_event, *l_event);
                         if(l_s != JSPB_OK)
                         {
                                 NDBG_PRINT("error performing convert_to_json.\n");
@@ -534,7 +534,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 if(l_event)
                 {
                         int32_t l_s;
-                        l_s = ns_jspb::convert_to_json(l_event_str, *l_event);
+                        l_s = ns_waflz::convert_to_json(l_event_str, *l_event);
                         if(l_s != JSPB_OK)
                         {
                                 NDBG_PRINT("error performing convert_to_json.\n");

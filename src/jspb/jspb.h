@@ -40,7 +40,7 @@
 #define JSPB_ERROR -1
 #endif
 
-namespace ns_jspb {
+namespace ns_waflz {
 
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -116,7 +116,7 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 //: \details: Get last error
 //: \return:  Last error reason
 //: ----------------------------------------------------------------------------
-const char * get_err_msg(void);
+const char * get_jspb_err_msg(void);
 
 //: ----------------------------------------------------------------------------
 //: \details: Get last error
@@ -124,6 +124,6 @@ const char * get_err_msg(void);
 //: ----------------------------------------------------------------------------
 void set_trace(bool a_val);
 
-} // namespace ns_jspb
+} // namespace ns_waflz
 
 #endif // __JSON_PROTOBUF_H__

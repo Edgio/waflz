@@ -26,7 +26,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 20, SQLi=8, XSS=0): Last Matched Message: 981247-Detects concatenated basic SQL injection and SQLLFI attempts",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 20, SQLi=10, XSS=0): Last Matched Message: 981247-Detects concatenated basic SQL injection and SQLLFI attempts",
       "sub_event":
       [
         {

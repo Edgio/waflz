@@ -104,7 +104,6 @@ public:
                              const pcre_list_t &a_il_cookie);
         int32_t init_phase_2(const ctype_parser_map_t &a_ctype_parser_map, void *a_ctx);
         void show(void);
-        void show_debug(void);
         // -------------------------------------------------
         // public members
         // -------------------------------------------------

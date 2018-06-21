@@ -108,7 +108,7 @@ int print_protobuf(_Tp& ao_pb,
         {
                 std::string l_str;
                 int l_s;
-                l_s = ns_jspb::convert_to_json(l_str, ao_pb);
+                l_s = convert_to_json(l_str, ao_pb);
                 if(l_s != JSPB_OK)
                 {
                         fprintf(stderr, "WARNING: failed to convert protobuf to json\n");

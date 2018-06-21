@@ -14,6 +14,7 @@ from urllib2 import urlopen
 from urllib2 import Request
 import random
 import base64
+import datetime
 # ------------------------------------------------------------------------------
 # Globals
 # ------------------------------------------------------------------------------
@@ -130,14 +131,30 @@ def get_rqst(a_host, a_id, a_vectors, a_idx, a_results):
 def post_config(a_host, a_template, a_idx):    
     #print 'post_config: a_idx: %s'%(a_idx)
     #print json.dumps(a_template)
-    if 'id' in a_template:
-        a_template['id'] = str(a_idx)
+    #if 'id' in a_template:
+    #    a_template['id'] = str(a_idx)
+    #else:
+    #    a_template['id'] = '1'
+    if isinstance(a_template, list):
+        for l_instance in a_template:
+            if 'last_modified_date' in l_instance:
+                l_instance['last_modified_date'] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        if 'id' in l_instance:
+           l_instance['id'] = str(a_idx)
+        else:
+           l_instance['id'] = '1'
     else:
-        a_template['id'] = '1'
+        if "last_modified_date" in a_template:
+            a_template['last_modified_date'] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        if 'id' in a_template:
+           a_template['id'] = str(a_idx)
+        else:
+           a_template['id'] = '1'
     l_headers = {}
     l_headers['Content-type'] = 'application/json'
     l_url = '%s/update_instance'%(a_host)
     l_body = json.dumps(a_template)
+    #print l_body
     # ------------------------------------------------------
     # urlopen (POST)
     # ------------------------------------------------------

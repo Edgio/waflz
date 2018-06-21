@@ -343,7 +343,7 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
                 REQUIRE((l_fd != -1));
                 close(l_fd);
                 l_fd = -1;
-                //ns_jspb::set_trace(true);
+                //set_trace(true);
                 // -----------------------------------------
                 // callbacks
                 // -----------------------------------------
@@ -424,7 +424,7 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
                 REQUIRE((l_fd != -1));
                 close(l_fd);
                 l_fd = -1;
-                //ns_jspb::set_trace(true);
+                //set_trace(true);
                 // -----------------------------------------
                 // callbacks
                 // -----------------------------------------
@@ -506,7 +506,7 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
                 REQUIRE((l_fd != -1));
                 close(l_fd);
                 l_fd = -1;
-                //ns_jspb::set_trace(true);
+                //set_trace(true);
                 // -----------------------------------------
                 // callbacks
                 // -----------------------------------------

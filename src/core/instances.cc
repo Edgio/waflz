@@ -96,6 +96,11 @@ instances::~instances()
         {
                 pthread_mutex_destroy(&m_mutex);
         }
+        if(m_geoip_mmdb)
+        {
+                delete m_geoip_mmdb;
+                m_geoip_mmdb = NULL;
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -179,6 +184,9 @@ int32_t instances::load_config(instance **ao_instance,
                         {
                                 TRC_DEBUG("config is already latest. not performing update");
                                 *ao_instance = i_instance->second;
+                                // Delete the newly created instance
+                                delete l_instance;
+                                l_instance = NULL;
                                 return WAFLZ_STATUS_OK;
                         }
                 }

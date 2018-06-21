@@ -96,13 +96,24 @@ TX(COMPRESSWHITESPACE)
         // copy string
         // -------------------------------------------------
         char *l_buf = strndup(a_buf, a_len);
+        // -------------------------------------------------
+        // calc new length
+        // -------------------------------------------------
+        uint32_t l_buf_len = a_len;
+        l_buf_len = strnlen(l_buf, a_len);
+        if(!l_buf ||
+           !l_buf_len)
+        {
+                if(l_buf) { free(l_buf); l_buf = NULL; }
+                return WAFLZ_STATUS_OK;
+        }
         uint32_t i_j = 0;
         uint32_t l_cnt = 0;
         uint32_t i_i = 0;
         // -------------------------------------------------
         // compress...
         // -------------------------------------------------
-        while(i_i < a_len)
+        while(i_i < l_buf_len)
         {
                 if(isspace(l_buf[i_i]) ||
                    (l_buf[i_i] == _NBSP))

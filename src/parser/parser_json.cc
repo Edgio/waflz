@@ -78,7 +78,7 @@ int json_add_argument(arg_list_t &ao_arg_list,
                                            a_parser_json.m_current_key);
         }
         l_arg.m_val = strndup(a_val, a_len);
-        l_arg.m_val_len = a_len;
+        l_arg.m_val_len = strnlen(l_arg.m_val, a_len);
         //NDBG_PRINT("ADD_ARG %.*s: %.*s\n", l_arg.m_key_len, l_arg.m_key, l_arg.m_val_len, l_arg.m_val);
         ao_arg_list.push_back(l_arg);
         return 1;

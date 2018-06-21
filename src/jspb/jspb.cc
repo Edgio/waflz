@@ -62,7 +62,7 @@
   snprintf(s_err_msg + _len, JSPB_ERR_LEN - _len, __VA_ARGS__); \
 }while(0)
 
-namespace ns_jspb {
+namespace ns_waflz {
 
 //: ----------------------------------------------------------------------------
 //: Globals
@@ -1399,7 +1399,7 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 //: \details: Get last error
 //: \return:  Last error reason
 //: ----------------------------------------------------------------------------
-const char * get_err_msg(void)
+const char * get_jspb_err_msg(void)
 {
         return s_err_msg;
 }

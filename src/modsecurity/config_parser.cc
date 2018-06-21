@@ -3542,7 +3542,7 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
         // -------------------------------------------------
         try
         {
-                ns_jspb::update_from_json(ao_config, l_buf, l_size);
+                update_from_json(ao_config, l_buf, l_size);
         }
         catch(int e)
         {
@@ -3668,7 +3668,7 @@ int32_t config_parser::read_single_line(waflz_pb::sec_config_t& ao_config,
         {
                 try
                 {
-                        ns_jspb::update_from_json(ao_config,
+                        update_from_json(ao_config,
                                                   a_line.c_str(),
                                                   a_line.length());
                 }

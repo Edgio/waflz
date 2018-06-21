@@ -87,6 +87,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         //NDBG_PRINT("\nin:  %s\nout: %s\n and out len %u", l_in, l_out.c_str(), l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_out == l_vec[i_p].m_out));
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -128,6 +129,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         //NDBG_PRINT("\nin:  %s\nout: %s\n and out len %u", l_in, l_out.c_str(), l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_out == l_vec[i_p].m_out));
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -160,6 +162,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_out == l_vec[i_p].m_out));
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -196,6 +199,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         //NDBG_PRINT("in:  %s:\nout: %s:\n and out len %u", l_in, l_out.c_str(), l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_out == l_vec[i_p].m_out));
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -232,6 +236,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_out == l_vec[i_p].m_out));
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -268,6 +273,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_out == l_vec[i_p].m_out));
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -305,6 +311,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         //NDBG_PRINT("in:  %s:\nout: %s:\n and out len %u", l_in, l_out.c_str(), l_tx_len);
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -342,6 +349,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         //NDBG_PRINT("in:  %s:\nout: %s:\n and out len %u", l_in, l_out.c_str(), l_tx_len);
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -381,6 +389,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         l_s = l_cb(&l_tx_data, l_tx_len, l_in, strlen(l_in));
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -420,6 +429,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -455,6 +465,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -496,6 +507,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -529,6 +541,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -564,6 +577,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -598,6 +612,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -634,6 +649,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE(l_tx_data == ns_waflz::to_string(l_vec[i_p].m_len));
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -672,6 +688,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         #if 0
@@ -713,6 +730,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -744,6 +762,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
         // -------------------------------------------------
@@ -781,6 +800,7 @@ TEST_CASE( "test tx", "[tx]" ) {
                         std::string l_out(l_tx_data, l_tx_len);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((strncmp(l_tx_data, l_vec[i_p].m_out, l_tx_len)) == 0);
+                        if(l_tx_data){ free(l_tx_data); l_tx_data = NULL;}
                 }
         }
 }

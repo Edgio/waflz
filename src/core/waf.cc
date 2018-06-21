@@ -52,10 +52,6 @@
 #include <dirent.h>
 #include <errno.h>
 //: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
-#define WAFLZ_NATIVE_ANOMALY_MODE 1
-//: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
 #define DEL_LAST_CHAR(_str) _str.erase(_str.size() - 1)
@@ -77,6 +73,9 @@ waf::waf(engine &a_engine):
         m_compiled_config(NULL),
         m_ctype_parser_map(a_engine.get_ctype_parser_map()),
         m_mx_rule_list()
+#ifdef WAFLZ_NATIVE_ANOMALY_MODE
+        ,m_anomaly_score_cur(0)
+#endif
 {
         m_compiled_config = new compiled_config_t();
 }
@@ -156,7 +155,7 @@ int32_t waf::get_str(std::string &ao_str, config_parser::format_t a_format)
                 // convert protobuf message to JsonCpp object
                 try
                 {
-                        ns_jspb::convert_to_json(ao_str, *m_pb);
+                        ns_waflz::convert_to_json(ao_str, *m_pb);
                 }
                 catch(int e)
                 {
@@ -1466,9 +1465,6 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                 {
                         return WAFLZ_STATUS_OK;
                 }
-                // Reflect Variable name
-                const google::protobuf::EnumValueDescriptor* l_var_desc =
-                                waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
                 get_var_t l_get_var = NULL;
                 l_get_var = get_var_cb(l_var.type());
                 if(!l_get_var)
@@ -1510,6 +1506,9 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                         {
                                 continue;
                         }
+                        // Reflect Variable name
+                        const google::protobuf::EnumValueDescriptor* l_var_desc =
+                                        waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
                         a_ctx.m_cx_matched_var.assign(l_x_data, l_x_len);
                         a_ctx.m_cx_matched_var_name = l_var_desc->name();
                         ao_match = true;
@@ -1532,6 +1531,7 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                         int32_t l_t_size = l_a.t_size() ? l_a.t_size() : 1;
                         l_x_data = i_v->m_val;
                         l_x_len = i_v->m_val_len;
+                        //NDBG_PRINT("VAR: [%d]: %.*s\n", l_x_len, l_x_len, l_x_data);
                         bool l_mutated = false;
                         for(int32_t i_t = 0; i_t < l_t_size; ++i_t)
                         {
@@ -1621,6 +1621,9 @@ run_op:
                                 {
                                         continue;
                                 }
+                                // Reflect Variable name
+                                const google::protobuf::EnumValueDescriptor* l_var_desc =
+                                                waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
                                 a_ctx.m_cx_matched_var.assign(l_x_data, l_x_len);
                                 a_ctx.m_cx_matched_var_name = l_var_desc->name();
                                 a_ctx.m_cx_matched_var_name += ":";
@@ -1957,6 +1960,16 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         {
                 return WAFLZ_STATUS_OK;
         }
+#ifdef WAFLZ_NATIVE_ANOMALY_MODE
+        // -------------------------------------------------
+        // skip logging events not contributing to anomaly
+        // -------------------------------------------------
+        if(m_anomaly_score_cur >= l_anomaly_score)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        m_anomaly_score_cur = l_anomaly_score;
+#endif
 #define _GET_TX_FIELD(_str, _val) do { \
         i_t = a_ctx.m_cx_tx_map.find(_str); \
         if(i_t == a_ctx.m_cx_tx_map.end()) { \
@@ -2005,6 +2018,21 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
                 a_ctx.m_intercepted = true;
         }
 #endif
+        // -------------------------------------------------
+        // check for nolog
+        // -------------------------------------------------
+        if(l_action.has_nolog() &&
+           l_action.nolog())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // skip events w/o messages
+        // -------------------------------------------------
+        if(!l_action.has_msg())
+        {
+                return WAFLZ_STATUS_OK;
+        }
         // -------------------------------------------------
         // create info...
         // -------------------------------------------------
@@ -2274,6 +2302,9 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx)
         {
                 return WAFLZ_STATUS_ERROR;
         }
+#ifdef WAFLZ_NATIVE_ANOMALY_MODE
+        m_anomaly_score_cur = 0;
+#endif
         // -------------------------------------------------
         // get rqst_ctx
         // -------------------------------------------------

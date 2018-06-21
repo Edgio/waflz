@@ -165,11 +165,11 @@ int32_t instance::load_config(const char *a_buf,
         m_init = false;
         m_leave_compiled_file = a_leave_compiled_file;
         int32_t l_s;
-        l_s = ns_jspb::update_from_json(*m_pb, a_buf, a_buf_len);
+        l_s = update_from_json(*m_pb, a_buf, a_buf_len);
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != JSPB_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", ns_jspb::get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         l_s = validate();
@@ -192,10 +192,10 @@ int32_t instance::load_config(void *a_js,
         m_leave_compiled_file = a_leave_compiled_file;
         const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
         int32_t l_s;
-        l_s = ns_jspb::update_from_json(*m_pb, l_js);
+        l_s = update_from_json(*m_pb, l_js);
         if(l_s != JSPB_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", ns_jspb::get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         l_s = validate();

@@ -57,13 +57,16 @@ TEST_CASE( "test parse", "[parse]" ) {
                 entry_t l_vec[] = {
                         // 1.
                         {"/pagead/osd.js?a='select * from testing'&b=c&c=d",
-                         "/pagead/osd.js?a='select * from testing'&b=c&c=d"},
+                         "/pagead/osd.js?a='select * from testing'&b=c&c=d",
+                         0},
                         // 2.
                         {"/pagead/monkey/../banana",
-                         "/pagead/banana"},
+                         "/pagead/banana",
+                         0},
                         // 3.
                         {"/pagead/./././banana",
-                         "/pagead/banana"},
+                         "/pagead/banana",
+                         0},
                 };
                 uint32_t l_size = ARRAY_SIZE(l_vec);
                 for(uint32_t i_p = 0; i_p < l_size; ++i_p)
@@ -108,7 +111,6 @@ TEST_CASE( "test parse", "[parse]" ) {
                         int32_t l_s;
                         const char *l_in = l_vec[i_p].m_in;
                         char *l_buf = NULL;
-                        uint32_t l_len = 0;
                         uint32_t l_invalid_cnt = 0;
                         ns_waflz::arg_list_t l_arg_list;
                         l_s = ns_waflz::parse_args(l_arg_list,
@@ -124,15 +126,18 @@ TEST_CASE( "test parse", "[parse]" ) {
                                 if(i_t->m_key)
                                 {
                                         l_out.append(i_t->m_key);
+                                        free(i_t->m_key);
                                 }
                                 if(i_t->m_val)
                                 {
                                         l_out.append(i_t->m_val);
+                                        free(i_t->m_val);
                                 }
                         }
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_arg_list.size() == l_vec[i_p].m_size));
                         REQUIRE((strncmp(l_out.c_str(), l_vec[i_p].m_out, l_out.length()) == 0));
+                        if(l_buf) { free(l_buf); l_buf = NULL;}
                 }
         }
 }

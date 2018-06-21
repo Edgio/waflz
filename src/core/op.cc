@@ -282,6 +282,80 @@ OP(CONTAINS)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
+OP(CONTAINSWORD)
+{
+        ao_match = false;
+        // input can be empty, hence &&
+        if(!a_buf &&
+           !a_len)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(!a_op.has_value())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        const std::string &l_val = a_op.value();
+        // Empty param target string always matches
+        if(l_val.empty())
+        {
+                ao_match = true;
+                SET_IF_NEGATED();
+                return WAFLZ_STATUS_OK;
+        }
+        EXPAND_MACRO(l_val);
+        // If op val (target) length > than the input to look for
+        // it cannot contain target word.
+        if(l_val_ref->length() > a_len)
+        {
+                SET_IF_NEGATED();
+                return WAFLZ_STATUS_OK;
+        }
+        const char *l_match = l_val_ref->c_str();
+        // Instead of iterating for each char
+        // Get max num of iter needed.
+        // Worst case it will be the last word
+        // So dont have to scan more than the diff b/w two
+        int32_t l_max_len = a_len - l_val_ref->length();
+        for(int32_t i_m = 0; i_m <= l_max_len; ++i_m)
+        {
+                //check whether previous char was a alnum
+                // if yes, then missing boundary, no match
+                if((i_m > 0) && (isalnum(a_buf[i_m -1])))
+                {
+                        continue;
+                }
+                // First char of op val does not match
+                if(l_match[0] != a_buf[i_m])
+                {
+                        // Move to next char
+                        continue;
+                }
+                //check if remaining matched
+                if((l_val_ref->length() == 1) ||
+                    (memcmp((l_match + 1), (a_buf + i_m + 1), l_val_ref->length()-1)) == 0)
+                {
+                        // check boundaries
+                        if(i_m == l_max_len)
+                        {
+                                ao_match = true;
+                                break;
+                        }
+                        else if(!(isalnum(a_buf[i_m + l_val_ref->length()])))
+                        {
+                                ao_match = true;
+                                break;
+                        }
+                }
+        }
+        SET_IF_NEGATED();
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
 OP(BEGINSWITH)
 {
         ao_match = false;
@@ -832,6 +906,7 @@ void init_op_cb_vector(void)
 {
         INIT_OP_CB(BEGINSWITH);
         INIT_OP_CB(CONTAINS);
+        INIT_OP_CB(CONTAINSWORD);
         INIT_OP_CB(DETECTSQLI);
         INIT_OP_CB(DETECTXSS);
         INIT_OP_CB(ENDSWITH);

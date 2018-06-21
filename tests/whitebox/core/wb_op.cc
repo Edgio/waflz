@@ -165,6 +165,86 @@ TEST_CASE( "test op", "[op]" ) {
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         }
         // -------------------------------------------------
+        // CONTAINS
+        // -------------------------------------------------
+        SECTION("CONTAINSWORD") {
+                ns_waflz::op_t l_cb = NULL;
+                l_cb = ns_waflz::get_op_cb(waflz_pb::sec_rule_t_operator_t_type_t_CONTAINSWORD);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::macro l_macro;
+                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(1024, false);
+                waflz_pb::sec_rule_t_operator_t l_op;
+                l_op.set_type(waflz_pb::sec_rule_t_operator_t_type_t_CONTAINSWORD);
+                // -----------------------------------------
+                // vector
+                // -----------------------------------------
+                entry_t l_vec[] = {
+                        // 1.
+                        {"abc",
+                         "b",
+                         false},
+                        {" a ",
+                         "a",
+                         true},
+                        {"abd\\got him",
+                         "got",
+                         true},
+                        {"abd\\got him",
+                         "got",
+                         true},
+                        {"abd\\got him",
+                         "abd",
+                         true},
+                        {"abd\\got him",
+                         "him",
+                         true},
+                        {"abd\\got hims",
+                         "him",
+                         false},
+                        {"abcdefghijkl",
+                         "abc",
+                         false},
+                        {"abcdefghijkl",
+                        "jkl",
+                         false},
+                        {"unhide-abc-defghijkl",
+                         "abc",
+                         true},
+                        {"",
+                         "",
+                         true},
+                        {"test",
+                         "",
+                         true},
+                        {"",
+                         "test",
+                         false},
+                        {"hidingX<-not on word boundary, but is later on->hiding",
+                         "hiding",
+                         true},
+
+                };
+                // -----------------------------------------
+                // loop
+                // -----------------------------------------
+                for(uint32_t i_p = 0; i_p < ARRAY_SIZE(l_vec); ++i_p)
+                {
+                        int32_t l_s;
+                        const char *l_in = l_vec[i_p].m_in;
+                        char *l_buf = NULL;
+                        uint32_t l_len = 0;
+                        bool l_match = false;
+                        l_op.set_value(l_vec[i_p].m_op_val);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        REQUIRE((l_s == WAFLZ_STATUS_OK));
+                        REQUIRE((l_match == l_vec[i_p].m_match));
+                }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+        }
+        // -------------------------------------------------
         // DETECTSQLI
         // -------------------------------------------------
         SECTION("DETECTSQLI") {

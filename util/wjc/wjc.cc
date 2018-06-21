@@ -30,6 +30,7 @@
 #include "support/time_util.h"
 #include "support/geoip2_mmdb.h"
 #include "waflz/engine.h"
+#include "standalone/api.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -312,6 +313,9 @@ int main(int argc, char** argv)
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("failed to read file at %s\n", l_file.c_str());
+                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -330,13 +334,13 @@ int main(int argc, char** argv)
                         NDBG_PRINT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
                                    l_file.c_str(),
                                    l_profile->get_err_msg());
+                        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+                        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                        if(l_engine) { delete l_engine; l_engine = NULL; }
+                        if(l_profile) { delete l_profile; l_profile = NULL; }
                         return STATUS_ERROR;
                 }
-                if(l_profile)
-                {
-                        delete l_profile;
-                        l_profile = NULL;
-                }
+                if(l_profile) { delete l_profile; l_profile = NULL; }
         }
         // -------------------------------------------------
         // instance
@@ -346,6 +350,7 @@ int main(int argc, char** argv)
                 // instantiate the compiler and validate it
                 ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine, *l_geoip2_mmdb);
                 //NDBG_PRINT("Validate\n");
+                l_instance->set_use_waflz(true);
                 l_s = l_instance->load_config(l_config_buf, l_config_buf_len, (g_cleanup_tmp_files == 0));
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -353,21 +358,19 @@ int main(int argc, char** argv)
                         NDBG_PRINT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
                                    l_file.c_str(),
                                   l_instance->get_err_msg());
+                        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+                        if(l_engine) { delete l_engine; l_engine = NULL; }
+                        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                        if(l_instance) { delete l_instance; l_instance = NULL; }
                         return STATUS_ERROR;
                 }
-                if(l_instance)
-                {
-                        delete l_instance;
-                        l_instance = NULL;
-                }
+                if(l_instance) { delete l_instance; l_instance = NULL; }
         }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(l_geoip2_mmdb)
-        {
-                delete l_geoip2_mmdb;
-                l_geoip2_mmdb = NULL;
-        }
+        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+        if(l_engine) { delete l_engine; l_engine = NULL; }
         return 0;
 }

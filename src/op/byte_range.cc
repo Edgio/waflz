@@ -90,6 +90,10 @@ int32_t byte_range::init(const char *a_buf, uint32_t a_len)
         // -------------------------------------------------
         char *l_buf = NULL;
         l_buf = strndup(a_buf, a_len);
+        if(!l_buf)
+        {
+                return WAFLZ_STATUS_OK;
+        }
         // -------------------------------------------------
         // *************************************************
         //                   P A R S E

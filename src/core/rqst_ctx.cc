@@ -283,12 +283,6 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                                const pcre_list_t &a_il_cookie)
 {
         // -------------------------------------------------
-        // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        // -------------------------------------------------
-        // ignore -or exclude bits that are excluded in
-        // ignore lists...
-        // -------------------------------------------------
-        // -------------------------------------------------
         // src addr
         // -------------------------------------------------
         if(s_get_rqst_src_addr_cb)
@@ -351,8 +345,6 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-        // Feature not supported
-        // the access setting allowed_http_protocol is NOP atm
 #if 0
         // -------------------------------------------------
         // protocol
@@ -371,7 +363,9 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                 }
         }
 #endif
-        // set the protocol to http/1.1
+        // -------------------------------------------------
+        // hardcode protocol to http/1.1
+        // -------------------------------------------------
         m_protocol.m_data = "HTTP/1.1";
         m_protocol.m_len = strlen(m_protocol.m_data);
         // -------------------------------------------------

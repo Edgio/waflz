@@ -121,6 +121,9 @@ private:
         // modifications
         // -------------------------------------------------
         directive_list_t m_mx_rule_list;
+#ifdef WAFLZ_NATIVE_ANOMALY_MODE
+        int32_t m_anomaly_score_cur;
+#endif
         // -------------------------------------------------
         // sharing private fields with engine...
         // -------------------------------------------------

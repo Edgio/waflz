@@ -1,0 +1,7 @@
+﻿==============================================================
+ 	WAFLZ
+ Copyright (C) 2018  Verizon.
+==============================================================
+
+This product includes software developed by
+Verizon (www.verizon.com; www.github.com/Verizon).

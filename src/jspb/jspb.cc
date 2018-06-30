@@ -30,6 +30,7 @@
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/repeated_field.h>
+#include <stdio.h>
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"

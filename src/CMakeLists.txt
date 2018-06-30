@@ -220,7 +220,6 @@ install(FILES ${PY_INST}
 # library
 # ------------------------------------------------------------------------------
 add_library(waflzcore STATIC ${HDRS} ${SRCS})
-add_dependencies(waflzcore ext_pcre)
 
 # Create symlink for libwaflz.so.<soversion>
 SET_TARGET_PROPERTIES(waflzcore

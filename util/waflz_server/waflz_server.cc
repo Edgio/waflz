@@ -1214,12 +1214,8 @@ void print_version(FILE* a_stream, int a_exit_code)
 {
         // print out the version information
         fprintf(a_stream, "waflz_server\n");
-        fprintf(a_stream, "Copyright (C) 2017 Verizon Digital Media.\n");
-        fprintf(a_stream, "               Version: %d.%d.%d.%s\n",
-                        WAFLZ_VERSION_MAJOR,
-                        WAFLZ_VERSION_MINOR,
-                        WAFLZ_VERSION_MACRO,
-                        WAFLZ_VERSION_PATCH);
+        fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
+        fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
         exit(a_exit_code);
 }
 //: ----------------------------------------------------------------------------

@@ -126,37 +126,38 @@ int print_protobuf(_Tp& ao_pb,
         return 0;
 }
 //: ----------------------------------------------------------------------------
-//: \details Print Version info to stream with exit code
+//: \details Print Version info to a_stream with exit code
 //: \return  NA
-//: \param   stream: Where to write version info (eg sterr/stdout)
+//: \param   a_stream: Where to write version info (eg sterr/stdout)
 //: \param   exit_code: Exit with return code
 //: ----------------------------------------------------------------------------
-void print_version(FILE* stream, int exit_code)
+void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
-        fprintf(stream, "waflz protocol buffer cat (wpc).\n");
-        fprintf(stream, "Copyright (C) Verizon Digital Media Services.\n");
+        fprintf(a_stream, "waflz protocol buffer cat (wpc).\n");
+        fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
+        fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
 }
 //: ----------------------------------------------------------------------------
 //: \details Display Help to user
 //: \return  NA
-//: \param   stream: Where to write version info (eg sterr/stdout)
+//: \param   a_stream: Where to write version info (eg sterr/stdout)
 //: \param   exit_code: Exit with return code
 //: ----------------------------------------------------------------------------
-void print_usage(FILE* stream, int exit_code)
+void print_usage(FILE* a_stream, int exit_code)
 {
-        fprintf(stream, "Usage: wpc [OPTIONS]\n");
-        fprintf(stream, "waflz protocol buffer cat (wpc) -from stdin.\n");
-        fprintf(stream, "\n");
-        fprintf(stream, "Options:\n");
-        fprintf(stream, "  -h, --help      Display this help and exit\n");
-        fprintf(stream, "  -v, --version   Display the version number and exit\n");
-        fprintf(stream, "  -d, --debug     Debug output [Default: OFF]\n");
-        fprintf(stream, "  -s, --short     Short output\n");
-        fprintf(stream, "  -j, --json      JSON output\n");
-        fprintf(stream, "  -n, --number    Print first N\n");
-        fprintf(stream, "  -t, --tolerant  Tolerant of malformed headers/pbufs\n");
+        fprintf(a_stream, "Usage: wpc [OPTIONS]\n");
+        fprintf(a_stream, "waflz protocol buffer cat (wpc) -from stdin.\n");
+        fprintf(a_stream, "\n");
+        fprintf(a_stream, "Options:\n");
+        fprintf(a_stream, "  -h, --help      Display this help and exit\n");
+        fprintf(a_stream, "  -v, --version   Display the version number and exit\n");
+        fprintf(a_stream, "  -d, --debug     Debug output [Default: OFF]\n");
+        fprintf(a_stream, "  -s, --short     Short output\n");
+        fprintf(a_stream, "  -j, --json      JSON output\n");
+        fprintf(a_stream, "  -n, --number    Print first N\n");
+        fprintf(a_stream, "  -t, --tolerant  Tolerant of malformed headers/pbufs\n");
         exit(exit_code);
 }
 //: ----------------------------------------------------------------------------

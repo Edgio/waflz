@@ -83,41 +83,42 @@ int g_verbose = 0;
 int g_cleanup_tmp_files = 1;
 
 //: ----------------------------------------------------------------------------
-//: \details Print Version info to stream with exit code
+//: \details Print Version info to a_stream with exit code
 //: \return  NA
-//: \param   stream: Where to write version info (eg sterr/stdout)
+//: \param   a_stream: Where to write version info (eg sterr/stdout)
 //: \param   exit_code: Exit with return code
 //: ----------------------------------------------------------------------------
-void print_version(FILE* stream, int exit_code)
+void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
-        fprintf(stream, "WAF JSON Compiler.\n");
-        fprintf(stream, "Copyright (C) Edgecast.\n");
+        fprintf(a_stream, "WAF JSON Compiler.\n");
+        fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
+        fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
 }
 //: ----------------------------------------------------------------------------
 //: \details Display Help to user
 //: \return  NA
-//: \param   stream: Where to write version info (eg sterr/stdout)
+//: \param   a_stream: Where to write version info (eg sterr/stdout)
 //: \param   exit_code: Exit with return code
 //: ----------------------------------------------------------------------------
-void print_usage(FILE* stream, int exit_code)
+void print_usage(FILE* a_stream, int exit_code)
 {
-        fprintf(stream, "Usage: wjc [OPTIONS]\n");
-        fprintf(stream, "Run the WAF JSON Compiler.\n");
-        fprintf(stream, "\n");
-        fprintf(stream, "Options:\n");
-        fprintf(stream, "  -h, --help         Display this help and exit.\n");
-        fprintf(stream, "  -v, --version      Display the version number and exit.\n");
-        fprintf(stream, "  -d, --verbose      Verbose messages [Default: OFF]\n");
-        fprintf(stream, "  -n, --no-cleanup   Don't clean up tmp files [Default: OFF]\n");
-        fprintf(stream, "  -r, --ruleset-dir  WAF Ruleset directory [REQUIRED]\n");
-        fprintf(stream, "  -i, --instance     WAF instance\n");
-        fprintf(stream, "  -p, --profile      WAF profile\n");
-        fprintf(stream, "\n");
-        fprintf(stream, "example:\n");
-        fprintf(stream, "         wjc --instance=0050-1001.waf.json\n");
-        fprintf(stream, "\n");
+        fprintf(a_stream, "Usage: wjc [OPTIONS]\n");
+        fprintf(a_stream, "Run the WAF JSON Compiler.\n");
+        fprintf(a_stream, "\n");
+        fprintf(a_stream, "Options:\n");
+        fprintf(a_stream, "  -h, --help         Display this help and exit.\n");
+        fprintf(a_stream, "  -v, --version      Display the version number and exit.\n");
+        fprintf(a_stream, "  -d, --verbose      Verbose messages [Default: OFF]\n");
+        fprintf(a_stream, "  -n, --no-cleanup   Don't clean up tmp files [Default: OFF]\n");
+        fprintf(a_stream, "  -r, --ruleset-dir  WAF Ruleset directory [REQUIRED]\n");
+        fprintf(a_stream, "  -i, --instance     WAF instance\n");
+        fprintf(a_stream, "  -p, --profile      WAF profile\n");
+        fprintf(a_stream, "\n");
+        fprintf(a_stream, "example:\n");
+        fprintf(a_stream, "         wjc --instance=0050-1001.waf.json\n");
+        fprintf(a_stream, "\n");
         exit(exit_code);
 }
 //: ----------------------------------------------------------------------------

@@ -21,9 +21,8 @@
 //:
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
-//: Includes
+//: includes
 //: ----------------------------------------------------------------------------
-#include "support/kv_map_list.h"
 #include <stdint.h>
 #include <sstream>
 #include <string>
@@ -39,10 +38,6 @@ std::string get_file_ext(const std::string &a_filename);
 std::string get_file_wo_ext(const std::string &a_filename);
 // hex to int
 int32_t convert_hex_to_uint(uint64_t &ao_val, const char *a_str);
-// cookie parsing
-int32_t parse_cookie_str(kv_map_list_t &ao_cookie_map,
-                         const char *a_cookie_str,
-                         uint32_t a_cookie_str_len);
 char * strnstr(const char *s, const char *find, size_t slen);
 int32_t strntol(const char *a_str, size_t a_size, char **ao_end, int a_base);
 int64_t strntoll(const char *a_str, size_t a_size, char **ao_end, int a_base);

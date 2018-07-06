@@ -61,6 +61,7 @@ message profile {
                 optional bool xml_parser = 503;
                 optional bool process_request_body = 504;
                 optional bool process_response_body = 505;
+                optional bool json_parser = 506;
                 optional uint32 paranoia_level = 550;
                 // -------------------------------
                 // logging

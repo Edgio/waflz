@@ -312,7 +312,7 @@ int32_t parser_json::init()
         //       on Content-Encoding
         // -------------------------------------------------
         m_handle = yajl_alloc(&s_callbacks, NULL, m_rqst_ctx);
-        yajl_config(m_handle, yajl_allow_partial_values, 0);
+        yajl_config(m_handle, yajl_allow_partial_values, 1);
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -346,7 +346,8 @@ int32_t parser_json::finish(void)
         {
                 // TODO get error???
                 // yajl_get_error(m_handle, 0, NULL, 0);
-                return WAFLZ_STATUS_ERROR;
+                // Its ok for partial json
+                return WAFLZ_STATUS_OK;
         }
         return WAFLZ_STATUS_OK;
 }

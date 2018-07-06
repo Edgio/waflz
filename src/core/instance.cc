@@ -106,8 +106,7 @@ static int32_t waf_config_check_enf_array(char *ao_err_msg,
 //: \param   a_unparsed_json  The
 //: ----------------------------------------------------------------------------
 instance::instance(engine &a_engine,
-                   geoip2_mmdb &a_geoip2_mmdb,
-                   bool a_use_waflz):
+                   geoip2_mmdb &a_geoip2_mmdb):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),
@@ -118,7 +117,6 @@ instance::instance(engine &a_engine,
         m_profile_audit(NULL),
         m_profile_prod(NULL),
         m_leave_compiled_file(false),
-        m_use_waflz(a_use_waflz),
         m_geoip2_mmdb(a_geoip2_mmdb)
 {
         m_pb = new waflz_pb::instance();
@@ -282,7 +280,7 @@ int32_t instance::validate(void)
                         delete m_profile_audit;
                         m_profile_audit = NULL;
                 }
-                m_profile_audit = new profile(m_engine, m_geoip2_mmdb, m_use_waflz);
+                m_profile_audit = new profile(m_engine, m_geoip2_mmdb);
                 m_profile_audit->m_action = l_action;
                 int32_t l_s;
                 l_s = m_profile_audit->load_config(&(l_pb.audit_profile()),
@@ -331,7 +329,7 @@ int32_t instance::validate(void)
                         delete m_profile_prod;
                         m_profile_prod = NULL;
                 }
-                m_profile_prod = new profile(m_engine, m_geoip2_mmdb, m_use_waflz);
+                m_profile_prod = new profile(m_engine, m_geoip2_mmdb);
                 m_profile_prod->m_action = l_action;
                 int32_t l_s;
                 l_s = m_profile_prod->load_config(&(l_pb.prod_profile()),

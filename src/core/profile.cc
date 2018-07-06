@@ -233,6 +233,11 @@ int32_t profile::init(void)
         m_waf->set_id(m_id);
         m_waf->set_name(m_name);
         m_waf->set_owasp_ruleset_version(m_owasp_ruleset_version);
+        // Json parser
+        if(m_pb->general_settings().has_json_parser())
+        {
+                m_waf->set_parse_json(m_pb->general_settings().json_parser());
+        }
         // -------------------------------------------------
         // init
         // -------------------------------------------------

@@ -27,7 +27,7 @@
 // waflz
 // ---------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/_waf.h"
+#include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"
 #include "core/decode.h"
 #include "support/ndebug.h"

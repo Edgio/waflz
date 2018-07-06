@@ -61,15 +61,13 @@ namespace ns_waflz {
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 instances::instances(engine &a_engine,
-                     bool a_enable_locking,
-                     bool a_use_waflz):
+                     bool a_enable_locking):
         m_init(false),
         m_err_msg(),
         m_engine(a_engine),
         m_id_instance_map(),
         m_mutex(),
         m_enable_locking(a_enable_locking),
-        m_use_waflz(a_use_waflz),
         m_geoip_mmdb(NULL)
 {
         // Initialize the mutex
@@ -145,7 +143,7 @@ int32_t instances::load_config(instance **ao_instance,
         // -------------------------------------------------
         // load
         // -------------------------------------------------
-        instance *l_instance = new instance(m_engine, *m_geoip_mmdb, m_use_waflz);
+        instance *l_instance = new instance(m_engine, *m_geoip_mmdb);
         int32_t l_s;
         l_s = l_instance->load_config(a_js,
                                       a_leave_compiled_file);

@@ -46,7 +46,7 @@ namespace ns_waflz {
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 class engine;
-class _waf;
+class waf;
 class acl;
 class geoip2_mmdb;
 //: ----------------------------------------------------------------------------
@@ -64,8 +64,7 @@ public:
         // public methods
         // -------------------------------------------------
         profile(engine &a_engine,
-                geoip2_mmdb &a_geoip2_mmdb,
-                bool a_use_waflz = false);
+                geoip2_mmdb &a_geoip2_mmdb);
         ~profile();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx);
         int32_t load_config(const char *a_buf, uint32_t a_buf_len, bool a_leave_compiled_file = false);
@@ -79,7 +78,7 @@ public:
         //: ------------------------------------------------
         const char *get_err_msg(void) { return m_err_msg; }
         waflz_pb::profile *get_pb(void) { return m_pb; }
-        _waf *get_waf(void) { return m_waf; }
+        waf *get_waf(void) { return m_waf; }
         const std::string &get_id(void) { return m_id; }
         const std::string &get_name(void) { return m_name; }
         const std::string &get_resp_header_name(void) { return m_resp_header_name; }
@@ -121,7 +120,7 @@ private:
         // engines...
         // -------------------------------------------------
         acl *m_acl;
-        _waf *m_waf;
+        waf *m_waf;
         // -------------------------------------------------
         // properties
         // -------------------------------------------------
@@ -131,7 +130,6 @@ private:
         uint16_t m_action;
         bool m_leave_compiled_file;
         uint32_t m_owasp_ruleset_version;
-        bool m_use_waflz;
         // -------------------------------------------------
         // class members
         // -------------------------------------------------

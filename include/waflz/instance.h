@@ -58,8 +58,7 @@ public:
         // Public methods
         // -------------------------------------------------
         instance(engine &a_engine,
-                 geoip2_mmdb &a_geoip2_mmdb,
-                 bool a_use_waflz = false);
+                 geoip2_mmdb &a_geoip2_mmdb);
         ~instance();
         //: ------------------------------------------------
         //:               G E T T E R S
@@ -95,7 +94,6 @@ public:
                             bool a_leave_compiled_file = false);
         int32_t load_config(void *a_js,
                             bool a_leave_compiled_file = false);
-        void set_use_waflz(bool a_use_waflz) { m_use_waflz = a_use_waflz;}
 private:
         // -------------------------------------------------
         // private methods
@@ -119,7 +117,6 @@ private:
         profile *m_profile_audit;
         profile *m_profile_prod;
         bool m_leave_compiled_file;
-        bool m_use_waflz;
         // -------------------------------------------------
         // *************************************************
         // geoip2 support

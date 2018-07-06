@@ -68,8 +68,7 @@ public:
         // Public methods
         // -------------------------------------------------
         instances(engine &a_engine,
-                  bool a_enable_locking = false,
-                  bool a_use_waflz = false);
+                  bool a_enable_locking = false);
         ~instances();
         int32_t init_dbs(void);
         int32_t load_config_file(instance **ao_instance,
@@ -94,7 +93,6 @@ public:
                              void *a_ctx,
                              const std::string &a_id);
         void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }
-        void set_use_waflz(bool a_use_waflz) { m_use_waflz = a_use_waflz; }
         const char *get_err_msg(void) { return m_err_msg; }
         instance *get_instance(const std::string &a_id);
         instance *get_first_instance(void);
@@ -119,7 +117,6 @@ private:
         id_instance_map_t m_id_instance_map;
         pthread_mutex_t m_mutex;
         bool m_enable_locking;
-        bool m_use_waflz;
         // -------------------------------------------------
         // *************************************************
         // geoip2 support

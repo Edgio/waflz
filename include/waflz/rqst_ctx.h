@@ -28,7 +28,7 @@
 #include <waflz/def.h>
 #include <waflz/arg.h>
 #include <waflz/parser.h>
-#include <waflz/_waf.h>
+#include <waflz/waf.h>
 #include <list>
 #include <map>
 #include <strings.h>

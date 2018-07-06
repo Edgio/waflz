@@ -348,7 +348,6 @@ int main(int argc, char** argv)
                 // instantiate the compiler and validate it
                 ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine, *l_geoip2_mmdb);
                 //NDBG_PRINT("Validate\n");
-                l_instance->set_use_waflz(true);
                 l_s = l_instance->load_config(l_config_buf, l_config_buf_len, (g_cleanup_tmp_files == 0));
                 if(l_s != WAFLZ_STATUS_OK)
                 {

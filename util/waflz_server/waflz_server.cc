@@ -294,7 +294,7 @@ public:
                                     const ns_is2::url_pmap_t &a_url_pmap);
         ns_waflz::instances *m_instances;
         ns_waflz::profile *m_profile;
-        ns_waflz::_waf *m_wafl;
+        ns_waflz::waf *m_wafl;
         ns_waflz::instances::id_vector_t m_id_vector;
 };
 //: ----------------------------------------------------------------------------
@@ -1277,7 +1277,6 @@ int main(int argc, char** argv)
         std::string l_instance_dir;
         std::string l_geoip_db;
         std::string l_geoip_isp_db;
-        bool l_use_waflz = true;
         uint16_t l_port = 12345;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
@@ -1293,7 +1292,6 @@ int main(int argc, char** argv)
                 { "profile",      1, 0, 'f' },
                 { "modsecurity",  1, 0, 'm' },
                 { "conf-file",    1, 0, 'w' },
-                { "engine",       1, 0, 'e' },
                 { "port",         1, 0, 'p' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 's' },
@@ -1390,26 +1388,6 @@ int main(int argc, char** argv)
                 case 'w':
                 {
                         l_conf_file = l_arg;
-                        break;
-                }
-                // -----------------------------------------
-                // modsecurity
-                // -----------------------------------------
-                case 'e':
-                {
-                        if(strncasecmp("waflz", l_arg.c_str(), l_arg.length()) == 0)
-                        {
-                                l_use_waflz = true;
-                        }
-                        else if(strncasecmp("modsecurity", l_arg.c_str(), l_arg.length()) == 0)
-                        {
-                                l_use_waflz = false;
-                        }
-                        else
-                        {
-                                fprintf(stdout, "Error bad engine value: %s.\n", l_arg.c_str());
-                                print_usage(stdout, STATUS_ERROR);
-                        }
                         break;
                 }
                 // -----------------------------------------
@@ -1658,7 +1636,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         waflz_h *l_waflz_h = new waflz_h();
         l_lsnr->set_default_route(l_waflz_h);
-        ns_waflz::_waf *l_wafl = NULL;
+        ns_waflz::waf *l_wafl = NULL;
         ns_waflz::instances *l_instances = NULL;
         waflz_update_instances_h *l_waflz_update_instances_h = NULL;
         ns_waflz::profile *l_profile = NULL;
@@ -1735,7 +1713,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         else if(!l_instance_dir.empty())
         {
-                l_instances = new ns_waflz::instances(*l_engine, g_bg_load, l_use_waflz);
+                l_instances = new ns_waflz::instances(*l_engine, g_bg_load);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error initializing instances, reason:%s",
@@ -1787,7 +1765,7 @@ int main(int argc, char** argv)
                         NDBG_PRINT("error read_file: %s\n", l_instance_file.c_str());
                         return STATUS_ERROR;
                 }
-                l_instances = new ns_waflz::instances(*l_engine, g_bg_load, l_use_waflz);
+                l_instances = new ns_waflz::instances(*l_engine, g_bg_load);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
@@ -1856,7 +1834,7 @@ int main(int argc, char** argv)
                         return STATUS_ERROR;
                 }
                 l_engine->init_post_fork();
-                l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb, l_use_waflz);
+                l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
                 l_waflz_h->m_profile = l_profile;
                 l_waflz_update_profile_h = new waflz_update_profile_h();
                 l_waflz_update_profile_h->m_profile = l_profile;

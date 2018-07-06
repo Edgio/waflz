@@ -39,7 +39,6 @@
 #include "waflz/def.h"
 #include "waflz/profile.h"
 #include "waflz/acl.h"
-#include "waflz/_waf.h"
 #include "waflz/waf.h"
 #include "waflz/config_parser.h"
 #include <string.h>
@@ -76,8 +75,7 @@ std::string profile::s_geoip2_isp_db;
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 profile::profile(engine &a_engine,
-                 geoip2_mmdb &a_geoip2_mmdb,
-                 bool a_use_waflz):
+                 geoip2_mmdb &a_geoip2_mmdb):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),
@@ -89,8 +87,7 @@ profile::profile(engine &a_engine,
         m_resp_header_name(),
         m_action(waflz_pb::enforcement_type_t_NOP),
         m_leave_compiled_file(false),
-        m_owasp_ruleset_version(229),
-        m_use_waflz(a_use_waflz)
+        m_owasp_ruleset_version(229)
 {
         m_pb = new waflz_pb::profile();
         m_acl = new acl(a_geoip2_mmdb);

@@ -481,6 +481,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         {
                                                 l_rule->mutable_operator_()->set_type(::waflz_pb::sec_rule_t_operator_t_type_t_WITHIN);
                                                 l_rule->mutable_operator_()->set_value("%{tx.allowed_request_content_type}");
+                                                if(l_pcre) { delete l_pcre; l_pcre = NULL; }
                                                 break;
                                         }
                                         l_s = l_pcre->init(l_rx.c_str(), l_rx.length());

@@ -346,11 +346,22 @@ TEST_CASE( "instances test", "[instances]" ) {
                         if(i == 0)
                         {
                                 l_s = l_ix->process_audit(&l_event, l_ctx, l_id);
+                                if(l_event)
+                                {
+                                        delete l_event;
+                                        l_event = NULL;
+                                }
                         }
                         else if(i == 1)
                         {
                                 l_s = l_ix->process_prod(&l_event, l_ctx, l_id);
+                                if(l_event)
+                                {
+                                        delete l_event;
+                                        l_event = NULL;
+                                }
                         }
+
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                 }
                 // -----------------------------------------

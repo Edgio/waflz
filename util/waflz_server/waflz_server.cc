@@ -1235,7 +1235,6 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -f, --profile      waf profile\n");
         fprintf(a_stream, "  -m, --modsecurity  modsecurity rules file (experimental)\n");
         fprintf(a_stream, "  -w, --conf-file    conf file (experimental)\n");
-        fprintf(a_stream, "  -e, --engine       engine (waflz|modsecurity) (default=modsecurity)\n");
         fprintf(a_stream, "  -p, --port         port (default: 12345)\n");
         fprintf(a_stream, "  -g, --geoip-db     geoip-db\n");
         fprintf(a_stream, "  -s, --geoip-isp-db geoip-isp-db\n");

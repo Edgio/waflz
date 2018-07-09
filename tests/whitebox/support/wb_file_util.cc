@@ -58,6 +58,10 @@ TEST_CASE( "file util test", "[file_util]" ) {
                 REQUIRE((l_buf != NULL));
                 REQUIRE((l_buf_len == 8));
                 REQUIRE((strncmp(l_buf, "BANANAS", 7) == 0));
+                if(l_buf)
+                {
+                        free(l_buf);
+                }
         }
 }
 

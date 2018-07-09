@@ -26,6 +26,7 @@
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "support/file_util.h"
+#include "support/ndebug.h"
 #include <string>
 #include <unistd.h>
 #include <string.h>
@@ -46,7 +47,7 @@ TEST_CASE( "file util test", "[file_util]" ) {
                 char l_cwd[1024];
                 if(getcwd(l_cwd, sizeof(l_cwd)) != NULL)
                 {
-                    //fprintf(stdout, "Current working dir: %s\n", l_cwd);
+                    fprintf(stdout, "Current working dir: %s\n", l_cwd);
                 }
                 std::string l_file = l_cwd;
                 l_file += "/../../../../tests/data/file/small_file.txt";
@@ -58,6 +59,10 @@ TEST_CASE( "file util test", "[file_util]" ) {
                 REQUIRE((l_buf != NULL));
                 REQUIRE((l_buf_len == 8));
                 REQUIRE((strncmp(l_buf, "BANANAS", 7) == 0));
+                if(l_buf)
+                {
+                        free(l_buf);
+                }
         }
 }
 

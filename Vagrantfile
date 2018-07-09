@@ -74,7 +74,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     #install some packages
     sudo apt-get update
-    sudo apt-get install -y ncurses-term htop vim cmake build-essential libssl-dev uuid-dev libxml2-dev zlib1g-dev liblzma-dev libicu-dev protobuf-compiler libprotobuf-dev python-pip valgrind gdb git libpcre3-dev libmaxminddb0 libmaxminddb-dev mmdb-bin
+    sudo apt-get install -y cmake build-essential libssl-dev uuid-dev libxml2-dev zlib1g-dev liblzma-dev libicu-dev protobuf-compiler libprotobuf-dev python-pip valgrind gdb git libpcre3-dev libmaxminddb0 libmaxminddb-dev mmdb-bin
 
     #python stuff
     pip install -r waflz/requirements.txt

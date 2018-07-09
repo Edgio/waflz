@@ -1023,24 +1023,6 @@ static int32_t get_rqst_body_str_cb(char *ao_data,
         return 0;
 }
 //: ----------------------------------------------------------------------------
-//: get_rqst_content_size_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_content_size_cb(uint32_t &ao_val, void *a_ctx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        ao_val = l_rqst->get_body_len();
-        return 0;
-}
-//: ----------------------------------------------------------------------------
 //: get_rqst_header_size_cb
 //: ----------------------------------------------------------------------------
 static int32_t get_rqst_query_args_size_cb(uint32_t &a_val, void *a_ctx)
@@ -1582,7 +1564,6 @@ int main(int argc, char** argv)
         ns_waflz::rqst_ctx::s_get_rqst_header_w_key_cb = get_rqst_header_w_key_cb;
         ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
         ns_waflz::rqst_ctx::s_get_rqst_body_str_cb = get_rqst_body_str_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_content_size_cb = get_rqst_content_size_cb;
         ns_waflz::rqst_ctx::s_get_rqst_query_args_size_cb = get_rqst_query_args_size_cb;
         ns_waflz::rqst_ctx::s_get_rqst_query_args_w_idx_cb = get_rqst_query_args_w_idx_cb;
 #ifdef ENABLE_PROFILER

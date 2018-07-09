@@ -83,8 +83,6 @@ public:
         static get_rqst_kv_w_idx_cb_t s_get_rqst_header_w_idx_cb;
         static get_rqst_data_cb_t s_get_rqst_id_cb;
         static get_rqst_body_data_cb_t s_get_rqst_body_str_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_content_size_cb;
-        static get_rqst_data_cb_t s_get_rqst_country_code_cb;
         static get_rqst_data_cb_t s_get_rqst_local_addr_cb;
         static get_rqst_data_size_cb_t s_get_rqst_canonical_port_cb;
         static get_rqst_data_size_cb_t s_get_rqst_apparent_cache_status_cb;

@@ -13,8 +13,12 @@
    :maxdepth: 2
    :caption: Contents:
    
+   overview
+   building
    capabilities
-   issues
+   profiles
+   waflz_server
+   development
 
 Indices and tables
 ==================
@@ -22,4 +26,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

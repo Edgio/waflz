@@ -1,11 +1,10 @@
-Known Issues with Modsecurity
------------------------------
-Overview
-========
-In the process of developing a multi-tenant implementation, using the `open source modsecurity <https://github.com/SpiderLabs/ModSecurity/>`_ as a reference, several potential issues were discovered in the standard implementation.
+Development
+-----------
 
-Issues
-======
+Contributions Discovered in Development
+=======================================
+In the process of developing waflz, using the `open source modsecurity <https://github.com/SpiderLabs/ModSecurity/>`_ as a reference, several potential issues were discovered in the standard implementation.
+
 * heap overflows:
 
   * `ip tree: off-by-one on the heap <https://github.com/SpiderLabs/ModSecurity/issues/1793>`_

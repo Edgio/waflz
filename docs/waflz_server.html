@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Known Issues with Modsecurity &#8212; Waflz 0.0.0 documentation</title>
+    <title>Testing with waflz_server &#8212; Waflz 0.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -26,7 +26,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Supported Functionality" href="capabilities.html" />
+    <link rel="next" title="Development" href="development.html" />
+    <link rel="prev" title="Profiles" href="profiles.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -42,30 +43,15 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="known-issues-with-modsecurity">
-<h1>Known Issues with Modsecurity<a class="headerlink" href="#known-issues-with-modsecurity" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>In the process of developing a multi-tenant implementation, using the <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/">open source modsecurity</a> as a reference, several potential issues were discovered in the standard implementation.</p>
+  <div class="section" id="testing-with-waflz-server">
+<h1>Testing with waflz_server<a class="headerlink" href="#testing-with-waflz-server" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="testing-a-single-rule">
+<h2>Testing a single rule:<a class="headerlink" href="#testing-a-single-rule" title="Permalink to this headline">¶</a></h2>
+<p>TODO</p>
 </div>
-<div class="section" id="issues">
-<h2>Issues<a class="headerlink" href="#issues" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>heap overflows:<ul>
-<li><a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/issues/1793">ip tree: off-by-one on the heap</a></li>
-<li><a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/issues/1799">parse_arguments: off-by-one</a></li>
-</ul>
-</li>
-<li>logic issues:<ul>
-<li><a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/issues/1794">utf8 character detection</a></li>
-<li><a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/issues/1795">query string with slashes</a></li>
-</ul>
-</li>
-<li>data mangling:<ul>
-<li><a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/issues/1796">suricata/snort data mangling</a></li>
-</ul>
-</li>
-</ul>
+<div class="section" id="testing-a-profile">
+<h2>Testing a profile:<a class="headerlink" href="#testing-a-profile" title="Permalink to this headline">¶</a></h2>
+<p>TODO</p>
 </div>
 </div>
 
@@ -77,9 +63,9 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Known Issues with Modsecurity</a><ul>
-<li><a class="reference internal" href="#overview">Overview</a></li>
-<li><a class="reference internal" href="#issues">Issues</a></li>
+<li><a class="reference internal" href="#">Testing with waflz_server</a><ul>
+<li><a class="reference internal" href="#testing-a-single-rule">Testing a single rule:</a></li>
+<li><a class="reference internal" href="#testing-a-profile">Testing a profile:</a></li>
 </ul>
 </li>
 </ul>
@@ -87,14 +73,15 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="capabilities.html" title="previous chapter">Supported Functionality</a></li>
+      <li>Previous: <a href="profiles.html" title="previous chapter">Profiles</a></li>
+      <li>Next: <a href="development.html" title="next chapter">Development</a></li>
   </ul></li>
 </ul>
 </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/issues.rst.txt"
+      <li><a href="_sources/waflz_server.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -120,7 +107,7 @@
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
-      <a href="_sources/issues.rst.txt"
+      <a href="_sources/waflz_server.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

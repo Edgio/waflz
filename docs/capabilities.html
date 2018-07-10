@@ -26,8 +26,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Known Issues with Modsecurity" href="issues.html" />
-    <link rel="prev" title="waflz" href="index.html" />
+    <link rel="next" title="Profiles" href="profiles.html" />
+    <link rel="prev" title="Building" href="building.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -47,97 +47,94 @@
 <h1>Supported Functionality<a class="headerlink" href="#supported-functionality" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="configuration-directives">
 <h2>Configuration Directives<a class="headerlink" href="#configuration-directives" title="Permalink to this headline">¶</a></h2>
-<div class="line-block">
-<div class="line">SecAction</div>
-<div class="line">SecMarker</div>
-<div class="line">SecRule</div>
-<div class="line">SecMarker</div>
-</div>
+<ul class="simple">
+<li>SecAction</li>
+<li>SecMarker</li>
+<li>SecRule</li>
+<li>SecMarker</li>
+<li>SecRuleUpdateTargetById</li>
+</ul>
 </div>
 <div class="section" id="variables">
 <h2>Variables<a class="headerlink" href="#variables" title="Permalink to this headline">¶</a></h2>
-<div class="line-block">
-<div class="line">ARGS</div>
-<div class="line">ARGS_COMBINED_SIZE</div>
-<div class="line">ARGS_NAMES</div>
-<div class="line">ARGS_GET</div>
-<div class="line">ARGS_GET_NAMES</div>
-<div class="line">ARGS_POST</div>
-<div class="line">ARGS_POST_NAMES</div>
-<div class="line">MATCHED_VAR</div>
-<div class="line">MATCHED_VAR_NAME</div>
-<div class="line">MATCHED_VARS</div>
-<div class="line">MATCHED_VARS_NAMES</div>
-<div class="line">QUERY_STRING</div>
-<div class="line">REMOTE_ADDR</div>
-<div class="line">REQUEST_BASENAME</div>
-<div class="line">REQUEST_BODY</div>
-<div class="line">REQUEST_COOKIES</div>
-<div class="line">REQUEST_COOKIES_NAMES</div>
-<div class="line">REQUEST_FILENAME</div>
-<div class="line">REQUEST_HEADERS</div>
-<div class="line">REQUEST_HEADERS_NAMES</div>
-<div class="line">REQUEST_LINE</div>
-<div class="line">REQUEST_METHOD</div>
-<div class="line">REQUEST_PROTOCOL</div>
-<div class="line">REQUEST_URI</div>
-<div class="line">REQUEST_URI_RAW</div>
-<div class="line">TX</div>
-<div class="line">XML</div>
-</div>
+<ul class="simple">
+<li>ARGS</li>
+<li>ARGS_COMBINED_SIZE</li>
+<li>ARGS_NAMES</li>
+<li>ARGS_GET</li>
+<li>ARGS_GET_NAMES</li>
+<li>ARGS_POST</li>
+<li>ARGS_POST_NAMES</li>
+<li>MATCHED_VAR</li>
+<li>MATCHED_VAR_NAME</li>
+<li>MATCHED_VARS</li>
+<li>MATCHED_VARS_NAMES</li>
+<li>QUERY_STRING</li>
+<li>REMOTE_ADDR</li>
+<li>REQUEST_BASENAME</li>
+<li>REQUEST_BODY</li>
+<li>REQUEST_COOKIES</li>
+<li>REQUEST_COOKIES_NAMES</li>
+<li>REQUEST_FILENAME</li>
+<li>REQUEST_HEADERS</li>
+<li>REQUEST_HEADERS_NAMES</li>
+<li>REQUEST_LINE</li>
+<li>REQUEST_METHOD</li>
+<li>REQUEST_PROTOCOL</li>
+<li>REQUEST_URI</li>
+<li>REQUEST_URI_RAW</li>
+<li>TX</li>
+<li>XML</li>
+</ul>
 </div>
 <div class="section" id="operators">
 <h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
-<div class="line-block">
-<div class="line">BEGINSWITH</div>
-<div class="line">CONTAINS</div>
-<div class="line">CONTAINSWORD</div>
-<div class="line">DETECTSQLI</div>
-<div class="line">DETECTXSS</div>
-<div class="line">ENDSWITH</div>
-<div class="line">EQ</div>
-<div class="line">GE</div>
-<div class="line">GT</div>
-<div class="line">PM</div>
-<div class="line">PMF</div>
-<div class="line">PMFROMFILE</div>
-<div class="line">RX</div>
-<div class="line">STREQ</div>
-<div class="line">STRMATCH</div>
-<div class="line">VERIFYCC</div>
-<div class="line">VALIDATEBYTERANGE</div>
-<div class="line">VALIDATEUTF8ENCODING</div>
-<div class="line">VALIDATEURLENCODING</div>
-<div class="line">WITHIN</div>
-</div>
+<ul class="simple">
+<li>BEGINSWITH</li>
+<li>CONTAINS</li>
+<li>CONTAINSWORD</li>
+<li>DETECTSQLI</li>
+<li>DETECTXSS</li>
+<li>ENDSWITH</li>
+<li>EQ</li>
+<li>GE</li>
+<li>GT</li>
+<li>PM</li>
+<li>PMF</li>
+<li>PMFROMFILE</li>
+<li>RX</li>
+<li>STREQ</li>
+<li>STRMATCH</li>
+<li>VERIFYCC</li>
+<li>VALIDATEBYTERANGE</li>
+<li>VALIDATEUTF8ENCODING</li>
+<li>VALIDATEURLENCODING</li>
+<li>WITHIN</li>
+</ul>
 </div>
 <div class="section" id="transformations">
 <h2>Transformations<a class="headerlink" href="#transformations" title="Permalink to this headline">¶</a></h2>
-<div class="line-block">
-<div class="line">BEGINSWITH</div>
-<div class="line">CONTAINS</div>
-<div class="line">DETECTSQLI</div>
-<div class="line">DETECTXSS</div>
-<div class="line">ENDSWITH</div>
-<div class="line">EQ</div>
-<div class="line">GE</div>
-<div class="line">GT</div>
-<div class="line">PM</div>
-<div class="line">PMF</div>
-<div class="line">PMFROMFILE</div>
-<div class="line">RX</div>
-<div class="line">STREQ</div>
-<div class="line">STRMATCH</div>
-<div class="line">VERIFYCC</div>
-<div class="line">VALIDATEBYTERANGE</div>
-<div class="line">VALIDATEUTF8ENCODING</div>
-<div class="line">VALIDATEURLENCODING</div>
-<div class="line">WITHIN</div>
-</div>
-</div>
-<div class="section" id="rule-target-updates">
-<h2>Rule target updates<a class="headerlink" href="#rule-target-updates" title="Permalink to this headline">¶</a></h2>
-<p>Rule target update by ID</p>
+<ul class="simple">
+<li>BEGINSWITH</li>
+<li>CONTAINS</li>
+<li>DETECTSQLI</li>
+<li>DETECTXSS</li>
+<li>ENDSWITH</li>
+<li>EQ</li>
+<li>GE</li>
+<li>GT</li>
+<li>PM</li>
+<li>PMF</li>
+<li>PMFROMFILE</li>
+<li>RX</li>
+<li>STREQ</li>
+<li>STRMATCH</li>
+<li>VERIFYCC</li>
+<li>VALIDATEBYTERANGE</li>
+<li>VALIDATEUTF8ENCODING</li>
+<li>VALIDATEURLENCODING</li>
+<li>WITHIN</li>
+</ul>
 </div>
 </div>
 
@@ -154,7 +151,6 @@
 <li><a class="reference internal" href="#variables">Variables</a></li>
 <li><a class="reference internal" href="#operators">Operators</a></li>
 <li><a class="reference internal" href="#transformations">Transformations</a></li>
-<li><a class="reference internal" href="#rule-target-updates">Rule target updates</a></li>
 </ul>
 </li>
 </ul>
@@ -162,8 +158,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter"><strong>waflz</strong></a></li>
-      <li>Next: <a href="issues.html" title="next chapter">Known Issues with Modsecurity</a></li>
+      <li>Previous: <a href="building.html" title="previous chapter">Building</a></li>
+      <li>Next: <a href="profiles.html" title="next chapter">Profiles</a></li>
   </ul></li>
 </ul>
 </div>

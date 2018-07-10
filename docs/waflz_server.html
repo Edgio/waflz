@@ -1,32 +1,21 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Testing with waflz_server &#8212; Waflz 0.0.0 documentation</title>
-    
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.0.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Development" href="development.html" />
+    <link rel="next" title="Format Conversions with waflz_dump" href="waflz_dump.html" />
     <link rel="prev" title="Profiles" href="profiles.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -34,8 +23,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   
 
     <div class="document">
@@ -45,13 +33,18 @@
             
   <div class="section" id="testing-with-waflz-server">
 <h1>Testing with waflz_server<a class="headerlink" href="#testing-with-waflz-server" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="testing-a-single-rule">
-<h2>Testing a single rule:<a class="headerlink" href="#testing-a-single-rule" title="Permalink to this headline">¶</a></h2>
+<p>TODO</p>
+<div class="section" id="modsecurity-rules">
+<h2>ModSecurity Rules<a class="headerlink" href="#modsecurity-rules" title="Permalink to this headline">¶</a></h2>
 <p>TODO</p>
 </div>
-<div class="section" id="testing-a-profile">
-<h2>Testing a profile:<a class="headerlink" href="#testing-a-profile" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="profiles">
+<h2>Profiles<a class="headerlink" href="#profiles" title="Permalink to this headline">¶</a></h2>
 <p>TODO</p>
+</div>
+<div class="section" id="test-vectors">
+<h2>Test Vectors<a class="headerlink" href="#test-vectors" title="Permalink to this headline">¶</a></h2>
+<p>See an example from the blackbox tests: <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/tests/blackbox/ruleset/OWASP_3_0_2.anomaly_low.vectors.json">OWASP CRS Example</a></p>
 </div>
 </div>
 
@@ -64,8 +57,9 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Testing with waflz_server</a><ul>
-<li><a class="reference internal" href="#testing-a-single-rule">Testing a single rule:</a></li>
-<li><a class="reference internal" href="#testing-a-profile">Testing a profile:</a></li>
+<li><a class="reference internal" href="#modsecurity-rules">ModSecurity Rules</a></li>
+<li><a class="reference internal" href="#profiles">Profiles</a></li>
+<li><a class="reference internal" href="#test-vectors">Test Vectors</a></li>
 </ul>
 </li>
 </ul>
@@ -74,7 +68,7 @@
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="profiles.html" title="previous chapter">Profiles</a></li>
-      <li>Next: <a href="development.html" title="next chapter">Development</a></li>
+      <li>Next: <a href="waflz_dump.html" title="next chapter">Format Conversions with waflz_dump</a></li>
   </ul></li>
 </ul>
 </div>
@@ -87,12 +81,14 @@
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -103,8 +99,8 @@
       &copy;2018, Reed Morrison, Devender Singh.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
       <a href="_sources/waflz_server.rst.txt"

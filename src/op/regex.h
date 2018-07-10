@@ -58,7 +58,7 @@ public:
                 }
                 if(m_regex_study)
                 {
-#ifdef WITH_PCRE_JIT
+#ifdef PCRE_STUDY_JIT_COMPILE
                         pcre_free_study(m_regex_study);
 #else
                         pcre_free(m_regex_study);

@@ -61,6 +61,7 @@ TEST_CASE( "file util test", "[file_util]" ) {
                 if(l_buf)
                 {
                         free(l_buf);
+                        l_buf = NULL;
                 }
         }
 }

@@ -18,23 +18,23 @@ The open source standard implementation of the `ModSecurity Rules Engine <https:
 
     customer config patching on an edge server
 
-The resource implications of being able to "patch" in any given customer configuration from any given edge server means configuration must be lightweight and servicing the request must be done as fast as possible.  One customer configuration using too much memory crowds out the others (memory is finite).  As well performance wise, a client requests taking too long to service eventually affects other client requests (including other customers).
+The resource implications of being able to "patch" in any given customer configuration from any given edge server means configuration must be lightweight and servicing the request must be done as fast as possible.  One customer configuration using too much memory crowds out the others (memory being finite).  Performance wise, client requests taking too long to service eventually affect other client requests (including other customers).
 
-Development from this perspective changes many of the engineering trades.  Determinism, and more restrictive memory and cpu constraints might tend to trump flexibility, so `waflz <https://github.com/VerizonDigital/waflz>`_ was developed specificly to suit the needs of the CDN.
+Development from this perspective changes many of the engineering trades.  Determinism, more restrictive memory and cpu constraints tend to trump flexibility, so `waflz <https://github.com/VerizonDigital/waflz>`_ was developed specificly to suit the needs of a CDN.
 
 Architecture
 ============
 
 Input/Output Formats
 ********************
-We thought one of the biggest candidates for improvement in developing our own engine was the representation of rule language in code.  A more rigid schema might lead to a simpler, easier to reason about implementations.  We settled on defining the rules in `protocol buffers <https://developers.google.com/protocol-buffers/>`_ schema -see:  `definitions <https://github.com/VerizonDigital/waflz/blob/master/proto/rule.proto>`_.  Some of the benefits to this approach included:
+We thought one of the biggest candidates for improvement in developing our own engine was the representation of rule language in code.  A more rigid schema might lead to simpler, easier to reason about implementations.  We settled on defining the rules in `protocol buffers <https://developers.google.com/protocol-buffers/>`_ schema -see:  `definitions <https://github.com/VerizonDigital/waflz/blob/master/proto/rule.proto>`_.  Some of the benefits to this approach included:
 
 * Protocol buffers are interoperable with json, ideal for working with API's.  Translation between the protocol buffers and ModSecurity format was added by us, allowing for interoperability between the 3 formats (json/protocol buffers/ModSecurity).  `waflz_dump <https://github.com/VerizonDigital/waflz/tree/master/util/waflz_dump>`_ is a utility for converting between the 3 formats.
-* The parsed protocol buffer representation can be used in the code for -circumventing duplication in redefining internal data structures to mirror the data definitions.
+* The parsed protocol buffer representation can be used in the code, circumventing duplication in redefining internal data structures to mirror the data definitions.
 
 Server Shims
 ************
-Another interesting detail is how to write a library that plugs into HTTP server applications (like nginx, apache, etc).  The library shouldn't expose it's internal complexity, but for a WAF quite a bit of request context information has to be passed between the HTTP server and the library.  To write a plugin for waflz, server specific callbacks are defined along with the "request context pointer", to extract various parts of the HTTP request and provide them back to the waflz library.
+Another interesting detail is how to write a library that plugs into HTTP server applications (like nginx, apache, etc).  The library shouldn't expose its internal complexity, but for a WAF quite a bit of request context information has to be passed between the HTTP server and the library.  To write a plugin for waflz, server specific callbacks are defined along with the "request context pointer", to extract various parts of the HTTP request and provide them back to the waflz library.
 
 An example using the `is2 <https://github.com/VerizonDigital/is2>`_ embedded http server library:
 
@@ -93,7 +93,7 @@ A benefit of defining a plugin this way with callbacks to get the HTTP request d
 
 "Muti-tenancy" Concerns
 ***********************
-Running a WAF in a CDN, the principle resource issue using the standard implementation with many customer configurations loading the same 3 or 4 WAF ruleset definitions (100's to 1000's of rules) into a server process's memory.  The obvious optimization is to load rulesets only once and share read-only copies internally between the customer configurations.  Once challenge with this approach, however, is custom configurable rule modifications like `SecRuleUpdateTargetById <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRuleUpdateTargetById>`_ complicated the implementation of sharing ruleset data.  waflz dedupes rulesets loaded previously, saving precious process memory in production.
+Running a WAF in a CDN, the principle resource issue can be many customer configurations loading the same 3 or 4 WAF ruleset definitions (100's to 1000's of rules) into a server process's memory.  The obvious optimization is to load rulesets only once and share read-only copies internally between the customer configurations.  Once challenge with this approach, however, is custom configurable rule modifications like `SecRuleUpdateTargetById <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRuleUpdateTargetById>`_ complicated the implementation of sharing ruleset data.  waflz dedupes rulesets loaded previously, saving precious process memory in production.
 
 Performance Tweaks
 ******************

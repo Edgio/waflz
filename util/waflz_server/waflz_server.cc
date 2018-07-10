@@ -1011,79 +1011,13 @@ static int32_t get_rqst_body_str_cb(char *ao_data,
         return 0;
 }
 //: ----------------------------------------------------------------------------
-<<<<<<< HEAD
-=======
-//: get_rqst_header_size_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_query_args_size_cb(uint32_t &a_val, void *a_ctx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        a_val = l_rqst->get_url_query_map().size();
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_w_idx_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_query_args_w_idx_cb(const char **ao_key,
-                                        uint32_t &ao_key_len,
-                                        const char **ao_val,
-                                        uint32_t &ao_val_len,
-                                        void *a_ctx,
-                                        uint32_t a_idx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        *ao_key = NULL;
-        ao_key_len = 0;
-        *ao_val = NULL;
-        ao_val_len = 0;
-        uint32_t i_idx = 0;
-        const ns_is2::query_map_t &l_query_map = l_rqst->get_raw_url_query_map();
-        ns_is2::query_map_t::const_iterator i_h = l_query_map.begin();
-        while((i_h != l_query_map.end()) &&
-              (i_idx < a_idx))
-        {
-                ++i_idx;
-                ++i_h;
-        }
-        if(i_h != l_query_map.end())
-        {
-                *ao_key = i_h->first.c_str();
-                ao_key_len = i_h->first.length();
-                ao_val_len = i_h->second.front().length();
-                if (ao_val_len > 0)
-                {
-                        *ao_val = i_h->second.front().c_str();
-                }
-        }
-        return 0;
-}
-//: ----------------------------------------------------------------------------
->>>>>>> master
 //: \details Find the first occurrence of find in s, where the search is limited
 //:          to the first slen characters of s.
 //: \return  TODO
 //: \param   TODO
 //: \notes   strnstr from freebsd
 //: ----------------------------------------------------------------------------
-static char * strnstr(const char *s, const char *find, size_t slen)
+static char* strnstr(const char *s, const char *find, size_t slen)
 {
         char c;
         char sc;
@@ -1555,11 +1489,6 @@ int main(int argc, char** argv)
         ns_waflz::rqst_ctx::s_get_rqst_header_w_key_cb = get_rqst_header_w_key_cb;
         ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
         ns_waflz::rqst_ctx::s_get_rqst_body_str_cb = get_rqst_body_str_cb;
-<<<<<<< HEAD
-=======
-        ns_waflz::rqst_ctx::s_get_rqst_query_args_size_cb = get_rqst_query_args_size_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_query_args_w_idx_cb = get_rqst_query_args_w_idx_cb;
->>>>>>> master
 #ifdef ENABLE_PROFILER
         // -------------------------------------------------
         // start profiler(s)

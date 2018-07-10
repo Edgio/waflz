@@ -459,7 +459,7 @@ static void add_vars_const(const_arg_list_t &ao_list,
 #define _ADD_VAR(_str, _from) do { \
         const_arg_t l_data; \
         l_data.m_key = _str; \
-        l_data.m_key_len = sizeof(_str); \
+        l_data.m_key_len = sizeof(_str) - 1; \
         l_data.m_val = _from.m_data; \
         l_data.m_val_len = _from.m_len; \
         ao_list.push_back(l_data); \
@@ -903,7 +903,7 @@ GET_VAR(ARGS_COMBINED_SIZE)
         }
         const_arg_t l_data;
         l_data.m_key = "ARGS_COMBINED_SIZE";
-        l_data.m_key_len = sizeof("ARGS_COMBINED_SIZE");
+        l_data.m_key_len = sizeof("ARGS_COMBINED_SIZE") - 1;
         l_data.m_val = "ARGS_COMBINED_SIZE";
         l_data.m_val_len = l_arg_len;
         ao_list.push_back(l_data);
@@ -1226,7 +1226,7 @@ GET_VAR(REQUEST_BODY)
         // -------------------------------------------------
         const_arg_t l_data;
         l_data.m_key = "REQUEST_BODY";
-        l_data.m_key_len = sizeof("REQUEST_BODY");
+        l_data.m_key_len = sizeof("REQUEST_BODY") - 1;
         l_data.m_val = a_ctx->m_body_data;
         l_data.m_val_len = a_ctx->m_body_len;
         ao_list.push_back(l_data);
@@ -1253,9 +1253,9 @@ GET_VAR(XML)
         {
                 const_arg_t l_data;
                 l_data.m_key = "XML";
-                l_data.m_key_len = sizeof("XML");
+                l_data.m_key_len = sizeof("XML") - 1;
                 l_data.m_val = "[XML document tree]";
-                l_data.m_val_len = sizeof("[XML document tree]");
+                l_data.m_val_len = sizeof("[XML document tree]") - 1;
                 ao_list.push_back(l_data);
                 ao_count = 1;
                 return WAFLZ_STATUS_OK;

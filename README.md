@@ -2,16 +2,16 @@
 <img src="/docs/_images/waflz_white.svg" width="200"/>
 
 # waflz
-multi tenant modsecurity implementation. [Docs](https://verizondigital.github.io/waflz/ "waflz docs")
+multitenant ModSecurity waf. [Docs](https://verizondigital.github.io/waflz/ "waflz docs")
 
 ### Overview
 An implementation of a WAF engine in c/c++ supporting processing a subset of ModSecurity rules functionalties, configurable with either json or ModSecurity rules.  waflz is performance optimized to support running many WAF profiles side by side, by using faster/smaller internal data types and sharing common ruleset data between the profiles -ie if multiple WAF profiles refer to the same ruleset(s), the ruleset(s) are loaded only once for all and shared in memory.
 
 ### Rationale
-The VDMS global edge platform is a multi-tenant CDN supporting our hundreds of thousands individual customer configurations from any given location.  The VDMS WAF supports running OWASP Core Rulesets as well as some third-party rulesets.  The performance and resource allocation of any given customer configuration has the potential of impacting others -ie eventually all configurations live in memory on a physical server in a "Point of Presence" (POP) in a datacenter.  It was important then to the VDMS CDN the WAF be as high performant, memory constrained, and deterministic as possible.
+The VDMS global edge platform is a multitenant CDN supporting our hundreds of thousands individual customer configurations from any given location.  The VDMS WAF supports running OWASP Core Rulesets as well as some third-party rulesets.  The performance and resource allocation of any given customer configuration has the potential of impacting others -ie eventually all configurations live in memory on a physical server in a "Point of Presence" (POP) in a datacenter.  It was important then to the VDMS CDN the WAF be as high performant, memory constrained, and deterministic as possible.
 
 ### Capabilities
-The open source standard implementation of the [ModSecurity Rules Engine](https://github.com/SpiderLabs/ModSecurity "ModSecurity") -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  Several ModSecurity capabilities eg [SecRemoteRules](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRemoteRules "SecRemoteRules") and [inspectFile](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#inspectFile "inspectFile"), were intentionally ommitted, due to potential performance impacts in a multi-tenant envronment.  A list of currently supported variables, operators and transforms are listed in the [capabilities section of the docs](https://verizondigital.github.io/waflz/capabilities "waflz capabilities")
+The open source standard implementation of the [ModSecurity Rules Engine](https://github.com/SpiderLabs/ModSecurity "ModSecurity") -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  Several ModSecurity capabilities eg [SecRemoteRules](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRemoteRules "SecRemoteRules") and [inspectFile](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#inspectFile "inspectFile"), were intentionally ommitted, due to potential performance impacts in a multitenant environment.  A list of currently supported variables, operators and transforms are listed in the [capabilities section of the docs](https://verizondigital.github.io/waflz/capabilities "waflz capabilities")
 
 ### Build requirement (Ubuntu 14.04/16.04)
 

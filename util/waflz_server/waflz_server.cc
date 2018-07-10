@@ -376,15 +376,11 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 // -----------------------------------------
                 else
                 {
-                        ns_is2::kv_map_list_t l_headers(a_rqst.get_headers());
-                        ns_is2::kv_map_list_t::iterator i_hdr;
-                        if((i_hdr = l_headers.find(WAFLZ_SERVER_HEADER_INSTANCE_ID)) != l_headers.end())
+                        const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
+                        ns_is2::mutable_data_t i_hdr;
+                        if(ns_is2::find_first(i_hdr, l_headers, WAFLZ_SERVER_HEADER_INSTANCE_ID, sizeof(WAFLZ_SERVER_HEADER_INSTANCE_ID)))
                         {
-                                // Take first value
-                                if(i_hdr->second.size())
-                                {
-                                        l_id = i_hdr->second.front();
-                                }
+                                l_id.assign(i_hdr.m_data, i_hdr.m_len);
                         }
                 }
                 //NDBG_PRINT("instance: id:   %s\n", l_id.c_str());
@@ -600,16 +596,12 @@ static int32_t get_rqst_ip_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
         // check for header override
         // -------------------------------------------------
 #define _HEADER_SRC_IP "x-waflz-ip"
-        const ns_is2::kv_map_list_t &l_hdrs = l_ctx->m_rqst->get_headers();
-        ns_is2::kv_map_list_t::const_iterator i_hdr;
-        i_hdr = l_hdrs.find(_HEADER_SRC_IP);
-        if((i_hdr != l_hdrs.end()) &&
-           i_hdr->second.size())
+        const ns_is2::mutable_data_map_list_t& l_headers(l_ctx->m_rqst->get_header_map());
+        ns_is2::mutable_data_t i_hdr;
+        if(ns_is2::find_first(i_hdr, l_headers, _HEADER_SRC_IP, sizeof(_HEADER_SRC_IP)))
         {
-                // Take first value
-                const std::string &l_ip = i_hdr->second.front();
-                *a_data = l_ip.c_str();
-                a_len = l_ip.length();
+                *a_data = i_hdr.m_data;
+                a_len = i_hdr.m_len;
                 return 0;
         }
         // -------------------------------------------------
@@ -861,7 +853,7 @@ static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
         {
                 return -1;
         }
-        a_val = l_rqst->get_headers().size();
+        a_val = l_rqst->get_header_list().size();
         return 0;
 }
 //: ----------------------------------------------------------------------------
@@ -885,11 +877,12 @@ static int32_t get_rqst_header_w_key_cb(const char **ao_val,
         }
         *ao_val = NULL;
         ao_val_len = 0;
-        ns_is2::kv_map_list_t::const_iterator i_h = l_rqst->get_headers().find(a_key);
-        if(i_h != l_rqst->get_headers().end())
+        const ns_is2::mutable_data_map_list_t& l_headers(l_rqst->get_header_map());
+        ns_is2::mutable_data_t i_hdr;
+        if(ns_is2::find_first(i_hdr, l_headers, a_key, a_key_len))
         {
-                *ao_val = i_h->second.front().c_str();
-                ao_val_len = i_h->second.front().length();
+                *ao_val = i_hdr.m_data;
+                ao_val_len = i_hdr.m_len;
         }
         return 0;
 }
@@ -917,22 +910,17 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         ao_key_len = 0;
         *ao_val = NULL;
         ao_val_len = 0;
-        uint32_t i_idx = 0;
-        const ns_is2::kv_map_list_t &l_kv_list = l_rqst->get_headers();
-        ns_is2::kv_map_list_t::const_iterator i_h = l_kv_list.begin();
-        while((i_h != l_kv_list.end()) &&
-              (i_idx < a_idx))
+        const ns_is2::mutable_arg_list_t &l_h_list = l_rqst->get_header_list();
+        ns_is2::mutable_arg_list_t::const_iterator i_h = l_h_list.begin();
+        std::advance(i_h, a_idx);
+        if(i_h == l_h_list.end())
         {
-                ++i_idx;
-                ++i_h;
+                return -1;
         }
-        if(i_h != l_kv_list.end())
-        {
-                *ao_key = i_h->first.c_str();
-                ao_key_len = i_h->first.length();
-                *ao_val = i_h->second.front().c_str();
-                ao_val_len = i_h->second.front().length();
-        }
+        *ao_key = i_h->m_key;
+        ao_key_len = i_h->m_key_len;
+        *ao_val = i_h->m_val;
+        ao_val_len = i_h->m_val_len;
         return 0;
 }
 //: ----------------------------------------------------------------------------
@@ -1023,6 +1011,8 @@ static int32_t get_rqst_body_str_cb(char *ao_data,
         return 0;
 }
 //: ----------------------------------------------------------------------------
+<<<<<<< HEAD
+=======
 //: get_rqst_header_size_cb
 //: ----------------------------------------------------------------------------
 static int32_t get_rqst_query_args_size_cb(uint32_t &a_val, void *a_ctx)
@@ -1086,6 +1076,7 @@ static int32_t get_rqst_query_args_w_idx_cb(const char **ao_key,
         return 0;
 }
 //: ----------------------------------------------------------------------------
+>>>>>>> master
 //: \details Find the first occurrence of find in s, where the search is limited
 //:          to the first slen characters of s.
 //: \return  TODO
@@ -1564,8 +1555,11 @@ int main(int argc, char** argv)
         ns_waflz::rqst_ctx::s_get_rqst_header_w_key_cb = get_rqst_header_w_key_cb;
         ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
         ns_waflz::rqst_ctx::s_get_rqst_body_str_cb = get_rqst_body_str_cb;
+<<<<<<< HEAD
+=======
         ns_waflz::rqst_ctx::s_get_rqst_query_args_size_cb = get_rqst_query_args_size_cb;
         ns_waflz::rqst_ctx::s_get_rqst_query_args_w_idx_cb = get_rqst_query_args_w_idx_cb;
+>>>>>>> master
 #ifdef ENABLE_PROFILER
         // -------------------------------------------------
         // start profiler(s)

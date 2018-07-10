@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: _images/WAFLZ_White.svg
+.. image:: _images/waflz_white.svg
 	:width: 200
 	:alt: Alternative text
 
@@ -13,7 +13,7 @@
    :maxdepth: 2
    :caption: Contents:
    
-   directives
+   capabilities
    issues
 
 Indices and tables

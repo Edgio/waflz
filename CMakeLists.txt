@@ -196,10 +196,6 @@ find_ubuntu_package(LIBCRYPTO openssl/crypto.h libcrypto.a libssl1.0.0 libssl-de
 # ------------------------------------------------------------------------------
 find_ubuntu_package(LIBPCRE pcre.h libpcre.a libpcre.so libpcre3-dev)
 # ------------------------------------------------------------------------------
-# Link UUID
-# ------------------------------------------------------------------------------
-find_ubuntu_package(LIBUUID uuid/uuid.h libuuid.a libuuid uuid-dev)
-# ------------------------------------------------------------------------------
 # Link xml2
 # ------------------------------------------------------------------------------
 find_ubuntu_package(LIBXML2 libxml2/libxml/xmlversion.h libxml2.a libxml2 libxml2-dev)
@@ -221,11 +217,6 @@ find_ubuntu_package(LIBICUDATA unicode/uversion.h libicudata.a libicu libicu-dev
 # Link PROTOBUF
 # ------------------------------------------------------------------------------
 find_ubuntu_package(LIBPROTOBUF google/protobuf/message.h libprotobuf.a libprotobuf libprotobuf-dev)
-# ------------------------------------------------------------------------------
-# Link MAXMINDDB
-# ------------------------------------------------------------------------------
-#find_ubuntu_package(LIBMAXMINDDB maxminddb.h libmaxminddb.a libmaxminddb0 libmaxminddb-dev)
-LIST(APPEND LIBRARIES libmaxminddb.a)
 # ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------

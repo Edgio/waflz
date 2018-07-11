@@ -36,7 +36,7 @@ include_directories(
 SET(SRCS wb_instances.cc)
 add_executable(wb_instances ${HDRS} ${SRCS})
 add_dependencies(wb_instances waflzcore)
-target_link_libraries(wb_instances ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a libmaxminddb.a ${LIBRARIES})
+target_link_libraries(wb_instances ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
 SET_TARGET_PROPERTIES(wb_instances PROPERTIES OUTPUT_NAME "wb_instances")
 add_test(instances wb_instances)
 # ------------------------------------------------------------------------------

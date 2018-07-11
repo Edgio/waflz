@@ -13,7 +13,6 @@ Third Party Libraries
 * libssl-dev (libcrypto/libssl)
 * libxml2 (requires libicu)
 * libprotobuf
-* libmaxminddb0 (for geoip lookup (ASN/country))
 
 Compiling
 =========

@@ -33,21 +33,28 @@
             
   <div class="section" id="building">
 <h1>Building<a class="headerlink" href="#building" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="supported-os-s">
-<h2>Supported OS’s<a class="headerlink" href="#supported-os-s" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
-</div>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
+<div class="section" id="supported-os-s">
+<h3>Supported OS’s<a class="headerlink" href="#supported-os-s" title="Permalink to this headline">¶</a></h3>
+<p>Currently waflz has only been built/tested/deployed to production on Ubuntu 14.04/16.04.</p>
+</div>
+<div class="section" id="third-party-libraries">
+<h3>Third Party Libraries<a class="headerlink" href="#third-party-libraries" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>libssl-dev (libcrypto/libssl)</li>
+<li>libxml2 (requires libicu)</li>
+<li>libprotobuf</li>
+<li>libmaxminddb0 (for geoip lookup (ASN/country))</li>
+</ul>
+</div>
 </div>
 <div class="section" id="compiling">
 <h2>Compiling<a class="headerlink" href="#compiling" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
+<p>A top level build script is provided to compile and run tests</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre>./build.sh
+</pre></div>
 </div>
-<div class="section" id="running-tests">
-<h2>Running Tests<a class="headerlink" href="#running-tests" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
 </div>
 </div>
 
@@ -60,10 +67,12 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Building</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
 <li><a class="reference internal" href="#supported-os-s">Supported OS’s</a></li>
-<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#third-party-libraries">Third Party Libraries</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#compiling">Compiling</a></li>
-<li><a class="reference internal" href="#running-tests">Running Tests</a></li>
 </ul>
 </li>
 </ul>

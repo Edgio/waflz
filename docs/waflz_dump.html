@@ -33,10 +33,156 @@
             
   <div class="section" id="format-conversions-with-waflz-dump">
 <h1>Format Conversions with waflz_dump<a class="headerlink" href="#format-conversions-with-waflz-dump" title="Permalink to this headline">¶</a></h1>
-<p>TODO</p>
-<div class="section" id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
+<p><a class="reference external" href="https://github.com/VerizonDigital/waflz">waflz</a> can interoperate with ModSecurity rules in 3 format: json, protocol buffers (binary), and ModSecurity rules format.  <a class="reference external" href="https://github.com/VerizonDigital/waflz/tree/master/util/waflz_dump">waflz_dump</a> is a utility to convert between the 3 formats.  waflz_dump is more than a curiosity, however.  It has practical uses at VDMS for exposing ruleset information via API’s, as ModSecurity Rule format is not conducive to HTTP API usage.</p>
+<div class="section" id="a-little-conversion-example-shellshock">
+<h2>A Little Conversion Example (<a class="reference external" href="https://en.wikipedia.org/wiki/Shellshock_(software_bug)">ShellShock</a>)<a class="headerlink" href="#a-little-conversion-example-shellshock" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="a-modsecurity-rule-file">
+<h3>A ModSecurity Rule file<a class="headerlink" href="#a-modsecurity-rule-file" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre>&gt;cat modsecurity_shellshock_1.conf
+
+SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</span>REQUEST_BODY<span class="p">|</span>REQUEST_HEADERS_NAMES <span class="se">\</span>
+        <span class="s2">&quot;@contains () {&quot;</span> <span class="s2">&quot;phase:2,rev:&#39;1&#39;,\</span>
+<span class="s2">        ver:&#39;EC/1.0.0&#39;,\</span>
+<span class="s2">        maturity:&#39;1&#39;,accuracy:&#39;8&#39;,\</span>
+<span class="s2">        t:none,t:urlDecodeUni,t:Utf8toUnicode,\</span>
+<span class="s2">        id:&#39;431000&#39;,\</span>
+<span class="s2">        msg:&#39;Bash shellshock attack detected&#39;,\</span>
+<span class="s2">        tag:&#39;CVE-2014-6271&#39;,block&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="convert-to-json">
+<h3>Convert to json<a class="headerlink" href="#convert-to-json" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre>&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.conf --input_modsec --json <span class="p">|</span> jq <span class="s1">&#39;.&#39;</span>
+
+<span class="o">{</span>
+  <span class="s2">&quot;ruleset_id&quot;</span>: <span class="s2">&quot;__na__&quot;</span>,
+  <span class="s2">&quot;ruleset_version&quot;</span>: <span class="s2">&quot;__na__&quot;</span>,
+  <span class="s2">&quot;directive&quot;</span>: <span class="o">[</span>
+    <span class="o">{</span>
+      <span class="s2">&quot;sec_rule&quot;</span>: <span class="o">{</span>
+        <span class="s2">&quot;variable&quot;</span>: <span class="o">[</span>
+          <span class="o">{</span>
+            <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;REQUEST_HEADERS&quot;</span>,
+            <span class="s2">&quot;match&quot;</span>: <span class="o">[</span>
+              <span class="o">{</span>
+                <span class="s2">&quot;is_negated&quot;</span>: false,
+                <span class="s2">&quot;is_regex&quot;</span>: <span class="nb">false</span>
+              <span class="o">}</span>
+            <span class="o">]</span>,
+            <span class="s2">&quot;is_count&quot;</span>: <span class="nb">false</span>
+          <span class="o">}</span>,
+          <span class="o">{</span>
+            <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;REQUEST_LINE&quot;</span>,
+            <span class="s2">&quot;match&quot;</span>: <span class="o">[</span>
+              <span class="o">{</span>
+                <span class="s2">&quot;is_negated&quot;</span>: false,
+                <span class="s2">&quot;is_regex&quot;</span>: <span class="nb">false</span>
+              <span class="o">}</span>
+            <span class="o">]</span>,
+            <span class="s2">&quot;is_count&quot;</span>: <span class="nb">false</span>
+          <span class="o">}</span>,
+          <span class="o">{</span>
+            <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;REQUEST_BODY&quot;</span>,
+            <span class="s2">&quot;match&quot;</span>: <span class="o">[</span>
+              <span class="o">{</span>
+                <span class="s2">&quot;is_negated&quot;</span>: false,
+                <span class="s2">&quot;is_regex&quot;</span>: <span class="nb">false</span>
+              <span class="o">}</span>
+            <span class="o">]</span>,
+            <span class="s2">&quot;is_count&quot;</span>: <span class="nb">false</span>
+          <span class="o">}</span>,
+          <span class="o">{</span>
+            <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;REQUEST_HEADERS_NAMES&quot;</span>,
+            <span class="s2">&quot;match&quot;</span>: <span class="o">[</span>
+              <span class="o">{</span>
+                <span class="s2">&quot;is_negated&quot;</span>: false,
+                <span class="s2">&quot;is_regex&quot;</span>: <span class="nb">false</span>
+              <span class="o">}</span>
+            <span class="o">]</span>,
+            <span class="s2">&quot;is_count&quot;</span>: <span class="nb">false</span>
+          <span class="o">}</span>
+        <span class="o">]</span>,
+        <span class="s2">&quot;operator&quot;</span>: <span class="o">{</span>
+          <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;CONTAINS&quot;</span>,
+          <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;() {&quot;</span>,
+          <span class="s2">&quot;is_regex&quot;</span>: false,
+          <span class="s2">&quot;is_negated&quot;</span>: <span class="nb">false</span>
+        <span class="o">}</span>,
+        <span class="s2">&quot;action&quot;</span>: <span class="o">{</span>
+          <span class="s2">&quot;id&quot;</span>: <span class="s2">&quot;431000&quot;</span>,
+          <span class="s2">&quot;msg&quot;</span>: <span class="s2">&quot;Bash shellshock attack detected&quot;</span>,
+          <span class="s2">&quot;action_type&quot;</span>: <span class="s2">&quot;BLOCK&quot;</span>,
+          <span class="s2">&quot;accuracy&quot;</span>: <span class="s2">&quot;8&quot;</span>,
+          <span class="s2">&quot;maturity&quot;</span>: <span class="s2">&quot;1&quot;</span>,
+          <span class="s2">&quot;phase&quot;</span>: 2,
+          <span class="s2">&quot;rev&quot;</span>: <span class="s2">&quot;1&quot;</span>,
+          <span class="s2">&quot;ver&quot;</span>: <span class="s2">&quot;EC/1.0.0&quot;</span>,
+          <span class="s2">&quot;file&quot;</span>: <span class="s2">&quot;modsecurity_shellshock_1.conf&quot;</span>,
+          <span class="s2">&quot;tag&quot;</span>: <span class="o">[</span>
+            <span class="s2">&quot;CVE-2014-6271&quot;</span>
+          <span class="o">]</span>,
+          <span class="s2">&quot;t&quot;</span>: <span class="o">[</span>
+            <span class="s2">&quot;NONE&quot;</span>,
+            <span class="s2">&quot;URLDECODEUNI&quot;</span>,
+            <span class="s2">&quot;UTF8TOUNICODE&quot;</span>
+          <span class="o">]</span>
+        <span class="o">}</span>,
+        <span class="s2">&quot;hidden&quot;</span>: <span class="nb">false</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="convert-to-protocol-buffers">
+<h3>Convert to protocol buffers<a class="headerlink" href="#convert-to-protocol-buffers" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre>&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.conf --input_modsec --pbuf <span class="p">|</span> xxd
+
+00000000: a206 065f 5f6e 615f 5faa <span class="m">0606</span> 5f5f 6e61  ...__na__...__na
+00000010: 5f5f 82f7 02cb <span class="m">0112</span> c801 c23e 0a08 <span class="m">1612</span>  __.........&gt;....
+00000020: <span class="m">0450</span> <span class="m">0058</span> <span class="m">0018</span> 00c2 3e0a <span class="m">0818</span> <span class="m">1204</span> <span class="m">5000</span>  .P.X....&gt;.....P.
+00000030: <span class="m">5800</span> <span class="m">1800</span> c23e 0a08 <span class="m">1212</span> <span class="m">0450</span> <span class="m">0058</span> <span class="m">0018</span>  X....&gt;.....P.X..
+00000040: 00c2 3e0a <span class="m">0817</span> <span class="m">1204</span> <span class="m">5000</span> <span class="m">5800</span> <span class="m">1800</span> ca3e  ..&gt;.....P.X....&gt;
+00000050: 0c08 <span class="m">0212</span> <span class="m">0428</span> <span class="m">2920</span> 7b18 <span class="m">0050</span> 00d2 3e7e  .....<span class="o">()</span> <span class="o">{</span>..P..&gt;~
+00000060: 0a06 <span class="m">3433</span> <span class="m">3130</span> <span class="m">3030</span> 121f <span class="m">4261</span> <span class="m">7368</span> <span class="m">2073</span>  ..431000..Bash s
+00000070: <span class="m">6865</span> 6c6c <span class="m">7368</span> 6f63 6b20 <span class="m">6174</span> <span class="m">7461</span> 636b  hellshock attack
+00000080: <span class="m">2064</span> <span class="m">6574</span> <span class="m">6563</span> <span class="m">7465</span> <span class="m">6450</span> 02a2 <span class="m">0601</span> 38aa   detectedP....8.
+00000090: <span class="m">0601</span> 31b0 <span class="m">0602</span> ba06 <span class="m">0131</span> c206 <span class="m">0845</span> 432f  ..1......1...EC/
+000000a0: 312e 302e 30ca 061d 6d6f <span class="m">6473</span> <span class="m">6563</span> <span class="m">7572</span>  1.0.0...modsecur
+000000b0: <span class="m">6974</span> 795f <span class="m">7368</span> 656c 6c73 686f 636b 5f31  ity_shellshock_1
+000000c0: 2e63 6f6e 66e2 120d <span class="m">4356</span> 452d <span class="m">3230</span> <span class="m">3134</span>  .conf...CVE-2014
+000000d0: 2d36 <span class="m">3237</span> 31a0 1f0b a01f 12a0 1f13 80fa  -6271...........
+000000e0: <span class="m">0100</span>                                     ..
+</pre></div>
+</div>
+</div>
+<div class="section" id="converting-to-json-and-back-to-modsecurity">
+<h3>Converting to json and back to ModSecurity<a class="headerlink" href="#converting-to-json-and-back-to-modsecurity" title="Permalink to this headline">¶</a></h3>
+<p><em>note the action ordering in the rule becomes slightly mangled albeit still correct</em></p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span class="c1"># modsecurity rules file</span>
+&gt;cat ./modsecurity_shellshock_1.conf
+
+SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</span>REQUEST_BODY<span class="p">|</span>REQUEST_HEADERS_NAMES <span class="se">\</span>
+        <span class="s2">&quot;@contains () {&quot;</span> <span class="s2">&quot;phase:2,rev:&#39;1&#39;,\</span>
+<span class="s2">        ver:&#39;EC/1.0.0&#39;,\</span>
+<span class="s2">        maturity:&#39;1&#39;,accuracy:&#39;8&#39;,\</span>
+<span class="s2">        t:none,t:urlDecodeUni,t:Utf8toUnicode,\</span>
+<span class="s2">        id:&#39;431000&#39;,\</span>
+<span class="s2">        msg:&#39;Bash shellshock attack detected&#39;,\</span>
+<span class="s2">        tag:&#39;CVE-2014-6271&#39;,block&quot;</span>
+
+<span class="c1"># convert to json</span>
+&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.conf --input_modsec --json --output<span class="o">=</span>./modsecurity_shellshock_1.json
+
+<span class="c1"># convert back to ModSecurity format</span>
+&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.json --input_json --modsec
+
+SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</span>REQUEST_BODY<span class="p">|</span>REQUEST_HEADERS_NAMES <span class="s2">&quot;@contains () {&quot;</span> <span class="s2">&quot;phase:2,block,rev:&#39;1&#39;,ver:&#39;EC/1.0.0&#39;,maturity:&#39;1&#39;,accuracy:&#39;8&#39;,t:none,t:urlDecodeUni,t:utf8tounicode,id:431000,msg:&#39;Bash shellshock attack detected&#39;,tag:&#39;CVE-2014-6271&#39;&quot;</span>
+</pre></div>
+</div>
+</div>
 </div>
 </div>
 
@@ -49,7 +195,13 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Format Conversions with waflz_dump</a><ul>
-<li><a class="reference internal" href="#example">Example</a></li>
+<li><a class="reference internal" href="#a-little-conversion-example-shellshock">A Little Conversion Example (ShellShock)</a><ul>
+<li><a class="reference internal" href="#a-modsecurity-rule-file">A ModSecurity Rule file</a></li>
+<li><a class="reference internal" href="#convert-to-json">Convert to json</a></li>
+<li><a class="reference internal" href="#convert-to-protocol-buffers">Convert to protocol buffers</a></li>
+<li><a class="reference internal" href="#converting-to-json-and-back-to-modsecurity">Converting to json and back to ModSecurity</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

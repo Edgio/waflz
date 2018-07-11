@@ -119,7 +119,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // Args...
         // -------------------------------------------------
-        char l_short_arg_list[] = "hvi:MJPo:jpm:";
+        char l_short_arg_list[] = "hvi:MJPo:jpm";
         while((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)

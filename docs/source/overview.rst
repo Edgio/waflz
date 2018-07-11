@@ -75,7 +75,7 @@ A benefit of defining a plugin this way with callbacks to get the HTTP request d
 
   ...
 
-   // write a catch.http to test waflz processing w/ spoofed server callback
+   // write a catch.hpp to test waflz processing w/ spoofed server callback
    SECTION("verify simple URI match") {
 
            // set callbacks...
@@ -97,7 +97,7 @@ Running a WAF in a CDN, the principle resource issue can be many customer config
 
 Performance Tweaks
 ******************
-There are a few critical data structures in ModSecurity compatible waf, besides the usual strings, and regex patterns.  Here's a list of a few waflz strived to improve for our specific use-cases:
+There are a few critical data structures in a ModSecurity compatible waf, besides the usual strings, and regex patterns.  Here's a list of a few we strived to improve for our specific use-cases:
 
 * **Aho-Corasick**: For operators like `PM <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pm>`_/`PMFROMFILE <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pmfromfile>`_ (multiple substring matching like "grep -F/fgrep"), an `Aho-Corasick <https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm>`_ data structure is constructed for faster parallel searching of substrings.  `Our construction <https://github.com/VerizonDigital/waflz/blob/master/src/op/ac.h>`_ is similar to the `acmp <https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/acmp.h>`_ object in the standard implementation but more space efficient, as it prunes node meta information.  Search performance is similar as the trie is traversed similarly in both implementations.
 * **IP Tree**: We've had an internal `IP Tree <https://github.com/VerizonDigital/waflz/blob/master/src/op/nms.h>`_ kicking around our internal repos, that's performed well for us and seems to be faster than the `msc_tree <https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/msc_tree.h>`_ in the standard implementation (*will provide benchmarks at a later date*).  It's reusable as well outside of our library.

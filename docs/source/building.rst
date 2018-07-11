@@ -1,18 +1,24 @@
 Building
 --------
 
-Supported OS's
-==============
-TODO
-
 Requirements
 ============
-TODO
+
+Supported OS's
+**************
+Currently waflz has only been built/tested/deployed to production on Ubuntu 14.04/16.04.
+
+Third Party Libraries
+*********************
+* libssl-dev (libcrypto/libssl)
+* libxml2 (requires libicu)
+* libprotobuf
+* libmaxminddb0 (for geoip lookup (ASN/country))
 
 Compiling
 =========
-TODO
+A top level build script is provided to compile and run tests
 
-Running Tests
-=============
-TODO
+.. code-block:: sh
+
+  ./build.sh

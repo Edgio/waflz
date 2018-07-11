@@ -1,15 +1,26 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Format Conversions with waflz_dump &#8212; Waflz 0.0.0 documentation</title>
+    
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -23,7 +34,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+  </head>
+  <body role="document">
   
 
     <div class="document">
@@ -33,12 +45,12 @@
             
   <div class="section" id="format-conversions-with-waflz-dump">
 <h1>Format Conversions with waflz_dump<a class="headerlink" href="#format-conversions-with-waflz-dump" title="Permalink to this headline">¶</a></h1>
-<p><a class="reference external" href="https://github.com/VerizonDigital/waflz">waflz</a> can interoperate with ModSecurity rules in 3 format: json, protocol buffers (binary), and ModSecurity rules format.  <a class="reference external" href="https://github.com/VerizonDigital/waflz/tree/master/util/waflz_dump">waflz_dump</a> is a utility to convert between the 3 formats.  waflz_dump is more than a curiosity, however.  It has practical uses at VDMS for exposing ruleset information via API’s, as ModSecurity Rule format is not conducive to HTTP API usage.</p>
+<p><a class="reference external" href="https://github.com/VerizonDigital/waflz">waflz</a> can interoperate with ModSecurity rules in 3 format: json, protocol buffers (binary), and ModSecurity rules format.  <a class="reference external" href="https://github.com/VerizonDigital/waflz/tree/master/util/waflz_dump">waflz_dump</a> is a utility to convert between the 3 formats.  waflz_dump is more than a curiosity, however.  It has practical uses at VDMS for exposing ruleset information via API&#8217;s, as ModSecurity Rule format is not conducive to HTTP API usage.</p>
 <div class="section" id="a-little-conversion-example-shellshock">
 <h2>A Little Conversion Example (<a class="reference external" href="https://en.wikipedia.org/wiki/Shellshock_(software_bug)">ShellShock</a>)<a class="headerlink" href="#a-little-conversion-example-shellshock" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="a-modsecurity-rule-file">
 <h3>A ModSecurity Rule file<a class="headerlink" href="#a-modsecurity-rule-file" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sh notranslate"><div class="highlight"><pre>&gt;cat modsecurity_shellshock_1.conf
+<div class="highlight-sh"><div class="highlight"><pre><span></span>&gt;cat modsecurity_shellshock_1.conf
 
 SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</span>REQUEST_BODY<span class="p">|</span>REQUEST_HEADERS_NAMES <span class="se">\</span>
         <span class="s2">&quot;@contains () {&quot;</span> <span class="s2">&quot;phase:2,rev:&#39;1&#39;,\</span>
@@ -53,7 +65,7 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
 </div>
 <div class="section" id="convert-to-json">
 <h3>Convert to json<a class="headerlink" href="#convert-to-json" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sh notranslate"><div class="highlight"><pre>&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.conf --input_modsec --json <span class="p">|</span> jq <span class="s1">&#39;.&#39;</span>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.conf --input_modsec --json <span class="p">|</span> jq <span class="s1">&#39;.&#39;</span>
 
 <span class="o">{</span>
   <span class="s2">&quot;ruleset_id&quot;</span>: <span class="s2">&quot;__na__&quot;</span>,
@@ -115,7 +127,7 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
           <span class="s2">&quot;action_type&quot;</span>: <span class="s2">&quot;BLOCK&quot;</span>,
           <span class="s2">&quot;accuracy&quot;</span>: <span class="s2">&quot;8&quot;</span>,
           <span class="s2">&quot;maturity&quot;</span>: <span class="s2">&quot;1&quot;</span>,
-          <span class="s2">&quot;phase&quot;</span>: 2,
+          <span class="s2">&quot;phase&quot;</span>: <span class="m">2</span>,
           <span class="s2">&quot;rev&quot;</span>: <span class="s2">&quot;1&quot;</span>,
           <span class="s2">&quot;ver&quot;</span>: <span class="s2">&quot;EC/1.0.0&quot;</span>,
           <span class="s2">&quot;file&quot;</span>: <span class="s2">&quot;modsecurity_shellshock_1.conf&quot;</span>,
@@ -138,19 +150,19 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
 </div>
 <div class="section" id="convert-to-protocol-buffers">
 <h3>Convert to protocol buffers<a class="headerlink" href="#convert-to-protocol-buffers" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sh notranslate"><div class="highlight"><pre>&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.conf --input_modsec --pbuf <span class="p">|</span> xxd
+<div class="highlight-sh"><div class="highlight"><pre><span></span>&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.conf --input_modsec --pbuf <span class="p">|</span> xxd
 
-00000000: a206 065f 5f6e 615f 5faa <span class="m">0606</span> 5f5f 6e61  ...__na__...__na
-00000010: 5f5f 82f7 02cb <span class="m">0112</span> c801 c23e 0a08 <span class="m">1612</span>  __.........&gt;....
-00000020: <span class="m">0450</span> <span class="m">0058</span> <span class="m">0018</span> 00c2 3e0a <span class="m">0818</span> <span class="m">1204</span> <span class="m">5000</span>  .P.X....&gt;.....P.
-00000030: <span class="m">5800</span> <span class="m">1800</span> c23e 0a08 <span class="m">1212</span> <span class="m">0450</span> <span class="m">0058</span> <span class="m">0018</span>  X....&gt;.....P.X..
-00000040: 00c2 3e0a <span class="m">0817</span> <span class="m">1204</span> <span class="m">5000</span> <span class="m">5800</span> <span class="m">1800</span> ca3e  ..&gt;.....P.X....&gt;
-00000050: 0c08 <span class="m">0212</span> <span class="m">0428</span> <span class="m">2920</span> 7b18 <span class="m">0050</span> 00d2 3e7e  .....<span class="o">()</span> <span class="o">{</span>..P..&gt;~
-00000060: 0a06 <span class="m">3433</span> <span class="m">3130</span> <span class="m">3030</span> 121f <span class="m">4261</span> <span class="m">7368</span> <span class="m">2073</span>  ..431000..Bash s
-00000070: <span class="m">6865</span> 6c6c <span class="m">7368</span> 6f63 6b20 <span class="m">6174</span> <span class="m">7461</span> 636b  hellshock attack
-00000080: <span class="m">2064</span> <span class="m">6574</span> <span class="m">6563</span> <span class="m">7465</span> <span class="m">6450</span> 02a2 <span class="m">0601</span> 38aa   detectedP....8.
-00000090: <span class="m">0601</span> 31b0 <span class="m">0602</span> ba06 <span class="m">0131</span> c206 <span class="m">0845</span> 432f  ..1......1...EC/
-000000a0: 312e 302e 30ca 061d 6d6f <span class="m">6473</span> <span class="m">6563</span> <span class="m">7572</span>  1.0.0...modsecur
+<span class="m">00000000</span>: a206 065f 5f6e 615f 5faa <span class="m">0606</span> 5f5f 6e61  ...__na__...__na
+<span class="m">00000010</span>: 5f5f 82f7 02cb <span class="m">0112</span> c801 c23e 0a08 <span class="m">1612</span>  __.........&gt;....
+<span class="m">00000020</span>: <span class="m">0450</span> <span class="m">0058</span> <span class="m">0018</span> 00c2 3e0a <span class="m">0818</span> <span class="m">1204</span> <span class="m">5000</span>  .P.X....&gt;.....P.
+<span class="m">00000030</span>: <span class="m">5800</span> <span class="m">1800</span> c23e 0a08 <span class="m">1212</span> <span class="m">0450</span> <span class="m">0058</span> <span class="m">0018</span>  X....&gt;.....P.X..
+<span class="m">00000040</span>: 00c2 3e0a <span class="m">0817</span> <span class="m">1204</span> <span class="m">5000</span> <span class="m">5800</span> <span class="m">1800</span> ca3e  ..&gt;.....P.X....&gt;
+<span class="m">00000050</span>: 0c08 <span class="m">0212</span> <span class="m">0428</span> <span class="m">2920</span> 7b18 <span class="m">0050</span> 00d2 3e7e  .....<span class="o">()</span> <span class="o">{</span>..P..&gt;~
+<span class="m">00000060</span>: 0a06 <span class="m">3433</span> <span class="m">3130</span> <span class="m">3030</span> 121f <span class="m">4261</span> <span class="m">7368</span> <span class="m">2073</span>  ..431000..Bash s
+<span class="m">00000070</span>: <span class="m">6865</span> 6c6c <span class="m">7368</span> 6f63 6b20 <span class="m">6174</span> <span class="m">7461</span> 636b  hellshock attack
+<span class="m">00000080</span>: <span class="m">2064</span> <span class="m">6574</span> <span class="m">6563</span> <span class="m">7465</span> <span class="m">6450</span> 02a2 <span class="m">0601</span> 38aa   detectedP....8.
+<span class="m">00000090</span>: <span class="m">0601</span> 31b0 <span class="m">0602</span> ba06 <span class="m">0131</span> c206 <span class="m">0845</span> 432f  ..1......1...EC/
+000000a0: 312e 302e 30ca 061d 6d6f <span class="m">6473</span> <span class="m">6563</span> <span class="m">7572</span>  <span class="m">1</span>.0.0...modsecur
 000000b0: <span class="m">6974</span> 795f <span class="m">7368</span> 656c 6c73 686f 636b 5f31  ity_shellshock_1
 000000c0: 2e63 6f6e 66e2 120d <span class="m">4356</span> 452d <span class="m">3230</span> <span class="m">3134</span>  .conf...CVE-2014
 000000d0: 2d36 <span class="m">3237</span> 31a0 1f0b a01f 12a0 1f13 80fa  -6271...........
@@ -161,7 +173,7 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
 <div class="section" id="converting-to-json-and-back-to-modsecurity">
 <h3>Converting to json and back to ModSecurity<a class="headerlink" href="#converting-to-json-and-back-to-modsecurity" title="Permalink to this headline">¶</a></h3>
 <p><em>note the action ordering in the rule becomes slightly mangled albeit still correct</em></p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span class="c1"># modsecurity rules file</span>
+<div class="highlight-sh"><div class="highlight"><pre><span></span><span class="c1"># modsecurity rules file</span>
 &gt;cat ./modsecurity_shellshock_1.conf
 
 SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</span>REQUEST_BODY<span class="p">|</span>REQUEST_HEADERS_NAMES <span class="se">\</span>
@@ -223,14 +235,12 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
-    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -241,8 +251,8 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
       &copy;2018, Reed Morrison, Devender Singh.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
       <a href="_sources/waflz_dump.rst.txt"

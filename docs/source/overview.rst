@@ -3,11 +3,11 @@ Overview
 
 What is it?
 ===========
-An implementation of a WAF engine in c/c++ supporting processing a subset of ModSecurity rules functionalties, configurable with either json or ModSecurity rules.  waflz is optimized to support running many WAF profiles side by side, by using faster/smaller internal data types and sharing common ruleset data between the profiles -ie if multiple WAF profiles refer to the same ruleset(s), the ruleset(s) are loaded only once for all and shared in memory.
+An implementation of a WAF engine in c/c++ supporting processing a subset of ModSecurity rules functionalties, configurable with either json or ModSecurity rules.  waflz is optimized to support running many WAF profiles side by side, by using faster/smaller internal data types and sharing common ruleset data between the profiles.  E.g, if multiple WAF profiles refer to the same ruleset(s), the ruleset(s) are loaded only once for all and shared in memory.
 
 Why another ModSecurity engine?
 ===============================
-The open source standard implementation of the `ModSecurity Rules Engine <https://github.com/SpiderLabs/ModSecurity/>`_ -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  One of the principle technical challenges in a CDN is "multi-tenancy" -ie any given single physical server on our edge is servicing client requests for any given customer configuration.  Mechanically on the edge customer configuration is "patched" in at run-time while the client request is being serviced.
+The open source standard implementation of the `ModSecurity Rules Engine <https://github.com/SpiderLabs/ModSecurity/>`_ -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  One of the principle technical challenges in a CDN is "multi-tenancy", where any given single physical server on our edge is servicing client requests for any given customer configuration.  Mechanically, on the edge customer configuration is "patched" in at run-time while the client request is being serviced.
 
 .. figure:: _images/patching.svg
     :alt: patching
@@ -20,7 +20,7 @@ The open source standard implementation of the `ModSecurity Rules Engine <https:
 
 The resource implications of being able to "patch" in any given customer configuration from any given edge server means configuration must be lightweight and servicing the request must be done as fast as possible.  One customer configuration using too much memory crowds out the others (memory being finite).  Performance wise, client requests taking too long to service eventually affect other client requests (including other customers).
 
-Development from this perspective changes many of the engineering trades.  Determinism, more restrictive memory and cpu constraints tend to trump flexibility, so `waflz <https://github.com/VerizonDigital/waflz>`_ was developed specificly to suit the needs of a CDN.
+Development from this perspective changes many of the engineering trade-offs.  Determinism, more restrictive memory and cpu constraints tend to trump flexibility, so `waflz <https://github.com/VerizonDigital/waflz>`_ was developed specificly to suit the needs of a CDN.
 
 Architecture
 ============
@@ -34,7 +34,7 @@ We thought one of the biggest candidates for improvement in developing our own e
 
 Server Shims
 ************
-Another interesting detail is how to write a library that plugs into HTTP server applications (like nginx, apache, etc).  The library shouldn't expose its internal complexity, but for a WAF quite a bit of request context information has to be passed between the HTTP server and the library.  To write a plugin for waflz, server specific callbacks are defined along with the "request context pointer", to extract various parts of the HTTP request and provide them back to the waflz library.
+Another interesting detail is how to write a library that plugs into HTTP server applications (like Sailfish (our high performance HTTP web server), nginx, apache, etc).  The library shouldn't expose its internal complexity, but for a WAF quite a bit of request context information has to be passed between the HTTP server and the library.  To write a plugin for waflz, server specific callbacks are defined along with the "request context pointer", to extract various parts of the HTTP request and provide them back to the waflz library.
 
 An example using the `is2 <https://github.com/VerizonDigital/is2>`_ embedded http server library:
 
@@ -93,11 +93,11 @@ A benefit of defining a plugin this way with callbacks to get the HTTP request d
 
 "Muti-tenancy" Concerns
 ***********************
-Running a WAF in a CDN, the principle resource issue can be many customer configurations loading the same 3 or 4 WAF ruleset definitions (100's to 1000's of rules) into a server process's memory.  The obvious optimization is to load rulesets only once and share read-only copies internally between the customer configurations.  Once challenge with this approach, however, is custom configurable rule modifications like `SecRuleUpdateTargetById <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRuleUpdateTargetById>`_ complicated the implementation of sharing ruleset data.  waflz dedupes rulesets loaded previously, saving precious process memory in production.
+Running a WAF in a CDN, the principle resource issue can be many customer configurations loading the same 3 or 4 WAF ruleset definitions (100's to 1000's of rules) into a server process's memory.  The obvious optimization is to load rulesets only once and share read-only copies internally between the customer configurations.  Once challenge with this approach, however, is custom configurable rule modifications like `SecRuleUpdateTargetById <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRuleUpdateTargetById>`_ complicate the implementation of sharing ruleset data.  waflz dedupes rulesets loaded previously, saving precious process memory in production.
 
 Performance Tweaks
 ******************
-There are a few critical data structures in a ModSecurity compatible waf, besides the usual strings, and regex patterns.  Here's a list of a few we strived to improve for our specific use-cases:
+There are a few critical data structures in a ModSecurity-compatible waf, besides the usual strings, and regex patterns.  Here's a list of a few we strived to improve for our specific use-cases:
 
 * **Aho-Corasick**: For operators like `PM <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pm>`_/`PMFROMFILE <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pmfromfile>`_ (multiple substring matching like "grep -F/fgrep"), an `Aho-Corasick <https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm>`_ data structure is constructed for faster parallel searching of substrings.  `Our construction <https://github.com/VerizonDigital/waflz/blob/master/src/op/ac.h>`_ is similar to the `acmp <https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/acmp.h>`_ object in the standard implementation but more space efficient, as it prunes node meta information.  Search performance is similar as the trie is traversed similarly in both implementations.
 * **IP Tree**: We've had an internal `IP Tree <https://github.com/VerizonDigital/waflz/blob/master/src/op/nms.h>`_ kicking around our internal repos, that's performed well for us and seems to be faster than the `msc_tree <https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/msc_tree.h>`_ in the standard implementation (*will provide benchmarks at a later date*).  It's reusable as well outside of our library.

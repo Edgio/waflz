@@ -61,7 +61,6 @@ target_link_libraries(waflz_server
   ssl
   crypto
   ${LIBRARIES}
-  libmaxminddb.a
 )
 install(TARGETS waflz_server
         DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/

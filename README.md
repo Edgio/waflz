@@ -20,9 +20,7 @@ The open source standard implementation of the [ModSecurity Rules Engine](https:
 ## Packages
 
 ```sh
-$ sudo add-apt-repository ppa:maxmind/ppa
-$ sudo apt-get update
-$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev python-pip libmaxminddb0 libmaxminddb-dev
+$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev python-pip
 ```
 
 ## Python Packages

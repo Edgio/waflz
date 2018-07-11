@@ -1733,7 +1733,7 @@ run_op:
         {
 #define _SET_RULE_INFO(_field, _str) \
 if(l_a.has_##_field()) { \
-data_t l_k; l_k.m_data = _str; l_k.m_len = sizeof(_str); \
+data_t l_k; l_k.m_data = _str; l_k.m_len = sizeof(_str) - 1; \
 data_t l_v; \
 l_v.m_data = l_a._field().c_str(); \
 l_v.m_len = l_a._field().length(); \

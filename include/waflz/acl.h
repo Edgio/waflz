@@ -36,6 +36,7 @@ namespace waflz_pb {
         class profile;
         class profile_access_settings_t;
         class event;
+        class acl;
 }
 namespace ns_waflz {
 class regex;
@@ -55,7 +56,7 @@ public:
         // -------------------------------------------------
         acl(geoip2_mmdb &a_geoip2_mmdb);
         ~acl();
-        int32_t compile(const ::waflz_pb::profile_access_settings_t& a_acl);
+        int32_t compile();
         int32_t process_whitelist(bool &ao_match, void *a_ctx);
         int32_t process_blacklist(waflz_pb::event **ao_event, void *a_ctx);
         //: ------------------------------------------------
@@ -69,6 +70,7 @@ public:
         {
                 return m_err_msg;
         }
+        waflz_pb::acl *get_pb(void) { return m_pb; }
 private:
         // -------------------------------------------------
         // private types
@@ -95,6 +97,7 @@ private:
         // private members
         // -------------------------------------------------
         char m_err_msg[WAFLZ_ERR_LEN];
+        waflz_pb::acl *m_pb;
         // -------------------------------------------------
         // *************************************************
         // geoip2 support

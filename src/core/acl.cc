@@ -352,6 +352,56 @@ int32_t acl::compile()
                         }
                 }
         }
+        // -------------------------------------------------
+        // allowed_http_methods
+        // -------------------------------------------------
+        if(m_pb->allowed_http_methods_size())
+        {
+                for(int32_t i_t = 0; i_t < m_pb->allowed_http_methods_size(); ++i_t)
+                {
+                        m_allowed_http_methods.insert(m_pb->allowed_http_methods(i_t));
+                }
+        }
+        // -------------------------------------------------
+        // allowed_http_versions
+        // -------------------------------------------------
+        if(m_pb->allowed_http_versions_size())
+        {
+                for(int32_t i_t = 0; i_t < m_pb->allowed_http_versions_size(); ++i_t)
+                {
+                        m_allowed_http_versions.insert(m_pb->allowed_http_versions(i_t));
+                }
+        }
+        // -------------------------------------------------
+        // allowed_request_content
+        // -------------------------------------------------
+        if(m_pb->allowed_request_content_types_size())
+        {
+                for(int32_t i_t = 0; i_t < m_pb->allowed_request_content_types_size(); ++i_t)
+                {
+                        m_allowed_request_content_types.insert(m_pb->allowed_request_content_types(i_t));
+                }
+        }
+        // -------------------------------------------------
+        // allowed_request_content
+        // -------------------------------------------------
+        if(m_pb->disallowed_extensions_size())
+        {
+                for(int32_t i_t = 0; i_t < m_pb->disallowed_extensions_size(); ++i_t)
+                {
+                        m_disallowed_extensions.insert(m_pb->disallowed_extensions(i_t));
+                }
+        }
+        // -------------------------------------------------
+        // disallowed_headers
+        // -------------------------------------------------
+        if(m_pb->disallowed_headers_size())
+        {
+                for(int32_t i_t = 0; i_t < m_pb->disallowed_headers_size(); ++i_t)
+                {
+                        m_disallowed_headers.insert(m_pb->disallowed_headers(i_t));
+                }
+        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -939,4 +989,5 @@ cookie_check:
         }
         return WAFLZ_STATUS_OK;
 }
+
 }

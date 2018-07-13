@@ -125,6 +125,16 @@ private:
         // cookie
         regex *m_cookie_rx_whitelist;
         regex *m_cookie_rx_blacklist;
+        // methods
+        stri_set_t m_allowed_http_methods;
+        // protocol versions
+        stri_set_t m_allowed_http_versions;
+        // content types
+        stri_set_t m_allowed_request_content_types;
+        // extensions
+        stri_set_t m_disallowed_extensions;
+        // headers
+        stri_set_t m_disallowed_headers;
 };
 }
 #endif

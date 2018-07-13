@@ -34,6 +34,7 @@
 #include "waflz/acl.h"
 #include "config.pb.h"
 #include "event.pb.h"
+#include "acl.pb.h"
 #include <errno.h>
 //: ----------------------------------------------------------------------------
 //: macros
@@ -59,6 +60,7 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 acl::acl(geoip2_mmdb &a_geoip2_mmdb):
         m_err_msg(),
+        m_pb(NULL),
         m_geoip2_mmdb(a_geoip2_mmdb),
         m_ip_whitelist(NULL),
         m_ip_blacklist(NULL),
@@ -75,6 +77,7 @@ acl::acl(geoip2_mmdb &a_geoip2_mmdb):
         m_cookie_rx_whitelist(NULL),
         m_cookie_rx_blacklist(NULL)
 {
+        m_pb = new waflz_pb::acl();
 }
 //: ----------------------------------------------------------------------------
 //: \brief   dtor
@@ -95,6 +98,7 @@ acl::~acl(void)
         _DELETE_OBJ(m_referer_rx_blacklist);
         _DELETE_OBJ(m_cookie_rx_whitelist);
         _DELETE_OBJ(m_cookie_rx_blacklist);
+        if(m_pb) { delete m_pb; m_pb = NULL; }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -152,7 +156,7 @@ static int32_t compile_regex_list(regex **ao_regex,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t acl::compile(const ::waflz_pb::profile_access_settings_t& a_acl)
+int32_t acl::compile()
 {
         // -------------------------------------------------
         // acl: ip
@@ -163,9 +167,9 @@ int32_t acl::compile(const ::waflz_pb::profile_access_settings_t& a_acl)
         //     "blacklist": ["8.8.8.8"]
         // },
         // -------------------------------------------------
-        if(a_acl.has_ip())
+        if(m_pb->has_ip())
         {
-                if(a_acl.ip().whitelist_size())
+                if(m_pb->ip().whitelist_size())
                 {
                         if(m_ip_whitelist)
                         {
@@ -173,13 +177,13 @@ int32_t acl::compile(const ::waflz_pb::profile_access_settings_t& a_acl)
                                 m_ip_whitelist = NULL;
                         }
                         m_ip_whitelist = new nms();
-                        for(int32_t i_ip = 0; i_ip < a_acl.ip().whitelist_size(); ++i_ip)
+                        for(int32_t i_ip = 0; i_ip < m_pb->ip().whitelist_size(); ++i_ip)
                         {
-                                const std::string &l_str = a_acl.ip().whitelist(i_ip);
+                                const std::string &l_str = m_pb->ip().whitelist(i_ip);
                                 m_ip_whitelist->add(l_str.c_str(), l_str.length());
                         }
                 }
-                if(a_acl.ip().blacklist_size())
+                if(m_pb->ip().blacklist_size())
                 {
                         if(m_ip_blacklist)
                         {
@@ -187,9 +191,9 @@ int32_t acl::compile(const ::waflz_pb::profile_access_settings_t& a_acl)
                                 m_ip_blacklist = NULL;
                         }
                         m_ip_blacklist = new nms();
-                        for(int32_t i_ip = 0; i_ip < a_acl.ip().blacklist_size(); ++i_ip)
+                        for(int32_t i_ip = 0; i_ip < m_pb->ip().blacklist_size(); ++i_ip)
                         {
-                                const std::string &l_str = a_acl.ip().blacklist(i_ip);
+                                const std::string &l_str = m_pb->ip().blacklist(i_ip);
                                 m_ip_blacklist->add(l_str.c_str(), l_str.length());
                         }
                 }
@@ -203,54 +207,54 @@ int32_t acl::compile(const ::waflz_pb::profile_access_settings_t& a_acl)
         //             "blacklist": ["RU", "CN"]
         //         },
         // -------------------------------------------------
-        if(a_acl.has_country())
+        if(m_pb->has_country())
         {
-                for(int32_t i_ip = 0; i_ip < a_acl.country().whitelist_size(); ++i_ip)
+                for(int32_t i_ip = 0; i_ip < m_pb->country().whitelist_size(); ++i_ip)
                 {
-                        m_country_whitelist.insert(a_acl.country().whitelist(i_ip));
+                        m_country_whitelist.insert(m_pb->country().whitelist(i_ip));
                 }
-                for(int32_t i_ip = 0; i_ip < a_acl.country().blacklist_size(); ++i_ip)
+                for(int32_t i_ip = 0; i_ip < m_pb->country().blacklist_size(); ++i_ip)
                 {
-                        m_country_blacklist.insert(a_acl.country().blacklist(i_ip));
+                        m_country_blacklist.insert(m_pb->country().blacklist(i_ip));
                 }
         }
         // -------------------------------------------------
         // ASN
         // -------------------------------------------------
-        if(a_acl.has_asn())
+        if(m_pb->has_asn())
         {
-                for(int32_t i_ip = 0; i_ip < a_acl.asn().whitelist_size(); ++i_ip)
+                for(int32_t i_ip = 0; i_ip < m_pb->asn().whitelist_size(); ++i_ip)
                 {
-                        m_asn_whitelist.insert(a_acl.asn().whitelist(i_ip));
+                        m_asn_whitelist.insert(m_pb->asn().whitelist(i_ip));
                 }
-                for(int32_t i_ip = 0; i_ip < a_acl.asn().blacklist_size(); ++i_ip)
+                for(int32_t i_ip = 0; i_ip < m_pb->asn().blacklist_size(); ++i_ip)
                 {
-                        m_asn_blacklist.insert(a_acl.asn().blacklist(i_ip));
+                        m_asn_blacklist.insert(m_pb->asn().blacklist(i_ip));
                 }
         }
         // -------------------------------------------------
         // url
         // -------------------------------------------------
-        if(a_acl.has_url())
+        if(m_pb->has_url())
         {
-                if(a_acl.url().whitelist_size())
+                if(m_pb->url().whitelist_size())
                 {
                         int32_t l_s;
                         l_s = compile_regex_list(&m_url_rx_whitelist,
-                                                 a_acl.url().whitelist(),
-                                                 a_acl.url().whitelist_size());
+                                                 m_pb->url().whitelist(),
+                                                 m_pb->url().whitelist_size());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "compiling url whitelist");
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
-                if(a_acl.url().blacklist_size())
+                if(m_pb->url().blacklist_size())
                 {
                         int32_t l_s;
                         l_s = compile_regex_list(&m_url_rx_blacklist,
-                                                 a_acl.url().blacklist(),
-                                                 a_acl.url().blacklist_size());
+                                                 m_pb->url().blacklist(),
+                                                 m_pb->url().blacklist_size());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "compiling url blacklist");
@@ -261,26 +265,26 @@ int32_t acl::compile(const ::waflz_pb::profile_access_settings_t& a_acl)
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        if(a_acl.has_user_agent())
+        if(m_pb->has_user_agent())
         {
-                if(a_acl.user_agent().whitelist_size())
+                if(m_pb->user_agent().whitelist_size())
                 {
                         int32_t l_s;
                         l_s = compile_regex_list(&m_ua_rx_whitelist,
-                                                 a_acl.user_agent().whitelist(),
-                                                 a_acl.user_agent().whitelist_size());
+                                                 m_pb->user_agent().whitelist(),
+                                                 m_pb->user_agent().whitelist_size());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "compiling user-agent whitelist");
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
-                if(a_acl.user_agent().blacklist_size())
+                if(m_pb->user_agent().blacklist_size())
                 {
                         int32_t l_s;
                         l_s = compile_regex_list(&m_ua_rx_blacklist,
-                                                 a_acl.user_agent().blacklist(),
-                                                 a_acl.user_agent().blacklist_size());
+                                                 m_pb->user_agent().blacklist(),
+                                                 m_pb->user_agent().blacklist_size());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "compiling user-agent blacklist");
@@ -291,26 +295,26 @@ int32_t acl::compile(const ::waflz_pb::profile_access_settings_t& a_acl)
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
-        if(a_acl.has_referer())
+        if(m_pb->has_referer())
         {
-                if(a_acl.referer().whitelist_size())
+                if(m_pb->referer().whitelist_size())
                 {
                         int32_t l_s;
                         l_s = compile_regex_list(&m_referer_rx_whitelist,
-                                                 a_acl.referer().whitelist(),
-                                                 a_acl.referer().whitelist_size());
+                                                 m_pb->referer().whitelist(),
+                                                 m_pb->referer().whitelist_size());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "compiling referer whitelist");
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
-                if(a_acl.referer().blacklist_size())
+                if(m_pb->referer().blacklist_size())
                 {
                         int32_t l_s;
                         l_s = compile_regex_list(&m_referer_rx_blacklist,
-                                                 a_acl.referer().blacklist(),
-                                                 a_acl.referer().blacklist_size());
+                                                 m_pb->referer().blacklist(),
+                                                 m_pb->referer().blacklist_size());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "compiling referer blacklist");
@@ -321,26 +325,26 @@ int32_t acl::compile(const ::waflz_pb::profile_access_settings_t& a_acl)
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
-        if(a_acl.has_cookie())
+        if(m_pb->has_cookie())
         {
-                if(a_acl.cookie().whitelist_size())
+                if(m_pb->cookie().whitelist_size())
                 {
                         int32_t l_s;
                         l_s = compile_regex_list(&m_cookie_rx_whitelist,
-                                                 a_acl.cookie().whitelist(),
-                                                 a_acl.cookie().whitelist_size());
+                                                 m_pb->cookie().whitelist(),
+                                                 m_pb->cookie().whitelist_size());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "compiling cookie whitelist");
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
-                if(a_acl.cookie().blacklist_size())
+                if(m_pb->cookie().blacklist_size())
                 {
                         int32_t l_s;
                         l_s = compile_regex_list(&m_cookie_rx_blacklist,
-                                                 a_acl.cookie().blacklist(),
-                                                 a_acl.cookie().blacklist_size());
+                                                 m_pb->cookie().blacklist(),
+                                                 m_pb->cookie().blacklist_size());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "compiling cookie blacklist");

@@ -59,6 +59,7 @@ public:
         int32_t compile();
         int32_t process_whitelist(bool &ao_match, void *a_ctx);
         int32_t process_blacklist(waflz_pb::event **ao_event, void *a_ctx);
+        int32_t process_sig_settings(waflz_pb::event **ao_event, void *a_ctx);
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------

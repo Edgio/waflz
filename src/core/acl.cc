@@ -989,5 +989,141 @@ cookie_check:
         }
         return WAFLZ_STATUS_OK;
 }
-
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t acl::process_sig_settings(waflz_pb::event **ao_event, void *a_ctx)
+{
+        if(!ao_event)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_event = NULL;
+        const char *l_key = NULL;
+        const char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        int32_t l_s;
+        waflz_pb::event *l_event = NULL;
+        GET_RQST_DATA(rqst_ctx::s_get_rqst_method_cb);
+        // -------------------------------------------------
+        // country
+        // -------------------------------------------------
+        if(m_allowed_http_methods.size() &&
+           l_buf &&
+           l_buf_len)
+        {
+                bool l_match = false;
+                if(m_allowed_http_methods.find(l_buf) != m_allowed_http_methods.end())
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        // alloc event...
+                        l_event = new ::waflz_pb::event();
+                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                        // ---------------------------------
+                        // subevent
+                        // ---------------------------------
+                        l_sevent->set_rule_id(430425);
+                        l_sevent->set_rule_msg("Method is not allowed by policy");
+                        // top level rule msg
+                        l_event->set_rule_msg("Method is not allowed by policy");
+                        l_sevent->set_rule_op_name("");
+                        l_sevent->set_rule_op_param("");
+                        l_sevent->add_rule_tag("HTTP POLICY");
+                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                        l_rule_target->set_name("REQUEST_METHOD");
+                        l_rule_target->set_param(l_buf);
+                        l_sevent->set_total_anomaly_score(2);
+                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                        l_var->set_name("REQUEST_METHOD");
+                        l_var->set_value(l_buf);
+                        *ao_event = l_event;
+                        return WAFLZ_STATUS_OK;
+                }
+        }
+        // Not supported yet
+#if 0
+        // -------------------------------------------------
+        // allowed_http_versions
+        // -------------------------------------------------
+        if(m_allowed_http_versions.size() &&
+           l_buf &&
+           l_buf_len)
+        {
+                bool l_match = false;
+                if(m_allowed_http_versions.find(l_buf) != m_allowed_http_versions.end())
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        // alloc event...
+                        l_event = new ::waflz_pb::event();
+                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                        // ---------------------------------
+                        // subevent
+                        // ---------------------------------
+                        l_sevent->set_rule_id(430425);
+                        l_sevent->set_rule_msg("HTTP protocol version is not allowed by policy");
+                        // top level rule msg
+                        l_event->set_rule_msg("Method is not allowed by policy");
+                        l_sevent->set_rule_op_name("");
+                        l_sevent->set_rule_op_param("");
+                        l_sevent->add_rule_tag("HTTP POLICY");
+                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                        l_rule_target->set_name("REQUEST_PROTOCOL");
+                        l_rule_target->set_param(l_buf);
+                        l_sevent->set_total_anomaly_score(2);
+                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                        l_var->set_name("REQUEST_PROTOCOL");
+                        l_var->set_value(l_buf);
+                        *ao_event = l_event;
+                        return WAFLZ_STATUS_OK;
+                }
+        }
+#endif
+        GET_RQST_DATA(rqst_ctx::s_get_rqst_method_cb);
+        // -------------------------------------------------
+        // country
+        // -------------------------------------------------
+        if(m_allowed_request_content_types.size() &&
+           l_buf &&
+           l_buf_len)
+        {
+                bool l_match = false;
+                if(m_allowed_request_content_types.find(l_buf) != m_allowed_request_content_types.end())
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        // alloc event...
+                        l_event = new ::waflz_pb::event();
+                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                        // ---------------------------------
+                        // subevent
+                        // ---------------------------------
+                        l_sevent->set_rule_id(430425);
+                        l_sevent->set_rule_msg("Request content type is not allowed by policy");
+                        // top level rule msg
+                        l_event->set_rule_msg("Request content type is not allowed by policy");
+                        l_sevent->set_rule_op_name("");
+                        l_sevent->set_rule_op_param("");
+                        l_sevent->add_rule_tag("HTTP POLICY");
+                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                        l_rule_target->set_name("REQUEST_HEADERS");
+                        l_rule_target->set_param(l_buf);
+                        l_sevent->set_total_anomaly_score(2);
+                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                        l_var->set_name("REQUEST_METHOD");
+                        l_var->set_value(l_buf);
+                        *ao_event = l_event;
+                        return WAFLZ_STATUS_OK;
+                }
+        }
+}
 }

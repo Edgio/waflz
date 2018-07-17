@@ -594,8 +594,9 @@ int32_t profile::process(waflz_pb::event **ao_event,
         //            A C L   W H I T E L I S T
         // *************************************************
         // -------------------------------------------------
-        bool l_match = false;
-        l_s = m_acl->process_whitelist(l_match, a_ctx);
+        bool l_whitelist = false;
+        waflz_pb::event *l_event = NULL;
+        l_s = m_acl->process(&l_event, l_whitelist, a_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO log error reason???
@@ -604,7 +605,7 @@ int32_t profile::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // if in whitelist -bail out of modsec processing
         // -------------------------------------------------
-        if(l_match)
+        if(l_whitelist)
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -613,13 +614,6 @@ int32_t profile::process(waflz_pb::event **ao_event,
         //            A C L   B L A C K L I S T
         // *************************************************
         // -------------------------------------------------
-        waflz_pb::event *l_event = NULL;
-        l_s = m_acl->process_blacklist(&l_event, a_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                // TODO log error reason???
-                return WAFLZ_STATUS_ERROR;
-        }
         if(l_event)
         {
                 // add rqst info

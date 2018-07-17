@@ -1259,4 +1259,51 @@ version_check:
 #endif
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t acl::process(waflz_pb::event **ao_event,
+                     bool &ao_whitelist,
+                     void *a_ctx)
+{
+        if(!ao_event)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_event = NULL;
+        rqst_ctx *l_ctx = new rqst_ctx(0, false);
+        int32_t l_s;
+        l_s = l_ctx->init_phase_0(a_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        bool l_match = false;
+        l_s = process_whitelist(l_match, l_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_match)
+        {
+                ao_whitelist = true;
+                return WAFLZ_STATUS_OK;
+        }
+        waflz_pb::event *l_event = NULL;
+        l_s = process_blacklist(&l_event, a_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_event)
+        {
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+        //TODO:
+        //l_s = process_sig_settings(&l_event, a_ctx)
+}
 }

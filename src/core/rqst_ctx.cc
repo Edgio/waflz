@@ -174,6 +174,7 @@ rqst_ctx::rqst_ctx(uint32_t a_body_len_max,
         m_base(),
         m_query_str(),
         m_query_arg_list(),
+        m_header_map(),
         m_header_list(),
         m_cookie_list(),
         m_body_len_max(a_body_len_max),
@@ -181,6 +182,7 @@ rqst_ctx::rqst_ctx(uint32_t a_body_len_max,
         m_body_len(0),
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
+        m_file_ext(NULL),
         m_body_parser(),
         // -----------------------------------------
         // collections
@@ -268,6 +270,176 @@ rqst_ctx::~rqst_ctx()
         // delete parser
         // -------------------------------------------------
         if(m_body_parser) { delete m_body_parser; m_body_parser = NULL;}
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t rqst_ctx::init_phase_0(void *a_ctx)
+{
+        // -------------------------------------------------
+        // src addr
+        // -------------------------------------------------
+        if(s_get_rqst_src_addr_cb)
+        {
+                int32_t l_s;
+                // get src address
+                l_s = s_get_rqst_src_addr_cb(&m_src_addr.m_data,
+                                             m_src_addr.m_len,
+                                             a_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // hardcode protocol to http/1.1
+        // -------------------------------------------------
+        m_protocol.m_data = "HTTP/1.1";
+        m_protocol.m_len = strlen(m_protocol.m_data);
+        // -------------------------------------------------
+        // line
+        // -------------------------------------------------
+        if(s_get_rqst_line_cb)
+        {
+                int32_t l_s;
+                // get request line
+                l_s = s_get_rqst_line_cb(&m_line.m_data,
+                                         m_line.m_len,
+                                         a_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // method
+        // -------------------------------------------------
+        if(s_get_rqst_method_cb)
+        {
+                int32_t l_s;
+                // get method
+                l_s = s_get_rqst_method_cb(&m_method.m_data,
+                                           m_method.m_len,
+                                           a_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // url
+        // -------------------------------------------------
+        if(s_get_rqst_url_cb)
+        {
+                int32_t l_s;
+                // get uri
+                l_s = s_get_rqst_url_cb(&m_url.m_data,
+                                        m_url.m_len,
+                                        a_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // uri
+        // -------------------------------------------------
+        if(s_get_rqst_uri_cb)
+        {
+                int32_t l_s;
+                // get uri
+                l_s = s_get_rqst_uri_cb(&m_uri.m_data,
+                                        m_uri.m_len,
+                                        a_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // uri_raw
+        // -------------------------------------------------
+        if(s_get_rqst_path_cb)
+        {
+                int32_t l_s;
+                // get raw uri
+                l_s = s_get_rqst_path_cb(&m_path.m_data,
+                                         m_path.m_len,
+                                         a_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // get base
+                // -----------------------------------------
+                if(m_path.m_data &&
+                   m_path.m_len)
+                {
+                        const void *l_ptr = NULL;
+                        l_ptr = memrchr(m_path.m_data, '/', (int)m_path.m_len);
+                        if(l_ptr)
+                        {
+                                m_base.m_data = ((const char *)(l_ptr) + 1);
+                                m_base.m_len = m_path.m_len - ((uint32_t)((const char *)l_ptr - m_path.m_data)) - 1;
+                        }
+                }
+        }
+        // -------------------------------------------------
+        // headers
+        // -------------------------------------------------
+        uint32_t l_hdr_size = 0;
+        if(s_get_rqst_header_size_cb)
+        {
+                int32_t l_s;
+                l_s = s_get_rqst_header_size_cb(l_hdr_size, a_ctx);
+                if(l_s != 0)
+                {
+                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_size_cb");
+                }
+        }
+        for(uint32_t i_h = 0; i_h < l_hdr_size; ++i_h)
+        {
+                const_arg_t l_hdr;
+                if(!s_get_rqst_header_w_idx_cb)
+                {
+                        continue;
+                }
+                int32_t l_s;
+                l_s = s_get_rqst_header_w_idx_cb(&l_hdr.m_key, l_hdr.m_key_len,
+                                                 &l_hdr.m_val, l_hdr.m_val_len,
+                                                 a_ctx,
+                                                 i_h);
+                if(l_s != 0)
+                {
+                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_idx_cb: idx: %u", i_h);
+                        continue;
+                }
+                if(!l_hdr.m_key)
+                {
+                        continue;
+                }
+                m_header_list.push_back(l_hdr);
+                // -----------------------------------------
+                // map
+                // -----------------------------------------
+                data_t l_key;
+                l_key.m_data = l_hdr.m_key;
+                l_key.m_len = l_hdr.m_key_len;
+                data_t l_val;
+                l_val.m_data = l_hdr.m_val;
+                l_val.m_len = l_hdr.m_val_len;
+                m_header_map[l_key] = l_val;
+        }
+        return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO

@@ -49,6 +49,7 @@ struct cx_case_i_comp
 };
 typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <std::string, uint32_t> count_map_t;
+typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 // ---------------------------------------------------------
 // *********************************************************
 // xml optimization
@@ -94,6 +95,7 @@ public:
         rqst_ctx(uint32_t a_body_len_max,
                  bool a_parse_json = false);
         ~rqst_ctx();
+        int32_t init_phase_0(void *a_ctx);
         int32_t init_phase_1(void *a_ctx,
                              const pcre_list_t &a_il_query,
                              const pcre_list_t &a_il_header,
@@ -117,6 +119,7 @@ public:
         data_t m_query_str;
         arg_list_t m_query_arg_list;
         arg_list_t m_body_arg_list;
+        data_map_t m_header_map;
         const_arg_list_t m_header_list;
         const_arg_list_t m_cookie_list;
         const uint32_t m_body_len_max;
@@ -124,6 +127,7 @@ public:
         uint32_t m_body_len;
         bool m_parse_json;
         std::string m_cookie_mutated;
+        std::string m_file_ext;
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------

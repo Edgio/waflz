@@ -117,6 +117,7 @@ public:
         data_t m_path;
         data_t m_base;
         data_t m_query_str;
+        data_t m_file_ext;
         arg_list_t m_query_arg_list;
         arg_list_t m_body_arg_list;
         data_map_t m_header_map;
@@ -127,7 +128,6 @@ public:
         uint32_t m_body_len;
         bool m_parse_json;
         std::string m_cookie_mutated;
-        std::string m_file_ext;
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------

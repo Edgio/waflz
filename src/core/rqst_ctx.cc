@@ -173,6 +173,7 @@ rqst_ctx::rqst_ctx(uint32_t a_body_len_max,
         m_path(),
         m_base(),
         m_query_str(),
+        m_file_ext(),
         m_query_arg_list(),
         m_header_map(),
         m_header_list(),
@@ -182,7 +183,6 @@ rqst_ctx::rqst_ctx(uint32_t a_body_len_max,
         m_body_len(0),
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
-        m_file_ext(NULL),
         m_body_parser(),
         // -----------------------------------------
         // collections
@@ -390,6 +390,20 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                         {
                                 m_base.m_data = ((const char *)(l_ptr) + 1);
                                 m_base.m_len = m_path.m_len - ((uint32_t)((const char *)l_ptr - m_path.m_data)) - 1;
+                        }
+                }
+                // -----------------------------------------
+                // get file_ext
+                // -----------------------------------------
+                if(m_base.m_data &&
+                   m_base.m_len)
+                {
+                        const void *l_ptr = NULL;
+                        l_ptr = memrchr(m_base.m_data, '.', (int)m_base.m_len);
+                        if(l_ptr)
+                        {
+                                m_file_ext.m_data = ((const char *)(l_ptr));
+                                m_file_ext.m_len = m_base.m_len - ((uint32_t)((const char *)l_ptr - m_base.m_data)) - 1;
                         }
                 }
         }

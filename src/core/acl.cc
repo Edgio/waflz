@@ -517,8 +517,7 @@ user_agent_check:
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        if(!m_ua_rx_whitelist ||
-           !rqst_ctx::s_get_rqst_header_w_key_cb)
+        if(!m_ua_rx_whitelist)
         {
                 goto referer_check;
         }
@@ -540,8 +539,7 @@ referer_check:
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
-        if(!m_referer_rx_whitelist ||
-           !rqst_ctx::s_get_rqst_header_w_key_cb)
+        if(!m_referer_rx_whitelist)
         {
                 goto cookie_check;
         }
@@ -563,8 +561,7 @@ cookie_check:
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
-        if(!m_cookie_rx_whitelist ||
-           !rqst_ctx::s_get_rqst_header_w_key_cb)
+        if(!m_cookie_rx_whitelist)
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -604,6 +601,7 @@ int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         // -------------------------------------------------
         // ip
         // -------------------------------------------------
+        // IP or src_addr is used for ip, country and asn check
         l_buf = a_ctx.m_src_addr.m_data;
         l_buf_len = a_ctx.m_src_addr.m_len;
         if(m_ip_blacklist &&
@@ -753,6 +751,7 @@ url_check:
         {
                 goto user_agent_check;
         }
+        // set buf to uri
         l_buf = a_ctx.m_uri.m_data;
         l_buf_len = a_ctx.m_uri.m_len;
         if(m_url_rx_blacklist &&
@@ -798,6 +797,7 @@ user_agent_check:
         {
                 goto referer_check;
         }
+        // get header from header map.
         _GET_HEADER("User-Agent", l_buf);
         if(m_ua_rx_blacklist &&
            l_buf &&
@@ -935,7 +935,7 @@ cookie_check:
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t acl::process_sig_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
+int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
         if(!ao_event)
         {
@@ -1008,8 +1008,10 @@ method_check:
         if(a_ctx.m_method.m_data &&
            a_ctx.m_method.m_len)
         {
+                // Look for method in allowed m set
                 if(m_allowed_http_methods.find(a_ctx.m_method.m_data) != m_allowed_http_methods.end())
                 {
+                        // Found the method in allowed list
                         goto content_type_check;
                 }
                 // alloc event...
@@ -1086,6 +1088,7 @@ file_ext_check:
            a_ctx.m_file_ext.m_data &&
            a_ctx.m_file_ext.m_len)
         {
+                // unlike previous checks, extension shouldnt be in list, hence ==
                 if(m_disallowed_extensions.find(a_ctx.m_file_ext.m_data) == m_disallowed_extensions.end())
                 {
                         // extension not found in disallowed list
@@ -1126,6 +1129,7 @@ header_check:
             i_h != a_ctx.m_header_list.end();
             ++i_h)
         {
+                // similar to previous check, ==
                 if(m_disallowed_headers.find(i_h->m_key) == m_disallowed_headers.end())
                 {
                         continue;
@@ -1244,7 +1248,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_OK;
         }
         //TODO:
-        l_s = process_sig_settings(&l_event, *l_ctx);
+        l_s = process_settings(&l_event, *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_ctx) { delete l_ctx; l_ctx = NULL;}

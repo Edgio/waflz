@@ -1,5 +1,5 @@
-Supported Functionality
------------------------
+Supported ModSecurity Functionality
+-----------------------------------
 
 Configuration Directives
 ==========================

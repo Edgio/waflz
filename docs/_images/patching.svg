@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="43cm" height="15cm" viewBox="117 180 843 289" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <polygon style="fill: #ffffff" points="170.721,182 344.842,182 316.088,261 141.967,261 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="170.721,182 344.842,182 316.088,261 141.967,261 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="243.404" y="209.4">
+      <tspan x="243.404" y="209.4">Client A</tspan>
+      <tspan x="243.404" y="225.4">Requesting Resource</tspan>
+      <tspan x="243.404" y="241.4">for Customer 1</tspan>
+    </text>
+  </g>
+  <g>
+    <polygon style="fill: #ffffff" points="156.354,285.8 330.474,285.8 301.721,364.8 127.6,364.8 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="156.354,285.8 330.474,285.8 301.721,364.8 127.6,364.8 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="229.037" y="313.2">
+      <tspan x="229.037" y="313.2">Client B</tspan>
+      <tspan x="229.037" y="329.2">Requesting Resource</tspan>
+      <tspan x="229.037" y="345.2">for Customer 2</tspan>
+    </text>
+  </g>
+  <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="822.5" y="315.5">
+    <tspan x="822.5" y="315.5"></tspan>
+  </text>
+  <g>
+    <rect style="fill: #ffffff" x="487" y="190.5" width="472" height="245.5"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="487" y="190.5" width="472" height="245.5"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="534.2" y1="190.5" x2="534.2" y2="436"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="911.8" y1="190.5" x2="911.8" y2="436"/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="723" y="229.25">
+      <tspan x="723" y="229.25">Edge Server Node</tspan>
+      <tspan x="723" y="245.25"></tspan>
+      <tspan x="723" y="261.25"></tspan>
+      <tspan x="723" y="277.25"></tspan>
+      <tspan x="723" y="293.25"></tspan>
+      <tspan x="723" y="309.25"></tspan>
+      <tspan x="723" y="325.25"></tspan>
+      <tspan x="723" y="341.25"></tspan>
+      <tspan x="723" y="357.25"></tspan>
+      <tspan x="723" y="373.25"></tspan>
+      <tspan x="723" y="389.25"></tspan>
+      <tspan x="723" y="405.25"></tspan>
+    </text>
+  </g>
+  <g>
+    <path style="fill: #ffffff" d="M 737.225 249 L 899.163,249 C 874.872,255.2 866.775,258.3 866.775,264.5 C 866.775,270.7 874.872,273.8 899.163,280 L 737.225,280 C 712.934,273.8 704.838,270.7 704.838,264.5 C 704.838,258.3 712.934,255.2 737.225,249z"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 737.225 249 L 899.163,249 C 874.872,255.2 866.775,258.3 866.775,264.5 C 866.775,270.7 874.872,273.8 899.163,280 L 737.225,280 C 712.934,273.8 704.838,270.7 704.838,264.5 C 704.838,258.3 712.934,255.2 737.225,249"/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="802" y="268.5">
+      <tspan x="802" y="268.5">Customer 1 Config </tspan>
+    </text>
+  </g>
+  <g>
+    <path style="fill: #ffffff" d="M 734.988 281.8 L 896.925,281.8 C 872.634,288 864.538,291.1 864.538,297.3 C 864.538,303.5 872.634,306.6 896.925,312.8 L 734.988,312.8 C 710.697,306.6 702.6,303.5 702.6,297.3 C 702.6,291.1 710.697,288 734.988,281.8z"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 734.988 281.8 L 896.925,281.8 C 872.634,288 864.538,291.1 864.538,297.3 C 864.538,303.5 872.634,306.6 896.925,312.8 L 734.988,312.8 C 710.697,306.6 702.6,303.5 702.6,297.3 C 702.6,291.1 710.697,288 734.988,281.8"/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="799.763" y="301.3">
+      <tspan x="799.763" y="301.3">Customer 2 Config </tspan>
+    </text>
+  </g>
+  <g>
+    <path style="fill: #ffffff" d="M 734.862 314.6 L 898.612,314.6 C 874.05,320.8 865.862,323.9 865.862,330.1 C 865.862,336.3 874.05,339.4 898.612,345.6 L 734.862,345.6 C 710.3,339.4 702.112,336.3 702.112,330.1 C 702.112,323.9 710.3,320.8 734.862,314.6z"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 734.862 314.6 L 898.612,314.6 C 874.05,320.8 865.862,323.9 865.862,330.1 C 865.862,336.3 874.05,339.4 898.612,345.6 L 734.862,345.6 C 710.3,339.4 702.112,336.3 702.112,330.1 C 702.112,323.9 710.3,320.8 734.862,314.6"/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="800.362" y="334.1">
+      <tspan x="800.362" y="334.1">Customer N Config </tspan>
+    </text>
+  </g>
+  <g>
+    <polygon style="fill: #ffffff" points="147.354,389.8 321.474,389.8 292.721,468.8 118.6,468.8 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="147.354,389.8 321.474,389.8 292.721,468.8 118.6,468.8 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="220.037" y="417.2">
+      <tspan x="220.037" y="417.2">Client X</tspan>
+      <tspan x="220.037" y="433.2">Requesting Resource</tspan>
+      <tspan x="220.037" y="449.2">for Customer N</tspan>
+    </text>
+  </g>
+  <g>
+    <ellipse style="fill: #ffffff" cx="486.433" cy="292.966" rx="50.5102" ry="34.9046"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="486.433" cy="292.966" rx="50.5102" ry="34.9046"/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="486.433" y="296.866">
+      <tspan x="486.433" y="296.866">Port 80/443</tspan>
+    </text>
+  </g>
+  <g>
+    <polygon style="fill: #ffffff" points="608.352,256.236 653.492,293.451 608.352,330.665 563.212,293.451 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="608.352,256.236 653.492,293.451 608.352,330.665 563.212,293.451 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="608.352" y="297.351">
+      <tspan x="608.352" y="297.351">Patch</tspan>
+    </text>
+  </g>
+  <g>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 330.465 221.5 C 365.477,221.5 400.91,292.966 426.186,292.966"/>
+    <polygon style="fill: #000000" points="433.686,292.966 423.686,297.966 426.186,292.966 423.686,287.966 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="433.686,292.966 423.686,297.966 426.186,292.966 423.686,287.966 "/>
+  </g>
+  <g>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 316 331 C 355.814,331 396.108,292.966 426.186,292.966"/>
+    <polygon style="fill: #000000" points="433.686,292.966 423.686,297.966 426.186,292.966 423.686,287.966 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="433.686,292.966 423.686,297.966 426.186,292.966 423.686,287.966 "/>
+  </g>
+  <g>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 307.097 429.3 C 349.867,429.3 393.153,292.966 426.186,292.966"/>
+    <polygon style="fill: #000000" points="433.686,292.966 423.686,297.966 426.186,292.966 423.686,287.966 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="433.686,292.966 423.686,297.966 426.186,292.966 423.686,287.966 "/>
+  </g>
+  <g>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 536.943 292.966 C 544.668,292.966 555.487,293.451 553.476,293.451"/>
+    <polygon style="fill: #000000" points="560.976,293.451 550.976,298.451 553.476,293.451 550.976,288.451 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="560.976,293.451 550.976,298.451 553.476,293.451 550.976,288.451 "/>
+  </g>
+  <g>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 653.492 293.451 C 676.568,293.451 682.923,266.25 696.264,266.25"/>
+    <polygon style="fill: #000000" points="703.764,266.25 693.764,271.25 696.264,266.25 693.764,261.25 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="703.764,266.25 693.764,271.25 696.264,266.25 693.764,261.25 "/>
+  </g>
+  <g>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 653.492 293.451 C 676.568,293.451 678.923,329.25 692.264,329.25"/>
+    <polygon style="fill: #000000" points="699.764,329.25 689.764,334.25 692.264,329.25 689.764,324.25 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="699.764,329.25 689.764,334.25 692.264,329.25 689.764,324.25 "/>
+  </g>
+  <g>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" d="M 653.492 293.451 C 672.084,293.451 684.008,297.3 692.864,297.3"/>
+    <polygon style="fill: #000000" points="700.364,297.3 690.364,302.3 692.864,297.3 690.364,292.3 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="700.364,297.3 690.364,302.3 692.864,297.3 690.364,292.3 "/>
+  </g>
+</svg>

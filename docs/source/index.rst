@@ -5,7 +5,7 @@
 
 .. image:: _images/waflz_white.svg
 	:width: 200
-	:alt: Alternative text
+	:alt: waflz
 
 **waflz**
 =========
@@ -18,6 +18,7 @@
    capabilities
    profiles
    waflz_server
+   waflz_dump
    development
 
 Indices and tables

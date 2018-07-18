@@ -1,11 +1,13 @@
 
-<img src="/docs/_images/waflz_white.svg" width="200"/>
+<p align="center">
+<img src="/docs/_images/waflz_white.svg" title="waflz" width="200"/>
+</p>
 
 # waflz
-A multitenant ModSecurity WAF. [Docs](https://verizondigital.github.io/waflz/ "waflz docs")
+A multitenant ModSecurity compatible WAF engine. [Docs](https://verizondigital.github.io/waflz/ "waflz docs")
 
 ### Overview
-An implementation of a WAF engine in c/c++ supporting processing a subset of ModSecurity rules functionalties, configurable with either json or ModSecurity rules.  waflz is optimized to support running many WAF profiles side by side, by using faster/smaller internal data types and sharing common ruleset data between the profiles -ie if multiple WAF profiles refer to the same ruleset(s), the ruleset(s) are loaded only once for all and shared in memory.
+An implementation of a WAF engine in c/c++ supporting processing a subset of ModSecurity rules functionalties, configurable with either json or ModSecurity rules.  waflz is optimized to support running many WAF profiles side by side, by using [faster](https://github.com/VerizonDigital/waflz/blob/master/src/op/nms.h "IP tree")/[smaller](https://github.com/VerizonDigital/waflz/blob/master/src/op/ac.h "Aho–Corasick") internal data types and sharing common ruleset data between the profiles -ie if multiple WAF profiles refer to the same ruleset(s), the ruleset(s) are loaded only once for all and shared in memory.
 
 ### Rationale
 The VDMS global edge platform is a multitenant CDN supporting our hundreds of thousands individual customer configurations from any given location.  The VDMS WAF supports running OWASP Core Rulesets as well as some third-party rulesets.  The performance and resource allocation of any given customer configuration has the potential of impacting others -ie eventually all configurations live in memory on a physical server in a "Point of Presence" (POP) in a datacenter.  It was important then to the VDMS CDN the WAF be as high performant, memory constrained, and deterministic as possible.
@@ -18,9 +20,7 @@ The open source standard implementation of the [ModSecurity Rules Engine](https:
 ## Packages
 
 ```sh
-$ sudo add-apt-repository ppa:maxmind/ppa
-$ sudo apt-get update
-$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev python-pip libmaxminddb0 libmaxminddb-dev
+$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev python-pip
 ```
 
 ## Python Packages

@@ -26,7 +26,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Supported Functionality" href="capabilities.html" />
+    <link rel="next" title="Supported ModSecurity Functionality" href="capabilities.html" />
     <link rel="prev" title="Overview" href="overview.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -45,9 +45,27 @@
             
   <div class="section" id="building">
 <h1>Building<a class="headerlink" href="#building" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="supported-os-s">
-<h2>Supported OS&#8217;s<a class="headerlink" href="#supported-os-s" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
+<h3>Supported OS&#8217;s<a class="headerlink" href="#supported-os-s" title="Permalink to this headline">¶</a></h3>
+<p>Currently waflz has only been built/tested/deployed to production on Ubuntu 14.04/16.04.</p>
+</div>
+<div class="section" id="third-party-libraries">
+<h3>Third Party Libraries<a class="headerlink" href="#third-party-libraries" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>libssl-dev (libcrypto/libssl)</li>
+<li>libxml2 (requires libicu)</li>
+<li>libprotobuf</li>
+</ul>
+</div>
+</div>
+<div class="section" id="compiling">
+<h2>Compiling<a class="headerlink" href="#compiling" title="Permalink to this headline">¶</a></h2>
+<p>A top level build script is provided to compile and run tests</p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>./build.sh
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -60,7 +78,12 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Building</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
 <li><a class="reference internal" href="#supported-os-s">Supported OS&#8217;s</a></li>
+<li><a class="reference internal" href="#third-party-libraries">Third Party Libraries</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#compiling">Compiling</a></li>
 </ul>
 </li>
 </ul>
@@ -69,7 +92,7 @@
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="overview.html" title="previous chapter">Overview</a></li>
-      <li>Next: <a href="capabilities.html" title="next chapter">Supported Functionality</a></li>
+      <li>Next: <a href="capabilities.html" title="next chapter">Supported ModSecurity Functionality</a></li>
   </ul></li>
 </ul>
 </div>

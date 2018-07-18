@@ -36,6 +36,7 @@ namespace waflz_pb {
         class profile;
         class profile_access_settings_t;
         class event;
+        class acl;
 }
 namespace ns_waflz {
 class regex;
@@ -55,9 +56,11 @@ public:
         // -------------------------------------------------
         acl(geoip2_mmdb &a_geoip2_mmdb);
         ~acl();
-        int32_t compile(const ::waflz_pb::profile_access_settings_t& a_acl);
-        int32_t process_whitelist(bool &ao_match, void *a_ctx);
-        int32_t process_blacklist(waflz_pb::event **ao_event, void *a_ctx);
+        int32_t compile();
+        int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx);
+        int32_t process_whitelist(bool &ao_match, rqst_ctx &a_ctx);
+        int32_t process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
+        int32_t process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------
@@ -69,6 +72,7 @@ public:
         {
                 return m_err_msg;
         }
+        waflz_pb::acl *get_pb(void) { return m_pb; }
 private:
         // -------------------------------------------------
         // private types
@@ -95,6 +99,7 @@ private:
         // private members
         // -------------------------------------------------
         char m_err_msg[WAFLZ_ERR_LEN];
+        waflz_pb::acl *m_pb;
         // -------------------------------------------------
         // *************************************************
         // geoip2 support
@@ -122,6 +127,16 @@ private:
         // cookie
         regex *m_cookie_rx_whitelist;
         regex *m_cookie_rx_blacklist;
+        // methods
+        stri_set_t m_allowed_http_methods;
+        // protocol versions
+        stri_set_t m_allowed_http_versions;
+        // content types
+        stri_set_t m_allowed_request_content_types;
+        // extensions
+        stri_set_t m_disallowed_extensions;
+        // headers
+        stri_set_t m_disallowed_headers;
 };
 }
 #endif

@@ -21,4 +21,10 @@ message acl {
         optional lists_t cookie = 5;
         optional lists_t user_agent = 6;
         optional lists_asn_t asn = 7;
+        repeated string allowed_http_methods = 8;
+        repeated string allowed_http_versions = 9;
+        repeated string allowed_request_content_types = 10;
+        repeated string disallowed_extensions = 11;
+        repeated string disallowed_headers = 12;
+        optional uint64 max_file_size = 13;
 }

@@ -300,22 +300,6 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
         m_protocol.m_data = "HTTP/1.1";
         m_protocol.m_len = strlen(m_protocol.m_data);
         // -------------------------------------------------
-        // line
-        // -------------------------------------------------
-        if(s_get_rqst_line_cb)
-        {
-                int32_t l_s;
-                // get request line
-                l_s = s_get_rqst_line_cb(&m_line.m_data,
-                                         m_line.m_len,
-                                         a_ctx);
-                if(l_s != 0)
-                {
-                        // TODO log reason???
-                        return WAFLZ_STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
         // method
         // -------------------------------------------------
         if(s_get_rqst_method_cb)
@@ -325,22 +309,6 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                 l_s = s_get_rqst_method_cb(&m_method.m_data,
                                            m_method.m_len,
                                            a_ctx);
-                if(l_s != 0)
-                {
-                        // TODO log reason???
-                        return WAFLZ_STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // url
-        // -------------------------------------------------
-        if(s_get_rqst_url_cb)
-        {
-                int32_t l_s;
-                // get uri
-                l_s = s_get_rqst_url_cb(&m_url.m_data,
-                                        m_url.m_len,
-                                        a_ctx);
                 if(l_s != 0)
                 {
                         // TODO log reason???

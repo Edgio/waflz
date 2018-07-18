@@ -36,18 +36,20 @@
 #include "event.pb.h"
 #include "acl.pb.h"
 #include <errno.h>
+#include <limits.h>
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
-#define GET_RQST_DATA(_cb) do { \
-        l_buf = NULL; \
-        l_buf_len = 0; \
-        if(_cb) { \
-                l_s = _cb(&l_buf, l_buf_len, a_ctx); \
-                if(l_s != 0) { \
-                        WAFLZ_PERROR(m_err_msg, "performing %s", #_cb); \
-                        return WAFLZ_STATUS_ERROR; \
-                } \
+#define _GET_HEADER(_header, _val) do { \
+        _val = NULL; \
+        _val##_len = 0; \
+        l_d.m_data = _header; \
+        l_d.m_len = sizeof(_header) - 1; \
+        data_map_t::const_iterator i_h = l_hm.find(l_d); \
+        if(i_h != l_hm.end()) \
+        { \
+                _val = i_h->second.m_data; \
+                _val##_len = i_h->second.m_len; \
         } \
 } while(0)
 namespace ns_waflz {
@@ -407,17 +409,20 @@ int32_t acl::compile()
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t acl::process_whitelist(bool &ao_match, void *a_ctx)
+int32_t acl::process_whitelist(bool &ao_match, rqst_ctx &a_ctx)
 {
         ao_match = false;
         const char *l_key = NULL;
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
+        data_t l_d;
+        const data_map_t &l_hm = a_ctx.m_header_map;
         int32_t l_s;
         // -------------------------------------------------
         // ip
         // -------------------------------------------------
-        GET_RQST_DATA(rqst_ctx::s_get_rqst_src_addr_cb);
+        l_buf = a_ctx.m_src_addr.m_data;
+        l_buf_len = a_ctx.m_src_addr.m_len;
         if(m_ip_whitelist &&
            l_buf &&
            l_buf_len)
@@ -495,13 +500,12 @@ url_check:
         {
                 goto user_agent_check;
         }
-        GET_RQST_DATA(rqst_ctx::s_get_rqst_uri_cb);
         if(m_url_rx_whitelist &&
-           l_buf &&
-           l_buf_len)
+           a_ctx.m_uri.m_data &&
+           a_ctx.m_uri.m_len)
         {
                 int32_t l_s;
-                l_s = m_url_rx_whitelist->compare(l_buf, l_buf_len);
+                l_s = m_url_rx_whitelist->compare(a_ctx.m_uri.m_data, a_ctx.m_uri.m_len);
                 // if failed to match
                 if(l_s >= 0)
                 {
@@ -518,16 +522,7 @@ user_agent_check:
         {
                 goto referer_check;
         }
-        l_key = "User-Agent";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf,
-                                                  l_buf_len,
-                                                  a_ctx,
-                                                  l_key,
-                                                  strlen(l_key));
-        if(l_s != 0)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-        }
+        _GET_HEADER("User-Agent", l_buf);
         if(m_ua_rx_whitelist &&
            l_buf &&
            l_buf_len)
@@ -550,16 +545,7 @@ referer_check:
         {
                 goto cookie_check;
         }
-        l_key = "Referer";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf,
-                                                  l_buf_len,
-                                                  a_ctx,
-                                                  l_key,
-                                                  strlen(l_key));
-        if(l_s != 0)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-        }
+        _GET_HEADER("Referer", l_buf);
         if(m_referer_rx_whitelist &&
            l_buf &&
            l_buf_len)
@@ -582,16 +568,7 @@ cookie_check:
         {
                 return WAFLZ_STATUS_OK;
         }
-        l_key = "Cookie";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf,
-                                                  l_buf_len,
-                                                  a_ctx,
-                                                  l_key,
-                                                  strlen(l_key));
-        if(l_s != 0)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-        }
+        _GET_HEADER("Cookie", l_buf);
         if(m_cookie_rx_whitelist &&
            l_buf &&
            l_buf_len)
@@ -611,22 +588,24 @@ cookie_check:
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t acl::process_blacklist(waflz_pb::event **ao_event, void *a_ctx)
+int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
         if(!ao_event)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
-        const char *l_key = NULL;
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
+        data_t l_d;
+        const data_map_t &l_hm = a_ctx.m_header_map;
         int32_t l_s;
         waflz_pb::event *l_event = NULL;
-        GET_RQST_DATA(rqst_ctx::s_get_rqst_src_addr_cb);
         // -------------------------------------------------
         // ip
         // -------------------------------------------------
+        l_buf = a_ctx.m_src_addr.m_data;
+        l_buf_len = a_ctx.m_src_addr.m_len;
         if(m_ip_blacklist &&
            l_buf &&
            l_buf_len)
@@ -774,7 +753,8 @@ url_check:
         {
                 goto user_agent_check;
         }
-        GET_RQST_DATA(rqst_ctx::s_get_rqst_uri_cb);
+        l_buf = a_ctx.m_uri.m_data;
+        l_buf_len = a_ctx.m_uri.m_len;
         if(m_url_rx_blacklist &&
            l_buf &&
            l_buf_len)
@@ -814,18 +794,11 @@ user_agent_check:
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        if(!m_ua_rx_blacklist ||
-           !rqst_ctx::s_get_rqst_header_w_key_cb)
+        if(!m_ua_rx_blacklist)
         {
                 goto referer_check;
         }
-        l_key = "User-Agent";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_buf_len, a_ctx, l_key, strlen(l_key));
-        if(l_s != 0)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                goto referer_check;
-        }
+        _GET_HEADER("User-Agent", l_buf);
         if(m_ua_rx_blacklist &&
            l_buf &&
            l_buf_len)
@@ -867,18 +840,11 @@ referer_check:
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
-        if(!m_referer_rx_blacklist ||
-           !rqst_ctx::s_get_rqst_header_w_key_cb)
+        if(!m_referer_rx_blacklist)
         {
                 goto cookie_check;
         }
-        l_key = "Referer";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_buf_len, a_ctx, l_key, strlen(l_key));
-        if(l_s != 0)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                goto cookie_check;
-        }
+        _GET_HEADER("Referer", l_buf);
         if(m_referer_rx_blacklist &&
            l_buf &&
            l_buf_len)
@@ -920,21 +886,11 @@ cookie_check:
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
-        if(!m_cookie_rx_blacklist ||
-           !rqst_ctx::s_get_rqst_header_w_key_cb)
+        if(!m_cookie_rx_blacklist)
         {
                 return WAFLZ_STATUS_OK;
         }
-        l_key = "Cookie";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf,
-                                                  l_buf_len,
-                                                  a_ctx,
-                                                  l_key,
-                                                  strlen(l_key));
-        if(l_s != 0)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-        }
+        _GET_HEADER("Cookie", l_buf);
         if(m_cookie_rx_blacklist &&
            l_buf &&
            l_buf_len)
@@ -979,7 +935,7 @@ cookie_check:
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t acl::process_sig_settings(waflz_pb::event **ao_event, void *a_ctx)
+int32_t acl::process_sig_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
         if(!ao_event)
         {
@@ -989,19 +945,19 @@ int32_t acl::process_sig_settings(waflz_pb::event **ao_event, void *a_ctx)
         const char *l_key = NULL;
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
+        data_t l_d;
+        const data_map_t &l_hm = a_ctx.m_header_map;
         int32_t l_s;
         waflz_pb::event *l_event = NULL;
-        // Check file size first
-        l_key = "Content-Length";
-        uint32_t l_len = 0;
         uint32_t l_cl = 0;
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_buf_len, a_ctx, l_key, strlen(l_key));
-        if(l_s != 0)
+        // Check file size first
+        _GET_HEADER("Content-Length", l_buf);
+        if(!l_buf ||
+           !l_buf_len)
         {
-                WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
                 goto method_check;
         }
-        l_cl = strntoul(l_buf, l_len, NULL, 10);
+        l_cl = strntoul(l_buf, l_buf_len, NULL, 10);
         if(l_cl == ULONG_MAX)
         {
                 goto method_check;
@@ -1015,30 +971,31 @@ int32_t acl::process_sig_settings(waflz_pb::event **ao_event, void *a_ctx)
         // -------------------------------------------------
         if(m_pb->has_max_file_size())
         {
-                if(l_cl > m_pb->has_max_file_size())
+                if(l_cl < m_pb->max_file_size())
                 {
-                        // alloc event...
-                        l_event = new ::waflz_pb::event();
-                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                        // ---------------------------------
-                        // subevent
-                        // ---------------------------------
-                        l_sevent->set_rule_id(80006);
-                        l_sevent->set_rule_msg("Uploaded file size too large");
-                        // top level rule msg
-                        l_event->set_rule_msg("Uploaded file size too large");
-                        l_sevent->set_rule_op_name("");
-                        l_sevent->set_rule_op_param("");
-                        l_sevent->add_rule_tag("HTTP POLICY");
-                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                        l_rule_target->set_name("REQUEST_HEADERS");
-                        l_rule_target->set_param(l_buf);
-                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                        l_var->set_name("REQUEST_METHOD");
-                        l_var->set_value(l_buf);
-                        *ao_event = l_event;
-                        return WAFLZ_STATUS_OK;
+                        // file size within limits
+                        goto method_check;
                 }
+                // alloc event...
+                l_event = new ::waflz_pb::event();
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                // ---------------------------------
+                // subevent
+                // ---------------------------------
+                l_sevent->set_rule_id(80006);
+                l_sevent->set_rule_msg("Uploaded file size too large");
+                // top level rule msg
+                l_event->set_rule_msg("Uploaded file size too large");
+                l_sevent->set_rule_op_name("");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("HTTP POLICY");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_param("max_file_size");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("Content-Length");
+                l_var->set_value(l_buf);
+                *ao_event = l_event;
         }
 method_check:
         // -------------------------------------------------
@@ -1048,40 +1005,34 @@ method_check:
         {
                 goto content_type_check;
         }
-        GET_RQST_DATA(rqst_ctx::s_get_rqst_method_cb);
-        if(m_allowed_http_methods.size() &&
-           l_buf &&
-           l_buf_len)
+        if(a_ctx.m_method.m_data &&
+           a_ctx.m_method.m_len)
         {
-                bool l_match = false;
-                if(m_allowed_http_methods.find(l_buf) != m_allowed_http_methods.end())
+                if(m_allowed_http_methods.find(a_ctx.m_method.m_data) != m_allowed_http_methods.end())
                 {
-                        l_match = true;
+                        goto content_type_check;
                 }
-                if(l_match)
-                {
-                        // alloc event...
-                        l_event = new ::waflz_pb::event();
-                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                        // ---------------------------------
-                        // subevent
-                        // ---------------------------------
-                        l_sevent->set_rule_id(80009);
-                        l_sevent->set_rule_msg("Method is not allowed by policy");
-                        // top level rule msg
-                        l_event->set_rule_msg("Method is not allowed by policy");
-                        l_sevent->set_rule_op_name("");
-                        l_sevent->set_rule_op_param("");
-                        l_sevent->add_rule_tag("HTTP POLICY");
-                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                        l_rule_target->set_name("REQUEST_METHOD");
-                        l_rule_target->set_param(l_buf);
-                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                        l_var->set_name("REQUEST_METHOD");
-                        l_var->set_value(l_buf);
-                        *ao_event = l_event;
-                        return WAFLZ_STATUS_OK;
-                }
+                // alloc event...
+                l_event = new ::waflz_pb::event();
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                // ---------------------------------
+                // subevent
+                // ---------------------------------
+                l_sevent->set_rule_id(80009);
+                l_sevent->set_rule_msg("Method is not allowed by policy");
+                // top level rule msg
+                l_event->set_rule_msg("Method is not allowed by policy");
+                l_sevent->set_rule_op_name("");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("HTTP POLICY");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_METHOD");
+                l_rule_target->set_param("allowed_http_methods");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_METHOD");
+                l_var->set_value(a_ctx.m_method.m_data);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
         }
 content_type_check:
         // -------------------------------------------------
@@ -1091,46 +1042,37 @@ content_type_check:
         {
                 goto file_ext_check;
         }
-        l_key = "Content-Type";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_buf_len, a_ctx, l_key, strlen(l_key));
-        if(l_s != 0)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                goto file_ext_check;
-        }
+        _GET_HEADER("Content-Type", l_buf);
         if(m_allowed_request_content_types.size() &&
            l_buf &&
            l_buf_len)
         {
-                bool l_match = false;
                 if(m_allowed_request_content_types.find(l_buf) != m_allowed_request_content_types.end())
                 {
-                        l_match = true;
+                        // content type found in allowed list
+                        goto file_ext_check;
                 }
-                if(l_match)
-                {
-                        // alloc event...
-                        l_event = new ::waflz_pb::event();
-                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                        // ---------------------------------
-                        // subevent
-                        // ---------------------------------
-                        l_sevent->set_rule_id(80002);
-                        l_sevent->set_rule_msg("Request content type is not allowed by policy");
-                        // top level rule msg
-                        l_event->set_rule_msg("Request content type is not allowed by policy");
-                        l_sevent->set_rule_op_name("");
-                        l_sevent->set_rule_op_param("");
-                        l_sevent->add_rule_tag("HTTP POLICY");
-                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                        l_rule_target->set_name("REQUEST_HEADERS");
-                        l_rule_target->set_param(l_buf);
-                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                        l_var->set_name("REQUEST_METHOD");
-                        l_var->set_value(l_buf);
-                        *ao_event = l_event;
-                        return WAFLZ_STATUS_OK;
-                }
+                // alloc event...
+                l_event = new ::waflz_pb::event();
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                // ---------------------------------
+                // subevent
+                // ---------------------------------
+                l_sevent->set_rule_id(80002);
+                l_sevent->set_rule_msg("Request content type is not allowed by policy");
+                // top level rule msg
+                l_event->set_rule_msg("Request content type is not allowed by policy");
+                l_sevent->set_rule_op_name("");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("HTTP POLICY");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_param("allowed_request_content_types");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_METHOD");
+                l_var->set_value(l_buf);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
         }
 file_ext_check:
         // -------------------------------------------------
@@ -1140,83 +1082,75 @@ file_ext_check:
         {
                 goto header_check;
         }
-        GET_RQST_DATA(rqst_ctx::s_get_rqst_path_cb);
         if(m_disallowed_extensions.size() &&
-           l_buf &&
-           l_buf_len)
+           a_ctx.m_file_ext.m_data &&
+           a_ctx.m_file_ext.m_len)
         {
-                bool l_match = false;
-                if(m_disallowed_extensions.find(l_buf) != m_disallowed_extensions.end())
+                if(m_disallowed_extensions.find(a_ctx.m_file_ext.m_data) == m_disallowed_extensions.end())
                 {
-                        l_match = true;
+                        // extension not found in disallowed list
+                        goto header_check;
                 }
-                if(l_match)
-                {
-                        // alloc event...
-                        l_event = new ::waflz_pb::event();
-                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                        // ---------------------------------
-                        // subevent
-                        // ---------------------------------
-                        l_sevent->set_rule_id(80005);
-                        l_sevent->set_rule_msg("File extension is not allowed by policy");
-                        // top level rule msg
-                        l_event->set_rule_msg("File extension is not allowed by policy");
-                        l_sevent->set_rule_op_name("");
-                        l_sevent->set_rule_op_param("");
-                        l_sevent->add_rule_tag("HTTP POLICY");
-                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                        l_rule_target->set_name("FILE_EXT");
-                        l_rule_target->set_param(l_buf);
-                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                        l_var->set_name("FILE_EXT");
-                        l_var->set_value(l_buf);
-                        *ao_event = l_event;
-                        return WAFLZ_STATUS_OK;
-                }
+                // alloc event...
+                l_event = new ::waflz_pb::event();
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                // ---------------------------------
+                // subevent
+                // ---------------------------------
+                l_sevent->set_rule_id(80005);
+                l_sevent->set_rule_msg("File extension is not allowed by policy");
+                // top level rule msg
+                l_event->set_rule_msg("File extension is not allowed by policy");
+                l_sevent->set_rule_op_name("");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("HTTP POLICY");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("FILE_EXT");
+                l_rule_target->set_param("disallowed_extensions");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("FILE_EXT");
+                l_var->set_value(a_ctx.m_file_ext.m_data);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
         }
 header_check:
-    // Not supported yet
-#if 0
-        GET_RQST_DATA(rqst_ctx::s_get_rqst_method_cb);
         // -------------------------------------------------
         // disallowed headers
         // -------------------------------------------------
-        if(m_allowed_request_content_types.size() &&
-           l_buf &&
-           l_buf_len)
+        if(!m_disallowed_headers.size() ||
+           !a_ctx.m_header_list.size())
         {
-                bool l_match = false;
-                if(m_allowed_request_content_types.find(l_buf) != m_allowed_request_content_types.end())
-                {
-                        l_match = true;
-                }
-                if(l_match)
-                {
-                        // alloc event...
-                        l_event = new ::waflz_pb::event();
-                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                        // ---------------------------------
-                        // subevent
-                        // ---------------------------------
-                        l_sevent->set_rule_id(430425);
-                        l_sevent->set_rule_msg("Request content type is not allowed by policy");
-                        // top level rule msg
-                        l_event->set_rule_msg("Request content type is not allowed by policy");
-                        l_sevent->set_rule_op_name("");
-                        l_sevent->set_rule_op_param("");
-                        l_sevent->add_rule_tag("HTTP POLICY");
-                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                        l_rule_target->set_name("REQUEST_HEADERS");
-                        l_rule_target->set_param(l_buf);
-                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                        l_var->set_name("REQUEST_METHOD");
-                        l_var->set_value(l_buf);
-                        *ao_event = l_event;
-                        return WAFLZ_STATUS_OK;
-                }
+                return WAFLZ_STATUS_OK;
         }
-#endif
+        for(const_arg_list_t::const_iterator i_h = a_ctx.m_header_list.begin();
+            i_h != a_ctx.m_header_list.end();
+            ++i_h)
+        {
+                if(m_disallowed_headers.find(i_h->m_key) == m_disallowed_headers.end())
+                {
+                        continue;
+                }
+                // alloc event...
+                l_event = new ::waflz_pb::event();
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                // ---------------------------------
+                // subevent
+                // ---------------------------------
+                l_sevent->set_rule_id(80007);
+                l_sevent->set_rule_msg("Request header is not allowed by policy");
+                // top level rule msg
+                l_event->set_rule_msg("Request header is not allowed by policy");
+                l_sevent->set_rule_op_name("");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("HTTP POLICY");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_param("disallowed_headers");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_HEADERS");
+                l_var->set_value(i_h->m_key);
+                *ao_event = l_event;
+        }
 #if 0
 version_check:
         // -------------------------------------------------
@@ -1273,8 +1207,9 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
-        rqst_ctx *l_ctx = new rqst_ctx(0, false);
+        rqst_ctx *l_ctx = new rqst_ctx(128*1024, false);
         int32_t l_s;
+        // Init phase 0 for processing acl
         l_s = l_ctx->init_phase_0(a_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -1282,28 +1217,46 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_ERROR;
         }
         bool l_match = false;
-        l_s = process_whitelist(l_match, l_ctx);
+        l_s = process_whitelist(l_match, *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
+        // If whitelist match, we outtie
         if(l_match)
         {
                 ao_whitelist = true;
+                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         waflz_pb::event *l_event = NULL;
-        l_s = process_blacklist(&l_event, a_ctx);
+        l_s = process_blacklist(&l_event, *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_event)
         {
                 *ao_event = l_event;
+                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         //TODO:
-        //l_s = process_sig_settings(&l_event, a_ctx)
+        l_s = process_sig_settings(&l_event, *l_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_event)
+        {
+                *ao_event = l_event;
+                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                return WAFLZ_STATUS_OK;
+        }
+        if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+        return WAFLZ_STATUS_OK;
 }
 }

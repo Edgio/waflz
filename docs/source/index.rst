@@ -20,6 +20,7 @@
    waflz_server
    waflz_dump
    development
+   acl
 
 Indices and tables
 ==================

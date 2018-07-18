@@ -31,6 +31,7 @@ endif()
 # ------------------------------------------------------------------------------
 #add_definitions(-Weffc++)
 add_definitions(-fPIC)
+add_definitions(-DHAVE_CONFIG_H)
 # ------------------------------------------------------------------------------
 # header files to install
 # ------------------------------------------------------------------------------
@@ -67,6 +68,10 @@ include_directories(
     # --------------------------------------------
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src
     # --------------------------------------------
+    # libmaxminddb
+    # --------------------------------------------
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src
+    # --------------------------------------------
     # external libs
     # --------------------------------------------
     ${CMAKE_SOURCE_DIR}/ext
@@ -77,6 +82,11 @@ include_directories(
 # source files
 # ------------------------------------------------------------------------------
 SET(SRCS
+    # --------------------------------------------
+    # libmaxminddb
+    # --------------------------------------------
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/data-pool.c
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/maxminddb.c
     # --------------------------------------------
     # yajl
     # --------------------------------------------
@@ -160,13 +170,18 @@ SET(SRCS
     parser/parser_xml.cc
     parser/parser_json.cc
 )
+# ------------------------------------------------------------------------------
+# c source
+# ------------------------------------------------------------------------------
 SET_SOURCE_FILES_PROPERTIES(
-    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_html5.c
-    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_sqli.c
-    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_xss.c
-    PROPERTIES LANGUAGE C
-)
-SET_SOURCE_FILES_PROPERTIES(
+    # --------------------------------------------
+    # libmaxminddb
+    # --------------------------------------------
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/data-pool.c
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/maxminddb.c
+    # --------------------------------------------
+    # yajl
+    # --------------------------------------------
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_alloc.c
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl.c
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_gen.c
@@ -176,6 +191,13 @@ SET_SOURCE_FILES_PROPERTIES(
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_encode.c
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_lex.c
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_tree.c
+    # --------------------------------------------
+    # libinjection
+    # --------------------------------------------
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_html5.c
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_sqli.c
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_xss.c
+
     PROPERTIES LANGUAGE C
 )
 # ------------------------------------------------------------------------------

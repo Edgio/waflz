@@ -89,7 +89,6 @@ SET_TARGET_PROPERTIES(wjc_cmd PROPERTIES OUTPUT_NAME "wjc")
 target_link_libraries(wjc_cmd
         ${DEBUG_LIBRARIES}
         ${CMAKE_BINARY_DIR}/src/libwaflzcore.a
-        libmaxminddb.a
         ${LIBRARIES})
 install(TARGETS wjc_cmd
         DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/

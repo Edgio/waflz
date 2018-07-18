@@ -107,6 +107,8 @@ SET(SRCS
     ${CMAKE_BINARY_DIR}/proto/enforcement.pb.cc
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
+
     # --------------------------------------------
     # cityhash
     # --------------------------------------------
@@ -220,6 +222,8 @@ set_source_files_properties(
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
     ${CMAKE_BINARY_DIR}/proto/rule.pb.h
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/acl.pb.h
+    ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
     PROPERTIES GENERATED TRUE
 )
 # ------------------------------------------------------------------------------
@@ -231,6 +235,7 @@ SET(PY_INST
     ${CMAKE_BINARY_DIR}/proto/event_pb2.py
     ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
     ${CMAKE_BINARY_DIR}/proto/rule_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/acl_pb2.py
 )
 install(FILES ${PY_INST}
     DESTINATION include/waflz-py

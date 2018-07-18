@@ -127,7 +127,27 @@ static int32_t get_rqst_uri_cb(const char **a_data, uint32_t &a_len, void *a_ctx
 //: ----------------------------------------------------------------------------
 static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
 {
-        a_val = 4;
+        a_val = 8;
+        return 0;
+}
+//: ----------------------------------------------------------------------------
+//: s_get_rqst_method_cb
+//: ----------------------------------------------------------------------------
+static const char *s_method = "GET";
+static int32_t get_rqst_method_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+{
+        *a_data = s_method;
+        a_len = strlen(s_method);
+        return 0;
+}
+//: ----------------------------------------------------------------------------
+//: s_get_rqst_path_cb
+//: ----------------------------------------------------------------------------
+static const char *s_path = "/my/cool/path_name.html";
+static int32_t get_rqst_path_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+{
+        *a_data = s_path;
+        a_len = strlen(s_path);
         return 0;
 }
 //: ----------------------------------------------------------------------------
@@ -143,6 +163,10 @@ static const char *s_header_user_agent = "my_cool_user_agent";
 static const char *s_header_accept = "my_cool_accept_value";
 static const char *s_header_referer = "my_cool_referer_value";
 static const char *s_header_cookie = "__cookie_a=a_value; __cookie_b=b_value; __cookie_c=c_value;";
+static const char *s_header_content_type = NULL;
+static const char *s_header_content_length = NULL;
+static const char *s_host = NULL;
+static const char *s_test_header = NULL;
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                                         uint32_t &ao_key_len,
                                         const char **ao_val,
@@ -188,6 +212,50 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                 ao_val_len = strlen(s_header_cookie);
                 break;
         }
+        case 4:
+        {
+                if(s_header_content_type)
+                {
+                        *ao_key = "Content-Type";
+                        ao_key_len = strlen("Content-Type");
+                        *ao_val = s_header_content_type;
+                        ao_val_len = strlen(s_header_content_type);
+                }
+                break;
+        }
+        case 5:
+        {
+                if(s_header_content_length)
+                {
+                        *ao_key = "Content-Length";
+                        ao_key_len = strlen("Content-Length");
+                        *ao_val = s_header_content_length;
+                        ao_val_len = strlen(s_header_content_length);
+                }
+                break;
+        }
+        case 6:
+        {
+                if(s_host)
+                {
+                        *ao_key = "Host";
+                        ao_key_len = strlen("Host");
+                        *ao_val = s_host;
+                        ao_val_len = strlen(s_host);
+                }
+                break;
+        }
+        case 7:
+        {
+                if(s_test_header)
+                {
+                        *ao_key = s_test_header;
+                        ao_key_len = strlen(s_test_header);
+                        *ao_val = s_test_header;
+                        ao_val_len = strlen(s_test_header);
+                }
+                break;
+        }
         default:
         {
                 break;
@@ -224,6 +292,30 @@ static int32_t get_rqst_header_w_key_cb(const char **ao_val,
         {
                 *ao_val = s_header_cookie;
                 ao_val_len = strlen(s_header_cookie);
+        }
+        _ELIF_HEADER("Host")
+        {
+                if(s_host)
+                {
+                        *ao_val = s_host;
+                        ao_val_len = strlen(s_host);
+                }
+        }
+        _ELIF_HEADER("Content-Length")
+        {
+                if(s_header_content_length)
+                {
+                        *ao_val = s_header_content_length;
+                        ao_val_len = strlen(s_header_content_length);
+                }
+        }
+        _ELIF_HEADER("Content-Type")
+        {
+                if(s_header_content_type)
+                {
+                        *ao_val = s_header_content_type;
+                        ao_val_len = strlen(s_header_content_type);
+                }
         }
         else
         {
@@ -343,6 +435,35 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 l_ax_cookie->add_blacklist("wonky_key");
                 l_ax_cookie->add_blacklist("wonky_value");
                 l_ax_cookie->add_whitelist("monkeys_cookie");
+                // *****************************************
+                // -----------------------------------------
+                // method settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::profile_general_settings_t *l_gx_settings = l_pb->mutable_general_settings();
+                l_gx_settings->add_allowed_http_methods("GET");
+                l_gx_settings->add_allowed_http_methods("POST");
+                // *****************************************
+                // -----------------------------------------
+                // content type settings
+                // -----------------------------------------
+                // *****************************************
+                //::waflz_pb::profile_general_settings_t* l_gx_content_type = l_pb->mutable_general_settings()->mutable_allowed_request_content_types();
+                l_gx_settings->add_allowed_request_content_types("application/json");
+                l_gx_settings->add_allowed_request_content_types("text/xml");
+                // -----------------------------------------
+                // disallowed_extensions settings
+                // -----------------------------------------
+                // *****************************************
+                //::waflz_pb::profile_general_settings_t* l_gx_dis_ext = l_pb->mutable_general_settings()->mutable_disallowed_extensions();
+                l_gx_settings->add_disallowed_extensions(".txt");
+                l_gx_settings->add_disallowed_extensions(".php");
+                // -----------------------------------------
+                // disallowed_headers settings
+                // -----------------------------------------
+                // *****************************************
+                //::waflz_pb::profile_general_settings_t* l_gx_dis_ext = l_pb->mutable_general_settings()->mutable_disallowed_extensions();
+                l_gx_settings->add_disallowed_headers("test");
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
@@ -363,6 +484,8 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_header_w_key_cb = get_rqst_header_w_key_cb;
+                ns_waflz::rqst_ctx::s_get_rqst_method_cb = get_rqst_method_cb;
+                ns_waflz::rqst_ctx::s_get_rqst_path_cb = get_rqst_path_cb;
                 void *l_ctx = NULL;
                 waflz_pb::event *l_event = NULL;
                 s_ip = "200.163.1.17";
@@ -690,7 +813,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 l_s = l_profile->process(&l_event, l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
-                if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist Cookie match"));
@@ -726,6 +849,181 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 l_s = l_profile->process(&l_event, l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
+                // -----------------------------------------
+                // revert
+                // -----------------------------------------
+                s_header_cookie = "__cookie_a=a_value; __cookie_b=b_value; __cookie_c=c_value;";
+                // *****************************************
+                // -----------------------------------------
+                //        M E T H O D  C H E C K
+                // -----------------------------------------
+                // *****************************************
+                // -----------------------------------------
+                // validate block
+                // -----------------------------------------
+                s_method = "HEAD";
+                l_s = l_profile->process(&l_event, l_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).rule_id() == 80009));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Method is not allowed by policy"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                // -----------------------------------------
+                // validate allow
+                // -----------------------------------------
+                s_method = "GET";
+                s_host = "www.google.com";
+                l_s = l_profile->process(&l_event, l_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                // -----------------------------------------
+                // revert
+                // -----------------------------------------
+                s_host = NULL;
+                // *****************************************
+                // -----------------------------------------
+                //      C O N T E N T  T Y P E  C H E C K
+                // -----------------------------------------
+                // *****************************************
+                // -----------------------------------------
+                // validate block
+                // -----------------------------------------
+                s_header_content_type = "garbage type";
+                s_header_content_length = "120";
+                s_method = "POST";
+                l_s = l_profile->process(&l_event, l_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).rule_id() == 80002));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Request content type is not allowed by policy"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                // -----------------------------------------
+                // validate allow
+                // -----------------------------------------
+                s_header_content_type = "text/xml";
+                s_host = "www.google.com";
+                l_s = l_profile->process(&l_event, l_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                // -----------------------------------------
+                // revert
+                // -----------------------------------------
+                s_host = NULL;
+                s_method = "GET";
+                s_header_content_type = NULL;
+                s_header_content_length = NULL;
+                // *****************************************
+                // -----------------------------------------
+                //      F I L E  E X T  C H E C K
+                // -----------------------------------------
+                // *****************************************
+                // -----------------------------------------
+                // validate block
+                // -----------------------------------------
+                s_path = "my/path/is/abc.def.php";
+                l_s = l_profile->process(&l_event, l_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).rule_id() == 80005));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "File extension is not allowed by policy"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                // -----------------------------------------
+                // validate allow
+                // -----------------------------------------
+                s_host = "www.google.com";
+                s_path = "my/path/is/abc.html";
+                l_s = l_profile->process(&l_event, l_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                // -----------------------------------------
+                // revert
+                // -----------------------------------------
+                s_host = NULL;
+                s_method = "GET";
+                // *****************************************
+                // -----------------------------------------
+                //      F I L E  S I Z E  C H E C K
+                // -----------------------------------------
+                // *****************************************
+                // -----------------------------------------
+                // validate block
+                // -----------------------------------------
+                s_header_content_type = "text/xml";
+                s_host = "www.google.com";
+                s_method = "POST";
+                s_header_content_length = "1048577";
+                l_s = l_profile->process(&l_event, l_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).rule_id() == 80006));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Uploaded file size too large"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                // -----------------------------------------
+                // validate allow
+                // -----------------------------------------
+                s_header_content_type = "text/xml";
+                s_header_content_length = "120";
+                s_host = "www.google.com";
+                l_s = l_profile->process(&l_event, l_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                // -----------------------------------------
+                // revert
+                // -----------------------------------------
+                s_host = NULL;
+                s_method = "GET";
+                s_header_content_length = NULL;
+                // *****************************************
+                // -----------------------------------------
+                //      HEADER  C H E C K
+                // -----------------------------------------
+                // *****************************************
+                // -----------------------------------------
+                // validate block
+                // -----------------------------------------
+                s_test_header = "test";
+                s_host = "www.google.com";
+                l_s = l_profile->process(&l_event, l_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).rule_id() == 80007));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Request header is not allowed by policy"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                // -----------------------------------------
+                // validate allow
+                // -----------------------------------------
+                s_method = "GET";
+                s_host = "www.google.com";
+                s_test_header = NULL;
+                l_s = l_profile->process(&l_event, l_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                // -----------------------------------------
+                // revert
+                // -----------------------------------------
+                s_host = NULL;
+                s_method = "GET";
+                s_header_content_length = NULL;
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------

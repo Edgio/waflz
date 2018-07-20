@@ -38,7 +38,7 @@
             "engine": "anomaly",
             "debug_log": "/tmp/modsec-debug-audit.log",
             "debug_level": 1,
-            "allowed_http_methods": ["GET"],
+            "allowed_http_methods": ["GET", "POST"],
             "allowed_http_versions": ["HTTP/1.1"],
             "allowed_request_content_types": ["application/x-www-form-urlencoded",
                                               "multipart/form-data",
@@ -137,7 +137,7 @@
             "user-agent":
             {
                 "whitelist": ["hlo"],
-                "blacklist": ["curl", "^$"]
+                "blacklist": []
             },
             "cookie":
             {
@@ -152,7 +152,7 @@
             "engine": "anomaly",
             "debug_log": "/tmp/modsec-debug-1001.log",
             "debug_level": 1,
-            "allowed_http_methods": ["GET"],
+            "allowed_http_methods": ["GET", "POST"],
             "allowed_http_versions": ["HTTP/1.1"],
             "allowed_request_content_types": ["application/x-www-form-urlencoded",
                                               "multipart/form-data",

@@ -410,6 +410,49 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                         continue;
                 }
                 m_header_list.push_back(l_hdr);
+#if 0
+                // -----------------------------------------
+                // parse content-type header...
+                // -----------------------------------------
+                if(strncasecmp(l_hdr.m_key, "Content-Type", sizeof("Content-Type") - 1) == 0)
+                {
+                        char *l_pos_sep = NULL;
+                        uint32_t i_char = 0;
+                        uint32_t i_offset = 0;
+                        while(i_char < l_hdr.m_val_len)
+                        {
+                                if(l_hdr.m_val[i_char] == ';' ||
+                                   l_hdr.m_val[i_char] == ' ')
+                                {
+                                      if(i_char == 0)
+                                      {
+                                            ++i_char;
+                                            continue;
+                                      }
+                                      NDBG_PRINT("i_offset %d and i_char %d\n", i_offset, i_char);
+                                      //uint32_t l_val_off = i_char;
+                                      data_t l_val;
+                                      l_val.m_data = l_hdr.m_val + i_offset;
+                                      l_val.m_len = i_char - i_offset;
+                                      m_content_type_list.push_back(l_val);
+                                      NDBG_PRINT("l_val len %d\n", l_val.m_len);
+                                      ++i_char;
+                                      i_offset = i_char;
+                                      while(i_char < l_hdr.m_val_len   &&
+                                            l_hdr.m_val[i_char] != ';' &&
+                                            l_hdr.m_val[i_char] != ' ')
+                                      {
+                                            ++i_char;
+                                      }
+                                }
+                                else
+                                {
+                                        ++i_char;
+                                }
+                                //++i_char;
+                        }
+                }
+#endif
                 // -----------------------------------------
                 // map
                 // -----------------------------------------
@@ -734,6 +777,16 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                         l_arg.m_val = m_cookie_mutated.c_str();
                         l_arg.m_val_len = m_cookie_mutated.length();
                         m_header_list.push_back(l_arg);
+                        // -----------------------------------------
+                        // map
+                        // -----------------------------------------
+                        data_t l_key;
+                        l_key.m_data = l_arg.m_key;
+                        l_key.m_len = l_arg.m_key_len;
+                        data_t l_val;
+                        l_val.m_data = l_arg.m_val;
+                        l_val.m_len = l_arg.m_val_len;
+                        m_header_map[l_key] = l_val;
                 }
                 // -----------------------------------------
                 // else just add header...
@@ -741,7 +794,48 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                 else
                 {
                         m_header_list.push_back(l_hdr);
+                        // -----------------------------------------
+                        // map
+                        // -----------------------------------------
+                        data_t l_key;
+                        l_key.m_data = l_hdr.m_key;
+                        l_key.m_len = l_hdr.m_key_len;
+                        data_t l_val;
+                        l_val.m_data = l_hdr.m_val;
+                        l_val.m_len = l_hdr.m_val_len;
+                        m_header_map[l_key] = l_val;
                 }
+#if 0
+                // -----------------------------------------
+                // parse content-type header...
+                // -----------------------------------------
+                if(strncasecmp(l_hdr.m_key, "Content-Type", sizeof("Content-Type") - 1) == 0)
+                {
+                        char *l_pos_sep = NULL;
+                        uint32_t i_char = 0;
+                        uint32_t i_offset = 0;
+                        while(i_char < l_hdr.m_val_len)
+                        {
+                                if(l_hdr.m_val[i_char] == ';' ||
+                                   l_hdr.m_val[i_char] == ' ')
+                                {
+                                      if(i_char == 0)
+                                      {
+                                            continue;
+                                      }
+                                      data_t l_val;
+                                      l_val.m_data = l_hdr.m_val + i_offset;
+                                      l_val.m_len = i_char - i_offset - 1;
+                                      m_content_type_list.push_back(l_val);
+                                      if(i_char + 1 < l_hdr.m_val_len)
+                                      {
+                                            i_offset = i_char + 1;
+                                      }
+                                }
+                                ++i_char;
+                        }
+                }
+#endif
         }
         // -------------------------------------------------
         // remove ignored

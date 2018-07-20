@@ -50,6 +50,7 @@ struct cx_case_i_comp
 typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <std::string, uint32_t> count_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
+typedef std::list<data_t> data_list_t;
 // ---------------------------------------------------------
 // *********************************************************
 // xml optimization
@@ -123,6 +124,7 @@ public:
         data_map_t m_header_map;
         const_arg_list_t m_header_list;
         const_arg_list_t m_cookie_list;
+        data_list_t m_content_type_list;
         const uint32_t m_body_len_max;
         char *m_body_data;
         uint32_t m_body_len;

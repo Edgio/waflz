@@ -1,22 +1,27 @@
-WAFLZ ACL
-----------
-.. List-table:: MODSECURITY TO WAFLZ RULEID MAP FOR ACL SETTINGS
+Appendix
+--------
+
+ACL Rule ID mapping
+===================
+waflz internal access control lists' (ACLs') use 80XXX rule prefixes for alerts (ip/content-type/etc) -see also: :ref:`profiles-acls`
+
+.. List-table:: OWASP CRS 2.2.9 to waflz ACL rule-id mapping
 	:widths: 30 25 25
 	:header-rows: 1
 
 	* - ACL Setting
-	  - Old Rule Id
-	  - New Rule Id
-	* - ASN blacklist/whitelist
+	  - OWASP CRS 2.2.9
+	  - waflz
+	* - ASN
 	  - 430001
 	  - 80001
 	* - Allowed content-types
 	  - 960010
 	  - 80002
-	* - Cookie blacklist/whitelist
+	* - Cookie
 	  - 430004
 	  - 80003
-	* - Country blacklist/whitelist
+	* - Country
 	  - 430425
 	  - 80004
 	* - Disallowed file extensions
@@ -25,21 +30,21 @@ WAFLZ ACL
 	* - Disallowed headers
 	  - 960038
 	  - 80007
-	* - IP blacklist/whitelist
+	* - IP
 	  - 430108
 	  - 80008
 	* - Allowed methods
 	  - 960032
 	  - 80009
-	* - Referer blacklist/whitelist
+	* - Referer
 	  - 430003
 	  - 80010
-	* - Url blacklist/whitelist
+	* - URL
 	  - 430002
 	  - 80011
-	* - User-Agent blacklist/whitelist
+	* - User-Agent
 	  - 430614
 	  - 80012
-	* - Versions(http)
+	* - HTTP version
 	  - 960034
 	  - 80013

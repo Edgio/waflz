@@ -146,42 +146,6 @@ static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-#if 0
-static int32_t get_rqst_header_w_key_cb(const char **ao_val,
-                                        uint32_t &ao_val_len,
-                                        void *a_ctx,
-                                        const char *a_key,
-                                        uint32_t a_key_len)
-{
-        //> Host: www.google.com
-        //> User-Agent: curl/7.47.0
-        //> Accept: */*
-#if 0
-        ns_is2::clnt_session *l_ctx = (ns_is2::clnt_session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        *ao_val = NULL;
-        ao_val_len = 0;
-        ns_is2::kv_map_list_t::const_iterator i_h = l_rqst->get_headers().find(a_key);
-        if(i_h != l_rqst->get_headers().end())
-        {
-                *ao_val = i_h->second.front().c_str();
-                ao_val_len = i_h->second.front().length();
-        }
-#endif
-        return 0;
-}
-#endif
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                                         uint32_t &ao_key_len,
                                         const char **ao_val,
@@ -289,7 +253,6 @@ TEST_CASE( "instances test", "[instances]" ) {
                 ns_waflz::rqst_ctx::s_get_rqst_method_cb = get_rqst_method_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_protocol_cb = get_rqst_protocol_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
-                //ns_waflz::rqst_ctx::s_get_rqst_header_w_key_cb = get_rqst_header_w_key_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
                 //ns_waflz::rqst_ctx::s_get_rqst_id_cb = get_rqst_id_cb;
                 // -----------------------------------------

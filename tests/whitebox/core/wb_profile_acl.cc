@@ -264,67 +264,6 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         return 0;
 }
 //: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_w_key_cb(const char **ao_val,
-                                        uint32_t &ao_val_len,
-                                        void *a_ctx,
-                                        const char *a_key,
-                                        uint32_t a_key_len)
-{
-        //> Host: www.google.com
-        //> User-Agent: curl/7.47.0
-        //> Accept: */*
-#define _ELIF_HEADER(_hdr) else if(strncasecmp(a_key, _hdr, a_key_len > strlen(_hdr) ? strlen(_hdr): a_key_len) == 0)
-
-        if(0) {}
-        _ELIF_HEADER("User-Agent")
-        {
-                *ao_val = s_header_user_agent;
-                ao_val_len = strlen(s_header_user_agent);
-        }
-        _ELIF_HEADER("Referer")
-        {
-                *ao_val = s_header_referer;
-                ao_val_len = strlen(s_header_referer);
-        }
-        _ELIF_HEADER("Cookie")
-        {
-                *ao_val = s_header_cookie;
-                ao_val_len = strlen(s_header_cookie);
-        }
-        _ELIF_HEADER("Host")
-        {
-                if(s_host)
-                {
-                        *ao_val = s_host;
-                        ao_val_len = strlen(s_host);
-                }
-        }
-        _ELIF_HEADER("Content-Length")
-        {
-                if(s_header_content_length)
-                {
-                        *ao_val = s_header_content_length;
-                        ao_val_len = strlen(s_header_content_length);
-                }
-        }
-        _ELIF_HEADER("Content-Type")
-        {
-                if(s_header_content_type)
-                {
-                        *ao_val = s_header_content_type;
-                        ao_val_len = strlen(s_header_content_type);
-                }
-        }
-        else
-        {
-                *ao_val = "¯\(°_o)/¯";
-                ao_val_len = strlen("¯\(°_o)/¯");
-        }
-        return 0;
-}
-//: ----------------------------------------------------------------------------
 //: profile acl tests
 //: ----------------------------------------------------------------------------
 TEST_CASE( "profile acls test", "[profile_acls]" )
@@ -483,7 +422,6 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_w_key_cb = get_rqst_header_w_key_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_method_cb = get_rqst_method_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_path_cb = get_rqst_path_cb;
                 void *l_ctx = NULL;

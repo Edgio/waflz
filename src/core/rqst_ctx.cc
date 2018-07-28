@@ -181,6 +181,7 @@ rqst_ctx::rqst_ctx(uint32_t a_body_len_max,
         m_body_len_max(a_body_len_max),
         m_body_data(NULL),
         m_body_len(0),
+        m_content_length(0),
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
         m_body_parser(),
@@ -410,7 +411,6 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                         continue;
                 }
                 m_header_list.push_back(l_hdr);
-#if 0
                 // -----------------------------------------
                 // parse content-type header...
                 // -----------------------------------------
@@ -419,40 +419,52 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                         char *l_pos_sep = NULL;
                         uint32_t i_char = 0;
                         uint32_t i_offset = 0;
-                        while(i_char < l_hdr.m_val_len)
+                        int32_t l_num = 0;
+                        // e.g: Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
+                        while(i_char <= l_hdr.m_val_len)
                         {
+                                // separators
                                 if(l_hdr.m_val[i_char] == ';' ||
                                    l_hdr.m_val[i_char] == ' ')
                                 {
-                                      if(i_char == 0)
-                                      {
-                                            ++i_char;
-                                            continue;
-                                      }
-                                      NDBG_PRINT("i_offset %d and i_char %d\n", i_offset, i_char);
-                                      //uint32_t l_val_off = i_char;
-                                      data_t l_val;
-                                      l_val.m_data = l_hdr.m_val + i_offset;
-                                      l_val.m_len = i_char - i_offset;
-                                      m_content_type_list.push_back(l_val);
-                                      NDBG_PRINT("l_val len %d\n", l_val.m_len);
-                                      ++i_char;
-                                      i_offset = i_char;
-                                      while(i_char < l_hdr.m_val_len   &&
-                                            l_hdr.m_val[i_char] != ';' &&
-                                            l_hdr.m_val[i_char] != ' ')
-                                      {
-                                            ++i_char;
-                                      }
-                                }
-                                else
-                                {
+                                        data_t l_val;
+                                        l_val.m_data = l_hdr.m_val + i_offset;
+                                        l_val.m_len = i_char - i_offset;
+                                        // if we have something within separators
+                                        if(l_val.m_len)
+                                        {
+                                                m_content_type_list.push_back(l_val);
+                                        }
                                         ++i_char;
+                                        // if the next char is also separators
+                                        // skip by 1
+                                        if(l_hdr.m_val[i_char] == ' ' ||
+                                           l_hdr.m_val[i_char] == ';')
+                                        {
+                                                i_offset = i_char + 1;
+                                        }
+                                        else
+                                        {
+                                                i_offset = i_char;
+                                        }
                                 }
-                                //++i_char;
+                                // no separators found.
+                                // Just one type
+                                if(i_char == l_hdr.m_val_len)
+                                {
+                                        data_t l_val;
+                                        l_val.m_data = l_hdr.m_val + i_offset;
+                                        l_val.m_len = i_char - i_offset;
+                                        // if not empty
+                                        if(l_val.m_len)
+                                        {
+                                                m_content_type_list.push_back(l_val);
+                                        }
+                                        break;
+                                }
+                                ++i_char;
                         }
                 }
-#endif
                 // -----------------------------------------
                 // map
                 // -----------------------------------------
@@ -805,7 +817,6 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                         l_val.m_len = l_hdr.m_val_len;
                         m_header_map[l_key] = l_val;
                 }
-#if 0
                 // -----------------------------------------
                 // parse content-type header...
                 // -----------------------------------------
@@ -814,28 +825,57 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                         char *l_pos_sep = NULL;
                         uint32_t i_char = 0;
                         uint32_t i_offset = 0;
-                        while(i_char < l_hdr.m_val_len)
+                        int32_t l_num = 0;
+                        // e.g: Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
+                        while(i_char <= l_hdr.m_val_len)
                         {
+                                // separators
                                 if(l_hdr.m_val[i_char] == ';' ||
                                    l_hdr.m_val[i_char] == ' ')
                                 {
-                                      if(i_char == 0)
-                                      {
-                                            continue;
-                                      }
-                                      data_t l_val;
-                                      l_val.m_data = l_hdr.m_val + i_offset;
-                                      l_val.m_len = i_char - i_offset - 1;
-                                      m_content_type_list.push_back(l_val);
-                                      if(i_char + 1 < l_hdr.m_val_len)
-                                      {
-                                            i_offset = i_char + 1;
-                                      }
+                                        data_t l_val;
+                                        l_val.m_data = l_hdr.m_val + i_offset;
+                                        l_val.m_len = i_char - i_offset;
+                                        // if we have something within separators
+                                        if(l_val.m_len)
+                                        {
+                                                m_content_type_list.push_back(l_val);
+                                        }
+                                        ++i_char;
+                                        // if the next char is also separators
+                                        // skip by 1
+                                        if(l_hdr.m_val[i_char] == ' ' ||
+                                           l_hdr.m_val[i_char] == ';')
+                                        {
+                                                i_offset = i_char + 1;
+                                        }
+                                        else
+                                        {
+                                                i_offset = i_char;
+                                        }
+                                }
+                                // no separators found.
+                                // Just one type
+                                if(i_char == l_hdr.m_val_len)
+                                {
+                                        data_t l_val;
+                                        l_val.m_data = l_hdr.m_val + i_offset;
+                                        l_val.m_len = i_char - i_offset;
+                                        // if not empty
+                                        if(l_val.m_len)
+                                        {
+                                                m_content_type_list.push_back(l_val);
+                                        }
+                                        break;
                                 }
                                 ++i_char;
                         }
                 }
-#endif
+                // Get content-length, to be verified in phase 2
+                if(strncasecmp(l_hdr.m_key, "Content-Length", sizeof("Content-Length") - 1) == 0)
+                {
+                        m_content_length = strntoul(l_hdr.m_val , l_hdr.m_val_len, NULL, 10);
+                }
         }
         // -------------------------------------------------
         // remove ignored
@@ -860,50 +900,25 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map,
         // -------------------------------------------------
         // request body data
         // -------------------------------------------------
-        // -------------------------------------------------
-        // get content type
-        // -------------------------------------------------
-        if(!s_get_rqst_header_w_key_cb)
-        {
-                return WAFLZ_STATUS_OK;
-        }
-        const char *l_buf = NULL;
-        uint32_t l_len = 0;
-        const char *l_h = NULL;
         int32_t l_s;
         // -------------------------------------------------
         // get content length
         // -------------------------------------------------
-        // TODO -not for use with chunked???
-        l_h = "Content-Length";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_len, a_ctx, l_h, strlen(l_h));
-        if(l_s != 0)
-        {
-                //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                return WAFLZ_STATUS_OK;
-        }
-        if(!l_buf ||
-           !l_len)
-        {
-                return WAFLZ_STATUS_OK;
-        }
-        uint32_t l_cl = 0;
-        l_cl = strntoul(l_buf, l_len, NULL, 10);
-        if(l_cl == ULONG_MAX)
+        if(m_content_length == ULONG_MAX)
         {
                 // TODO -return reason...
                 return WAFLZ_STATUS_OK;
         }
-        if(l_cl <= 0)
+        if(m_content_length <= 0)
         {
                 return WAFLZ_STATUS_OK;
         }
-        //NDBG_PRINT("Content-Length: %u\n", l_cl);
         // -------------------------------------------------
         // calculate body size
         // -------------------------------------------------
         uint32_t l_body_len;
-        l_body_len = l_cl > m_body_len_max ? m_body_len_max : l_cl;
+        l_body_len = m_content_length > m_body_len_max ? m_body_len_max : m_content_length;
+        //NDBG_PRINT("body len %d\n", l_body_len);
         // -------------------------------------------------
         // TODO -413 on > max???
         // -------------------------------------------------
@@ -911,20 +926,19 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map,
         // -------------------------------------------------
         // get content type
         // -------------------------------------------------
-        l_h = "Content-Type";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_len, a_ctx, l_h, strlen(l_h));
-        if(l_s != 0)
-        {
-                //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                return WAFLZ_STATUS_OK;
-        }
-        if(!l_buf ||
-           !l_len)
+        if(!m_content_type_list.size())
         {
                 return WAFLZ_STATUS_OK;
         }
+        if(!m_content_type_list.size())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // Get the first one from list
+        // TODO: may be check through the list?
+        data_t l_type = m_content_type_list.front();
         std::string l_ct;
-        l_ct.assign(l_buf, l_len);
+        l_ct.assign(l_type.m_data, l_type.m_len);
         ctype_parser_map_t::const_iterator i_p = a_ctype_parser_map.find(l_ct);
         if(i_p == a_ctype_parser_map.end())
         {

@@ -1050,31 +1050,32 @@ content_type_check:
         {
                 bool l_match = false;
                 std::string l_cont_type(i_h->m_data, i_h->m_len);
-                NDBG_PRINT("content type:%s\n", l_cont_type.c_str());
-                if(m_allowed_request_content_types.find(l_cont_type) == m_allowed_request_content_types.end())
+                // check for first type, if matched then skip alert
+                if(m_allowed_request_content_types.find(l_cont_type) != m_allowed_request_content_types.end())
                 {
-                        // alloc event...
-                        l_event = new ::waflz_pb::event();
-                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                        // ---------------------------------
-                        // subevent
-                        // ---------------------------------
-                        l_sevent->set_rule_id(80002);
-                        l_sevent->set_rule_msg("Request content type is not allowed by policy");
-                        // top level rule msg
-                        l_event->set_rule_msg("Request content type is not allowed by policy");
-                        l_sevent->set_rule_op_name("");
-                        l_sevent->set_rule_op_param("");
-                        l_sevent->add_rule_tag("HTTP POLICY");
-                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                        l_rule_target->set_name("REQUEST_HEADERS");
-                        l_rule_target->set_param("allowed_request_content_types");
-                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                        l_var->set_name("REQUEST_METHOD");
-                        l_var->set_value(l_cont_type);
-                        *ao_event = l_event;
-                        return WAFLZ_STATUS_OK;
+                           goto file_ext_check;
                 }
+                // alloc event...
+                l_event = new ::waflz_pb::event();
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                // ---------------------------------
+                // subevent
+                // ---------------------------------
+                l_sevent->set_rule_id(80002);
+                l_sevent->set_rule_msg("Request content type is not allowed by policy");
+                // top level rule msg
+                l_event->set_rule_msg("Request content type is not allowed by policy");
+                l_sevent->set_rule_op_name("");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("HTTP POLICY");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_param("allowed_request_content_types");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("Content-Type");
+                l_var->set_value(l_cont_type);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
         }
 file_ext_check:
         // -------------------------------------------------

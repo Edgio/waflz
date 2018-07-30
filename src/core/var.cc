@@ -1211,7 +1211,7 @@ GET_VAR(MATCHED_VARS_NAMES)
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details: REQUEST_URI_RAW
+//: \details: REQUEST_BODY
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------

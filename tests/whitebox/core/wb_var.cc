@@ -1665,7 +1665,7 @@ TEST_CASE( "test var", "[var]" ) {
                 uint32_t i_idx = 0;
                 g_body_str = _RQST_BODY_XML;
                 g_header_content_type = _RQST_CONTENT_TYPE_XML;
-                l_rqst_ctx->m_content_type_list.pop_front();
+                l_rqst_ctx->m_content_type_list.clear();
                 l_rqst_ctx->init_phase_1(NULL, l_il_query, l_il_header, l_il_cookie);
                 l_rqst_ctx->init_phase_2(l_ctype_parser_map, NULL);
                 // -----------------------------------------

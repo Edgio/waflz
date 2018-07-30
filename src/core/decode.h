@@ -40,5 +40,6 @@ int32_t urldecode_ns(char **ao_buf, uint32_t &ao_len, uint32_t &ao_invalid_count
 int32_t urldecode_uni_ns(char **ao_buf, uint32_t &ao_len, const char *a_buf, uint32_t a_len);
 int32_t utf8_to_unicode(char **ao_buf, uint32_t &ao_len, const char *a_buf, uint32_t a_len);
 int32_t validate_utf8(bool &ao_valid, const char **ao_err_msg, uint32_t &ao_err_off, const char *a_buf, uint32_t a_len);
+int32_t parse_content_type(data_list_t &ao_data_list, const_arg_t *a_hdr);
 }
 #endif //#ifndef _PARSE_H

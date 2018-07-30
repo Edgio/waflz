@@ -411,55 +411,7 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                 // -----------------------------------------
                 if(strncasecmp(l_hdr.m_key, "Content-Type", sizeof("Content-Type") - 1) == 0)
                 {
-                        char *l_pos_sep = NULL;
-                        uint32_t i_char = 0;
-                        uint32_t i_offset = 0;
-                        int32_t l_num = 0;
-                        while(i_char <= l_hdr.m_val_len)
-                        {
-                                // separators
-                                if(l_hdr.m_val[i_char] == ';' ||
-                                   l_hdr.m_val[i_char] == ' ')
-                                {
-                                        data_t l_val;
-                                        l_val.m_data = l_hdr.m_val + i_offset;
-                                        l_val.m_len = i_char - i_offset;
-                                        // if we have something within separators
-                                        if(l_val.m_len)
-                                        {
-                                                m_content_type_list.push_back(l_val);
-                                        }
-                                        ++i_char;
-                                        // if the next char is also separators
-                                        // skip by 1
-                                        if(l_hdr.m_val[i_char] == ' ' ||
-                                           l_hdr.m_val[i_char] == ';')
-                                        {
-                                                i_offset = i_char + 1;
-                                        }
-                                        else
-                                        {
-                                                i_offset = i_char;
-                                        }
-                                }
-                                // -------------------------
-                                // no separators found.
-                                // Just one type
-                                // -------------------------
-                                if(i_char == l_hdr.m_val_len)
-                                {
-                                        data_t l_val;
-                                        l_val.m_data = l_hdr.m_val + i_offset;
-                                        l_val.m_len = i_char - i_offset;
-                                        // if not empty
-                                        if(l_val.m_len)
-                                        {
-                                                m_content_type_list.push_back(l_val);
-                                        }
-                                        break;
-                                }
-                                ++i_char;
-                        }
+                        parse_content_type(m_content_type_list, &l_hdr);
                 }
                 // -----------------------------------------
                 // map
@@ -819,55 +771,7 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                 // -----------------------------------------
                 if(strncasecmp(l_hdr.m_key, "Content-Type", sizeof("Content-Type") - 1) == 0)
                 {
-                        char *l_pos_sep = NULL;
-                        uint32_t i_char = 0;
-                        uint32_t i_offset = 0;
-                        int32_t l_num = 0;
-                        while(i_char <= l_hdr.m_val_len)
-                        {
-                                // separators
-                                if(l_hdr.m_val[i_char] == ';' ||
-                                   l_hdr.m_val[i_char] == ' ')
-                                {
-                                        data_t l_val;
-                                        l_val.m_data = l_hdr.m_val + i_offset;
-                                        l_val.m_len = i_char - i_offset;
-                                        // if we have something within separators
-                                        if(l_val.m_len)
-                                        {
-                                                m_content_type_list.push_back(l_val);
-                                        }
-                                        ++i_char;
-                                        // if the next char is also separators
-                                        // skip by 1
-                                        if(l_hdr.m_val[i_char] == ' ' ||
-                                           l_hdr.m_val[i_char] == ';')
-                                        {
-                                                i_offset = i_char + 1;
-                                        }
-                                        else
-                                        {
-                                                i_offset = i_char;
-                                        }
-                                }
-                                // -------------------------
-                                // no separators found.
-                                // Just one type
-                                // -------------------------
-                                if(i_char == l_hdr.m_val_len)
-                                {
-                                        data_t l_val;
-                                        l_val.m_data = l_hdr.m_val + i_offset;
-                                        l_val.m_len = i_char - i_offset;
-                                        // if not empty
-                                        if(l_val.m_len)
-                                        {
-                                                m_content_type_list.push_back(l_val);
-                                        }
-                                        break;
-                                }
-                                ++i_char;
-                        }
+                        parse_content_type(m_content_type_list, &l_hdr);
                 }
                 // Get content-length, to be verified in phase 2
                 if(strncasecmp(l_hdr.m_key, "Content-Length", sizeof("Content-Length") - 1) == 0)

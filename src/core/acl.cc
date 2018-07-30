@@ -1058,9 +1058,9 @@ content_type_check:
                 // alloc event...
                 l_event = new ::waflz_pb::event();
                 ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                // ---------------------------------
+                // -----------------------------------------
                 // subevent
-                // ---------------------------------
+                // -----------------------------------------
                 l_sevent->set_rule_id(80002);
                 l_sevent->set_rule_msg("Request content type is not allowed by policy");
                 // top level rule msg

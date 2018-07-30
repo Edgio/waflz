@@ -23,9 +23,6 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-// ---------------------------------------------------------
-// waflz
-// ---------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"
@@ -36,15 +33,12 @@
 #include "parser/parser_url_encoded.h"
 #include "parser/parser_xml.h"
 #include "parser/parser_json.h"
-// ---------------------------------------------------------
-// std
-// ---------------------------------------------------------
 #include <stdlib.h>
 #include <string.h>
 namespace ns_waflz {
-// ---------------------------------------------------------
+//: ----------------------------------------------------------------------------
 // callbacks
-// ---------------------------------------------------------
+//: ----------------------------------------------------------------------------
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_src_addr_cb = NULL;
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_host_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_port_cb = NULL;
@@ -109,9 +103,9 @@ static bool key_in_ignore_list(const pcre_list_t &a_pcre_list,
 static int32_t remove_ignored(arg_list_t &ao_arg_list,
                               const pcre_list_t &a_pcre_list)
 {
-        // ---------------------------------
+        // -------------------------------------------------
         // strip ignored cookies
-        // ---------------------------------
+        // -------------------------------------------------
         for(arg_list_t::iterator i_a = ao_arg_list.begin();
             i_a != ao_arg_list.end();)
         {
@@ -136,9 +130,9 @@ static int32_t remove_ignored(arg_list_t &ao_arg_list,
 static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
                                     const pcre_list_t &a_pcre_list)
 {
-        // ---------------------------------
+        // -------------------------------------------------
         // strip ignored cookies
-        // ---------------------------------
+        // -------------------------------------------------
         for(const_arg_list_t::iterator i_a = ao_arg_list.begin();
             i_a != ao_arg_list.end();)
         {
@@ -185,24 +179,24 @@ rqst_ctx::rqst_ctx(uint32_t a_body_len_max,
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
         m_body_parser(),
-        // -----------------------------------------
+        // -------------------------------------------------
         // collections
-        // -----------------------------------------
+        // -------------------------------------------------
         m_cx_matched_var(),
         m_cx_matched_var_name(),
         m_cx_rule_map(),
         m_cx_tx_map(),
-        // -----------------------------------------
+        // -------------------------------------------------
         // state
-        // -----------------------------------------
+        // -------------------------------------------------
         m_intercepted(false),
         m_skip(0),
         m_skip_after(NULL),
-        // -----------------------------------------
-        // *****************************************
+        // -------------------------------------------------
+        // *************************************************
         // xml optimization
-        // *****************************************
-        // -----------------------------------------
+        // *************************************************
+        // -------------------------------------------------
         m_xpath_cache_map(NULL)
 {
 }
@@ -413,6 +407,7 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                 m_header_list.push_back(l_hdr);
                 // -----------------------------------------
                 // parse content-type header...
+                // e.g: Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
                 // -----------------------------------------
                 if(strncasecmp(l_hdr.m_key, "Content-Type", sizeof("Content-Type") - 1) == 0)
                 {
@@ -420,7 +415,6 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                         uint32_t i_char = 0;
                         uint32_t i_offset = 0;
                         int32_t l_num = 0;
-                        // e.g: Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
                         while(i_char <= l_hdr.m_val_len)
                         {
                                 // separators
@@ -448,8 +442,10 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                                                 i_offset = i_char;
                                         }
                                 }
+                                // -------------------------
                                 // no separators found.
                                 // Just one type
+                                // -------------------------
                                 if(i_char == l_hdr.m_val_len)
                                 {
                                         data_t l_val;
@@ -789,9 +785,9 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                         l_arg.m_val = m_cookie_mutated.c_str();
                         l_arg.m_val_len = m_cookie_mutated.length();
                         m_header_list.push_back(l_arg);
-                        // -----------------------------------------
+                        // ---------------------------------
                         // map
-                        // -----------------------------------------
+                        // ---------------------------------
                         data_t l_key;
                         l_key.m_data = l_arg.m_key;
                         l_key.m_len = l_arg.m_key_len;
@@ -806,9 +802,9 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                 else
                 {
                         m_header_list.push_back(l_hdr);
-                        // -----------------------------------------
+                        // ---------------------------------
                         // map
-                        // -----------------------------------------
+                        // ---------------------------------
                         data_t l_key;
                         l_key.m_data = l_hdr.m_key;
                         l_key.m_len = l_hdr.m_key_len;
@@ -819,6 +815,7 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                 }
                 // -----------------------------------------
                 // parse content-type header...
+                // e.g: Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
                 // -----------------------------------------
                 if(strncasecmp(l_hdr.m_key, "Content-Type", sizeof("Content-Type") - 1) == 0)
                 {
@@ -826,7 +823,6 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                         uint32_t i_char = 0;
                         uint32_t i_offset = 0;
                         int32_t l_num = 0;
-                        // e.g: Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
                         while(i_char <= l_hdr.m_val_len)
                         {
                                 // separators
@@ -854,8 +850,10 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                                                 i_offset = i_char;
                                         }
                                 }
+                                // -------------------------
                                 // no separators found.
                                 // Just one type
+                                // -------------------------
                                 if(i_char == l_hdr.m_val_len)
                                 {
                                         data_t l_val;

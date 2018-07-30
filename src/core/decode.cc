@@ -40,6 +40,7 @@
          ((X >= 'a') && (X <= 'f')) || \
          ((X >= 'A') && (X <= 'F')))
 namespace ns_waflz {
+typedef std::list<data_t> data_list_t;
 //: ----------------------------------------------------------------------------
 //: statics
 //: ----------------------------------------------------------------------------
@@ -2182,6 +2183,65 @@ int32_t parse_cookies(const_arg_list_t &ao_cookie_list,
                         l_keyend = NULL;
                 }
                 }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details parse cookie string:
+//:          format:  Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t parse_content_type(data_list_t &ao_data_list, const_arg_t *a_hdr)
+{
+        char *l_pos_sep = NULL;
+        uint32_t i_char = 0;
+        uint32_t i_offset = 0;
+        int32_t l_num = 0;
+        while(i_char <= a_hdr->m_val_len)
+        {
+                // separators
+                if(a_hdr->m_val[i_char] == ';' ||
+                   a_hdr->m_val[i_char] == ' ')
+                {
+                        data_t l_val;
+                        l_val.m_data = a_hdr->m_val + i_offset;
+                        l_val.m_len = i_char - i_offset;
+                        // if we have something within separators
+                        if(l_val.m_len)
+                        {
+                                ao_data_list.push_back(l_val);
+                        }
+                        ++i_char;
+                        // if the next char is also separators
+                        // skip by 1
+                        if(a_hdr->m_val[i_char] == ' ' ||
+                           a_hdr->m_val[i_char] == ';')
+                        {
+                                i_offset = i_char + 1;
+                        }
+                        else
+                        {
+                                i_offset = i_char;
+                        }
+                }
+                // -------------------------
+                // no separators found.
+                // Just one type
+                // -------------------------
+                if(i_char == a_hdr->m_val_len)
+                {
+                        data_t l_val;
+                        l_val.m_data = a_hdr->m_val + i_offset;
+                        l_val.m_len = i_char - i_offset;
+                        // if not empty
+                        if(l_val.m_len)
+                        {
+                                ao_data_list.push_back(l_val);
+                        }
+                        break;
+                }
+                ++i_char;
         }
         return WAFLZ_STATUS_OK;
 }

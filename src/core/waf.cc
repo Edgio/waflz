@@ -1266,10 +1266,8 @@ done:
                 {
                         ::waflz_pb::variable_t_match_t& l_match = *(l_var.add_match());
                         l_match.set_value(l_rtu.target_match());
-                        if(l_rtu.is_negated())
-                        {
-                                l_match.set_is_negated(true);
-                        }
+                        // set is_negated by default
+                        l_match.set_is_negated(true);
                         if(l_rtu.is_regex())
                         {
                                 l_match.set_is_regex(true);

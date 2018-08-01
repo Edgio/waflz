@@ -95,7 +95,11 @@ public:
                 m_regex_study = pcre_study(m_regex,
                                            s_pcre_study_options,
                                            &m_err_ptr);
-                if(!m_regex_study)
+                // -----------------------------------------
+                // if regex_study NULL not compiled with JIT
+                // check m_err_ptr for error
+                // -----------------------------------------
+                if(m_err_ptr)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }

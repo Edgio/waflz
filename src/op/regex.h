@@ -95,12 +95,10 @@ public:
                 m_regex_study = pcre_study(m_regex,
                                            s_pcre_study_options,
                                            &m_err_ptr);
-                // From man page:
-                // If the function returns NULL, 
-                // either it could not find any additional information, or there was an error.
-                // You can tell the difference by looking at the error value. It is NULL in first case.
-                //
-                // So we check whether it throws an error. Its null if its not compiled with JIT.
+                // -----------------------------------------
+                // if regex_study NULL not compiled with JIT
+                // check m_err_ptr for error
+                // -----------------------------------------
                 if(m_err_ptr)
                 {
                         return WAFLZ_STATUS_ERROR;

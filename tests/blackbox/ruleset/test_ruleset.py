@@ -197,8 +197,6 @@ def check_vectors(a_file):
             if isinstance(l_v, dict):
                 for l_k_1, l_v_1 in l_v.iteritems():
                     l_conf[l_k][l_k_1] = l_v_1
-            elif isinstance(l_v, list):
-                pass
             else:
                 l_conf[l_k] = l_v
     # ------------------------------------------------------

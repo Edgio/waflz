@@ -1040,6 +1040,17 @@ content_type_check:
         // -------------------------------------------------
         // Request Content Type
         // -------------------------------------------------
+        // -------------------------------------------------
+        // Do not inspect content-types
+        // for following methods
+        // -------------------------------------------------
+        if((!strncasecmp(a_ctx.m_method.m_data, "GET", a_ctx.m_method.m_len)) ||
+           (!strncasecmp(a_ctx.m_method.m_data, "HEAD", a_ctx.m_method.m_len)) ||
+           (!strncasecmp(a_ctx.m_method.m_data, "OPTIONS", a_ctx.m_method.m_len)) ||
+           (!strncasecmp(a_ctx.m_method.m_data, "PROPFIND", a_ctx.m_method.m_len)))
+        {
+                goto file_ext_check;
+        }
         if(!m_allowed_request_content_types.size())
         {
                 goto file_ext_check;

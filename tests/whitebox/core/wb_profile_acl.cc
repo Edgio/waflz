@@ -382,6 +382,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 ::waflz_pb::profile_general_settings_t *l_gx_settings = l_pb->mutable_general_settings();
                 l_gx_settings->add_allowed_http_methods("GET");
                 l_gx_settings->add_allowed_http_methods("POST");
+                l_gx_settings->add_allowed_http_methods("OPTIONS");
                 // *****************************************
                 // -----------------------------------------
                 // content type settings
@@ -843,12 +844,23 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Request content type is not allowed by policy"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
-                // validate allow
+                // validate allow content for GET
                 // -----------------------------------------
-                s_header_content_type = "text/xml";
+                s_method = "GET";
                 s_host = "www.google.com";
+                s_header_content_length = NULL;
                 l_s = l_profile->process(&l_event, l_ctx);
-                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                // -----------------------------------------
+                // validate allow content for OPTIONS
+                // -----------------------------------------
+                s_method = "OPTIONS";
+                s_host = "www.google.com";
+                s_header_content_length = NULL;
+                l_s = l_profile->process(&l_event, l_ctx);
+                if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
                 // -----------------------------------------

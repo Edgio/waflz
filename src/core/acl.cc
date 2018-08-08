@@ -1035,6 +1035,7 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 l_var->set_name("Content-Length");
                 l_var->set_value(l_buf);
                 *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
         }
 method_check:
         // -------------------------------------------------

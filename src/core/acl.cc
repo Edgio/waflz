@@ -1044,10 +1044,10 @@ content_type_check:
         // Do not inspect content-types
         // for following methods
         // -------------------------------------------------
-        if((!strncmp(a_ctx.m_method.m_data, "GET", a_ctx.m_method.m_len)) ||
-           (!strncmp(a_ctx.m_method.m_data, "HEAD", a_ctx.m_method.m_len)) ||
-           (!strncmp(a_ctx.m_method.m_data, "OPTIONS", a_ctx.m_method.m_len)) ||
-           (!strncmp(a_ctx.m_method.m_data, "PROPFIND", a_ctx.m_method.m_len)))
+        if((!strncasecmp(a_ctx.m_method.m_data, "GET", a_ctx.m_method.m_len)) ||
+           (!strncasecmp(a_ctx.m_method.m_data, "HEAD", a_ctx.m_method.m_len)) ||
+           (!strncasecmp(a_ctx.m_method.m_data, "OPTIONS", a_ctx.m_method.m_len)) ||
+           (!strncasecmp(a_ctx.m_method.m_data, "PROPFIND", a_ctx.m_method.m_len)))
         {
                 goto file_ext_check;
         }

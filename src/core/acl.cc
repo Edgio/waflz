@@ -1277,9 +1277,11 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
-        rqst_ctx *l_ctx = new rqst_ctx(128*1024, false);
+        rqst_ctx *l_ctx = new rqst_ctx(0, false);
         int32_t l_s;
-        // Init phase 0 for processing acl
+        // -------------------------------------------------
+        // init phase 0 for processing acl
+        // -------------------------------------------------
         l_s = l_ctx->init_phase_0(a_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -1287,13 +1289,16 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_ERROR;
         }
         bool l_match = false;
+        // -------------------------------------------------
+        // whitelist...
+        // -------------------------------------------------
         l_s = process_whitelist(l_match, *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
-        // If whitelist match, we outtie
+        // if whitelist match, we outtie
         if(l_match)
         {
                 ao_whitelist = true;
@@ -1301,6 +1306,9 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_OK;
         }
         waflz_pb::event *l_event = NULL;
+        // -------------------------------------------------
+        // blacklist...
+        // -------------------------------------------------
         l_s = process_blacklist(&l_event, *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -1313,7 +1321,9 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 if(l_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
-        //TODO:
+        // -------------------------------------------------
+        // settings...
+        // -------------------------------------------------
         l_s = process_settings(&l_event, *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -1326,6 +1336,9 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 if(l_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
         if(l_ctx) { delete l_ctx; l_ctx = NULL;}
         return WAFLZ_STATUS_OK;
 }

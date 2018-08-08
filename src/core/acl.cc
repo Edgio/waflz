@@ -980,34 +980,35 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
-        const char *l_key = NULL;
-        const char *l_buf = NULL;
-        uint32_t l_buf_len = 0;
-        data_t l_d;
-        const data_map_t &l_hm = a_ctx.m_header_map;
         int32_t l_s;
-        uint32_t l_cl = 0;
-        // Check file size first
-        _GET_HEADER("Content-Length", l_buf);
-        if(!l_buf ||
-           !l_buf_len)
-        {
-                goto method_check;
-        }
-        l_cl = strntoul(l_buf, l_buf_len, NULL, 10);
-        if(l_cl == ULONG_MAX)
-        {
-                goto method_check;
-        }
-        if(l_cl <= 0)
-        {
-                goto method_check;
-        }
         // -------------------------------------------------
-        // File size check
+        // file size check
         // -------------------------------------------------
         if(m_pb->has_max_file_size())
         {
+                // -----------------------------------------
+                // get length from content-length header
+                // -----------------------------------------
+                const char *l_buf = NULL;
+                uint32_t l_buf_len = 0;
+                uint32_t l_cl = 0;
+                data_t l_d;
+                const data_map_t &l_hm = a_ctx.m_header_map;
+                _GET_HEADER("Content-Length", l_buf);
+                if(!l_buf ||
+                   !l_buf_len)
+                {
+                        goto method_check;
+                }
+                l_cl = strntoul(l_buf, l_buf_len, NULL, 10);
+                if(l_cl == ULONG_MAX)
+                {
+                        goto method_check;
+                }
+                if(l_cl <= 0)
+                {
+                        goto method_check;
+                }
                 if(l_cl < m_pb->max_file_size())
                 {
                         // file size within limits

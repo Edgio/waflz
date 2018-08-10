@@ -1355,11 +1355,11 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
                           const waflz_pb::sec_rule_t &a_rule,
                           rqst_ctx &a_ctx)
 {
-        NDBG_PRINT("**********************************************\n");
-        NDBG_PRINT("*                 R U L E                     \n");
-        NDBG_PRINT("**********************************************\n");
-        NDBG_PRINT("rule: %s\n", a_rule.ShortDebugString().c_str());
-#if 1
+        //NDBG_PRINT("**********************************************\n");
+        //NDBG_PRINT("*                 R U L E                     \n");
+        //NDBG_PRINT("**********************************************\n");
+        //NDBG_PRINT("rule: %s\n", a_rule.ShortDebugString().c_str());
+#if 0
         // TODO REMOVE
         {
         std::string l_id = "__na__";
@@ -1443,9 +1443,9 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // matched...
         // -------------------------------------------------
-        NDBG_PRINT("%sMATCH%s: !!!\n%s%s%s\n",
-                   ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
-                   ANSI_COLOR_FG_RED, a_rule.ShortDebugString().c_str(), ANSI_COLOR_OFF);
+        //NDBG_PRINT("%sMATCH%s: !!!\n%s%s%s\n",
+        //           ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
+        //           ANSI_COLOR_FG_RED, a_rule.ShortDebugString().c_str(), ANSI_COLOR_OFF);
         if(!a_rule.has_action())
         {
                 return WAFLZ_STATUS_OK;
@@ -1454,9 +1454,9 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         // run disruptive action...
         // -------------------------------------------------
         // TODO !!!
-        NDBG_PRINT("%sACTIONS%s: !!!\n%s%s%s\n",
-                   ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF,
-                   ANSI_COLOR_FG_MAGENTA, a_rule.action().ShortDebugString().c_str(), ANSI_COLOR_OFF);
+        //NDBG_PRINT("%sACTIONS%s: !!!\n%s%s%s\n",
+        //           ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF,
+        //           ANSI_COLOR_FG_MAGENTA, a_rule.action().ShortDebugString().c_str(), ANSI_COLOR_OFF);
 #if 0
         for(int32_t i_s = 0; i_s < a_rule.action().setvar_size(); ++i_s)
         {

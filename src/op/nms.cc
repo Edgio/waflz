@@ -547,7 +547,7 @@ int32_t nms::contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len
 //: constants
 //: ----------------------------------------------------------------------------
 #define MAX_READLINE_SIZE 4096
-#define PM_STR_SEPARATOR ' '
+#define IP_STR_SEPARATOR ','
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -555,13 +555,42 @@ int32_t nms::contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len
 //: ----------------------------------------------------------------------------
 int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str)
 {
+        //NDBG_PRINT("%sNMS_FROM_STR%s: %s\n",ANSI_COLOR_BG_WHITE, ANSI_COLOR_OFF, a_str.c_str());
+        if(!ao_nms)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_nms = NULL;
+        // -------------------------------------------------
+        // split by IP string sep...
+        // -------------------------------------------------
         int32_t l_s;
         nms *l_nms = new nms();
-        l_s = l_nms->add(a_str.c_str(), a_str.length());
-        if(l_s != WAFLZ_STATUS_OK)
+        size_t l_start = 0;
+        size_t l_end = 0;
+        while((l_end = a_str.find(IP_STR_SEPARATOR, l_start)) != std::string::npos)
         {
-                if(l_nms) { delete l_nms; l_nms = NULL;}
-                return WAFLZ_STATUS_ERROR;
+                if(l_end != l_start)
+                {
+                        std::string i_str = a_str.substr(l_start, l_end - l_start);
+                        l_s = l_nms->add(i_str.c_str(), i_str.length());
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                if(l_nms) { delete l_nms; l_nms = NULL;}
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                }
+                l_start = l_end + 1;
+        }
+        if(l_end != l_start)
+        {
+                std::string i_str = a_str.substr(l_start);
+                l_s = l_nms->add(i_str.c_str(), i_str.length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_nms) { delete l_nms; l_nms = NULL;}
+                        return WAFLZ_STATUS_ERROR;
+                }
         }
         *ao_nms = l_nms;
         return WAFLZ_STATUS_OK;
@@ -573,6 +602,11 @@ int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str)
 //: ----------------------------------------------------------------------------
 int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
 {
+        if(!ao_nms)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_nms = NULL;
         //NDBG_PRINT("%sNMS_FROM_FILE%s: %s\n",ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, a_file.c_str());
         FILE * l_fp;
         l_fp = fopen(a_file.c_str(),"r");

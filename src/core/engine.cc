@@ -28,6 +28,7 @@
 #include "waflz/engine.h"
 #include "op/regex.h"
 #include "op/ac.h"
+#include "op/nms.h"
 #include "op/byte_range.h"
 #include "core/macro.h"
 #include "core/tx.h"
@@ -53,6 +54,15 @@ _compiled_config::~_compiled_config()
             ++i_p)
         {
                 if(*i_p) { delete *i_p; *i_p = NULL;}
+        }
+        // -------------------------------------------------
+        // destruct m_nms_list
+        // -------------------------------------------------
+        for(nms_list_t::iterator i_n = m_nms_list.begin();
+            i_n != m_nms_list.end();
+            ++i_n)
+        {
+                if(*i_n) { delete *i_n; *i_n = NULL;}
         }
         // -------------------------------------------------
         // destruct m_ac_list
@@ -429,6 +439,41 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 ::waflz_pb::sec_rule_t_operator_t_type_t l_op_t = l_rule->operator_().type();
                                 switch(l_op_t)
                                 {
+                                // -------------------------
+                                // IPMATCH
+                                // -------------------------
+                                case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCH:
+                                {
+                                        int32_t l_s;
+                                        nms *l_nms = NULL;
+                                        l_s = create_nms_from_str(&l_nms, l_rule->operator_().value());
+                                        if(l_s != WAFLZ_STATUS_OK)
+                                        {
+                                                // TODO -log error reason???
+                                                return WAFLZ_STATUS_ERROR;
+                                        }
+                                        ao_cx_cfg.m_nms_list.push_back(l_nms);
+                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
+                                        break;
+                                }
+                                // -------------------------
+                                // PM FROM FILE
+                                // -------------------------
+                                case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHF:
+                                case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHFROMFILE:
+                                {
+                                        int32_t l_s;
+                                        nms *l_nms = NULL;
+                                        l_s = create_nms_from_file(&l_nms, l_rule->operator_().value());
+                                        if(l_s != WAFLZ_STATUS_OK)
+                                        {
+                                                // TODO -log error reason???
+                                                return WAFLZ_STATUS_ERROR;
+                                        }
+                                        ao_cx_cfg.m_nms_list.push_back(l_nms);
+                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
+                                        break;
+                                }
                                 // -------------------------
                                 // PM
                                 // -------------------------

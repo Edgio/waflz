@@ -33,6 +33,7 @@
 #include "support/ndebug.h"
 #include "op/regex.h"
 #include "op/ac.h"
+#include "op/nms.h"
 #include "op/byte_range.h"
 #include "op/luhn.h"
 #include "libinjection/src/libinjection.h"
@@ -534,6 +535,105 @@ OP(WITHIN)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
+OP(IPMATCH)
+{
+        //NDBG_PRINT("a_op: %s%s%s\n", ANSI_COLOR_FG_GREEN, a_op.ShortDebugString().c_str(), ANSI_COLOR_OFF);
+        ao_match = false;
+        if(!a_buf ||
+           !a_len)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(!a_op.has__reserved_1() &&
+           a_op._reserved_1())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // ac find
+        // -------------------------------------------------
+        nms *l_nms = (nms *)(a_op._reserved_1());
+        int32_t l_s;
+        l_s = l_nms->contains(ao_match, a_buf, a_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO log???
+                return WAFLZ_STATUS_ERROR;
+        }
+        SET_IF_NEGATED();
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+OP(IPMATCHF)
+{
+        //NDBG_PRINT("a_op: %s%s%s\n", ANSI_COLOR_FG_GREEN, a_op.ShortDebugString().c_str(), ANSI_COLOR_OFF);
+        ao_match = false;
+        if(!a_buf ||
+           !a_len)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(!a_op.has__reserved_1() &&
+           a_op._reserved_1())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // ac find
+        // -------------------------------------------------
+        nms *l_nms = (nms *)(a_op._reserved_1());
+        int32_t l_s;
+        l_s = l_nms->contains(ao_match, a_buf, a_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO log???
+                return WAFLZ_STATUS_ERROR;
+        }
+        SET_IF_NEGATED();
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+OP(IPMATCHFROMFILE)
+{
+        //NDBG_PRINT("a_op: %s%s%s\n", ANSI_COLOR_FG_GREEN, a_op.ShortDebugString().c_str(), ANSI_COLOR_OFF);
+        ao_match = false;
+        if(!a_buf ||
+           !a_len)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(!a_op.has__reserved_1() &&
+           a_op._reserved_1())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // ac find
+        // -------------------------------------------------
+        nms *l_nms = (nms *)(a_op._reserved_1());
+        int32_t l_s;
+        l_s = l_nms->contains(ao_match, a_buf, a_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO log???
+                return WAFLZ_STATUS_ERROR;
+        }
+        SET_IF_NEGATED();
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
 OP(PM)
 {
         //NDBG_PRINT("a_op: %s%s%s\n", ANSI_COLOR_FG_GREEN, a_op.ShortDebugString().c_str(), ANSI_COLOR_OFF);
@@ -913,6 +1013,9 @@ void init_op_cb_vector(void)
         INIT_OP_CB(EQ);
         INIT_OP_CB(GE);
         INIT_OP_CB(GT);
+        INIT_OP_CB(IPMATCH);
+        INIT_OP_CB(IPMATCHF);
+        INIT_OP_CB(IPMATCHFROMFILE);
         INIT_OP_CB(PM);
         INIT_OP_CB(PMF);
         INIT_OP_CB(PMFROMFILE);

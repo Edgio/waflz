@@ -1,15 +1,26 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Overview &#8212; Waflz 0.0.0 documentation</title>
+    
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -23,7 +34,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+  </head>
+  <body role="document">
   
 
     <div class="document">
@@ -39,12 +51,12 @@
 </div>
 <div class="section" id="why-another-modsecurity-engine">
 <h2>Why another ModSecurity engine?<a class="headerlink" href="#why-another-modsecurity-engine" title="Permalink to this headline">¶</a></h2>
-<p>The open source standard implementation of the <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/">ModSecurity Rules Engine</a> -while excellent, and extremely flexible for individuals’ use-cases, could be problematic in a CDN, where performance is the product.  One of the principle technical challenges in a CDN is “multi-tenancy”, where any given single physical server on our edge is servicing client requests for any given customer configuration.  Mechanically, on the edge customer configuration is “patched” in at run-time while the client request is being serviced.</p>
+<p>The open source standard implementation of the <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/">ModSecurity Rules Engine</a> -while excellent, and extremely flexible for individuals&#8217; use-cases, could be problematic in a CDN, where performance is the product.  One of the principle technical challenges in a CDN is &#8220;multi-tenancy&#8221;, where any given single physical server on our edge is servicing client requests for any given customer configuration.  Mechanically, on the edge customer configuration is &#8220;patched&#8221; in at run-time while the client request is being serviced.</p>
 <div class="align-center figure" id="id1">
 <a class="reference internal image-reference" href="_images/patching.svg"><img alt="patching" height="150px" src="_images/patching.svg" width="500px" /></a>
 <p class="caption"><span class="caption-text">customer config patching on an edge server</span></p>
 </div>
-<p>The resource implications of being able to “patch” in any given customer configuration from any given edge server means configuration must be lightweight and servicing the request must be done as fast as possible.  One customer configuration using too much memory crowds out the others (memory being finite).  Performance wise, client requests taking too long to service eventually affect other client requests (including other customers).</p>
+<p>The resource implications of being able to &#8220;patch&#8221; in any given customer configuration from any given edge server means configuration must be lightweight and servicing the request must be done as fast as possible.  One customer configuration using too much memory crowds out the others (memory being finite).  Performance wise, client requests taking too long to service eventually affect other client requests (including other customers).</p>
 <p>Development from this perspective changes many of the engineering trade-offs.  Determinism, more restrictive memory and cpu constraints tend to trump flexibility, so <a class="reference external" href="https://github.com/VerizonDigital/waflz">waflz</a> was developed specificly to suit the needs of a CDN.</p>
 </div>
 <div class="section" id="architecture">
@@ -53,15 +65,15 @@
 <h3>Input/Output Formats<a class="headerlink" href="#input-output-formats" title="Permalink to this headline">¶</a></h3>
 <p>We thought one of the biggest candidates for improvement in developing our own engine was the representation of rule language in code.  A more rigid schema might lead to simpler, easier to reason about implementations.  We settled on defining the rules in <a class="reference external" href="https://developers.google.com/protocol-buffers/">protocol buffers</a> schema -see:  <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/proto/rule.proto">definitions</a>.  Some of the benefits to this approach included:</p>
 <ul class="simple">
-<li>Protocol buffers are interoperable with json, ideal for working with API’s.  Translation between the protocol buffers and ModSecurity format was added by us, allowing for interoperability between the 3 formats (json/protocol buffers/ModSecurity).  <a class="reference external" href="https://github.com/VerizonDigital/waflz/tree/master/util/waflz_dump">waflz_dump</a> is a utility for converting between the 3 formats.</li>
+<li>Protocol buffers are interoperable with json, ideal for working with API&#8217;s.  Translation between the protocol buffers and ModSecurity format was added by us, allowing for interoperability between the 3 formats (json/protocol buffers/ModSecurity).  <a class="reference external" href="https://github.com/VerizonDigital/waflz/tree/master/util/waflz_dump">waflz_dump</a> is a utility for converting between the 3 formats.</li>
 <li>The parsed protocol buffer representation can be used in the code, circumventing duplication in redefining internal data structures to mirror the data definitions.</li>
 </ul>
 </div>
 <div class="section" id="server-shims">
 <h3>Server Shims<a class="headerlink" href="#server-shims" title="Permalink to this headline">¶</a></h3>
-<p>Another interesting detail is how to write a library that plugs into HTTP server applications like nginx, apache, or “Sailfish” (the VDMS HTTP server application).  The library shouldn’t expose its internal complexity, but for a WAF quite a bit of request context information has to be passed between the HTTP server and the library.  To write a plugin for waflz, server specific callbacks are defined along with the “request context pointer”, to extract various parts of the HTTP request and provide them back to the waflz library.</p>
+<p>Another interesting detail is how to write a library that plugs into HTTP server applications like nginx, apache, or &#8220;Sailfish&#8221; (the VDMS HTTP server application).  The library shouldn&#8217;t expose its internal complexity, but for a WAF quite a bit of request context information has to be passed between the HTTP server and the library.  To write a plugin for waflz, server specific callbacks are defined along with the &#8220;request context pointer&#8221;, to extract various parts of the HTTP request and provide them back to the waflz library.</p>
 <p>An example using the <a class="reference external" href="https://github.com/VerizonDigital/is2">is2</a> embedded http server library:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// get request method callback</span>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="c1">// get request method callback</span>
 <span class="k">static</span> <span class="kt">int32_t</span> <span class="nf">get_rqst_method_cb</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">a_data</span><span class="p">,</span>
                                   <span class="kt">uint32_t</span> <span class="o">&amp;</span><span class="n">a_len</span><span class="p">,</span>
                                   <span class="kt">void</span> <span class="o">*</span><span class="n">a_ctx</span><span class="p">)</span>
@@ -78,12 +90,12 @@
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The list of user definable callbacks is <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/include/waflz/rqst_ctx.h#L68">here</a> -<em>NOTE</em>: <em>we’re working to reducing the number of required callback definitions for waflz server integration.  Many of these can be collapsed</em></p>
+<p>The list of user definable callbacks is <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/include/waflz/rqst_ctx.h#L68">here</a> -<em>NOTE</em>: <em>we&#8217;re working to reducing the number of required callback definitions for waflz server integration.  Many of these can be collapsed</em></p>
 </div>
 <div class="section" id="server-less-testing">
 <h3>Server-less Testing<a class="headerlink" href="#server-less-testing" title="Permalink to this headline">¶</a></h3>
-<p>A benefit of defining a plugin this way with callbacks to get the HTTP request data, is it allows for “server-less testing” in whitebox tests.  There’s few examples of <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/tests/whitebox/core/wb_profile_acl.cc#L99">this</a> in our whitebox testing framework in the access control list (ACL) tests, where the server callbacks are stubbed out, and the library runs and tests as if it was embedded in and actual HTTP server application.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// spoof a request uri/path with a callback</span>
+<p>A benefit of defining a plugin this way with callbacks to get the HTTP request data, is it allows for &#8220;server-less testing&#8221; in whitebox tests.  There&#8217;s few examples of <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/tests/whitebox/core/wb_profile_acl.cc#L99">this</a> in our whitebox testing framework in the access control list (ACL) tests, where the server callbacks are stubbed out, and the library runs and tests as if it was embedded in and actual HTTP server application.</p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="c1">// spoof a request uri/path with a callback</span>
 <span class="k">static</span> <span class="kt">int32_t</span> <span class="nf">get_rqst_uri_bananas_cb</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">a_data</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="o">&amp;</span><span class="n">a_len</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">a_ctx</span><span class="p">)</span>
 <span class="p">{</span>
        <span class="k">static</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">s_uri</span><span class="p">[]</span> <span class="o">=</span> <span class="s">&quot;/bananas/monkey&quot;</span><span class="p">;</span>
@@ -113,16 +125,16 @@
 </div>
 </div>
 <div class="section" id="muti-tenancy-concerns">
-<h3>“Muti-tenancy” Concerns<a class="headerlink" href="#muti-tenancy-concerns" title="Permalink to this headline">¶</a></h3>
-<p>Running a WAF in a CDN, the principle resource issue can be many customer configurations loading the same 3 or 4 WAF ruleset definitions (100’s to 1000’s of rules) into a server process’s memory.  The obvious optimization is to load rulesets only once and share read-only copies internally between the customer configurations.  One challenge with this approach, however, is custom configurable rule modifications like <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRuleUpdateTargetById">SecRuleUpdateTargetById</a> complicate the implementation of sharing ruleset data.  waflz dedupes rulesets loaded previously, saving precious process memory in production.</p>
+<h3>&#8220;Muti-tenancy&#8221; Concerns<a class="headerlink" href="#muti-tenancy-concerns" title="Permalink to this headline">¶</a></h3>
+<p>Running a WAF in a CDN, the principle resource issue can be many customer configurations loading the same 3 or 4 WAF ruleset definitions (100&#8217;s to 1000&#8217;s of rules) into a server process&#8217;s memory.  The obvious optimization is to load rulesets only once and share read-only copies internally between the customer configurations.  One challenge with this approach, however, is custom configurable rule modifications like <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRuleUpdateTargetById">SecRuleUpdateTargetById</a> complicate the implementation of sharing ruleset data.  waflz dedupes rulesets loaded previously, saving precious process memory in production.</p>
 </div>
 <div class="section" id="performance-tweaks">
 <h3>Performance Tweaks<a class="headerlink" href="#performance-tweaks" title="Permalink to this headline">¶</a></h3>
-<p>There are a few critical data structures in a ModSecurity-compatible WAF, besides the usual strings, and regex patterns.  Here’s a list of a few we strived to improve for our specific use-cases:</p>
+<p>There are a few critical data structures in a ModSecurity-compatible WAF, besides the usual strings, and regex patterns.  Here&#8217;s a list of a few we strived to improve for our specific use-cases:</p>
 <ul class="simple">
-<li><strong>Aho-Corasick</strong>: For operators like <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pm">PM</a>/<a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pmfromfile">PMFROMFILE</a> (multiple substring matching like “grep -F/fgrep”), an <a class="reference external" href="https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm">Aho-Corasick</a> data structure is constructed for faster parallel searching of substrings.  <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/src/op/ac.h">Our construction</a> is similar to the <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/acmp.h">acmp</a> object in the standard implementation but more space efficient, as it prunes node meta information.  Search performance is similar as the trie is traversed similarly in both implementations.</li>
-<li><strong>IP Tree</strong>: We’ve had an internal <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/src/op/nms.h">IP Tree</a> kicking around our internal repos, that’s performed well for us and seems to be faster than the <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/msc_tree.h">msc_tree</a> in the standard implementation (<em>will provide benchmarks at a later date</em>).  It’s reusable as well outside of our library.</li>
-<li><strong>XPath</strong>: For <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#XML">“XML:&lt;path&gt;”</a> targets in the rules to mitigate the performance overhead of recalculating the same expression in the rules during request processing, we built in XPath cache-ing. For example <em>grep</em> how many times the expression “XML:/*” appears in the OWASP CRS ruleset to see how many times an XPath could be recomputed in the processing of a single request without a cache-ing layer.</li>
+<li><strong>Aho-Corasick</strong>: For operators like <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pm">PM</a>/<a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pmfromfile">PMFROMFILE</a> (multiple substring matching like &#8220;grep -F/fgrep&#8221;), an <a class="reference external" href="https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm">Aho-Corasick</a> data structure is constructed for faster parallel searching of substrings.  <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/src/op/ac.h">Our construction</a> is similar to the <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/acmp.h">acmp</a> object in the standard implementation but more space efficient, as it prunes node meta information.  Search performance is similar as the trie is traversed similarly in both implementations.</li>
+<li><strong>IP Tree</strong>: We&#8217;ve had an internal <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/src/op/nms.h">IP Tree</a> kicking around our internal repos, that&#8217;s performed well for us and seems to be faster than the <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/msc_tree.h">msc_tree</a> in the standard implementation (<em>will provide benchmarks at a later date</em>).  It&#8217;s reusable as well outside of our library.</li>
+<li><strong>XPath</strong>: For <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#XML">&#8220;XML:&lt;path&gt;&#8221;</a> targets in the rules to mitigate the performance overhead of recalculating the same expression in the rules during request processing, we built in XPath cache-ing. For example <em>grep</em> how many times the expression &#8220;XML:/*&#8221; appears in the OWASP CRS ruleset to see how many times an XPath could be recomputed in the processing of a single request without a cache-ing layer.</li>
 </ul>
 </div>
 </div>
@@ -143,7 +155,7 @@
 <li><a class="reference internal" href="#input-output-formats">Input/Output Formats</a></li>
 <li><a class="reference internal" href="#server-shims">Server Shims</a></li>
 <li><a class="reference internal" href="#server-less-testing">Server-less Testing</a></li>
-<li><a class="reference internal" href="#muti-tenancy-concerns">“Muti-tenancy” Concerns</a></li>
+<li><a class="reference internal" href="#muti-tenancy-concerns">&#8220;Muti-tenancy&#8221; Concerns</a></li>
 <li><a class="reference internal" href="#performance-tweaks">Performance Tweaks</a></li>
 </ul>
 </li>
@@ -168,14 +180,12 @@
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
-    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -186,8 +196,8 @@
       &copy;2018, Reed Morrison, Devender Singh.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
       <a href="_sources/overview.rst.txt"

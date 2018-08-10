@@ -711,6 +711,7 @@ int32_t create_ac_from_str(ac **ao_ac, const std::string &a_str)
                 if(l_end != l_start)
                 {
                         std::string i_str = a_str.substr(l_start, l_end - l_start);
+                        i_str.erase( std::remove_if( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
                         //NDBG_PRINT("ADD: '%s'\n", i_str.c_str());
                         l_ac->add(i_str.c_str(), i_str.length());
                 }
@@ -719,6 +720,7 @@ int32_t create_ac_from_str(ac **ao_ac, const std::string &a_str)
         if(l_end != l_start)
         {
                 std::string i_str = a_str.substr(l_start);
+                i_str.erase( std::remove_if( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
                 //NDBG_PRINT("ADD: '%s'\n", i_str.c_str());
                 l_ac->add(i_str.c_str(), i_str.length());
         }

@@ -4,8 +4,8 @@
 //:
 //: \file:    nms.h
 //: \details: TODO
-//: \author:  Robert J. Peters
-//: \date:    01/01/2014
+//: \author:  Reed P Morrison
+//: \date:    08/09/2018
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.

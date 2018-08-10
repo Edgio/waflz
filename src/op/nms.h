@@ -28,6 +28,7 @@
 #include <set>
 #include <netinet/in.h>
 #include <string.h>
+#include <string>
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------

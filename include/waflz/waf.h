@@ -49,6 +49,7 @@ namespace ns_waflz {
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 class rqst_ctx;
+class nms;
 class ac;
 class byte_range;
 class engine;
@@ -60,6 +61,7 @@ class profile;
 typedef std::list<regex *> pcre_list_t;
 typedef std::list<regex *> regex_list_t;
 typedef std::list<ac *> ac_list_t;
+typedef std::list<nms *> nms_list_t;
 typedef std::list<byte_range *> byte_range_list_t;
 typedef std::list<const ::waflz_pb::directive_t *> directive_list_t;
 typedef std::map<std::string, directive_list_t::const_iterator> marker_map_t;
@@ -74,6 +76,7 @@ typedef struct _compiled_config {
         // storage
         regex_list_t m_regex_list;
         ac_list_t m_ac_list;
+        nms_list_t m_nms_list;
         byte_range_list_t m_byte_range_list;
         ~_compiled_config();
 } compiled_config_t;

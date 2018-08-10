@@ -573,6 +573,7 @@ int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str)
                 if(l_end != l_start)
                 {
                         std::string i_str = a_str.substr(l_start, l_end - l_start);
+                        i_str.erase( std::remove_if( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
                         l_s = l_nms->add(i_str.c_str(), i_str.length());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
@@ -585,6 +586,7 @@ int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str)
         if(l_end != l_start)
         {
                 std::string i_str = a_str.substr(l_start);
+                i_str.erase( std::remove_if( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
                 l_s = l_nms->add(i_str.c_str(), i_str.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {

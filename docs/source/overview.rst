@@ -20,7 +20,7 @@ The open source standard implementation of the `ModSecurity Rules Engine <https:
 
 The resource implications of being able to "patch" in any given customer configuration from any given edge server means configuration must be lightweight and servicing the request must be done as fast as possible.  One customer configuration using too much memory crowds out the others (memory being finite).  Performance wise, client requests taking too long to service eventually affect other client requests (including other customers).
 
-Development from this perspective changes many of the engineering trade-offs.  Determinism, more restrictive memory and cpu constraints tend to trump flexibility, so `waflz <https://github.com/VerizonDigital/waflz>`_ was developed specificly to suit the needs of a CDN.
+Development from this perspective changes many of the engineering trade-offs.  Determinism, more restrictive memory and cpu constraints tend to trump flexibility, so `waflz <https://github.com/VerizonDigital/waflz>`_ was developed specifically to suit the needs of a CDN.
 
 Architecture
 ============

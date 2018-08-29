@@ -89,8 +89,9 @@ void print_usage(FILE* a_stream, int a_exit_code)
 //: ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
+        uint32_t l_var_len_cap = 4*1024;
         ns_waflz::engine *l_engine = new ns_waflz::engine();
-        ns_waflz::waf *l_waf = new ns_waflz::waf(*l_engine);
+        ns_waflz::waf *l_waf = new ns_waflz::waf(*l_engine, l_var_len_cap);
         // -------------------------------------------
         // Get args...
         // -------------------------------------------

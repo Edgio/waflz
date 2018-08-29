@@ -90,7 +90,8 @@ static void clear_ignore_list(pcre_list_t &a_pcre_list)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-waf::waf(engine &a_engine):
+waf::waf(engine &a_engine,
+         uint32_t &a_var_len_cap):
         // -------------------------------------------------
         // protobuf
         // -------------------------------------------------
@@ -112,7 +113,8 @@ waf::waf(engine &a_engine):
         m_name("NA"),
         m_owasp_ruleset_version(0),
         m_no_log_matched(false),
-        m_parse_json(false)
+        m_parse_json(false),
+        m_var_len_cap(a_var_len_cap)
 #endif
 {
         m_compiled_config = new compiled_config_t();
@@ -1625,6 +1627,11 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                         int32_t l_t_size = l_a.t_size() ? l_a.t_size() : 1;
                         l_x_data = i_v->m_val;
                         l_x_len = i_v->m_val_len;
+                        if(m_var_len_cap &&
+                           l_x_len > m_var_len_cap)
+                        {
+                                l_x_len = m_var_len_cap;
+                        }
                         //NDBG_PRINT("VAR: [%d]: %.*s\n", l_x_len, l_x_len, l_x_data);
                         bool l_mutated = false;
                         for(int32_t i_t = 0; i_t < l_t_size; ++i_t)

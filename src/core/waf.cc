@@ -259,7 +259,8 @@ int32_t waf::get_str(std::string &ao_str, config_parser::format_t a_format)
 typedef std::map <waflz_pb::variable_t_type_t, waflz_pb::variable_t> _type_var_map_t;
 typedef std::map <std::string, _type_var_map_t> _id_tv_map_t;
 //: ----------------------------------------------------------------------------
-//: \details: TODO
+//: \details: This function generates a modified rule based on RTUs.
+//:           The RTUs are stored in id to variable map (a_tv_map).
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
@@ -303,6 +304,9 @@ static int32_t create_modified_rule(::waflz_pb::directive_t** ao_drx,
                         continue;
                 }
                 const ::waflz_pb::variable_t& l_vm = i_vm->second;
+                // -----------------------------------------
+                // update the variable match
+                // -----------------------------------------
                 for(int32_t i_m = 0; i_m < l_vm.match_size(); ++i_m)
                 {
                         const ::waflz_pb::variable_t_match_t& l_mm = l_vm.match(i_m);
@@ -336,9 +340,18 @@ static int32_t create_modified_rule(::waflz_pb::directive_t** ao_drx,
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details: TODO
+//: \details: Modify the directives based on a_dr_id_set, ao_id_tv_map
+//:           and ao_id_tv_replace_map. The modified rules are stored in
+//:           ao_mx_directive_list (m_mx_rule_list) and the references to rules
+//:           in _compiled_config are updated to refer these
+//:           instead of the rules in global rulesets
 //: \return:  TODO
-//: \param:   TODO
+//: \param:   ao_directive_list: list of all directives
+//:           ao_mx_directive_list: list of all modified directives
+//:           ao_rx_list: list of all compiled regex
+//:           a_dr_id_set: ids of rule to be removed
+//:           ao_id_tv_map: rule id to variable map, for updating target
+//:           ao_id_tv_replace_map: rule id to varaible replace map
 //: ----------------------------------------------------------------------------
 static int32_t modify_directive_list(directive_list_t &ao_directive_list,
                                      directive_list_t &ao_mx_directive_list,
@@ -422,44 +435,63 @@ static int32_t modify_directive_list(directive_list_t &ao_directive_list,
                 // -----------------------------------------
                 i_id = ao_id_tv_map.find(l_id);
                 if(i_id != ao_id_tv_map.end())
-                {
-                        const _type_var_map_t& l_tv_map = i_id->second;
+                {       int32_t l_cr_idx = -1;
                         const ::waflz_pb::sec_rule_t& l_r = l_d.sec_rule();
-                        // ---------------------------------
-                        // check for modified
-                        // ---------------------------------
-                        bool l_is_modified = false;
-                        for(int32_t i_v = 0; i_v < l_r.variable_size(); ++i_v)
+                        // check for chained rules as well.
+                        do
                         {
-                                const ::waflz_pb::variable_t& l_v = l_r.variable(i_v);
-                                if(!l_v.has_type())
+                                const waflz_pb::sec_rule_t *l_rule = NULL;
+                                if(l_cr_idx == -1)
                                 {
-                                        continue;
+                                        l_rule = &l_r;
                                 }
-                                if(l_tv_map.find(l_v.type()) != l_tv_map.end())
+                                if((l_cr_idx >= 0) &&
+                                    (l_cr_idx < l_d.sec_rule().chained_rule_size()))
                                 {
-                                        l_is_modified = true;
-                                        break;
+                                        l_rule = &(l_r.chained_rule(l_cr_idx));
                                 }
-                        }
-                        // ---------------------------------
-                        // if modified update rule
-                        // ---------------------------------
-                        if(l_is_modified)
-                        {
-                                ::waflz_pb::directive_t* l_drx = NULL;
-                                int32_t l_s;
-                                l_s = create_modified_rule(&l_drx, ao_rx_list, l_tv_map, l_r, false);
-                                if(l_s != WAFLZ_STATUS_OK)
+                                const _type_var_map_t& l_tv_map = i_id->second;
+                                // ---------------------------------
+                                // check for modified
+                                // ---------------------------------
+                                bool l_is_modified = false;
+                                for(int32_t i_v = 0; i_v < l_rule->variable_size(); ++i_v)
                                 {
-                                        return WAFLZ_STATUS_ERROR;
+                                        const ::waflz_pb::variable_t& l_v = l_rule->variable(i_v);
+                                        // ---------------------------------
+                                        // variable type doesn't match
+                                        // move on to next.
+                                        // ---------------------------------
+                                        if(!l_v.has_type())
+                                        {
+                                                continue;
+                                        }
+                                        if(l_tv_map.find(l_v.type()) != l_tv_map.end())
+                                        {
+                                                l_is_modified = true;
+                                                break;
+                                        }
                                 }
-                                ao_mx_directive_list.push_back(l_drx);
-                                *i_d = l_drx;
-                        }
+                                // ---------------------------------
+                                // if modified update rule
+                                // ---------------------------------
+                                if(l_is_modified)
+                                {
+                                        ::waflz_pb::directive_t* l_drx = NULL;
+                                        int32_t l_s;
+                                        l_s = create_modified_rule(&l_drx, ao_rx_list, l_tv_map, *l_rule, false);
+                                        if(l_s != WAFLZ_STATUS_OK)
+                                        {
+                                                return WAFLZ_STATUS_ERROR;
+                                        }
+                                        ao_mx_directive_list.push_back(l_drx);
+                                        *i_d = l_drx;
+                                        //NDBG_PRINT("RULE: %s\n", l_drx->sec_rule().ShortDebugString().c_str());
+                                }
+                                ++l_cr_idx;
+                        } while (l_cr_idx < l_d.sec_rule().chained_rule_size());
                 }
                 ++i_d;
-                //NDBG_PRINT("RULE: %s\n", l_drx->ShortDebugString().c_str());
         }
         return WAFLZ_STATUS_OK;
 }

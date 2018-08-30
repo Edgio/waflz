@@ -74,8 +74,6 @@ def test_bb_without_rule_target_update_fail(setup_func):
     assert len(l_r_json) > 0
     print json.dumps(l_r_json,indent=4)
     assert l_r_json['rule_intercept_status'] == 403
-    #assert 'modsecurity_crs_23_request_limits.conf' in l_r_json['sub_event'][0]['rule_file']
-    # ensure 403 because exceeded max_num_args
     assert 'UTF8 Encoding Abuse Attack Attempt' in l_r_json['rule_msg']
     l_conf = {}
     l_file_path = os.path.dirname(os.path.abspath(__file__))
@@ -102,29 +100,27 @@ def test_bb_without_rule_target_update_fail(setup_func):
     # ------------------------------------------------------
     # post conf
     # ------------------------------------------------------
-    l_url = '%s/update_profile'%(G_TEST_HOST)
+    l_url = '%supdate_profile'%(G_TEST_HOST)
     # ------------------------------------------------------
     # urlopen (POST)
     # ------------------------------------------------------
-    #print 'l_url:  %s'%(l_url)
+    print 'l_url:  %s'%(l_url)
     print 'l_body: %s'%(json.dumps(l_conf))
     l_headers = {"Content-Type": "application/json"}
     l_r = requests.post(l_url,
                             headers=l_headers,
                             data=json.dumps(l_conf))
     assert l_r.status_code == 200
-    #assert l_result._status_code() == 200, 'non-200 for request: %s'%(json.dumps(l_url))
-    #l_result = json.loads(l_result.text)
-    #print l_result
     #-------------------------------------------------------
     # GET the same uri which returned a 403 before RTU
     # ------------------------------------------------------
+    l_headers = {"host": "myhost.com"}
     l_r = requests.get(l_uri, headers=l_headers)
-    teardown_func()
-    assert l_r.status_code == 100
+    assert l_r.status_code == 200
     l_r_json = l_r.json()
+    print l_r_json
     #-------------------------------------------------------
     # check no event is returned
     # ------------------------------------------------------
-    #assert len(l_r_json) == 0 
+    assert len(l_r_json) == 0
     teardown_func()

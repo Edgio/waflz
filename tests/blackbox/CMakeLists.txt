@@ -61,6 +61,8 @@ add_test(blackbox_access_settings
          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/access_settings/test_bb_access_settings.py)
 add_test(blackbox_ruleset
          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/ruleset/test_ruleset.py)
+add_test(blackbox_rules
+         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/rules/test_bb_rules.py)
 # ------------------------------------------------------------------------------
 # tests
 # ------------------------------------------------------------------------------

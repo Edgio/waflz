@@ -47,7 +47,7 @@
 <p class="caption"><span class="caption-text">customer config patching on an edge server</span></p>
 </div>
 <p>The resource implications of being able to “patch” in any given customer configuration from any given edge server means configuration must be lightweight and servicing the request must be done as fast as possible.  One customer configuration using too much memory crowds out the others (memory being finite).  Performance wise, client requests taking too long to service will eventually affect other client requests (including other customers).</p>
-<p>Development from this perspective changes many of the engineering trade-offs.  Determinism, more restrictive memory, and cpu constraints tend to trump flexibility. <a class="reference external" href="https://github.com/VerizonDigital/waflz">Waflz</a> was developed specifically to suit the needs of a CDN.</p>
+<p>Development from this perspective changes many of the engineering trade-offs.  Determinism, more restrictive memory, and cpu constraints tend to trump flexibility. <a class="reference external" href="https://github.com/VerizonDigital/waflz">waflz</a> was developed specifically to suit the needs of a CDN.</p>
 </div>
 <div class="section" id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>

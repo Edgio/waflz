@@ -18,16 +18,16 @@ The open source standard implementation of the `ModSecurity Rules Engine <https:
 
     customer config patching on an edge server
 
-The resource implications of being able to "patch" in any given customer configuration from any given edge server means configuration must be lightweight and servicing the request must be done as fast as possible.  One customer configuration using too much memory crowds out the others (memory being finite).  Performance wise, client requests taking too long to service eventually affect other client requests (including other customers).
+The resource implications of being able to "patch" in any given customer configuration from any given edge server means configuration must be lightweight and servicing the request must be done as fast as possible.  One customer configuration using too much memory crowds out the others (memory being finite).  Performance wise, client requests taking too long to service will eventually affect other client requests (including other customers).
 
-Development from this perspective changes many of the engineering trade-offs.  Determinism, more restrictive memory and cpu constraints tend to trump flexibility, so `waflz <https://github.com/VerizonDigital/waflz>`_ was developed specifically to suit the needs of a CDN.
+Development from this perspective changes many of the engineering trade-offs.  Determinism, more restrictive memory, and cpu constraints tend to trump flexibility. `waflz <https://github.com/VerizonDigital/waflz>`_ was developed specifically to suit the needs of a CDN.
 
 Architecture
 ============
 
 Input/Output Formats
 ********************
-We thought one of the biggest candidates for improvement in developing our own engine was the representation of rule language in code.  A more rigid schema might lead to simpler, easier to reason about implementations.  We settled on defining the rules in `protocol buffers <https://developers.google.com/protocol-buffers/>`_ schema -see:  `definitions <https://github.com/VerizonDigital/waflz/blob/master/proto/rule.proto>`_.  Some of the benefits to this approach included:
+We thought one of the biggest candidates for improvement in developing our own engine was the representation of rule language in code.  A more rigid schema might lead to simplicity, making it easier to reason about the implementations.  We settled on defining the rules in `protocol buffers <https://developers.google.com/protocol-buffers/>`_ schema -see:  `definitions <https://github.com/VerizonDigital/waflz/blob/master/proto/rule.proto>`_.  Some of the benefits to this approach included:
 
 * Protocol buffers are interoperable with json, ideal for working with API's.  Translation between the protocol buffers and ModSecurity format was added by us, allowing for interoperability between the 3 formats (json/protocol buffers/ModSecurity).  `waflz_dump <https://github.com/VerizonDigital/waflz/tree/master/util/waflz_dump>`_ is a utility for converting between the 3 formats.
 * The parsed protocol buffer representation can be used in the code, circumventing duplication in redefining internal data structures to mirror the data definitions.
@@ -56,7 +56,7 @@ An example using the `is2 <https://github.com/VerizonDigital/is2>`_ embedded htt
           return 0;
   }
 
-The list of user definable callbacks is `here <https://github.com/VerizonDigital/waflz/blob/master/include/waflz/rqst_ctx.h#L68>`_ -*NOTE*: *we're working to reducing the number of required callback definitions for waflz server integration.  Many of these can be collapsed*
+The list of user definable callbacks is `here <https://github.com/VerizonDigital/waflz/blob/master/include/waflz/rqst_ctx.h#L68>`_ -*NOTE*: *we're working to reduce the number of required callback definitions for waflz server integration.  Many of these can be collapsed.*
 
 Server-less Testing
 *******************
@@ -99,6 +99,6 @@ Performance Tweaks
 ******************
 There are a few critical data structures in a ModSecurity-compatible WAF, besides the usual strings, and regex patterns.  Here's a list of a few we strived to improve for our specific use-cases:
 
-* **Aho-Corasick**: For operators like `PM <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pm>`_/`PMFROMFILE <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pmfromfile>`_ (multiple substring matching like "grep -F/fgrep"), an `Aho-Corasick <https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm>`_ data structure is constructed for faster parallel searching of substrings.  `Our construction <https://github.com/VerizonDigital/waflz/blob/master/src/op/ac.h>`_ is similar to the `acmp <https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/acmp.h>`_ object in the standard implementation but more space efficient, as it prunes node meta information.  Search performance is similar as the trie is traversed similarly in both implementations.
+* **Aho-Corasick**: For operators like `PM <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pm>`_/`PMFROMFILE <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#pmfromfile>`_ (multiple substring matching like "grep -F/fgrep"), an `Aho-Corasick <https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm>`_ data structure is constructed for faster parallel searching of substrings.  `Our construction <https://github.com/VerizonDigital/waflz/blob/master/src/op/ac.h>`_ is similar to the `acmp <https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/acmp.h>`_ object in the standard implementation but more space efficient, as it prunes node meta information.  Search performance is similar as the tree is traversed similarly in both implementations.
 * **IP Tree**: We've had an internal `IP Tree <https://github.com/VerizonDigital/waflz/blob/master/src/op/nms.h>`_ kicking around our internal repos, that's performed well for us and seems to be faster than the `msc_tree <https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/msc_tree.h>`_ in the standard implementation (*will provide benchmarks at a later date*).  It's reusable as well outside of our library.
-* **XPath**: For `"XML:<path>" <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#XML>`_ targets in the rules to mitigate the performance overhead of recalculating the same expression in the rules during request processing, we built in XPath cache-ing. For example *grep* how many times the expression "XML:/\*" appears in the OWASP CRS ruleset to see how many times an XPath could be recomputed in the processing of a single request without a cache-ing layer.
+* **XPath**: For `"XML:<path>" <https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#XML>`_ targets in the rules to mitigate the performance overhead of recalculating the same expression in the rules during request processing, we built in XPath cache-ing. For example, *grep* how many times the expression "XML:/\*" appears in the OWASP CRS ruleset to see how many times an XPath could be recomputed in the processing of a single request without a cache-ing layer.

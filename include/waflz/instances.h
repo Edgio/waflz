@@ -124,7 +124,7 @@ private:
         // *************************************************
         // -------------------------------------------------
         geoip2_mmdb *m_geoip_mmdb;
-        // cap for max varaible val len
+        // cap for max variable value len in waf rule processing
         uint32_t m_var_len_cap;
 };
 }

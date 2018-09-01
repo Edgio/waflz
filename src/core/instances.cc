@@ -69,7 +69,7 @@ instances::instances(engine &a_engine,
         m_mutex(),
         m_enable_locking(a_enable_locking),
         m_geoip_mmdb(NULL),
-        m_var_len_cap(4*1028)   // Default val 4k
+        m_var_len_cap(WAFLZ_DEFAULT_VAR_LEN_CAP)
 {
         // Initialize the mutex
         if(m_enable_locking)

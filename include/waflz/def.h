@@ -43,6 +43,9 @@
 #ifndef WAFLZ_ERR_LEN
   #define WAFLZ_ERR_LEN 4096
 #endif
+#ifndef WAFLZ_DEFAULT_VAR_LEN_CAP
+  #define WAFLZ_DEFAULT_VAR_LEN_CAP 4096
+#endif
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------

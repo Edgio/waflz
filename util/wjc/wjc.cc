@@ -135,7 +135,6 @@ int main(int argc, char** argv)
         std::string l_profile_file;
         std::string l_ruleset_dir;
         int l_option_index = 0;
-        uint32_t l_var_len_cap = 4*1024;
         struct option l_long_options[] =
         {
                 { "help",        0, 0, 'h' },
@@ -322,7 +321,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         if(l_profile_file.length())
         {
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb, l_var_len_cap);
+                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
                 //NDBG_PRINT("Validate\n");
                 l_s = l_profile->load_config(l_config_buf,
                                              l_config_buf_len,
@@ -347,7 +346,7 @@ int main(int argc, char** argv)
         else
         {
                 // instantiate the compiler and validate it
-                ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine, *l_geoip2_mmdb, l_var_len_cap);
+                ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine, *l_geoip2_mmdb);
                 //NDBG_PRINT("Validate\n");
                 l_s = l_instance->load_config(l_config_buf, l_config_buf_len, (g_cleanup_tmp_files == 0));
                 if(l_s != WAFLZ_STATUS_OK)

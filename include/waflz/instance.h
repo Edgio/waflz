@@ -59,7 +59,7 @@ public:
         // -------------------------------------------------
         instance(engine &a_engine,
                  geoip2_mmdb &a_geoip2_mmdb,
-                 uint32_t &a_var_len_cap);
+                 uint32_t a_var_len_cap = WAFLZ_DEFAULT_VAR_LEN_CAP);
         ~instance();
         //: ------------------------------------------------
         //:               G E T T E R S

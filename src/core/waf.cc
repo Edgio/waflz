@@ -91,7 +91,7 @@ static void clear_ignore_list(pcre_list_t &a_pcre_list)
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 waf::waf(engine &a_engine,
-         uint32_t &a_var_len_cap):
+         uint32_t a_var_len_cap):
         // -------------------------------------------------
         // protobuf
         // -------------------------------------------------

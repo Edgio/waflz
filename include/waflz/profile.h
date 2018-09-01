@@ -65,7 +65,7 @@ public:
         // -------------------------------------------------
         profile(engine &a_engine,
                 geoip2_mmdb &a_geoip2_mmdb,
-                uint32_t &a_var_len_cap);
+                uint32_t a_var_len_cap = WAFLZ_DEFAULT_VAR_LEN_CAP);
         ~profile();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx);
         int32_t load_config(const char *a_buf, uint32_t a_buf_len, bool a_leave_compiled_file = false);

@@ -68,7 +68,8 @@ instances::instances(engine &a_engine,
         m_id_instance_map(),
         m_mutex(),
         m_enable_locking(a_enable_locking),
-        m_geoip_mmdb(NULL)
+        m_geoip_mmdb(NULL),
+        m_var_len_cap(4*1028)   // Default val 4k
 {
         // Initialize the mutex
         if(m_enable_locking)
@@ -143,7 +144,7 @@ int32_t instances::load_config(instance **ao_instance,
         // -------------------------------------------------
         // load
         // -------------------------------------------------
-        instance *l_instance = new instance(m_engine, *m_geoip_mmdb);
+        instance *l_instance = new instance(m_engine, *m_geoip_mmdb, m_var_len_cap);
         int32_t l_s;
         l_s = l_instance->load_config(a_js,
                                       a_leave_compiled_file);

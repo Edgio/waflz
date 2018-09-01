@@ -291,6 +291,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
         //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
         ns_waflz::profile::s_geoip2_db = l_geoip2_city_file;
         ns_waflz::profile::s_geoip2_isp_db = l_geoip2_asn_file;
+        uint32_t l_var_len_cap = 4 *1024;
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
@@ -308,7 +309,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_engine->init_post_fork();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
+                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb, l_var_len_cap);
                 waflz_pb::profile *l_pb = init_std_profile_pb();
                 // *****************************************
                 // -----------------------------------------

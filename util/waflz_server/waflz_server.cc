@@ -1184,6 +1184,7 @@ int main(int argc, char** argv)
         std::string l_geoip_db;
         std::string l_geoip_isp_db;
         uint16_t l_port = 12345;
+        uint32_t l_var_len_cap = 4*1024;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -1558,7 +1559,7 @@ int main(int argc, char** argv)
                 // guess owasp version
                 // -----------------------------------------
                 uint32_t l_owasp_version = 229;
-                l_wafl = new ns_waflz::waf(*l_engine);
+                l_wafl = new ns_waflz::waf(*l_engine, l_var_len_cap);
                 l_wafl->set_owasp_ruleset_version(l_owasp_version);
                 l_waflz_h->m_wafl = l_wafl;
                 // -----------------------------------------
@@ -1597,7 +1598,7 @@ int main(int argc, char** argv)
                         NDBG_PRINT("error performing guess_owasp_version\n");
                         return STATUS_ERROR;
                 }
-                l_wafl = new ns_waflz::waf(*l_engine);
+                l_wafl = new ns_waflz::waf(*l_engine, l_var_len_cap);
                 l_wafl->set_owasp_ruleset_version(l_owasp_version);
                 l_waflz_h->m_wafl = l_wafl;
                 l_s = l_wafl->init(ns_waflz::config_parser::MODSECURITY, l_modsecurity_file);
@@ -1737,7 +1738,7 @@ int main(int argc, char** argv)
                         return STATUS_ERROR;
                 }
                 l_engine->init_post_fork();
-                l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
+                l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb, l_var_len_cap);
                 l_waflz_h->m_profile = l_profile;
                 l_waflz_update_profile_h = new waflz_update_profile_h();
                 l_waflz_update_profile_h->m_profile = l_profile;

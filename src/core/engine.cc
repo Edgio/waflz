@@ -169,6 +169,7 @@ int32_t engine::init(void)
         // -------------------------------------------------
         m_ctype_parser_map["application/x-www-form-urlencoded"] = PARSER_URL_ENCODED;
         m_ctype_parser_map["text/xml"]                          = PARSER_XML;
+        m_ctype_parser_map["application/xml"]                   = PARSER_XML;
         m_ctype_parser_map["application/json"]                  = PARSER_JSON;
         m_ctype_parser_map["multipart/form-data"]               = PARSER_MULTIPART;
         // -------------------------------------------------

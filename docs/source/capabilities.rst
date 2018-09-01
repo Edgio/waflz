@@ -6,7 +6,6 @@ Configuration Directives
 * SecAction
 * SecMarker
 * SecRule
-* SecMarker
 * SecRuleUpdateTargetById
 
 Variables

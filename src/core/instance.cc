@@ -107,7 +107,7 @@ static int32_t waf_config_check_enf_array(char *ao_err_msg,
 //: ----------------------------------------------------------------------------
 instance::instance(engine &a_engine,
                    geoip2_mmdb &a_geoip2_mmdb,
-                   uint32_t &a_var_len_cap):
+                   uint32_t a_var_len_cap):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),

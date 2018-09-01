@@ -77,7 +77,7 @@ std::string profile::s_geoip2_isp_db;
 //: ----------------------------------------------------------------------------
 profile::profile(engine &a_engine,
                  geoip2_mmdb &a_geoip2_mmdb,
-                 uint32_t &a_var_len_cap):
+                 uint32_t a_var_len_cap):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),

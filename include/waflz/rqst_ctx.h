@@ -91,6 +91,10 @@ public:
         static get_rqst_data_size_cb_t s_get_rqst_req_id_cb;
         static get_rqst_data_size_cb_t s_get_cust_id_cb;
         // -------------------------------------------------
+        // static members
+        // -------------------------------------------------
+        static uint32_t s_body_arg_len_cap;
+        // -------------------------------------------------
         // public methods
         // -------------------------------------------------
         rqst_ctx(uint32_t a_body_len_max,

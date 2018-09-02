@@ -89,8 +89,7 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        waf(engine &a_engine,
-            uint32_t a_var_len_cap = WAFLZ_DEFAULT_VAR_LEN_CAP);
+        waf(engine &a_engine);
         ~waf();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx);
         int32_t init(profile &a_profile, bool a_leave_tmp_file = false);
@@ -162,7 +161,6 @@ private:
         uint32_t m_owasp_ruleset_version;
         bool m_no_log_matched;
         bool m_parse_json;
-        uint32_t &m_var_len_cap;
 #endif
         // -------------------------------------------------
         // sharing private fields with engine...

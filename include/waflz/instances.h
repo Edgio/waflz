@@ -97,7 +97,6 @@ public:
         instance *get_instance(const std::string &a_id);
         instance *get_first_instance(void);
         void get_instance_id_vector(id_vector_t &ao_id_vector);
-        int32_t set_var_cap( uint32_t &a_var_len_cap) { m_var_len_cap = a_var_len_cap; }
 private:
         // -------------------------------------------------
         // Private methods
@@ -124,8 +123,6 @@ private:
         // *************************************************
         // -------------------------------------------------
         geoip2_mmdb *m_geoip_mmdb;
-        // cap for max variable value len in waf rule processing
-        uint32_t m_var_len_cap;
 };
 }
 #endif

@@ -35,9 +35,13 @@
 #include "parser/parser_json.h"
 #include <stdlib.h>
 #include <string.h>
+//: ----------------------------------------------------------------------------
+//: constants
+//: ----------------------------------------------------------------------------
+#define _DEFAULT_BODY_ARG_LEN_CAP 4096
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
-// callbacks
+//: callbacks
 //: ----------------------------------------------------------------------------
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_src_addr_cb = NULL;
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_host_cb = NULL;
@@ -62,6 +66,10 @@ get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_bytes_out_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_bytes_in_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_req_id_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_cust_id_cb = NULL;
+//: ----------------------------------------------------------------------------
+//: static
+//: ----------------------------------------------------------------------------
+uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -989,6 +997,22 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map,
                 // do nothing...
                 //NDBG_PRINT("error m_body_parser->finish()\n");
                 return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cap the arg list size
+        // -------------------------------------------------
+        for(arg_list_t::iterator i_k = m_body_arg_list.begin();
+            i_k != m_body_arg_list.end();
+            ++i_k)
+        {
+                if(i_k->m_key_len > s_body_arg_len_cap)
+                {
+                        i_k->m_key_len = s_body_arg_len_cap;
+                }
+                if(i_k->m_val_len > s_body_arg_len_cap)
+                {
+                        i_k->m_val_len = s_body_arg_len_cap;
+                }
         }
         return WAFLZ_STATUS_OK;
 }

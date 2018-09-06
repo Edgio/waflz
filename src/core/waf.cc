@@ -509,6 +509,8 @@ int32_t waf::compile(void)
         l_s = m_engine.compile(*m_compiled_config, *m_pb);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                NDBG_PRINT("engine failure\n");
+                WAFLZ_PERROR(m_err_msg, "engine compile reason: %s", m_engine.get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -1143,13 +1145,14 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
                                 if(l_found == NULL)
                                 {
                                         // not a .conf file
-                                        //TRACE("Failed to find .conf suffix");
+                                        //NDBG_PRINT("Failed to find .conf or .conf.json suffix\n");
                                         goto done;
                                 }
-                                if(::strlen(l_found) != 5)
+                                if(::strlen(l_found) != 5 &&
+                                   ::strlen(l_found) != 10)
                                 {
                                         // failed to find .conf right at the end
-                                        //TRACE("found in the wrong place. %zu", ::strlen(l_found));
+                                        //NDBG_PRINT("found in the wrong place. %zu\n", ::strlen(l_found));
                                         goto done;
                                 }
                                 // we want this file

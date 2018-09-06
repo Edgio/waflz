@@ -94,6 +94,7 @@ public:
         int32_t finalize(void);
         bool find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data);
         bool find_first(const char *a_buf, uint32_t a_len);
+        const char *get_err_msg(void) { return m_err_msg; }
 #ifdef AC_DEBUG
         void display(void);
 #endif
@@ -113,6 +114,7 @@ private:
 #ifdef _AC_UTF8
         bool m_cfg_utf8;
 #endif
+        char m_err_msg[WAFLZ_ERR_LEN];
 };
 //: ----------------------------------------------------------------------------
 //: ****************************************************************************

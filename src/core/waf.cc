@@ -509,7 +509,6 @@ int32_t waf::compile(void)
         l_s = m_engine.compile(*m_compiled_config, *m_pb);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("engine failure\n");
                 WAFLZ_PERROR(m_err_msg, "engine compile reason: %s", m_engine.get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
@@ -1179,6 +1178,10 @@ done:
         l_ruleset_dir.append("/version/");
         l_ruleset_dir.append(l_prof_pb.ruleset_version());
         l_ruleset_dir.append("/policy/");
+        // -------------------------------------------------
+        // set ruleset dir for engine before it compiles
+        // -------------------------------------------------
+        m_engine.set_ruleset_dir(l_ruleset_dir);
         // -------------------------------------------------
         // scan ruleset dir
         // -------------------------------------------------

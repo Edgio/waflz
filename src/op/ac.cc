@@ -744,7 +744,6 @@ int32_t create_ac_from_str(ac **ao_ac, const std::string &a_str)
 //: ----------------------------------------------------------------------------
 int32_t create_ac_from_file(ac **ao_ac, const std::string &a_file)
 {
-        NDBG_PRINT("AC_FROM_FILE: %s\n", a_file.c_str());
         FILE * l_fp;
         l_fp = fopen(a_file.c_str(),"r");
         if (NULL == l_fp)

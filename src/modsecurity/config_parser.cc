@@ -978,6 +978,8 @@ int32_t config_parser::add_rule(waflz_pb::sec_config_t &ao_config,
                 }
                 if(!a_operator_match.empty())
                 {
+                        l_operator->set_value(a_operator_match);
+#if 0
                         // fix path for files
                         if(l_operator->has_type() &&
                            ((l_operator->type() == ::waflz_pb::sec_rule_t_operator_t_type_t_PMF) ||
@@ -996,6 +998,7 @@ int32_t config_parser::add_rule(waflz_pb::sec_config_t &ao_config,
                         {
                                 l_operator->set_value(a_operator_match);
                         }
+#endif
                 }
         }
         // -----------------------------------------------------------

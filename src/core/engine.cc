@@ -26,6 +26,7 @@
 #include "waflz/def.h"
 #include "waflz/config_parser.h"
 #include "waflz/engine.h"
+#include "support/string_util.h"
 #include "op/regex.h"
 #include "op/ac.h"
 #include "op/nms.h"
@@ -644,15 +645,20 @@ int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
         // -------------------------------------------------
         waflz_pb::sec_config_t *l_cfg = new waflz_pb::sec_config_t();
         config_parser *l_parser = new config_parser();
+        // -----------------------------------------
+        // default format is modsec
+        // -----------------------------------------
         config_parser::format_t l_format = config_parser::MODSECURITY;
         // -----------------------------------------
-        // hard coded to modsecurity for now
-        // later -use file ext to infer
-        // *.conf == modsecurity etc...
+        // Get the file ext to decide format
         // -----------------------------------------
-        if(a_include.compare(a_include.length() - 4, 4, "json") == 0)
+        if(strncmp(get_file_ext(a_include).c_str(), "json", sizeof("json")) == 0)
         {
                 l_format = config_parser::JSON;
+        }
+        else if(strncmp(get_file_ext(a_include).c_str(), "pbuf", sizeof("pbuf")) == 0)
+        {
+                l_format = config_parser::PROTOBUF;
         }
         int32_t l_s;
         l_s = l_parser->parse_config(*l_cfg, l_format, a_include);

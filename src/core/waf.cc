@@ -509,6 +509,7 @@ int32_t waf::compile(void)
         l_s = m_engine.compile(*m_compiled_config, *m_pb);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                WAFLZ_PERROR(m_err_msg, "engine compile reason: %s", m_engine.get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -1143,13 +1144,14 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
                                 if(l_found == NULL)
                                 {
                                         // not a .conf file
-                                        //TRACE("Failed to find .conf suffix");
+                                        //NDBG_PRINT("Failed to find .conf or .conf.json suffix\n");
                                         goto done;
                                 }
-                                if(::strlen(l_found) != 5)
+                                if(::strlen(l_found) != 5 &&
+                                   ::strlen(l_found) != 10)
                                 {
                                         // failed to find .conf right at the end
-                                        //TRACE("found in the wrong place. %zu", ::strlen(l_found));
+                                        //NDBG_PRINT("found in the wrong place. %zu\n", ::strlen(l_found));
                                         goto done;
                                 }
                                 // we want this file
@@ -1176,6 +1178,10 @@ done:
         l_ruleset_dir.append("/version/");
         l_ruleset_dir.append(l_prof_pb.ruleset_version());
         l_ruleset_dir.append("/policy/");
+        // -------------------------------------------------
+        // set ruleset dir for engine before it compiles
+        // -------------------------------------------------
+        m_engine.set_ruleset_dir(l_ruleset_dir);
         // -------------------------------------------------
         // scan ruleset dir
         // -------------------------------------------------
@@ -1391,16 +1397,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         //NDBG_PRINT("*                 R U L E                     \n");
         //NDBG_PRINT("**********************************************\n");
         //NDBG_PRINT("rule: %s\n", a_rule.ShortDebugString().c_str());
-#if 0
-        // TODO REMOVE
-        {
-        std::string l_id = "__na__";
-        if(a_rule.action().has_id()) { l_id = a_rule.action().id(); }
-        std::string l_msg = "__na__";
-        if(a_rule.action().has_msg()) { l_msg = a_rule.action().msg(); }
-        NDBG_OUTPUT("XXXXXXX: id: %16s :: msg: %s\n", l_id.c_str(), l_msg.c_str());
-        }
-#endif
         // -------------------------------------------------
         // chain rule loop
         // -------------------------------------------------
@@ -1434,10 +1430,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
                         ++l_cr_idx;
                         continue;
                 }
-                //if(l_action.has_id())
-                //{
-                //        NDBG_PRINT("ID: %16s  ************************\n", l_action.id().c_str());
-                //}
                 if(!l_rule->has_operator_())
                 {
                         // TODO this aight???

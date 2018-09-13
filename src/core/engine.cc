@@ -93,7 +93,8 @@ engine::engine():
         m_macro(NULL),
         m_config_list(),
         m_compiled_config_map(),
-        m_ctype_parser_map()
+        m_ctype_parser_map(),
+        m_ruleset_dir()
 {
 }
 //: ----------------------------------------------------------------------------
@@ -465,7 +466,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 {
                                         int32_t l_s;
                                         nms *l_nms = NULL;
-                                        l_s = create_nms_from_file(&l_nms, l_rule->operator_().value());
+                                        std::string l_f_path = m_ruleset_dir;
+                                        l_f_path.append(l_rule->operator_().value());
+                                        l_s = create_nms_from_file(&l_nms, l_f_path);
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
                                                 WAFLZ_PERROR(m_err_msg, "Failed to create nms from file %s", l_rule->operator_().value().c_str());
@@ -500,7 +503,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 {
                                         int32_t l_s;
                                         ac *l_ac = NULL;
-                                        l_s = create_ac_from_file(&l_ac, l_rule->operator_().value());
+                                        std::string l_f_path = m_ruleset_dir;
+                                        l_f_path.append(l_rule->operator_().value());
+                                        l_s = create_ac_from_file(&l_ac, l_f_path);
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
                                                 WAFLZ_PERROR(m_err_msg, "Failed to create ac from file %s", l_rule->operator_().value().c_str());

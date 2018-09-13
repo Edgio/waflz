@@ -66,7 +66,6 @@ typedef struct _kv {
 class engine;
 typedef std::list <kv_t> kv_list_t;
 typedef std::list <waflz_pb::variable_t *> variable_list_t;
-typedef std::list <const waflz_pb::sec_rule_t *> rule_list_t;
 typedef std::list <std::string> match_list_t;
 //: ----------------------------------------------------------------------------
 //: \details: TODO

@@ -1397,16 +1397,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         //NDBG_PRINT("*                 R U L E                     \n");
         //NDBG_PRINT("**********************************************\n");
         //NDBG_PRINT("rule: %s\n", a_rule.ShortDebugString().c_str());
-#if 0
-        // TODO REMOVE
-        {
-        std::string l_id = "__na__";
-        if(a_rule.action().has_id()) { l_id = a_rule.action().id(); }
-        std::string l_msg = "__na__";
-        if(a_rule.action().has_msg()) { l_msg = a_rule.action().msg(); }
-        NDBG_OUTPUT("XXXXXXX: id: %16s :: msg: %s\n", l_id.c_str(), l_msg.c_str());
-        }
-#endif
         // -------------------------------------------------
         // chain rule loop
         // -------------------------------------------------
@@ -1440,10 +1430,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
                         ++l_cr_idx;
                         continue;
                 }
-                //if(l_action.has_id())
-                //{
-                //        NDBG_PRINT("ID: %16s  ************************\n", l_action.id().c_str());
-                //}
                 if(!l_rule->has_operator_())
                 {
                         // TODO this aight???

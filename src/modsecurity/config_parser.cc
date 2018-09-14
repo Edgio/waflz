@@ -3476,6 +3476,11 @@ int32_t config_parser::read_file_pbuf(waflz_pb::sec_config_t& ao_config,
                 NDBG_PRINT("Error performing fclose.  Reason: %s\n", strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
+        if(l_buf)
+        {
+                free(l_buf);
+                l_buf = NULL;
+        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

@@ -1078,8 +1078,11 @@ int32_t config_parser::tokenize_kv_list(const std::string &a_string,
                 for(i_kv = ao_kv_list.begin(); i_kv != ao_kv_list.end(); ++i_kv)
                 {
                         if(i_kv->m_key == l_key)
+                        {
                                 break;
+                        }
                 }
+                l_key.erase( std::remove_if(l_key.begin(), l_key.end(), ::isspace), l_key.end())
                 if(i_kv == ao_kv_list.end())
                 {
                         kv_t l_kv;

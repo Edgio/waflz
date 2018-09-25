@@ -1735,6 +1735,62 @@ TEST_CASE( "test var", "[var]" ) {
                 if(l_var) { delete l_var; l_var = NULL; }
         }
         // -------------------------------------------------
+        // REQBODY_ERROR
+        // -------------------------------------------------
+        SECTION("REQBODY_ERROR") {
+                ns_waflz::get_var_t l_cb = NULL;
+                l_cb = ns_waflz::get_var_cb(waflz_pb::variable_t_type_t_REQBODY_ERROR);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::const_arg_list_t l_al;
+                waflz_pb::variable_t *l_var = new waflz_pb::variable_t();
+                l_var->set_type(waflz_pb::variable_t_type_t_REQBODY_ERROR);
+                int32_t l_s;
+                uint32_t l_count = 0;
+                uint32_t i_idx = 0;
+                g_body_str = _RQST_BODY_JSON;
+                // Set incorrect type to generate parsing error
+                g_header_content_type = _RQST_CONTENT_TYPE_XML;
+                l_rqst_ctx->m_content_type_list.clear();
+                l_rqst_ctx->init_phase_1(NULL, l_il_query, l_il_header, l_il_cookie);
+                l_rqst_ctx->init_phase_2(l_ctype_parser_map, NULL);
+                // -----------------------------------------
+                // get all
+                // -----------------------------------------
+                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 1));
+                i_idx = 0;
+                for(ns_waflz::const_arg_list_t::iterator i_a = l_al.begin();
+                    i_a != l_al.end();
+                    ++i_a, ++i_idx)
+                {
+                        //NDBG_PRINT("%.*s: %.*s\n", i_a->m_key_len, i_a->m_key, i_a->m_val_len, i_a->m_val);
+                        switch(i_idx)
+                        {
+                        case 0:
+                        {
+                                REQUIRE((strncmp(i_a->m_key, "REQBODY_ERROR", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "1", i_a->m_val_len) == 0));
+                                break;
+                        }
+                        default:
+                        {
+                                break;
+                        }
+                        }
+                }
+                // -----------------------------------------
+                // reset
+                // -----------------------------------------
+                g_body_str = _RQST_BODY_JSON;
+                g_header_content_type = _RQST_CONTENT_TYPE_JSON;
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_var) { delete l_var; l_var = NULL; }
+        }
+        // -------------------------------------------------
         // REQUEST_BODY
         // -------------------------------------------------
         SECTION("REQUEST_BODY") {

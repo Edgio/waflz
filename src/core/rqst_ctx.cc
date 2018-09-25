@@ -994,9 +994,9 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map,
         l_s = m_body_parser->finish();
         if(l_s != WAFLZ_STATUS_OK)
         {
-                // do nothing...
-                //NDBG_PRINT("error m_body_parser->finish()\n");
-                return WAFLZ_STATUS_ERROR;
+                // Set request body error var in tx map and return
+                m_cx_tx_map["REQBODY_ERROR"] = "1";
+                return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // cap the arg list size

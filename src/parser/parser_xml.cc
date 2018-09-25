@@ -113,7 +113,6 @@ int32_t parser_xml::process_chunk(const char *a_buf, uint32_t a_len)
                         //NDBG_PRINT("xml parse failed...\n");
                         return WAFLZ_STATUS_ERROR;
                 }
-
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------

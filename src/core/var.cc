@@ -1233,7 +1233,7 @@ GET_VAR(REQUEST_BODY)
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details: REQUEST_BODY
+//: \details: REQBODY_ERROR
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------

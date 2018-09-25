@@ -344,10 +344,7 @@ int32_t parser_json::finish(void)
         m_status = yajl_complete_parse(m_handle);
         if(m_status != yajl_status_ok)
         {
-                // TODO get error???
-                // yajl_get_error(m_handle, 0, NULL, 0);
-                // Its ok for partial json
-                return WAFLZ_STATUS_OK;
+                return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
 }

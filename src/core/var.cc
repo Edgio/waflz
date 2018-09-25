@@ -1243,9 +1243,9 @@ GET_VAR(REQBODY_ERROR)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        // -----------------------------------------
+        // -------------------------------------------------
         // in map???
-        // -----------------------------------------
+        // -------------------------------------------------
         cx_map_t::const_iterator i_tx = a_ctx->m_cx_tx_map.find("REQBODY_ERROR");
         if(i_tx == a_ctx->m_cx_tx_map.end())
         {
@@ -1254,9 +1254,9 @@ GET_VAR(REQBODY_ERROR)
         const std::string &l_key = i_tx->first;
         const std::string &l_str = i_tx->second;
         uint32_t l_len = sizeof("REQBODY_ERROR") - 1;
-        // -----------------------------------------
+        // -------------------------------------------------
         // is count???
-        // -----------------------------------------
+        // -------------------------------------------------
         if(a_var.is_count())
         {
                 if(l_len > 0)

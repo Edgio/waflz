@@ -47,11 +47,11 @@ def setup_func():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path])
-    time.sleep(1)
+    #time.sleep(1)
     g_server_pid = l_subproc.pid
     time.sleep(1)
     print 'setup g_server_pid: %d'%(g_server_pid)
-    time.sleep(1)
+    #time.sleep(1)
 # ------------------------------------------------------------------------------
 #teardown_func
 # ------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ def teardown_func():
         l_code, l_out, l_err = run_command('kill -9 %d'%(g_server_pid))
         time.sleep(.5)
 # ------------------------------------------------------------------------------
-# test_bb_modsecurity_ec_access_settings_ignore_args
+# test_bb_without_rule_target_update_fail
 # ------------------------------------------------------------------------------
 def test_bb_without_rule_target_update_fail(setup_func):
     l_uri = G_TEST_HOST + '?' + 'origin=Mal%C3%A9&destination=Southeast+Asia&marketcode=MLESEA&countrycode=MV'
@@ -72,7 +72,7 @@ def test_bb_without_rule_target_update_fail(setup_func):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    print json.dumps(l_r_json,indent=4)
+    #print json.dumps(l_r_json,indent=4)
     assert l_r_json['rule_intercept_status'] == 403
     assert 'UTF8 Encoding Abuse Attack Attempt' in l_r_json['rule_msg']
     l_conf = {}
@@ -104,8 +104,6 @@ def test_bb_without_rule_target_update_fail(setup_func):
     # ------------------------------------------------------
     # urlopen (POST)
     # ------------------------------------------------------
-    print 'l_url:  %s'%(l_url)
-    print 'l_body: %s'%(json.dumps(l_conf))
     l_headers = {"Content-Type": "application/json"}
     l_r = requests.post(l_url,
                             headers=l_headers,
@@ -118,7 +116,73 @@ def test_bb_without_rule_target_update_fail(setup_func):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    print l_r_json
+    #-------------------------------------------------------
+    # check no event is returned
+    # ------------------------------------------------------
+    assert len(l_r_json) == 0
+# ------------------------------------------------------------------------------
+# test_bb_without_rule_target_update_fail
+# ------------------------------------------------------------------------------
+def test_bb_rule_target_update_xml_var():
+    l_uri = G_TEST_HOST
+    l_headers = {"host": "myhost.com",
+                 "Content-Type" : "text/xml"}
+    l_body = '<abc>{46AC4322-C776-4EC6-9D8A-D54607A8A0BB}</abc>'
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=l_body)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    #print json.dumps(l_r_json,indent=4)
+    assert l_r_json['rule_intercept_status'] == 403
+    assert 'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded' in l_r_json['rule_msg']
+    assert l_r_json['matched_var']['name'] == 'XML:/*'
+    l_conf = {}
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_conf_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_rules.waf.prof.json'))
+    try:
+        with open(l_conf_path) as l_f:
+            l_conf = json.load(l_f)
+    except Exception as l_e:
+        print 'error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
+            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message)
+        assert False
+    #-------------------------------------------------------
+    # Add a rule target update
+    # ------------------------------------------------------
+    l_conf['rule_target_updates'] = [
+        {
+            "replace_target" : "",
+             "rule_id" : "981173",
+             "is_regex" : False,
+             "is_negated" : True,
+             "target_match" : "/*",
+             "target" : "XML"
+        }]
+    # ------------------------------------------------------
+    # post conf
+    # ------------------------------------------------------
+    l_url = '%supdate_profile'%(G_TEST_HOST)
+    # ------------------------------------------------------
+    # urlopen (POST)
+    # ------------------------------------------------------
+    l_headers = {"Content-Type": "application/json"}
+    l_r = requests.post(l_url,
+                            headers=l_headers,
+                            data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    #-------------------------------------------------------
+    # GET the same uri which returned a 403 before RTU
+    # ------------------------------------------------------
+    l_headers = {"host": "myhost.com",
+                 "Content-Type" : "text/xml"}
+    l_body = '<abc>{46AC4322-C776-4EC6-9D8A-D54607A8A0BB}</abc>'
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=l_body)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
     #-------------------------------------------------------
     # check no event is returned
     # ------------------------------------------------------

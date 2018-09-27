@@ -2245,7 +2245,6 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
                         }
                 }
         }
-        NDBG_PRINT("recahed here\n");
         // -------------------------------------------------
         // rule tags
         // -------------------------------------------------
@@ -2370,7 +2369,7 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
                 }
                 else if(a_ctx.m_skip_after)
                 {
-                       //NDBG_PRINT("%sskipping%s...: %s\n", ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF, a_ctx.m_skip_after);
+                        //NDBG_PRINT("%sskipping%s...: %s\n", ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF, a_ctx.m_skip_after);
                         marker_map_t::const_iterator i_nd;
                         i_nd = a_mm.find(a_ctx.m_skip_after);
                         if(i_nd != a_mm.end())

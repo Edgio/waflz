@@ -247,6 +247,68 @@ OP(GT)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
+OP(LT)
+{
+        ao_match = false;
+        if(!a_buf ||
+           !a_len)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(!a_op.has_value())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        const std::string &l_val = a_op.value();
+        EXPAND_MACRO(l_val);
+        // -------------------------------------------------
+        // convert/compare
+        // -------------------------------------------------
+        int32_t l_in_val;
+        char *l_end_ptr = NULL;
+        // Special case for args combined size
+        // since there is no transformation t:length on input buf
+        // The length is specified in a_len
+        if(strcmp(a_buf, "ARGS_COMBINED_SIZE") == 0)
+        {
+                l_in_val = a_len;
+        }
+        else
+        {
+                l_in_val = strntol(a_buf, a_len, &l_end_ptr, 10);
+        }
+        if((l_in_val == LONG_MAX) ||
+           (l_in_val == LONG_MIN))
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(l_end_ptr == a_buf)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        int32_t l_op_val;
+        l_op_val = strntol(l_val_ref->c_str(), l_val_ref->length(), &l_end_ptr, 10);
+        if((l_op_val == LONG_MAX) ||
+           (l_op_val == LONG_MIN))
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(l_end_ptr == l_val_ref->c_str())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(l_in_val < l_op_val)
+        {
+                ao_match = true;
+        }
+        SET_IF_NEGATED();
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
 OP(CONTAINS)
 {
         ao_match = false;
@@ -1013,6 +1075,7 @@ void init_op_cb_vector(void)
         INIT_OP_CB(EQ);
         INIT_OP_CB(GE);
         INIT_OP_CB(GT);
+        INIT_OP_CB(LT);
         INIT_OP_CB(IPMATCH);
         INIT_OP_CB(IPMATCHF);
         INIT_OP_CB(IPMATCHFROMFILE);

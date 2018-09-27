@@ -1855,7 +1855,6 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                         l_s = l_macro(l_sv_var, l_var, &a_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
-                                NDBG_PRINT("error\n");
                                 return WAFLZ_STATUS_ERROR;
                         }
                         l_var_ref = &l_sv_var;
@@ -1873,7 +1872,6 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                         l_s = l_macro(l_sv_val, l_val, &a_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
-                                NDBG_PRINT("error\n");
                                 return WAFLZ_STATUS_ERROR;
                         }
                         l_val_ref = &l_sv_val;

@@ -757,7 +757,7 @@ int32_t waf::set_defaults(void)
         // -------------------------------------------------
         // paranoia config
         // -------------------------------------------------
-        set_var_tx(l_conf_pb, "900000", "paranoia_level", "4");
+        set_var_tx(l_conf_pb, "900000", "paranoia_level", "1");
         // -------------------------------------------------
         // anomaly settings
         // -------------------------------------------------
@@ -854,6 +854,7 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
                 l_paranoia_level = l_gs.paranoia_level();
         }
         set_var_tx(l_conf_pb, "900000", "paranoia_level", to_string(l_paranoia_level));
+        set_var_tx(l_conf_pb, "900100", "executing_paranoia_level", to_string(l_paranoia_level));
         }
         // -------------------------------------------------
         // anomaly settings
@@ -1823,7 +1824,7 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                 a_ctx.m_skip_after = NULL;
         }
         // -------------------------------------------------
-        // check for skip
+        // check for skipafter
         // -------------------------------------------------
         if(a_action.has_skipafter() &&
            !a_action.skipafter().empty())
@@ -1854,6 +1855,7 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                         l_s = l_macro(l_sv_var, l_var, &a_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
+                                NDBG_PRINT("error\n");
                                 return WAFLZ_STATUS_ERROR;
                         }
                         l_var_ref = &l_sv_var;
@@ -1871,6 +1873,7 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                         l_s = l_macro(l_sv_val, l_val, &a_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
+                                NDBG_PRINT("error\n");
                                 return WAFLZ_STATUS_ERROR;
                         }
                         l_val_ref = &l_sv_val;
@@ -2049,8 +2052,10 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         // -------------------------------------------------
         // skip logging events not contributing to anomaly
+        // action
         // -------------------------------------------------
-        if(m_anomaly_score_cur >= l_anomaly_score)
+        if(m_anomaly_score_cur >= l_anomaly_score &&
+           l_action.action_type() == waflz_pb::sec_action_t_action_type_t_PASS)
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -2096,8 +2101,6 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // handle anomaly mode in ruleset
         // ---------------------------------
         UNUSED(l_threshold);
-        // TODO REMOVE
-        if(l_action.action_type()) { NDBG_PRINT("action_type: %d\n", l_action.action_type()); }
         if(l_action.has_action_type() &&
            (l_action.action_type() == waflz_pb::sec_action_t_action_type_t_DENY))
         {
@@ -2108,8 +2111,10 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // check for nolog
         // -------------------------------------------------
         if(l_action.has_nolog() &&
-           l_action.nolog())
+           l_action.nolog() &&
+           l_action.action_type() == ::waflz_pb::sec_action_t_action_type_t_PASS)
         {
+                a_ctx.m_intercepted = false;
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -2240,6 +2245,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
                         }
                 }
         }
+        NDBG_PRINT("recahed here\n");
         // -------------------------------------------------
         // rule tags
         // -------------------------------------------------
@@ -2364,7 +2370,7 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
                 }
                 else if(a_ctx.m_skip_after)
                 {
-                        //NDBG_PRINT("%sskipping%s...: %s\n", ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF, a_ctx.m_skip_after);
+                       //NDBG_PRINT("%sskipping%s...: %s\n", ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF, a_ctx.m_skip_after);
                         marker_map_t::const_iterator i_nd;
                         i_nd = a_mm.find(a_ctx.m_skip_after);
                         if(i_nd != a_mm.end())

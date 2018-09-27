@@ -115,6 +115,7 @@ def check_rqst(a_host, a_id, a_rqst):
     l_r_json = None
     try:
         l_r_json = json.loads(l_body)
+        print l_r_json
     except:
         assert False, 'error parsing body'
     if not l_r_json:

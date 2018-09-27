@@ -591,16 +591,16 @@ TEST_CASE( "test op", "[op]" ) {
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         }
         // -------------------------------------------------
-        // GT
+        // LT
         // -------------------------------------------------
-        SECTION("GT") {
+        SECTION("LT") {
                 ns_waflz::op_t l_cb = NULL;
-                l_cb = ns_waflz::get_op_cb(waflz_pb::sec_rule_t_operator_t_type_t_GT);
+                l_cb = ns_waflz::get_op_cb(waflz_pb::sec_rule_t_operator_t_type_t_LT);
                 REQUIRE((l_cb != NULL));
                 ns_waflz::macro l_macro;
                 ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(1024, false);
                 waflz_pb::sec_rule_t_operator_t l_op;
-                l_op.set_type(waflz_pb::sec_rule_t_operator_t_type_t_GT);
+                l_op.set_type(waflz_pb::sec_rule_t_operator_t_type_t_LT);
                 // -----------------------------------------
                 // vector
                 // -----------------------------------------
@@ -609,10 +609,10 @@ TEST_CASE( "test op", "[op]" ) {
                         {"1",
                          "1",
                         false},
-                        // 1.
+                        // 2.
                         {"2",
                          "1",
-                        true},
+                        false},
                         // 3.
                         {"dog scouts are cool cuz they eat all the cookies",
                          "okies",
@@ -620,7 +620,7 @@ TEST_CASE( "test op", "[op]" ) {
                         // 4.
                         {"345",
                          "346",
-                        false},
+                        true},
                         // 5.
                         {"345",
                          "345",

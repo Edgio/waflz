@@ -59,14 +59,6 @@ include_directories(
     ../../ext/modsecurity
     ../../ext/modsecurity/apache2
     /usr/include/libxml2
-    # --------------------------------------------
-    # WHY DO I HAVE TO DO THIS!?!?!
-    # from api.h 
-    # #include "http_core.h"
-    # #include "apr.h"
-    # --------------------------------------------
-    /usr/include/apache2
-    /usr/include/apr-1.0
 )
 # ------------------------------------------------------------------------------
 #

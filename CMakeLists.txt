@@ -182,7 +182,6 @@ endif()
 # ------------------------------------------------------------------------------
 if (BUILD_TCMALLOC)
   find_ubuntu_package(LIBTCMALLOC google/tcmalloc.h libtcmalloc.a "" libgoogle-perftools-dev)
-  find_ubuntu_package(LIBZMA lzma.h liblzma.a liblzma5 liblzma-dev)
   find_ubuntu_package(LIBUNWIND libunwind.h libunwind.a "" libunwind8-dev)
   # yes it's wierd as shit to have to include this again...
   LIST(APPEND LIBRARIES pthread)
@@ -206,7 +205,7 @@ find_ubuntu_package(LIBZ zlib.h libz.a zlib1g zlib1g-dev)
 # ------------------------------------------------------------------------------
 # Link ZMA
 # ------------------------------------------------------------------------------
-find_ubuntu_package(LIBZMA lzma/lzma.h liblzma.a liblzma-dev liblzma-dev)
+find_ubuntu_package(LIBZMA "" liblzma.a "" liblzma-dev)
 # ------------------------------------------------------------------------------
 # Link icu (unicode lib)
 # ------------------------------------------------------------------------------

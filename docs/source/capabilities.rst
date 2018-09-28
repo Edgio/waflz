@@ -6,7 +6,6 @@ Configuration Directives
 * SecAction
 * SecMarker
 * SecRule
-* SecMarker
 * SecRuleUpdateTargetById
 
 Variables
@@ -50,6 +49,9 @@ Operators
 * EQ
 * GE
 * GT
+* IPMATCH
+* IPMATCHF
+* IPMATCHFROMFILE
 * PM
 * PMF
 * PMFROMFILE

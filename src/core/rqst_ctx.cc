@@ -23,9 +23,6 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-// ---------------------------------------------------------
-// waflz
-// ---------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"
@@ -36,15 +33,16 @@
 #include "parser/parser_url_encoded.h"
 #include "parser/parser_xml.h"
 #include "parser/parser_json.h"
-// ---------------------------------------------------------
-// std
-// ---------------------------------------------------------
 #include <stdlib.h>
 #include <string.h>
+//: ----------------------------------------------------------------------------
+//: constants
+//: ----------------------------------------------------------------------------
+#define _DEFAULT_BODY_ARG_LEN_CAP 4096
 namespace ns_waflz {
-// ---------------------------------------------------------
-// callbacks
-// ---------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: callbacks
+//: ----------------------------------------------------------------------------
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_src_addr_cb = NULL;
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_host_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_port_cb = NULL;
@@ -68,6 +66,10 @@ get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_bytes_out_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_bytes_in_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_req_id_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_cust_id_cb = NULL;
+//: ----------------------------------------------------------------------------
+//: static
+//: ----------------------------------------------------------------------------
+uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -109,9 +111,9 @@ static bool key_in_ignore_list(const pcre_list_t &a_pcre_list,
 static int32_t remove_ignored(arg_list_t &ao_arg_list,
                               const pcre_list_t &a_pcre_list)
 {
-        // ---------------------------------
+        // -------------------------------------------------
         // strip ignored cookies
-        // ---------------------------------
+        // -------------------------------------------------
         for(arg_list_t::iterator i_a = ao_arg_list.begin();
             i_a != ao_arg_list.end();)
         {
@@ -136,9 +138,9 @@ static int32_t remove_ignored(arg_list_t &ao_arg_list,
 static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
                                     const pcre_list_t &a_pcre_list)
 {
-        // ---------------------------------
+        // -------------------------------------------------
         // strip ignored cookies
-        // ---------------------------------
+        // -------------------------------------------------
         for(const_arg_list_t::iterator i_a = ao_arg_list.begin();
             i_a != ao_arg_list.end();)
         {
@@ -181,27 +183,28 @@ rqst_ctx::rqst_ctx(uint32_t a_body_len_max,
         m_body_len_max(a_body_len_max),
         m_body_data(NULL),
         m_body_len(0),
+        m_content_length(0),
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
         m_body_parser(),
-        // -----------------------------------------
+        // -------------------------------------------------
         // collections
-        // -----------------------------------------
+        // -------------------------------------------------
         m_cx_matched_var(),
         m_cx_matched_var_name(),
         m_cx_rule_map(),
         m_cx_tx_map(),
-        // -----------------------------------------
+        // -------------------------------------------------
         // state
-        // -----------------------------------------
+        // -------------------------------------------------
         m_intercepted(false),
         m_skip(0),
         m_skip_after(NULL),
-        // -----------------------------------------
-        // *****************************************
+        // -------------------------------------------------
+        // *************************************************
         // xml optimization
-        // *****************************************
-        // -----------------------------------------
+        // *************************************************
+        // -------------------------------------------------
         m_xpath_cache_map(NULL)
 {
 }
@@ -410,6 +413,14 @@ int32_t rqst_ctx::init_phase_0(void *a_ctx)
                         continue;
                 }
                 m_header_list.push_back(l_hdr);
+                // -----------------------------------------
+                // parse content-type header...
+                // e.g: Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
+                // -----------------------------------------
+                if(strncasecmp(l_hdr.m_key, "Content-Type", sizeof("Content-Type") - 1) == 0)
+                {
+                        parse_content_type(m_content_type_list, &l_hdr);
+                }
                 // -----------------------------------------
                 // map
                 // -----------------------------------------
@@ -734,6 +745,16 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                         l_arg.m_val = m_cookie_mutated.c_str();
                         l_arg.m_val_len = m_cookie_mutated.length();
                         m_header_list.push_back(l_arg);
+                        // ---------------------------------
+                        // map
+                        // ---------------------------------
+                        data_t l_key;
+                        l_key.m_data = l_arg.m_key;
+                        l_key.m_len = l_arg.m_key_len;
+                        data_t l_val;
+                        l_val.m_data = l_arg.m_val;
+                        l_val.m_len = l_arg.m_val_len;
+                        m_header_map[l_key] = l_val;
                 }
                 // -----------------------------------------
                 // else just add header...
@@ -741,6 +762,29 @@ int32_t rqst_ctx::init_phase_1(void *a_ctx,
                 else
                 {
                         m_header_list.push_back(l_hdr);
+                        // ---------------------------------
+                        // map
+                        // ---------------------------------
+                        data_t l_key;
+                        l_key.m_data = l_hdr.m_key;
+                        l_key.m_len = l_hdr.m_key_len;
+                        data_t l_val;
+                        l_val.m_data = l_hdr.m_val;
+                        l_val.m_len = l_hdr.m_val_len;
+                        m_header_map[l_key] = l_val;
+                }
+                // -----------------------------------------
+                // parse content-type header...
+                // e.g: Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
+                // -----------------------------------------
+                if(strncasecmp(l_hdr.m_key, "Content-Type", sizeof("Content-Type") - 1) == 0)
+                {
+                        parse_content_type(m_content_type_list, &l_hdr);
+                }
+                // Get content-length, to be verified in phase 2
+                if(strncasecmp(l_hdr.m_key, "Content-Length", sizeof("Content-Length") - 1) == 0)
+                {
+                        m_content_length = strntoul(l_hdr.m_val , l_hdr.m_val_len, NULL, 10);
                 }
         }
         // -------------------------------------------------
@@ -766,50 +810,25 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map,
         // -------------------------------------------------
         // request body data
         // -------------------------------------------------
-        // -------------------------------------------------
-        // get content type
-        // -------------------------------------------------
-        if(!s_get_rqst_header_w_key_cb)
-        {
-                return WAFLZ_STATUS_OK;
-        }
-        const char *l_buf = NULL;
-        uint32_t l_len = 0;
-        const char *l_h = NULL;
         int32_t l_s;
         // -------------------------------------------------
         // get content length
         // -------------------------------------------------
-        // TODO -not for use with chunked???
-        l_h = "Content-Length";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_len, a_ctx, l_h, strlen(l_h));
-        if(l_s != 0)
-        {
-                //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                return WAFLZ_STATUS_OK;
-        }
-        if(!l_buf ||
-           !l_len)
-        {
-                return WAFLZ_STATUS_OK;
-        }
-        uint32_t l_cl = 0;
-        l_cl = strntoul(l_buf, l_len, NULL, 10);
-        if(l_cl == ULONG_MAX)
+        if(m_content_length == ULONG_MAX)
         {
                 // TODO -return reason...
                 return WAFLZ_STATUS_OK;
         }
-        if(l_cl <= 0)
+        if(m_content_length <= 0)
         {
                 return WAFLZ_STATUS_OK;
         }
-        //NDBG_PRINT("Content-Length: %u\n", l_cl);
         // -------------------------------------------------
         // calculate body size
         // -------------------------------------------------
         uint32_t l_body_len;
-        l_body_len = l_cl > m_body_len_max ? m_body_len_max : l_cl;
+        l_body_len = m_content_length > m_body_len_max ? m_body_len_max : m_content_length;
+        //NDBG_PRINT("body len %d\n", l_body_len);
         // -------------------------------------------------
         // TODO -413 on > max???
         // -------------------------------------------------
@@ -817,20 +836,19 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map,
         // -------------------------------------------------
         // get content type
         // -------------------------------------------------
-        l_h = "Content-Type";
-        l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_len, a_ctx, l_h, strlen(l_h));
-        if(l_s != 0)
-        {
-                //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                return WAFLZ_STATUS_OK;
-        }
-        if(!l_buf ||
-           !l_len)
+        if(!m_content_type_list.size())
         {
                 return WAFLZ_STATUS_OK;
         }
+        if(!m_content_type_list.size())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // Get the first one from list
+        // TODO: may be check through the list?
+        data_t l_type = m_content_type_list.front();
         std::string l_ct;
-        l_ct.assign(l_buf, l_len);
+        l_ct.assign(l_type.m_data, l_type.m_len);
         ctype_parser_map_t::const_iterator i_p = a_ctype_parser_map.find(l_ct);
         if(i_p == a_ctype_parser_map.end())
         {
@@ -976,9 +994,25 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map,
         l_s = m_body_parser->finish();
         if(l_s != WAFLZ_STATUS_OK)
         {
-                // do nothing...
-                //NDBG_PRINT("error m_body_parser->finish()\n");
-                return WAFLZ_STATUS_ERROR;
+                // Set request body error var in tx map and return
+                m_cx_tx_map["REQBODY_ERROR"] = "1";
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // cap the arg list size
+        // -------------------------------------------------
+        for(arg_list_t::iterator i_k = m_body_arg_list.begin();
+            i_k != m_body_arg_list.end();
+            ++i_k)
+        {
+                if(i_k->m_key_len > s_body_arg_len_cap)
+                {
+                        i_k->m_key_len = s_body_arg_len_cap;
+                }
+                if(i_k->m_val_len > s_body_arg_len_cap)
+                {
+                        i_k->m_val_len = s_body_arg_len_cap;
+                }
         }
         return WAFLZ_STATUS_OK;
 }

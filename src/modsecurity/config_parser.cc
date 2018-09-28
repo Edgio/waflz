@@ -978,6 +978,8 @@ int32_t config_parser::add_rule(waflz_pb::sec_config_t &ao_config,
                 }
                 if(!a_operator_match.empty())
                 {
+                        l_operator->set_value(a_operator_match);
+#if 0
                         // fix path for files
                         if(l_operator->has_type() &&
                            ((l_operator->type() == ::waflz_pb::sec_rule_t_operator_t_type_t_PMF) ||
@@ -996,6 +998,7 @@ int32_t config_parser::add_rule(waflz_pb::sec_config_t &ao_config,
                         {
                                 l_operator->set_value(a_operator_match);
                         }
+#endif
                 }
         }
         // -----------------------------------------------------------
@@ -1075,8 +1078,11 @@ int32_t config_parser::tokenize_kv_list(const std::string &a_string,
                 for(i_kv = ao_kv_list.begin(); i_kv != ao_kv_list.end(); ++i_kv)
                 {
                         if(i_kv->m_key == l_key)
+                        {
                                 break;
+                        }
                 }
+                l_key.erase( std::remove_if(l_key.begin(), l_key.end(), ::isspace), l_key.end());
                 if(i_kv == ao_kv_list.end())
                 {
                         kv_t l_kv;
@@ -3473,6 +3479,11 @@ int32_t config_parser::read_file_pbuf(waflz_pb::sec_config_t& ao_config,
                 NDBG_PRINT("Error performing fclose.  Reason: %s\n", strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
+        if(l_buf)
+        {
+                free(l_buf);
+                l_buf = NULL;
+        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -3557,6 +3568,11 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
         {
                 NDBG_PRINT("Error performing fclose.  Reason: %s\n", strerror(errno));
                 return WAFLZ_STATUS_ERROR;
+        }
+        if(l_buf)
+        {
+                free(l_buf);
+                l_buf = NULL;
         }
         return WAFLZ_STATUS_OK;
 }

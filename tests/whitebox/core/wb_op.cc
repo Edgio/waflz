@@ -28,6 +28,7 @@
 #include "rule.pb.h"
 #include "core/op.h"
 #include "core/macro.h"
+#include "op/nms.h"
 #include "op/ac.h"
 #include "op/byte_range.h"
 #include "support/ndebug.h"
@@ -588,6 +589,249 @@ TEST_CASE( "test op", "[op]" ) {
                 // cleanup
                 // -----------------------------------------
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+        }
+        // -------------------------------------------------
+        // LT
+        // -------------------------------------------------
+        SECTION("LT") {
+                ns_waflz::op_t l_cb = NULL;
+                l_cb = ns_waflz::get_op_cb(waflz_pb::sec_rule_t_operator_t_type_t_LT);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::macro l_macro;
+                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(1024, false);
+                waflz_pb::sec_rule_t_operator_t l_op;
+                l_op.set_type(waflz_pb::sec_rule_t_operator_t_type_t_LT);
+                // -----------------------------------------
+                // vector
+                // -----------------------------------------
+                entry_t l_vec[] = {
+                        // 1.
+                        {"1",
+                         "1",
+                        false},
+                        // 2.
+                        {"2",
+                         "1",
+                        false},
+                        // 3.
+                        {"dog scouts are cool cuz they eat all the cookies",
+                         "okies",
+                        false},
+                        // 4.
+                        {"345",
+                         "346",
+                        true},
+                        // 5.
+                        {"345",
+                         "345",
+                        false},
+                        // 6.
+                        {"345",
+                         "I am a bananas",
+                        false},
+                };
+                // -----------------------------------------
+                // loop
+                // -----------------------------------------
+                for(uint32_t i_p = 0; i_p < ARRAY_SIZE(l_vec); ++i_p)
+                {
+                        int32_t l_s;
+                        const char *l_in = l_vec[i_p].m_in;
+                        char *l_buf = NULL;
+                        uint32_t l_len = 0;
+                        bool l_match = false;
+                        l_op.set_value(l_vec[i_p].m_op_val);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        REQUIRE((l_s == WAFLZ_STATUS_OK));
+                        REQUIRE((l_match == l_vec[i_p].m_match));
+                }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+        }
+        // -------------------------------------------------
+        // IPMATCH
+        // -------------------------------------------------
+        SECTION("IPMATCH") {
+                ns_waflz::op_t l_cb = NULL;
+                l_cb = ns_waflz::get_op_cb(waflz_pb::sec_rule_t_operator_t_type_t_IPMATCH);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::macro l_macro;
+                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(1024, false);
+                waflz_pb::sec_rule_t_operator_t l_op;
+                l_op.set_type(waflz_pb::sec_rule_t_operator_t_type_t_IPMATCH);
+                // -----------------------------------------
+                // create ac obj...
+                // -----------------------------------------
+                int32_t l_s;
+                ns_waflz::nms *l_nms = NULL;
+                l_s = ns_waflz::create_nms_from_str(&l_nms , "88.88.88.88, 12.34.56.89");
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_nms !=NULL));
+                l_op.set__reserved_1((uint64_t)l_nms);
+                // -----------------------------------------
+                // vector
+                // -----------------------------------------
+                entry_t l_vec[] = {
+                        // 1.
+                        {"127.0.0.1",
+                         "",
+                        false},
+                        // 2.
+                        {"88.88.88.88",
+                         "",
+                         true},
+                        // 3.
+                        {"55.55.45.87",
+                         "",
+                        false},
+                        // 4.
+                        {"12.34.56.89",
+                         "",
+                        true},
+                };
+                // -----------------------------------------
+                // loop
+                // -----------------------------------------
+                for(uint32_t i_p = 0; i_p < ARRAY_SIZE(l_vec); ++i_p)
+                {
+                        int32_t l_s;
+                        const char *l_in = l_vec[i_p].m_in;
+                        char *l_buf = NULL;
+                        uint32_t l_len = 0;
+                        bool l_match = false;
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        REQUIRE((l_s == WAFLZ_STATUS_OK));
+                        REQUIRE((l_match == l_vec[i_p].m_match));
+                }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                if(l_nms) { delete l_nms; l_nms = NULL; }
+        }
+        // -------------------------------------------------
+        // IPMATCHF
+        // -------------------------------------------------
+        SECTION("IPMATCHF") {
+                ns_waflz::op_t l_cb = NULL;
+                l_cb = ns_waflz::get_op_cb(waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHF);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::macro l_macro;
+                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(1024, false);
+                waflz_pb::sec_rule_t_operator_t l_op;
+                l_op.set_type(waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHF);
+                // -----------------------------------------
+                // create ac obj...
+                // -----------------------------------------
+                int32_t l_s;
+                ns_waflz::nms *l_nms = NULL;
+                l_s = ns_waflz::create_nms_from_str(&l_nms , "88.88.88.88, 12.34.56.89");
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_nms !=NULL));
+                l_op.set__reserved_1((uint64_t)l_nms);
+                // -----------------------------------------
+                // vector
+                // -----------------------------------------
+                entry_t l_vec[] = {
+                        // 1.
+                        {"127.0.0.1",
+                         "",
+                        false},
+                        // 2.
+                        {"88.88.88.88",
+                         "",
+                         true},
+                        // 3.
+                        {"55.55.45.87",
+                         "",
+                        false},
+                        // 4.
+                        {"12.34.56.89",
+                         "",
+                        true},
+                };
+                // -----------------------------------------
+                // loop
+                // -----------------------------------------
+                for(uint32_t i_p = 0; i_p < ARRAY_SIZE(l_vec); ++i_p)
+                {
+                        int32_t l_s;
+                        const char *l_in = l_vec[i_p].m_in;
+                        char *l_buf = NULL;
+                        uint32_t l_len = 0;
+                        bool l_match = false;
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        REQUIRE((l_s == WAFLZ_STATUS_OK));
+                        REQUIRE((l_match == l_vec[i_p].m_match));
+                }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                if(l_nms) { delete l_nms; l_nms = NULL; }
+        }
+        // -------------------------------------------------
+        // IPMATCHFROMFILE
+        // -------------------------------------------------
+        SECTION("IPMATCHFROMFILE") {
+                ns_waflz::op_t l_cb = NULL;
+                l_cb = ns_waflz::get_op_cb(waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHFROMFILE);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::macro l_macro;
+                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(1024, false);
+                waflz_pb::sec_rule_t_operator_t l_op;
+                l_op.set_type(waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHFROMFILE);
+                // -----------------------------------------
+                // create ac obj...
+                // -----------------------------------------
+                int32_t l_s;
+                ns_waflz::nms *l_nms = NULL;
+                l_s = ns_waflz::create_nms_from_str(&l_nms , "88.88.88.88, 12.34.56.89");
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_nms !=NULL));
+                l_op.set__reserved_1((uint64_t)l_nms);
+                // -----------------------------------------
+                // vector
+                // -----------------------------------------
+                entry_t l_vec[] = {
+                        // 1.
+                        {"127.0.0.1",
+                         "",
+                        false},
+                        // 2.
+                        {"88.88.88.88",
+                         "",
+                         true},
+                        // 3.
+                        {"55.55.45.87",
+                         "",
+                        false},
+                        // 4.
+                        {"12.34.56.89",
+                         "",
+                        true},
+                };
+                // -----------------------------------------
+                // loop
+                // -----------------------------------------
+                for(uint32_t i_p = 0; i_p < ARRAY_SIZE(l_vec); ++i_p)
+                {
+                        int32_t l_s;
+                        const char *l_in = l_vec[i_p].m_in;
+                        char *l_buf = NULL;
+                        uint32_t l_len = 0;
+                        bool l_match = false;
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        REQUIRE((l_s == WAFLZ_STATUS_OK));
+                        REQUIRE((l_match == l_vec[i_p].m_match));
+                }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                if(l_nms) { delete l_nms; l_nms = NULL; }
         }
         // -------------------------------------------------
         // PM

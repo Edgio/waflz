@@ -57,8 +57,7 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        instance(engine &a_engine,
-                 geoip2_mmdb &a_geoip2_mmdb);
+        instance(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
         ~instance();
         //: ------------------------------------------------
         //:               G E T T E R S

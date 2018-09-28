@@ -67,6 +67,8 @@ public:
         macro &get_macro(void){ return *m_macro;}
         const ctype_parser_map_t &get_ctype_parser_map(void) { return m_ctype_parser_map;}
         int32_t compile(compiled_config_t &ao_cx_cfg, waflz_pb::sec_config_t &a_config);
+        const char *get_err_msg(void) { return m_err_msg; }
+        void set_ruleset_dir(std::string a_ruleset_dir) { m_ruleset_dir = a_ruleset_dir; }
 private:
         // -------------------------------------------------
         // private methods
@@ -91,6 +93,8 @@ private:
         config_list_t m_config_list;
         compiled_config_map_t m_compiled_config_map;
         ctype_parser_map_t m_ctype_parser_map;
+        std::string m_ruleset_dir;
+        char m_err_msg[WAFLZ_ERR_LEN];
 };
 }
 #endif

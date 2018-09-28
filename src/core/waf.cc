@@ -103,6 +103,7 @@ waf::waf(engine &a_engine):
         m_mx_rule_list()
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         ,m_anomaly_score_cur(0),
+#endif
         m_il_query(),
         m_il_header(),
         m_il_cookie(),
@@ -113,7 +114,6 @@ waf::waf(engine &a_engine):
         m_owasp_ruleset_version(0),
         m_no_log_matched(false),
         m_parse_json(false)
-#endif
 {
         m_compiled_config = new compiled_config_t();
 }
@@ -259,7 +259,8 @@ int32_t waf::get_str(std::string &ao_str, config_parser::format_t a_format)
 typedef std::map <waflz_pb::variable_t_type_t, waflz_pb::variable_t> _type_var_map_t;
 typedef std::map <std::string, _type_var_map_t> _id_tv_map_t;
 //: ----------------------------------------------------------------------------
-//: \details: TODO
+//: \details: This function generates a modified rule based on RTUs.
+//:           The RTUs are stored in id to variable map (a_tv_map).
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
@@ -303,6 +304,9 @@ static int32_t create_modified_rule(::waflz_pb::directive_t** ao_drx,
                         continue;
                 }
                 const ::waflz_pb::variable_t& l_vm = i_vm->second;
+                // -----------------------------------------
+                // update the variable match
+                // -----------------------------------------
                 for(int32_t i_m = 0; i_m < l_vm.match_size(); ++i_m)
                 {
                         const ::waflz_pb::variable_t_match_t& l_mm = l_vm.match(i_m);
@@ -336,9 +340,18 @@ static int32_t create_modified_rule(::waflz_pb::directive_t** ao_drx,
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details: TODO
+//: \details: Modify the directives based on a_dr_id_set, ao_id_tv_map
+//:           and ao_id_tv_replace_map. The modified rules are stored in
+//:           ao_mx_directive_list (m_mx_rule_list) and the references to rules
+//:           in _compiled_config are updated to refer these
+//:           instead of the rules in global rulesets
 //: \return:  TODO
-//: \param:   TODO
+//: \param:   ao_directive_list: list of all directives
+//:           ao_mx_directive_list: list of all modified directives
+//:           ao_rx_list: list of all compiled regex
+//:           a_dr_id_set: ids of rule to be removed
+//:           ao_id_tv_map: rule id to variable map, for updating target
+//:           ao_id_tv_replace_map: rule id to varaible replace map
 //: ----------------------------------------------------------------------------
 static int32_t modify_directive_list(directive_list_t &ao_directive_list,
                                      directive_list_t &ao_mx_directive_list,
@@ -422,44 +435,63 @@ static int32_t modify_directive_list(directive_list_t &ao_directive_list,
                 // -----------------------------------------
                 i_id = ao_id_tv_map.find(l_id);
                 if(i_id != ao_id_tv_map.end())
-                {
-                        const _type_var_map_t& l_tv_map = i_id->second;
+                {       int32_t l_cr_idx = -1;
                         const ::waflz_pb::sec_rule_t& l_r = l_d.sec_rule();
-                        // ---------------------------------
-                        // check for modified
-                        // ---------------------------------
-                        bool l_is_modified = false;
-                        for(int32_t i_v = 0; i_v < l_r.variable_size(); ++i_v)
+                        // check for chained rules as well.
+                        do
                         {
-                                const ::waflz_pb::variable_t& l_v = l_r.variable(i_v);
-                                if(!l_v.has_type())
+                                const waflz_pb::sec_rule_t *l_rule = NULL;
+                                if(l_cr_idx == -1)
                                 {
-                                        continue;
+                                        l_rule = &l_r;
                                 }
-                                if(l_tv_map.find(l_v.type()) != l_tv_map.end())
+                                if((l_cr_idx >= 0) &&
+                                    (l_cr_idx < l_d.sec_rule().chained_rule_size()))
                                 {
-                                        l_is_modified = true;
-                                        break;
+                                        l_rule = &(l_r.chained_rule(l_cr_idx));
                                 }
-                        }
-                        // ---------------------------------
-                        // if modified update rule
-                        // ---------------------------------
-                        if(l_is_modified)
-                        {
-                                ::waflz_pb::directive_t* l_drx = NULL;
-                                int32_t l_s;
-                                l_s = create_modified_rule(&l_drx, ao_rx_list, l_tv_map, l_r, false);
-                                if(l_s != WAFLZ_STATUS_OK)
+                                const _type_var_map_t& l_tv_map = i_id->second;
+                                // ---------------------------------
+                                // check for modified
+                                // ---------------------------------
+                                bool l_is_modified = false;
+                                for(int32_t i_v = 0; i_v < l_rule->variable_size(); ++i_v)
                                 {
-                                        return WAFLZ_STATUS_ERROR;
+                                        const ::waflz_pb::variable_t& l_v = l_rule->variable(i_v);
+                                        // ---------------------------------
+                                        // variable type doesn't match
+                                        // move on to next.
+                                        // ---------------------------------
+                                        if(!l_v.has_type())
+                                        {
+                                                continue;
+                                        }
+                                        if(l_tv_map.find(l_v.type()) != l_tv_map.end())
+                                        {
+                                                l_is_modified = true;
+                                                break;
+                                        }
                                 }
-                                ao_mx_directive_list.push_back(l_drx);
-                                *i_d = l_drx;
-                        }
+                                // ---------------------------------
+                                // if modified update rule
+                                // ---------------------------------
+                                if(l_is_modified)
+                                {
+                                        ::waflz_pb::directive_t* l_drx = NULL;
+                                        int32_t l_s;
+                                        l_s = create_modified_rule(&l_drx, ao_rx_list, l_tv_map, *l_rule, false);
+                                        if(l_s != WAFLZ_STATUS_OK)
+                                        {
+                                                return WAFLZ_STATUS_ERROR;
+                                        }
+                                        ao_mx_directive_list.push_back(l_drx);
+                                        *i_d = l_drx;
+                                        //NDBG_PRINT("RULE: %s\n", l_drx->sec_rule().ShortDebugString().c_str());
+                                }
+                                ++l_cr_idx;
+                        } while (l_cr_idx < l_d.sec_rule().chained_rule_size());
                 }
                 ++i_d;
-                //NDBG_PRINT("RULE: %s\n", l_drx->ShortDebugString().c_str());
         }
         return WAFLZ_STATUS_OK;
 }
@@ -477,6 +509,7 @@ int32_t waf::compile(void)
         l_s = m_engine.compile(*m_compiled_config, *m_pb);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                WAFLZ_PERROR(m_err_msg, "engine compile reason: %s", m_engine.get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -724,7 +757,7 @@ int32_t waf::set_defaults(void)
         // -------------------------------------------------
         // paranoia config
         // -------------------------------------------------
-        set_var_tx(l_conf_pb, "900000", "paranoia_level", "4");
+        set_var_tx(l_conf_pb, "900000", "paranoia_level", "1");
         // -------------------------------------------------
         // anomaly settings
         // -------------------------------------------------
@@ -821,6 +854,7 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
                 l_paranoia_level = l_gs.paranoia_level();
         }
         set_var_tx(l_conf_pb, "900000", "paranoia_level", to_string(l_paranoia_level));
+        set_var_tx(l_conf_pb, "900100", "executing_paranoia_level", to_string(l_paranoia_level));
         }
         // -------------------------------------------------
         // anomaly settings
@@ -1111,13 +1145,14 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
                                 if(l_found == NULL)
                                 {
                                         // not a .conf file
-                                        //TRACE("Failed to find .conf suffix");
+                                        //NDBG_PRINT("Failed to find .conf or .conf.json suffix\n");
                                         goto done;
                                 }
-                                if(::strlen(l_found) != 5)
+                                if(::strlen(l_found) != 5 &&
+                                   ::strlen(l_found) != 10)
                                 {
                                         // failed to find .conf right at the end
-                                        //TRACE("found in the wrong place. %zu", ::strlen(l_found));
+                                        //NDBG_PRINT("found in the wrong place. %zu\n", ::strlen(l_found));
                                         goto done;
                                 }
                                 // we want this file
@@ -1144,6 +1179,10 @@ done:
         l_ruleset_dir.append("/version/");
         l_ruleset_dir.append(l_prof_pb.ruleset_version());
         l_ruleset_dir.append("/policy/");
+        // -------------------------------------------------
+        // set ruleset dir for engine before it compiles
+        // -------------------------------------------------
+        m_engine.set_ruleset_dir(l_ruleset_dir);
         // -------------------------------------------------
         // scan ruleset dir
         // -------------------------------------------------
@@ -1266,10 +1305,8 @@ done:
                 {
                         ::waflz_pb::variable_t_match_t& l_match = *(l_var.add_match());
                         l_match.set_value(l_rtu.target_match());
-                        if(l_rtu.is_negated())
-                        {
-                                l_match.set_is_negated(true);
-                        }
+                        // set is_negated by default
+                        l_match.set_is_negated(true);
                         if(l_rtu.is_regex())
                         {
                                 l_match.set_is_regex(true);
@@ -1361,16 +1398,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         //NDBG_PRINT("*                 R U L E                     \n");
         //NDBG_PRINT("**********************************************\n");
         //NDBG_PRINT("rule: %s\n", a_rule.ShortDebugString().c_str());
-#if 0
-        // TODO REMOVE
-        {
-        std::string l_id = "__na__";
-        if(a_rule.action().has_id()) { l_id = a_rule.action().id(); }
-        std::string l_msg = "__na__";
-        if(a_rule.action().has_msg()) { l_msg = a_rule.action().msg(); }
-        NDBG_OUTPUT("XXXXXXX: id: %16s :: msg: %s\n", l_id.c_str(), l_msg.c_str());
-        }
-#endif
         // -------------------------------------------------
         // chain rule loop
         // -------------------------------------------------
@@ -1404,10 +1431,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
                         ++l_cr_idx;
                         continue;
                 }
-                //if(l_action.has_id())
-                //{
-                //        NDBG_PRINT("ID: %16s  ************************\n", l_action.id().c_str());
-                //}
                 if(!l_rule->has_operator_())
                 {
                         // TODO this aight???
@@ -1801,7 +1824,7 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                 a_ctx.m_skip_after = NULL;
         }
         // -------------------------------------------------
-        // check for skip
+        // check for skipafter
         // -------------------------------------------------
         if(a_action.has_skipafter() &&
            !a_action.skipafter().empty())
@@ -2027,8 +2050,10 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         // -------------------------------------------------
         // skip logging events not contributing to anomaly
+        // action
         // -------------------------------------------------
-        if(m_anomaly_score_cur >= l_anomaly_score)
+        if(m_anomaly_score_cur >= l_anomaly_score &&
+           l_action.action_type() == waflz_pb::sec_action_t_action_type_t_PASS)
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -2074,8 +2099,6 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // handle anomaly mode in ruleset
         // ---------------------------------
         UNUSED(l_threshold);
-        // TODO REMOVE
-        if(l_action.action_type()) { NDBG_PRINT("action_type: %d\n", l_action.action_type()); }
         if(l_action.has_action_type() &&
            (l_action.action_type() == waflz_pb::sec_action_t_action_type_t_DENY))
         {
@@ -2086,8 +2109,10 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // check for nolog
         // -------------------------------------------------
         if(l_action.has_nolog() &&
-           l_action.nolog())
+           l_action.nolog() &&
+           l_action.action_type() == ::waflz_pb::sec_action_t_action_type_t_PASS)
         {
+                a_ctx.m_intercepted = false;
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------

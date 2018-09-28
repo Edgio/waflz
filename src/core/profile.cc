@@ -568,9 +568,7 @@ int32_t profile::validate(void)
                         VERIFY_HAS(l_r, rule_id);
                         VERIFY_HAS(l_r, target);
                         VERIFY_HAS(l_r, target_match);
-                        VERIFY_HAS(l_r, replace_target);
                         VERIFY_HAS(l_r, is_regex);
-                        VERIFY_HAS(l_r, is_negated);
                 }
         }
         return WAFLZ_STATUS_OK;

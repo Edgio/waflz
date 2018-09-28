@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <map>
 #include <stack>
+#include <errno.h>
 #include <algorithm>
 #ifdef _AC_UTF8
 // utf8 support
@@ -328,11 +329,13 @@ int32_t ac::add(const char *a_buf, uint32_t a_len)
         if(m_finalized)
         {
                 // TODO log error reason???
+                WAFLZ_PERROR(m_err_msg, "Failed to add: already finalized");
                 return WAFLZ_STATUS_ERROR;
         }
         if(!a_buf)
         {
                 // TODO log error reason???
+                WAFLZ_PERROR(m_err_msg, "Failed to add no input");
                 return WAFLZ_STATUS_ERROR;
         }
         uint32_t l_len = a_len;
@@ -711,6 +714,7 @@ int32_t create_ac_from_str(ac **ao_ac, const std::string &a_str)
                 if(l_end != l_start)
                 {
                         std::string i_str = a_str.substr(l_start, l_end - l_start);
+                        i_str.erase( std::remove_if( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
                         //NDBG_PRINT("ADD: '%s'\n", i_str.c_str());
                         l_ac->add(i_str.c_str(), i_str.length());
                 }
@@ -719,6 +723,7 @@ int32_t create_ac_from_str(ac **ao_ac, const std::string &a_str)
         if(l_end != l_start)
         {
                 std::string i_str = a_str.substr(l_start);
+                i_str.erase( std::remove_if( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
                 //NDBG_PRINT("ADD: '%s'\n", i_str.c_str());
                 l_ac->add(i_str.c_str(), i_str.length());
         }
@@ -739,12 +744,11 @@ int32_t create_ac_from_str(ac **ao_ac, const std::string &a_str)
 //: ----------------------------------------------------------------------------
 int32_t create_ac_from_file(ac **ao_ac, const std::string &a_file)
 {
-        //NDBG_PRINT("%sAC_FROM_FILE%s: %s\n",ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, a_file.c_str());
         FILE * l_fp;
         l_fp = fopen(a_file.c_str(),"r");
         if (NULL == l_fp)
         {
-                //NDBG_PRINT("error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
+                NDBG_PRINT("error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
         ac *l_ac = new ac();

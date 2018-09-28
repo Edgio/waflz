@@ -4,8 +4,8 @@
 //:
 //: \file:    nms.h
 //: \details: TODO
-//: \author:  Robert J. Peters
-//: \date:    01/01/2014
+//: \author:  Reed P Morrison
+//: \date:    08/09/2018
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@
 #include <set>
 #include <netinet/in.h>
 #include <string.h>
+#include <string>
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
@@ -96,5 +97,13 @@ private:
         ipv4_mask_map_t *m_ipv4_mask_map;
         ipv6_mask_map_t *m_ipv6_mask_map;
 };
+//: ----------------------------------------------------------------------------
+//: ****************************************************************************
+//:                            U T I L I T I E S
+//: ****************************************************************************
+//: ----------------------------------------------------------------------------
+int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str);
+int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file);
+
 }
 #endif

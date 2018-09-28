@@ -1211,7 +1211,7 @@ GET_VAR(MATCHED_VARS_NAMES)
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details: REQUEST_URI_RAW
+//: \details: REQUEST_BODY
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
@@ -1229,6 +1229,47 @@ GET_VAR(REQUEST_BODY)
         l_data.m_key_len = sizeof("REQUEST_BODY") - 1;
         l_data.m_val = a_ctx->m_body_data;
         l_data.m_val_len = a_ctx->m_body_len;
+        ao_list.push_back(l_data);
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: REQBODY_ERROR
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+GET_VAR(REQBODY_ERROR)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // in map???
+        // -------------------------------------------------
+        cx_map_t::const_iterator i_tx = a_ctx->m_cx_tx_map.find("REQBODY_ERROR");
+        if(i_tx == a_ctx->m_cx_tx_map.end())
+        {
+                return WAFLZ_STATUS_OK;;
+        }
+        const std::string &l_key = i_tx->first;
+        const std::string &l_str = i_tx->second;
+        uint32_t l_len = sizeof("REQBODY_ERROR") - 1;
+        // -------------------------------------------------
+        // is count???
+        // -------------------------------------------------
+        if(a_var.is_count())
+        {
+                if(l_len > 0)
+                {
+                        ++ao_count;
+                }
+                return WAFLZ_STATUS_OK;
+        }
+        const_arg_t l_data;
+        l_data.m_key = l_key.c_str();
+        l_data.m_key_len = l_key.length();
+        l_data.m_val = l_str.c_str();
+        l_data.m_val_len = l_len;
         ao_list.push_back(l_data);
         return WAFLZ_STATUS_OK;
 }
@@ -1259,6 +1300,24 @@ GET_VAR(XML)
                 ao_list.push_back(l_data);
                 ao_count = 1;
                 return WAFLZ_STATUS_OK;
+        }
+        // Check for negated xml variable
+        // We only support yanking out the whole xml and not any specific var
+        // e.g !xml:/*
+        for(int32_t i_m = 0; i_m < a_var.match_size(); ++i_m)
+        {
+                // -----------------------------------------
+                // check match
+                // -----------------------------------------
+                const ::waflz_pb::variable_t_match_t &l_match = a_var.match(i_m);
+                if(l_match.is_negated() &&
+                   l_match.has_value())
+                {
+                        if(l_match.value() == "/*")
+                        {
+                                return WAFLZ_STATUS_OK;
+                        }
+                }
         }
         // -------------------------------------------------
         // TODO -not xmlns meta is unhandled here...
@@ -1413,7 +1472,7 @@ void init_var_cb_vector(void)
         // -------------------------------------------------
         // req body parse failure message
         // -------------------------------------------------
-        //INIT_GET_VAR(REQBODY_ERROR);
+        INIT_GET_VAR(REQBODY_ERROR);
         // -------------------------------------------------
         // mutipart/form-data variables...
         // -------------------------------------------------

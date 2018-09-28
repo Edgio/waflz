@@ -50,6 +50,7 @@ struct cx_case_i_comp
 typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <std::string, uint32_t> count_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
+typedef std::list<data_t> data_list_t;
 // ---------------------------------------------------------
 // *********************************************************
 // xml optimization
@@ -90,6 +91,10 @@ public:
         static get_rqst_data_size_cb_t s_get_rqst_req_id_cb;
         static get_rqst_data_size_cb_t s_get_cust_id_cb;
         // -------------------------------------------------
+        // static members
+        // -------------------------------------------------
+        static uint32_t s_body_arg_len_cap;
+        // -------------------------------------------------
         // public methods
         // -------------------------------------------------
         rqst_ctx(uint32_t a_body_len_max,
@@ -123,9 +128,11 @@ public:
         data_map_t m_header_map;
         const_arg_list_t m_header_list;
         const_arg_list_t m_cookie_list;
+        data_list_t m_content_type_list;
         const uint32_t m_body_len_max;
         char *m_body_data;
         uint32_t m_body_len;
+        uint32_t m_content_length;
         bool m_parse_json;
         std::string m_cookie_mutated;
         // -------------------------------------------------

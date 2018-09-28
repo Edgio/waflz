@@ -26,8 +26,10 @@
 #include "waflz/def.h"
 #include "waflz/config_parser.h"
 #include "waflz/engine.h"
+#include "support/string_util.h"
 #include "op/regex.h"
 #include "op/ac.h"
+#include "op/nms.h"
 #include "op/byte_range.h"
 #include "core/macro.h"
 #include "core/tx.h"
@@ -53,6 +55,15 @@ _compiled_config::~_compiled_config()
             ++i_p)
         {
                 if(*i_p) { delete *i_p; *i_p = NULL;}
+        }
+        // -------------------------------------------------
+        // destruct m_nms_list
+        // -------------------------------------------------
+        for(nms_list_t::iterator i_n = m_nms_list.begin();
+            i_n != m_nms_list.end();
+            ++i_n)
+        {
+                if(*i_n) { delete *i_n; *i_n = NULL;}
         }
         // -------------------------------------------------
         // destruct m_ac_list
@@ -83,7 +94,8 @@ engine::engine():
         m_macro(NULL),
         m_config_list(),
         m_compiled_config_map(),
-        m_ctype_parser_map()
+        m_ctype_parser_map(),
+        m_ruleset_dir()
 {
 }
 //: ----------------------------------------------------------------------------
@@ -159,6 +171,7 @@ int32_t engine::init(void)
         // -------------------------------------------------
         m_ctype_parser_map["application/x-www-form-urlencoded"] = PARSER_URL_ENCODED;
         m_ctype_parser_map["text/xml"]                          = PARSER_XML;
+        m_ctype_parser_map["application/xml"]                   = PARSER_XML;
         m_ctype_parser_map["application/json"]                  = PARSER_JSON;
         m_ctype_parser_map["multipart/form-data"]               = PARSER_MULTIPART;
         // -------------------------------------------------
@@ -409,7 +422,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
-                                                // TODO -log error reason???
+                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s", l_rx.c_str());
                                                 return WAFLZ_STATUS_ERROR;
                                         }
                                         ao_cx_cfg.m_regex_list.push_back(l_pcre);
@@ -430,6 +443,43 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 switch(l_op_t)
                                 {
                                 // -------------------------
+                                // IPMATCH
+                                // -------------------------
+                                case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCH:
+                                {
+                                        int32_t l_s;
+                                        nms *l_nms = NULL;
+                                        l_s = create_nms_from_str(&l_nms, l_rule->operator_().value());
+                                        if(l_s != WAFLZ_STATUS_OK)
+                                        {
+                                                WAFLZ_PERROR(m_err_msg, "Failed to create nms from str %s", l_rule->operator_().value().c_str());
+                                                return WAFLZ_STATUS_ERROR;
+                                        }
+                                        ao_cx_cfg.m_nms_list.push_back(l_nms);
+                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
+                                        break;
+                                }
+                                // -------------------------
+                                // PM FROM FILE
+                                // -------------------------
+                                case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHF:
+                                case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHFROMFILE:
+                                {
+                                        int32_t l_s;
+                                        nms *l_nms = NULL;
+                                        std::string l_f_path = m_ruleset_dir;
+                                        l_f_path.append(l_rule->operator_().value());
+                                        l_s = create_nms_from_file(&l_nms, l_f_path);
+                                        if(l_s != WAFLZ_STATUS_OK)
+                                        {
+                                                WAFLZ_PERROR(m_err_msg, "Failed to create nms from file %s", l_rule->operator_().value().c_str());
+                                                return WAFLZ_STATUS_ERROR;
+                                        }
+                                        ao_cx_cfg.m_nms_list.push_back(l_nms);
+                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
+                                        break;
+                                }
+                                // -------------------------
                                 // PM
                                 // -------------------------
                                 case ::waflz_pb::sec_rule_t_operator_t_type_t_PM:
@@ -439,7 +489,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         l_s = create_ac_from_str(&l_ac, l_rule->operator_().value());
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
-                                                // TODO -log error reason???
+                                                WAFLZ_PERROR(m_err_msg, "Failed to create ac from string %s", l_rule->operator_().value().c_str());
                                                 return WAFLZ_STATUS_ERROR;
                                         }
                                         ao_cx_cfg.m_ac_list.push_back(l_ac);
@@ -454,10 +504,12 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 {
                                         int32_t l_s;
                                         ac *l_ac = NULL;
-                                        l_s = create_ac_from_file(&l_ac, l_rule->operator_().value());
+                                        std::string l_f_path = m_ruleset_dir;
+                                        l_f_path.append(l_rule->operator_().value());
+                                        l_s = create_ac_from_file(&l_ac, l_f_path);
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
-                                                // TODO -log error reason???
+                                                WAFLZ_PERROR(m_err_msg, "Failed to create ac from file %s", l_rule->operator_().value().c_str());
                                                 return WAFLZ_STATUS_ERROR;
                                         }
                                         ao_cx_cfg.m_ac_list.push_back(l_ac);
@@ -487,7 +539,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
-                                                // TODO -log error reason???
+                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s", l_rx.c_str());
                                                 if(l_pcre) { delete l_pcre; l_pcre = NULL; }
                                                 return WAFLZ_STATUS_ERROR;
                                         }
@@ -507,7 +559,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
-                                                // TODO -log error reason???
+                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s", l_rx.c_str());
                                                 if(l_pcre) { delete l_pcre; l_pcre = NULL; }
                                                 return WAFLZ_STATUS_ERROR;
                                         }
@@ -525,7 +577,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         l_s = create_byte_range(&l_br, l_rule->operator_().value());
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
-                                                // TODO -log error reason???
+                                                WAFLZ_PERROR(m_err_msg, "Failed to create byte_range from %s", l_rule->operator_().value().c_str());
                                                 return WAFLZ_STATUS_ERROR;
                                         }
                                         ao_cx_cfg.m_byte_range_list.push_back(l_br);
@@ -594,12 +646,22 @@ int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
         waflz_pb::sec_config_t *l_cfg = new waflz_pb::sec_config_t();
         config_parser *l_parser = new config_parser();
         // -----------------------------------------
-        // hard coded to modsecurity for now
-        // later -use file ext to infer
-        // *.conf == modsecurity etc...
+        // default format is modsec
         // -----------------------------------------
+        config_parser::format_t l_format = config_parser::MODSECURITY;
+        // -----------------------------------------
+        // Get the file ext to decide format
+        // -----------------------------------------
+        if(strncmp(get_file_ext(a_include).c_str(), "json", sizeof("json")) == 0)
+        {
+                l_format = config_parser::JSON;
+        }
+        else if(strncmp(get_file_ext(a_include).c_str(), "pbuf", sizeof("pbuf")) == 0)
+        {
+                l_format = config_parser::PROTOBUF;
+        }
         int32_t l_s;
-        l_s = l_parser->parse_config(*l_cfg, config_parser::MODSECURITY, a_include);
+        l_s = l_parser->parse_config(*l_cfg, l_format, a_include);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_parser) { delete l_parser; l_parser = NULL;}

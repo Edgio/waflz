@@ -233,52 +233,6 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         return 0;
 }
 //: ----------------------------------------------------------------------------
-//: get_rqst_header_w_key_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_w_key_cb(const char **ao_val,
-                                        uint32_t &ao_val_len,
-                                        void *a_ctx,
-                                        const char *a_key,
-                                        uint32_t a_key_len)
-{
-        static char s_cl[16];
-#define _ELIF_HDR(_str) \
-        else if(strncasecmp(a_key, _str, a_key_len) == 0)
-        if(0) {}
-        _ELIF_HDR("User-Agent")
-        {
-                *ao_val = g_header_user_agent;
-                ao_val_len = strlen(g_header_user_agent);
-        }
-        _ELIF_HDR("Accept")
-        {
-                *ao_val = g_header_accept;
-                ao_val_len = strlen(g_header_accept);
-        }
-        _ELIF_HDR("Referer")
-        {
-                *ao_val = g_header_referer;
-                ao_val_len = strlen(g_header_referer);
-        }
-        _ELIF_HDR("Cookie")
-        {
-                *ao_val = g_header_cookie;
-                ao_val_len = strlen(g_header_cookie);
-        }
-        _ELIF_HDR("Content-Type")
-        {
-                *ao_val = g_header_content_type;
-                ao_val_len = strlen(g_header_content_type);
-        }
-        _ELIF_HDR("Content-Length")
-        {
-                snprintf(s_cl, 16, "%d", (int)strlen(g_body_str));
-                *ao_val = s_cl;
-                ao_val_len = strlen(s_cl);
-        }
-        return 0;
-}
-//: ----------------------------------------------------------------------------
 //: parse
 //: ----------------------------------------------------------------------------
 TEST_CASE( "test var", "[var]" ) {
@@ -295,7 +249,6 @@ TEST_CASE( "test var", "[var]" ) {
         ns_waflz::rqst_ctx::s_get_rqst_protocol_cb = get_rqst_protocol_cb;
         ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
         ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_header_w_key_cb = get_rqst_header_w_key_cb;
         ns_waflz::rqst_ctx::s_get_rqst_body_str_cb = get_rqst_body_str_cb;
         ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(1024, true);
         ns_waflz::pcre_list_t l_il_query;
@@ -1712,6 +1665,8 @@ TEST_CASE( "test var", "[var]" ) {
                 uint32_t i_idx = 0;
                 g_body_str = _RQST_BODY_XML;
                 g_header_content_type = _RQST_CONTENT_TYPE_XML;
+                l_rqst_ctx->m_content_type_list.clear();
+                l_rqst_ctx->init_phase_1(NULL, l_il_query, l_il_header, l_il_cookie);
                 l_rqst_ctx->init_phase_2(l_ctype_parser_map, NULL);
                 // -----------------------------------------
                 // get all
@@ -1761,6 +1716,62 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((strncmp(i_a->m_key, "/monkeys/mandrill", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "dooby", i_a->m_val_len) == 0));
+                                break;
+                        }
+                        default:
+                        {
+                                break;
+                        }
+                        }
+                }
+                // -----------------------------------------
+                // reset
+                // -----------------------------------------
+                g_body_str = _RQST_BODY_JSON;
+                g_header_content_type = _RQST_CONTENT_TYPE_JSON;
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_var) { delete l_var; l_var = NULL; }
+        }
+        // -------------------------------------------------
+        // REQBODY_ERROR
+        // -------------------------------------------------
+        SECTION("REQBODY_ERROR") {
+                ns_waflz::get_var_t l_cb = NULL;
+                l_cb = ns_waflz::get_var_cb(waflz_pb::variable_t_type_t_REQBODY_ERROR);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::const_arg_list_t l_al;
+                waflz_pb::variable_t *l_var = new waflz_pb::variable_t();
+                l_var->set_type(waflz_pb::variable_t_type_t_REQBODY_ERROR);
+                int32_t l_s;
+                uint32_t l_count = 0;
+                uint32_t i_idx = 0;
+                g_body_str = _RQST_BODY_JSON;
+                // Set incorrect type to generate parsing error
+                g_header_content_type = _RQST_CONTENT_TYPE_XML;
+                l_rqst_ctx->m_content_type_list.clear();
+                l_rqst_ctx->init_phase_1(NULL, l_il_query, l_il_header, l_il_cookie);
+                l_rqst_ctx->init_phase_2(l_ctype_parser_map, NULL);
+                // -----------------------------------------
+                // get all
+                // -----------------------------------------
+                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 1));
+                i_idx = 0;
+                for(ns_waflz::const_arg_list_t::iterator i_a = l_al.begin();
+                    i_a != l_al.end();
+                    ++i_a, ++i_idx)
+                {
+                        //NDBG_PRINT("%.*s: %.*s\n", i_a->m_key_len, i_a->m_key, i_a->m_val_len, i_a->m_val);
+                        switch(i_idx)
+                        {
+                        case 0:
+                        {
+                                REQUIRE((strncmp(i_a->m_key, "REQBODY_ERROR", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "1", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:

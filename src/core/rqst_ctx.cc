@@ -982,7 +982,9 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map,
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         //NDBG_PRINT("error m_body_parser->process_chunk()\n");
-                        return WAFLZ_STATUS_ERROR;
+                        // Set request body error var in tx map and return
+                        m_cx_tx_map["REQBODY_ERROR"] = "1";
+                        return WAFLZ_STATUS_OK;
                 }
                 l_rd_count_total += l_rd_count;
                 //NDBG_PRINT("read: %6d / %6d\n", (int)l_rd_count, l_rd_count_total);

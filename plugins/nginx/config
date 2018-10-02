@@ -1,3 +1,18 @@
-ngx_addon_name=ngx_http_waflz_module.c
-HTTP_MODULES="$HTTP_MODULES ngx_http_waflz_module.c"
-NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/ngx_http_waflz_module.c"
+ngx_module_type=HTTP_FILTER
+ngx_module_name=ngx_http_waflz_module
+ngx_module_srcs="ngx_addon_dir/src/ngx_http_waflz_module.c"
+
+# waflz includes
+WAFLZ_INC=../../include
+ngx_feature_path="$WAFLZ_INC"
+ngx_module_incs="$ngx_feature_path"
+#Dependency
+#ngx_module_deps="$"
+
+ngx_module_order="ngx_http_chunked_filter_module \
+                  ngx_http_v2_filter_module \
+                  ngx_http_range_header_filter_module \
+                  $ngx_module_name";
+. auto/module
+
+ngx_addon_name=$ngx_module_name

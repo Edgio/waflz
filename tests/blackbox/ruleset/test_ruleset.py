@@ -236,11 +236,11 @@ def test_OWASP_2_2_9_anomaly_low():
 # ------------------------------------------------------------------------------
 # owasp 3.0.2 anomaly
 # ------------------------------------------------------------------------------
-def test_OWASP_3_0_2_anomaly():
-   check_vectors('OWASP_3_0_2.anomaly.vectors.json')
+def test_OWASP_3_2_anomaly():
+   check_vectors('OWASP_3_2.anomaly.vectors.json')
 # ------------------------------------------------------------------------------
 # owasp 3.0.2 anomaly low inbound score
 # ------------------------------------------------------------------------------
-def test_OWASP_3_0_2_anomaly_low():
-   check_vectors('OWASP_3_0_2.anomaly_low.vectors.json')
+def test_OWASP_3_2_anomaly_low():
+   check_vectors('OWASP_3_2.anomaly_low.vectors.json')
 

@@ -88,7 +88,8 @@ profile::profile(engine &a_engine,
         m_resp_header_name(),
         m_action(waflz_pb::enforcement_type_t_NOP),
         m_leave_compiled_file(false),
-        m_owasp_ruleset_version(229)
+        m_owasp_ruleset_version(229),
+        m_paranoia_level(1)
 {
         m_pb = new waflz_pb::profile();
         m_acl = new acl(a_geoip2_mmdb);
@@ -251,6 +252,7 @@ int32_t profile::init(void)
         m_waf->set_id(m_id);
         m_waf->set_name(m_name);
         m_waf->set_owasp_ruleset_version(m_owasp_ruleset_version);
+        m_waf->set_paranoia_level(m_paranoia_level);
         // Json parser
         if(m_pb->general_settings().has_json_parser())
         {
@@ -461,12 +463,11 @@ int32_t profile::validate(void)
         // TODO not robust!!!
         // -------------------------------------------------
         if(l_pb.has_ruleset_id() &&
-           ((l_pb.ruleset_id() == "ECRS") ||
+           ((l_pb.ruleset_id() == "ECRS")||
             (l_pb.ruleset_id().find("OWASP-CRS-3.") != std::string::npos)))
         {
                 m_owasp_ruleset_version = 300;
         }
-        // set...
         m_id = m_pb->id();
         m_name = m_pb->name();
         // -------------------------------------------------
@@ -474,6 +475,11 @@ int32_t profile::validate(void)
         // -------------------------------------------------
         VERIFY_HAS(l_pb, general_settings);
         const ::waflz_pb::profile_general_settings_t& l_gs = l_pb.general_settings();
+        // set paranoia
+        if(l_gs.has_paranoia_level())
+        {
+                m_paranoia_level = l_gs.paranoia_level();
+        }
         VERIFY_HAS(l_gs, process_request_body);
         VERIFY_HAS(l_gs, xml_parser);
         VERIFY_HAS(l_gs, process_response_body);

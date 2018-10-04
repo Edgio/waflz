@@ -112,6 +112,7 @@ waf::waf(engine &a_engine):
         m_id("NA"),
         m_name("NA"),
         m_owasp_ruleset_version(0),
+        m_paranoia_level(1),
         m_no_log_matched(false),
         m_parse_json(false)
 {
@@ -2025,6 +2026,60 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         cx_map_t::const_iterator i_t;
         int32_t l_anomaly_score = -1;
         // -------------------------------------------------
+        // handle paranoia...
+        // Based on paranoia level different rules set
+        // different scores. The CRS uses the following vars
+        // tx.anomaly_score_pl1
+        // tx.anomaly_score_pl2
+        // tx.anomaly_score_pl3
+        // tx.anomaly_score_pl4
+        // -------------------------------------------------
+        // Here we emulate the blocking evaluation config
+        // 1. Check current paranoia level
+        // 2. Sum up all pl scores until current pl
+        // 3. Set the anomaly_score = sum of #2
+        // -------------------------------------------------
+        // Only calculate score if the rule is setting a var
+        // e.g setvar:'tx.anomaly_score_pl1=+%{tx.notice_anomaly_score}
+        // Or is a chained rule
+        if(get_owasp_ruleset_version() >= 300 &&
+           (l_action.setvar_size() > 0 ||
+            a_rule.chained_rule_size() > 0))
+        {
+                uint32_t l_cur_anomaly = 0;
+                uint32_t i_pl = 1;
+                do
+                {
+                        std::string l_ex_anomaly = "anomaly_score_pl" + to_string(i_pl);
+                        i_t = a_ctx.m_cx_tx_map.find(l_ex_anomaly);
+                        if(i_t == a_ctx.m_cx_tx_map.end())
+                        {
+                                ++i_pl;
+                                continue;
+                        }
+                        int32_t l_pl_score;
+                        char *l_end_ptr = NULL;
+                        l_pl_score = strntol(i_t->second.c_str(), i_t->second.length(), &l_end_ptr, 10);
+                        if((l_pl_score == LONG_MAX) ||
+                            (l_pl_score == LONG_MIN))
+                        {
+                                ++i_pl;
+                                continue;
+                        }
+                        if(l_end_ptr == i_t->second.c_str())
+                        {
+                                ++i_pl;
+                                continue;
+                        }
+                        l_cur_anomaly += l_pl_score;
+                        ++i_pl;
+                } while(m_paranoia_level >= i_pl);
+                if(l_cur_anomaly)
+                {
+                        a_ctx.m_cx_tx_map["anomaly_score"]  = to_string(l_cur_anomaly);
+                }
+        }
+        // -------------------------------------------------
         // get anomaly score
         // -------------------------------------------------
         i_t = a_ctx.m_cx_tx_map.find("anomaly_score");
@@ -2744,7 +2799,6 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx)
         // *********************************
         // ---------------------------------
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
-        l_event.set_rule_id(981176);
         const char l_msg_macro[] = "Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE}, XSS=%{TX.XSS_SCORE}): Last Matched Message: %{tx.msg}";
         std::string l_msg;
         macro *l_macro =  &(m_engine.get_macro());

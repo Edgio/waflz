@@ -2063,10 +2063,12 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
                         if((l_pl_score == LONG_MAX) ||
                             (l_pl_score == LONG_MIN))
                         {
+                                ++i_pl;
                                 continue;
                         }
                         if(l_end_ptr == i_t->second.c_str())
                         {
+                                ++i_pl;
                                 continue;
                         }
                         l_cur_anomaly += l_pl_score;

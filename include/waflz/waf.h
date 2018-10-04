@@ -103,8 +103,10 @@ public:
         void set_id(const std::string &a_id) { m_id = a_id; }
         void set_name(const std::string &a_name) { m_name = a_name; }
         void set_owasp_ruleset_version(uint32_t a_version) { m_owasp_ruleset_version = a_version; }
+        void set_paranoia_level(uint32_t a_paranoia_level) { m_paranoia_level = a_paranoia_level; }
         void set_parse_json( const bool &a_parse_json) { m_parse_json = a_parse_json; }
         uint32_t get_owasp_ruleset_version(void) { return m_owasp_ruleset_version; }
+        uint32_t get_paranoia_level(void) { return m_paranoia_level; }
         // -------------------------------------------------
         // public static methods
         // -------------------------------------------------
@@ -159,6 +161,7 @@ private:
         std::string m_id;
         std::string m_name;
         uint32_t m_owasp_ruleset_version;
+        uint32_t m_paranoia_level;
         bool m_no_log_matched;
         bool m_parse_json;
 #endif

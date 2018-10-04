@@ -129,6 +129,7 @@ private:
         uint16_t m_action;
         bool m_leave_compiled_file;
         uint32_t m_owasp_ruleset_version;
+        uint32_t m_paranoia_level;
         // -------------------------------------------------
         // class members
         // -------------------------------------------------

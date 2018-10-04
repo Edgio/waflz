@@ -112,6 +112,7 @@ waf::waf(engine &a_engine):
         m_id("NA"),
         m_name("NA"),
         m_owasp_ruleset_version(0),
+        m_paranoia_level(0),
         m_no_log_matched(false),
         m_parse_json(false)
 {
@@ -2024,6 +2025,20 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // -------------------------------------------------
         cx_map_t::const_iterator i_t;
         int32_t l_anomaly_score = -1;
+        // -------------------------------------------------
+        // handle paranoia...
+        // -------------------------------------------------
+        if(m_paranoia_level > 0 &&
+           get_owasp_ruleset_version() >= 300)
+        {
+                std::string l_ex_anomaly = "anomaly_score_pl" + to_string(m_paranoia_level);
+                i_t = a_ctx.m_cx_tx_map.find(l_ex_anomaly);
+                if(i_t == a_ctx.m_cx_tx_map.end())
+                {
+                        return WAFLZ_STATUS_OK;
+                }
+                a_ctx.m_cx_tx_map["anomaly_score"] = i_t->second;
+        }
         // -------------------------------------------------
         // get anomaly score
         // -------------------------------------------------

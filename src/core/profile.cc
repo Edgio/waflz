@@ -89,7 +89,7 @@ profile::profile(engine &a_engine,
         m_action(waflz_pb::enforcement_type_t_NOP),
         m_leave_compiled_file(false),
         m_owasp_ruleset_version(229),
-        m_paranoia_level(0)
+        m_paranoia_level(1)
 {
         m_pb = new waflz_pb::profile();
         m_acl = new acl(a_geoip2_mmdb);
@@ -463,7 +463,8 @@ int32_t profile::validate(void)
         // TODO not robust!!!
         // -------------------------------------------------
         if(l_pb.has_ruleset_id() &&
-           ((l_pb.ruleset_id() == "ECRS")))
+           ((l_pb.ruleset_id() == "ECRS")||
+            (l_pb.ruleset_id().find("OWASP-CRS-3.") != std::string::npos)))
         {
                 m_owasp_ruleset_version = 300;
         }

@@ -532,19 +532,6 @@ int32_t profile::validate(void)
         VERIFY_HAS(l_ax, inbound_threshold);
         VERIFY_HAS(l_ax, outbound_threshold);
         // -------------------------------------------------
-        // disabled policies
-        // -------------------------------------------------
-        if(l_pb.disabled_policies_size())
-        {
-                for(int32_t i_p = 0;
-                    i_p < l_pb.disabled_policies_size();
-                    ++i_p)
-                {
-                        const waflz_pb::profile_disabled_policy_t& l_r = l_pb.disabled_policies(i_p);
-                        VERIFY_HAS(l_r, policy_id);
-                }
-        }
-        // -------------------------------------------------
         // disabled rules
         // -------------------------------------------------
         if(l_pb.disabled_rules_size())

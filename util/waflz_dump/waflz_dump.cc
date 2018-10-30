@@ -252,7 +252,7 @@ int main(int argc, char** argv)
         l_status = l_waf->init(l_input_format, l_input_file);
         if(l_status != WAFLZ_STATUS_OK)
         {
-                printf("Error: performing init_with_file: %s\n", l_input_file.c_str());
+                printf("Error: performing init_with_file: %s reason %s\n", l_input_file.c_str(), l_waf->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         //uint64_t l_start_time_ms = get_time_ms();

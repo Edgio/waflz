@@ -67,6 +67,11 @@ static waflz_pb::profile *init_std_profile_pb(void)
         l_gx->add_allowed_http_methods("GET");
         l_gx->add_allowed_request_content_types("html");
         // -----------------------------------------
+        // add policies
+        // -----------------------------------------
+        l_pb->add_policies("modsecurity_crs_21_protocol_anomalies.conf");
+        l_pb->add_policies("modsecurity_crs_49_inbound_blocking.conf");
+        // -----------------------------------------
         // anomaly settings -required fields
         // -----------------------------------------
         ::waflz_pb::profile_general_settings_t_anomaly_settings_t* l_gx_anomaly = NULL;

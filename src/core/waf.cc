@@ -1224,31 +1224,6 @@ done:
                         }
                 }
         }
-        // -------------------------------------------------
-        // exclude policies
-        // -------------------------------------------------
-        else
-        {
-                policy_t l_disabled_policies;
-                for(int32_t i_p = 0; i_p < l_prof_pb.disabled_policies_size(); ++i_p)
-                {
-                        l_disabled_policies.insert(l_prof_pb.disabled_policies(i_p).policy_id());
-                }
-                for(int32_t i_f = 0; i_f < l_num_files; ++i_f)
-                {
-                        if(l_disabled_policies.find(l_conf_list[i_f]->d_name) == l_disabled_policies.end())
-                        {
-                                std::string &l_inc = *(l_conf_pb.add_directive()->mutable_include());
-                                l_inc.append(l_ruleset_dir);
-                                l_inc.append(l_conf_list[i_f]->d_name);
-                        }
-                        if(l_conf_list[i_f])
-                        {
-                                free(l_conf_list[i_f]);
-                                l_conf_list[i_f] = NULL;
-                        }
-                }
-        }
         if(l_conf_list)
         {
                 free(l_conf_list);

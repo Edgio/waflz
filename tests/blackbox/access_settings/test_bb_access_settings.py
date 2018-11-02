@@ -232,6 +232,9 @@ def test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings():
     l_r = requests.post(l_url,
                             headers=l_headers,
                             data=json.dumps(l_conf))
+    # ------------------------------------------------------
+    # test empty method and content type list is allowed
+    # ------------------------------------------------------
     assert l_r.status_code == 200
     # ------------------------------------------------------
     # test method and content is bypassed
@@ -242,6 +245,5 @@ def test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings():
     l_r = requests.put(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    print l_r_json
     assert len(l_r_json) == 0
     teardown_func()

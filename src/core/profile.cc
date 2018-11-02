@@ -81,6 +81,7 @@ profile::profile(engine &a_engine,
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
+        m_geoip2_mmdb(a_geoip2_mmdb),
         m_acl(NULL),
         m_waf(NULL),
         m_id(),
@@ -142,13 +143,19 @@ int32_t profile::load_config(const char *a_buf,
                 delete m_pb;
                 m_pb = NULL;
         }
+        if(m_acl)
+        {
+                delete m_acl;
+                m_acl = NULL;
+        }
+        m_acl = new acl(m_geoip2_mmdb);
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------
         m_pb = new waflz_pb::profile();
         int32_t l_s;
         l_s = update_from_json(*m_pb, a_buf, a_buf_len);
-        //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
+        //NDBG_PRINT("whole config %s", m_pb->DebugString().c_str());
         if(l_s != JSPB_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "parsing json. reason: %s", get_err_msg());
@@ -491,21 +498,6 @@ int32_t profile::validate(void)
         VERIFY_HAS(l_gs, total_arg_length);
         VERIFY_HAS(l_gs, max_file_size);
         VERIFY_HAS(l_gs, combined_file_sizes);
-        if(!l_gs.allowed_http_methods_size())
-        {
-                WAFLZ_PERROR(m_err_msg, "missing %s field", "allowed_http_methods");
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(!l_gs.allowed_request_content_types_size())
-        {
-                WAFLZ_PERROR(m_err_msg, "missing %s field", "allowed_request_content_types");
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(!l_gs.allowed_http_methods_size())
-        {
-                WAFLZ_PERROR(m_err_msg, "missing %s field", "allowed_http_methods");
-                return WAFLZ_STATUS_ERROR;
-        }
         // set...
         if(l_gs.has_response_header_name())
         {

@@ -203,4 +203,45 @@ def test_bb_modsec_ec_access_settings_09_block_disallowed_http_method():
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
     assert 'Method is not allowed by policy' in l_r_json['rule_msg']
+# ------------------------------------------------------------------------------
+# test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings
+# ------------------------------------------------------------------------------
+def test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings():
+    l_uri = G_TEST_HOST
+    # ------------------------------------------------------
+    # update template
+    # ------------------------------------------------------
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_conf = {}
+    l_conf_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_access_settings.waf.prof.json'))
+    try:
+        with open(l_conf_path) as l_f:
+            l_conf = json.load(l_f)
+    except Exception as l_e:
+        print 'error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
+            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message)
+        assert False
+    l_conf['general_settings']['allowed_request_content_types'] = []
+    l_conf['general_settings']['allowed_http_methods'] = []
+    l_url = '%supdate_profile'%(G_TEST_HOST)
+    # ------------------------------------------------------
+    # urlopen (POST)
+    # ------------------------------------------------------
+    print l_url
+    l_headers = {"Content-Type": "application/json"}
+    l_r = requests.post(l_url,
+                            headers=l_headers,
+                            data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    # ------------------------------------------------------
+    # test method and content is bypassed
+    # ------------------------------------------------------
+    l_headers = {"host" : "myhost.com",
+                 "Content-Type" : "select * from banana"
+                }
+    l_r = requests.put(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    print l_r_json
+    assert len(l_r_json) == 0
     teardown_func()

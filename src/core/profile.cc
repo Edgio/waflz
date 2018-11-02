@@ -81,6 +81,7 @@ profile::profile(engine &a_engine,
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
+        m_geoip2_mmdb(a_geoip2_mmdb),
         m_acl(NULL),
         m_waf(NULL),
         m_id(),
@@ -126,7 +127,6 @@ void profile::set_pb(waflz_pb::profile *a_pb)
 //: ----------------------------------------------------------------------------
 int32_t profile::load_config(const char *a_buf,
                              uint32_t a_buf_len,
-                             geoip2_mmdb &a_geoip2_mmdb,
                              bool a_leave_compiled_file)
 {
         if(a_buf_len > CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE)
@@ -148,7 +148,7 @@ int32_t profile::load_config(const char *a_buf,
                 delete m_acl;
                 m_acl = NULL;
         }
-        m_acl = new acl(a_geoip2_mmdb);
+        m_acl = new acl(m_geoip2_mmdb);
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------

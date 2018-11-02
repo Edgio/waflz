@@ -105,8 +105,7 @@ class waflz_update_profile_h: public ns_is2::default_rqst_h
 public:
         waflz_update_profile_h():
                 default_rqst_h(),
-                m_profile(NULL),
-                m_geoip2_mmdb(NULL)
+                m_profile(NULL)
         {}
         ~waflz_update_profile_h()
         {}
@@ -139,7 +138,7 @@ ns_is2::h_resp_t waflz_update_profile_h::do_post(ns_is2::session &a_session,
         // TODO get status
         //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
         int32_t l_s;
-        l_s = m_profile->load_config(l_buf, l_buf_len, *m_geoip2_mmdb, true);
+        l_s = m_profile->load_config(l_buf, l_buf_len, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 TRC_ERROR("performing m_profile->load_config\n");
@@ -1743,9 +1742,8 @@ int main(int argc, char** argv)
                 l_waflz_h->m_profile = l_profile;
                 l_waflz_update_profile_h = new waflz_update_profile_h();
                 l_waflz_update_profile_h->m_profile = l_profile;
-                l_waflz_update_profile_h->m_geoip2_mmdb = l_geoip2_mmdb;
                 //NDBG_PRINT("load profile: %s\n", l_profile_file.c_str());
-                l_s = l_profile->load_config(l_buf, l_buf_len, *l_geoip2_mmdb, true);
+                l_s = l_profile->load_config(l_buf, l_buf_len, true);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config: %s. reason: %s\n",

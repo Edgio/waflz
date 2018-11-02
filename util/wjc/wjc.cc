@@ -325,7 +325,6 @@ int main(int argc, char** argv)
                 //NDBG_PRINT("Validate\n");
                 l_s = l_profile->load_config(l_config_buf,
                                              l_config_buf_len,
-                                             *l_geoip2_mmdb,
                                              (g_cleanup_tmp_files == 0));
                 if(l_s != WAFLZ_STATUS_OK)
                 {

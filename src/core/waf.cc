@@ -902,11 +902,6 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         // allowed http methods
         // -------------------------------------------------
         std::string l_alw_mth;
-        if(!l_gs.allowed_http_methods_size())
-        {
-                WAFLZ_PERROR(m_err_msg, "No allowed http methods provided.  Would block all traffic.  Not applying.");
-                return WAFLZ_STATUS_ERROR;
-        }
         for(int32_t i_ahm = 0; i_ahm < l_gs.allowed_http_methods_size(); ++i_ahm)
         {
                 // for each allowed http method
@@ -921,11 +916,6 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         // -------------------------------------------------
         // allowed_request_content_types
         // -------------------------------------------------
-        if(!l_gs.allowed_request_content_types_size())
-        {
-                WAFLZ_PERROR(m_err_msg, "No allowed http request content-types provided.  Could block all traffic.  Not applying.");
-                return WAFLZ_STATUS_ERROR;
-        }
         std::string l_alw_rct;
         for(int32_t i_arct = 0; i_arct < l_gs.allowed_request_content_types_size(); ++i_arct)
         {

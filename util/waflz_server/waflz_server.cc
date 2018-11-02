@@ -113,6 +113,7 @@ public:
                                  ns_is2::rqst &a_rqst,
                                  const ns_is2::url_pmap_t &a_url_pmap);
         ns_waflz::profile *m_profile;
+        ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
 };
 //: ----------------------------------------------------------------------------
 //: \details: TODO

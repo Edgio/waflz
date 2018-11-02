@@ -115,6 +115,7 @@ private:
         waflz_pb::profile *m_pb;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
+        geoip2_mmdb &m_geoip2_mmdb;
         // -------------------------------------------------
         // engines...
         // -------------------------------------------------

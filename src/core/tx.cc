@@ -252,8 +252,7 @@ TX(LOWERCASE)
         // -------------------------------------------------
         char *l_buf = (char *)malloc(sizeof(char)*a_len + 1);
         l_buf[a_len] = '\0';
-        ao_len = a_len;
-        for(uint32_t i_idx = 0; i_idx < ao_len; ++i_idx)
+        for(uint32_t i_idx = 0; i_idx < a_len; ++i_idx)
         {
                 l_buf[i_idx] = tolower((int)a_buf[i_idx]);
         }

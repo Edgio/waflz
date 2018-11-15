@@ -1772,6 +1772,7 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((strncmp(i_a->m_key, "REQBODY_ERROR", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "1", i_a->m_val_len) == 0));
+                                REQUIRE(i_a->m_val_len == 1);
                                 break;
                         }
                         default:

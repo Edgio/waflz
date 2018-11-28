@@ -263,8 +263,6 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
 		int32_t l_s;
 		l_s = l_ix->init();
 		REQUIRE((l_s == WAFLZ_STATUS_OK));
-		l_s = l_ix->init_post_fork();
-		REQUIRE((l_s == WAFLZ_STATUS_OK));
                 int l_fd = open((l_conf_dir + "DEADDEAD-1001.waf.json").c_str(), O_RDONLY);
                 REQUIRE((l_fd != -1));
                 struct stat l_stat;
@@ -288,8 +286,6 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
 		int32_t l_s;
 		l_s = l_ix->init();
 		REQUIRE((l_s == WAFLZ_STATUS_OK));
-		l_s = l_ix->init_post_fork();
-		REQUIRE((l_s == WAFLZ_STATUS_OK));
                 int l_fd = open((l_conf_dir + "DEADDEAD-1002.waf.json").c_str(), O_RDONLY);
                 REQUIRE((l_fd != -1));
                 struct stat l_stat;
@@ -312,8 +308,6 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
 		REQUIRE((l_ix != NULL));
 		int32_t l_s;
 		l_s = l_ix->init();
-		REQUIRE((l_s == WAFLZ_STATUS_OK));
-		l_s = l_ix->init_post_fork();
 		REQUIRE((l_s == WAFLZ_STATUS_OK));
                 int l_fd = open((l_conf_dir + "DEADDEAD-1003.waf.json").c_str(), O_RDONLY);
                 REQUIRE((l_fd != -1));
@@ -365,8 +359,6 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
 		REQUIRE((l_ix != NULL));
 		int32_t l_s;
 		l_s = l_ix->init();
-		REQUIRE((l_s == WAFLZ_STATUS_OK));
-		l_s = l_ix->init_post_fork();
 		REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_ix->finalize();
                 l_fd = open((l_conf_dir + "DEADDEAD-1001.waf.json").c_str(), O_RDONLY);
@@ -448,8 +440,6 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
 		int32_t l_s;
 		l_s = l_ix->init();
 		REQUIRE((l_s == WAFLZ_STATUS_OK));
-		l_s = l_ix->init_post_fork();
-		REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_ix->finalize();
                 l_fd = open((l_conf_dir + "DEADDEAD-1002.waf.json").c_str(), O_RDONLY);
                 REQUIRE((l_fd != -1));
@@ -529,8 +519,6 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
 		REQUIRE((l_ix != NULL));
 		int32_t l_s;
 		l_s = l_ix->init();
-		REQUIRE((l_s == WAFLZ_STATUS_OK));
-		l_s = l_ix->init_post_fork();
 		REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_ix->finalize();
                 l_fd = open((l_conf_dir + "DEADDEAD-1003.waf.json").c_str(), O_RDONLY);

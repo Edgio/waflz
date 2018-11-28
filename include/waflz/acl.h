@@ -57,7 +57,7 @@ public:
         acl(geoip2_mmdb &a_geoip2_mmdb);
         ~acl();
         int32_t compile();
-        int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx);
+        int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t process_whitelist(bool &ao_match, rqst_ctx &a_ctx);
         int32_t process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         int32_t process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx);

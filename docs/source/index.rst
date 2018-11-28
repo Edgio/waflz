@@ -14,6 +14,7 @@
    :caption: Contents:
    
    overview
+   dedication
    building
    capabilities
    profiles

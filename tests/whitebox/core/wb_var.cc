@@ -250,10 +250,7 @@ TEST_CASE( "test var", "[var]" ) {
         ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
         ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
         ns_waflz::rqst_ctx::s_get_rqst_body_str_cb = get_rqst_body_str_cb;
-        ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(1024, true);
-        ns_waflz::pcre_list_t l_il_query;
-        ns_waflz::pcre_list_t l_il_header;
-        ns_waflz::pcre_list_t l_il_cookie;
+        ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true);
         // -------------------------------------------------
         // *************************************************
         //         Content-Type --> parser map
@@ -265,8 +262,8 @@ TEST_CASE( "test var", "[var]" ) {
         l_ctype_parser_map["application/xml"]                   = ns_waflz::PARSER_XML;
         l_ctype_parser_map["application/json"]                  = ns_waflz::PARSER_JSON;
         l_ctype_parser_map["multipart/form-data"]               = ns_waflz::PARSER_MULTIPART;
-        l_rqst_ctx->init_phase_1(NULL, l_il_query, l_il_header, l_il_cookie);
-        l_rqst_ctx->init_phase_2(l_ctype_parser_map, NULL);
+        l_rqst_ctx->init_phase_1();
+        l_rqst_ctx->init_phase_2(l_ctype_parser_map);
         // -------------------------------------------------
         // ARGS
         // -------------------------------------------------
@@ -1665,9 +1662,16 @@ TEST_CASE( "test var", "[var]" ) {
                 uint32_t i_idx = 0;
                 g_body_str = _RQST_BODY_XML;
                 g_header_content_type = _RQST_CONTENT_TYPE_XML;
+                // make new..
+                if(l_rqst_ctx)
+                {
+                        delete l_rqst_ctx;
+                        l_rqst_ctx = NULL;
+                        l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true);
+                }
                 l_rqst_ctx->m_content_type_list.clear();
-                l_rqst_ctx->init_phase_1(NULL, l_il_query, l_il_header, l_il_cookie);
-                l_rqst_ctx->init_phase_2(l_ctype_parser_map, NULL);
+                l_rqst_ctx->init_phase_1();
+                l_rqst_ctx->init_phase_2(l_ctype_parser_map);
                 // -----------------------------------------
                 // get all
                 // -----------------------------------------
@@ -1750,9 +1754,16 @@ TEST_CASE( "test var", "[var]" ) {
                 g_body_str = _RQST_BODY_JSON;
                 // Set incorrect type to generate parsing error
                 g_header_content_type = _RQST_CONTENT_TYPE_XML;
+                // make new
+                if(l_rqst_ctx)
+                {
+                        delete l_rqst_ctx;
+                        l_rqst_ctx = NULL;
+                        l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true);
+                }
                 l_rqst_ctx->m_content_type_list.clear();
-                l_rqst_ctx->init_phase_1(NULL, l_il_query, l_il_header, l_il_cookie);
-                l_rqst_ctx->init_phase_2(l_ctype_parser_map, NULL);
+                l_rqst_ctx->init_phase_1();
+                l_rqst_ctx->init_phase_2(l_ctype_parser_map);
                 // -----------------------------------------
                 // get all
                 // -----------------------------------------

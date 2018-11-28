@@ -35,6 +35,7 @@ namespace waflz_pb {
         class enforcement;
         class instance;
         class profile;
+        class event;
 }
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
@@ -43,6 +44,7 @@ namespace ns_waflz {
 class profile;
 class geoip2_mmdb;
 class engine;
+class rqst_ctx;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
@@ -59,40 +61,21 @@ public:
         // -------------------------------------------------
         instance(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
         ~instance();
-        //: ------------------------------------------------
-        //:               G E T T E R S
-        //: ------------------------------------------------
-        //: ------------------------------------------------
-        //: \brief   get error message
-        //: \details Get last error message string
-        //: \return  last error message (in buffer)
-        //: ------------------------------------------------
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::instance *get_pb(void) { return m_pb; }
         const std::string &get_id(void) { return m_id; }
         const std::string &get_name(void) { return m_name; }
         const std::string &get_customer_id(void) { return m_customer_id; }
-        //: ------------------------------------------------
-        //: \brief   get the audit settings values
-        //: \details The returned pointer is only valid as long as waf_config
-        //:          object is alive
-        //: \return  The class representing audit settings on success
-        //: ------------------------------------------------
-        inline profile* get_audit_profile() { return m_profile_audit; }
-        //: ------------------------------------------------
-        //: \brief   get the prod settings values
-        //: \details The returned pointer is only valid as long as waf_config
-        //:          object is alive
-        //: \return  The class representing prod settings on success
-        //:          NULL is compiler hasn't been validated yet
-        //: ------------------------------------------------
-        inline profile* get_prod_profile() { return m_profile_prod; }
         enforcement_list_t &get_mutable_prod_enfx_list(void);
         int32_t load_config(const char *a_buf,
                             uint32_t a_buf_len,
                             bool a_leave_compiled_file = false);
         int32_t load_config(void *a_js,
                             bool a_leave_compiled_file = false);
+        int32_t process(waflz_pb::event **ao_audit_event,
+                        waflz_pb::event **ao_prod_event,
+                        void *a_ctx,
+                        rqst_ctx **ao_rqst_ctx);
 private:
         // -------------------------------------------------
         // private methods
@@ -102,6 +85,7 @@ private:
         instance(const instance &);
         instance& operator=(const instance &);
         int32_t validate(void);
+        void set_event_properties(waflz_pb::event &ao_event, profile &a_profile);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

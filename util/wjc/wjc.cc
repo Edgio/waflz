@@ -117,7 +117,7 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  -p, --profile      WAF profile\n");
         fprintf(a_stream, "\n");
         fprintf(a_stream, "example:\n");
-        fprintf(a_stream, "         wjc --instance=0050-1001.waf.json\n");
+        fprintf(a_stream, "         wjc --instance=waf_instance.waf.json\n");
         fprintf(a_stream, "\n");
         exit(exit_code);
 }

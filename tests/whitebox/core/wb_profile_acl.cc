@@ -311,8 +311,6 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 ns_waflz::engine *l_engine = new ns_waflz::engine();
                 l_s = l_engine->init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_engine->init_post_fork();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
                 ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
                 waflz_pb::profile *l_pb = init_std_profile_pb();
                 // *****************************************
@@ -416,10 +414,6 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
-                // -----------------------------------------
-                // finalize
-                // -----------------------------------------
-                l_engine->finalize();
                 // -----------------------------------------
                 // cb
                 // -----------------------------------------

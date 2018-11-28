@@ -69,9 +69,13 @@ typedef int32_t (*get_rqst_data_cb_t)(const char **, uint32_t &, void *);
 typedef int32_t (*get_rqst_data_w_key_cb_t)(const char **, uint32_t &, void *, const char *, uint32_t);
 typedef int32_t (*get_rqst_kv_w_idx_cb_t)(const char **, uint32_t &, const char **, uint32_t &, void *, uint32_t);
 typedef int32_t (*get_rqst_body_data_cb_t)(char *, uint32_t &, bool &, void *, uint32_t);
-typedef struct {
+typedef struct _data {
         const char *m_data;
         uint32_t m_len;
+        _data():
+                m_data(NULL),
+                m_len(0)
+        {}
 } data_t;
 typedef std::list <data_t> data_list_t;
 struct data_case_i_comp

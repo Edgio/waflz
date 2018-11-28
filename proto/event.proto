@@ -1,3 +1,4 @@
+syntax = "proto2";
 package waflz_pb;
 import "enforcement.proto";
 import "request_info.proto";

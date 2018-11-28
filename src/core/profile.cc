@@ -35,12 +35,14 @@
 #include "support/string_util.h"
 #include "support/time_util.h"
 #include "waflz/engine.h"
+#include "op/regex.h"
 #include "op/nms.h"
 #include "cityhash/city.h"
 #include "waflz/def.h"
 #include "waflz/profile.h"
 #include "waflz/acl.h"
 #include "waflz/waf.h"
+#include "waflz/rqst_ctx.h"
 #include "waflz/config_parser.h"
 #include <string.h>
 #include <errno.h>
@@ -75,6 +77,24 @@ std::string profile::s_geoip2_isp_db;
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+static void clear_ignore_list(pcre_list_t &a_pcre_list)
+{
+        for(pcre_list_t::iterator i_r = a_pcre_list.begin();
+            i_r != a_pcre_list.end();
+            ++i_r)
+        {
+                if(*i_r)
+                {
+                        delete *i_r;
+                        *i_r = NULL;
+                }
+        }
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 profile::profile(engine &a_engine,
                  geoip2_mmdb &a_geoip2_mmdb):
         m_init(false),
@@ -90,7 +110,10 @@ profile::profile(engine &a_engine,
         m_action(waflz_pb::enforcement_type_t_NOP),
         m_leave_compiled_file(false),
         m_owasp_ruleset_version(229),
-        m_paranoia_level(1)
+        m_paranoia_level(1),
+        m_il_query(),
+        m_il_header(),
+        m_il_cookie()
 {
         m_pb = new waflz_pb::profile();
         m_acl = new acl(a_geoip2_mmdb);
@@ -105,6 +128,9 @@ profile::~profile()
         if(m_pb) { delete m_pb; m_pb = NULL; }
         if(m_acl) { delete m_acl; m_acl = NULL; }
         if(m_waf) { delete m_waf; m_waf = NULL; }
+        clear_ignore_list(m_il_query);
+        clear_ignore_list(m_il_header);
+        clear_ignore_list(m_il_cookie);
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -229,6 +255,34 @@ void set_acl_wl_bl(::waflz_pb::acl_lists_t *ao_list,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+int32_t profile::regex_list_add(const std::string &a_regex,
+                                pcre_list_t &a_pcre_list)
+{
+        int32_t l_s;
+        regex *l_regex = new regex();
+        l_s = l_regex->init(a_regex.c_str(), a_regex.length());
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                const char *l_err_ptr;
+                int l_err_off;
+                l_regex->get_err_info(&l_err_ptr, l_err_off);
+                delete l_regex;
+                l_regex = NULL;
+                //WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in access_settings ignore list. Reason: %s -offset: %d\n",
+                //            a_regex.c_str(),
+                //            l_err_ptr,
+                //            l_err_off);
+                return WAFLZ_STATUS_ERROR;
+        }
+        // add to map
+        a_pcre_list.push_back(l_regex);
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 int32_t profile::init(void)
 {
         if(m_init)
@@ -290,7 +344,7 @@ int32_t profile::init(void)
                     ++i_q)
                 {
                         std::string l_query_arg = l_as.ignore_query_args(i_q);
-                        l_s = m_waf->regex_list_add(l_query_arg, m_waf->m_il_query);
+                        l_s = regex_list_add(l_query_arg, m_il_query);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
@@ -307,7 +361,7 @@ int32_t profile::init(void)
                     ++i_h)
                 {
                         std::string l_header = l_as.ignore_header(i_h);
-                        l_s = m_waf->regex_list_add(l_header, m_waf->m_il_header);
+                        l_s = regex_list_add(l_header, m_il_header);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
@@ -324,7 +378,7 @@ int32_t profile::init(void)
                     ++i_c)
                 {
                         std::string l_cookie = l_as.ignore_cookie(i_c);
-                        l_s = m_waf->regex_list_add(l_cookie, m_waf->m_il_cookie);
+                        l_s = regex_list_add(l_cookie, m_il_cookie);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
@@ -564,7 +618,8 @@ int32_t profile::validate(void)
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 int32_t profile::process(waflz_pb::event **ao_event,
-                         void *a_ctx)
+                         void *a_ctx,
+                         rqst_ctx **ao_rqst_ctx)
 {
         if(!ao_event)
         {
@@ -573,16 +628,47 @@ int32_t profile::process(waflz_pb::event **ao_event,
         *ao_event = NULL;
         int32_t l_s;
         // -------------------------------------------------
-        // *************************************************
-        //            A C L   W H I T E L I S T
-        // *************************************************
+        // create new if null
+        // -------------------------------------------------
+        rqst_ctx *l_rqst_ctx = NULL;
+        if(ao_rqst_ctx &&
+           *ao_rqst_ctx)
+        {
+                l_rqst_ctx = *ao_rqst_ctx;
+        }
+        if(!l_rqst_ctx)
+        {
+                uint32_t l_body_size_max = DEFAULT_BODY_SIZE_MAX;
+                if(m_waf->get_request_body_in_memory_limit() > 0)
+                {
+                        l_body_size_max = m_waf->get_request_body_in_memory_limit();
+                }
+                l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
+                if(ao_rqst_ctx)
+                {
+                        *ao_rqst_ctx = l_rqst_ctx;
+                }
+        }
+        // -------------------------------------------------
+        // run phase 1 init
+        // -------------------------------------------------
+        l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO -log error???
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // acl
         // -------------------------------------------------
         bool l_whitelist = false;
         waflz_pb::event *l_event = NULL;
-        l_s = m_acl->process(&l_event, l_whitelist, a_ctx);
+        l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO log error reason???
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -590,51 +676,42 @@ int32_t profile::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         if(l_whitelist)
         {
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_OK;
         }
-        // -------------------------------------------------
-        // *************************************************
-        //            A C L   B L A C K L I S T
-        // *************************************************
-        // -------------------------------------------------
-        if(l_event)
+        else if(l_event)
         {
-                // add rqst info
-                l_s = waf::append_rqst_info(*l_event, a_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // TODO log error reason???
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // profile info
-                l_event->set_waf_profile_id(m_pb->id());
-                l_event->set_waf_profile_name(m_pb->name());
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
+                goto done;
         }
         // -------------------------------------------------
-        //
+        // process waf...
         // -------------------------------------------------
-        l_s = m_waf->process(&l_event, a_ctx);
+        l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO log error reason???
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
+done:
+        // -------------------------------------------------
+        // done...
+        // -------------------------------------------------
         if(l_event)
         {
-                // add rqst info
-                l_s = waf::append_rqst_info(*l_event, a_ctx);
+                l_s = l_rqst_ctx->append_rqst_info(*l_event);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???
+                        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_event->set_rule_intercept_status(403);
+                l_event->set_waf_profile_id(m_pb->id());
+                l_event->set_waf_profile_name(m_pb->name());
                 *ao_event = l_event;
-                //NDBG_PRINT("event details %s\n", l_event->DebugString().c_str());
-                return WAFLZ_STATUS_OK;
         }
+        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
 }

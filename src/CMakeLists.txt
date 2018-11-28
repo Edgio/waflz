@@ -108,7 +108,6 @@ SET(SRCS
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
     ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
-
     # --------------------------------------------
     # cityhash
     # --------------------------------------------
@@ -130,6 +129,7 @@ SET(SRCS
     support/string_util.cc
     support/trace_internal.cc
     support/ndebug.cc
+    support/base64.cc
     # --------------------------------------------
     # libinjection
     # --------------------------------------------
@@ -162,6 +162,7 @@ SET(SRCS
     core/tx.cc
     core/op.cc
     core/macro.cc
+    core/render.cc
     # --------------------------------------------
     # parsers
     # --------------------------------------------

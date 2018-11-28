@@ -28,7 +28,7 @@
 #include <waflz/def.h>
 #include <waflz/arg.h>
 #include <waflz/parser.h>
-#include <waflz/waf.h>
+#include <waflz/profile.h>
 #include <list>
 #include <map>
 #include <strings.h>
@@ -79,7 +79,6 @@ public:
         static get_rqst_data_cb_t s_get_rqst_path_cb;
         static get_rqst_data_cb_t s_get_rqst_query_str_cb;
         static get_rqst_data_size_cb_t s_get_rqst_header_size_cb;
-        static get_rqst_data_w_key_cb_t s_get_rqst_header_w_key_cb;
         static get_rqst_kv_w_idx_cb_t s_get_rqst_header_w_idx_cb;
         static get_rqst_data_cb_t s_get_rqst_id_cb;
         static get_rqst_body_data_cb_t s_get_rqst_body_str_cb;
@@ -97,15 +96,15 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        rqst_ctx(uint32_t a_body_len_max,
+        rqst_ctx(void *a_ctx,
+                 uint32_t a_body_len_max,
                  bool a_parse_json = false);
         ~rqst_ctx();
-        int32_t init_phase_0(void *a_ctx);
-        int32_t init_phase_1(void *a_ctx,
-                             const pcre_list_t &a_il_query,
-                             const pcre_list_t &a_il_header,
-                             const pcre_list_t &a_il_cookie);
-        int32_t init_phase_2(const ctype_parser_map_t &a_ctype_parser_map, void *a_ctx);
+        int32_t init_phase_1(const pcre_list_t *a_il_query = NULL,
+                             const pcre_list_t *a_il_header = NULL,
+                             const pcre_list_t *a_il_cookie = NULL);
+        int32_t init_phase_2(const ctype_parser_map_t &a_ctype_parser_map);
+        int32_t append_rqst_info(waflz_pb::event &ao_event);
         void show(void);
         // -------------------------------------------------
         // public members
@@ -149,6 +148,8 @@ public:
         // -------------------------------------------------
         // state
         // -------------------------------------------------
+        bool m_init_phase_1;
+        bool m_init_phase_2;
         bool m_intercepted;
         uint32_t m_skip;
         const char * m_skip_after;
@@ -164,6 +165,10 @@ private:
         // -------------------------------------------------
         rqst_ctx(const rqst_ctx &);
         rqst_ctx& operator=(const rqst_ctx &);
+        // -------------------------------------------------
+        // private members
+        // -------------------------------------------------
+        void *m_ctx;
 };
 }
 #endif

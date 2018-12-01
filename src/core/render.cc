@@ -23,6 +23,7 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+#include "event.pb.h"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/render.h"
@@ -42,6 +43,8 @@ typedef enum {
         FIELD_NULL = 0,
         FIELD_CLIENT_IP,
         FIELD_REQUEST_URL,
+        FIELD_USER_AGENT,
+        FIELD_RULE_MSG,
         FIELD_TIMESTAMP
 } field_t;
 //! ----------------------------------------------------------------------------
@@ -67,6 +70,10 @@ const str_field_map_t::value_type g_str_field_map_pairs[]= {
         str_field_map_t::value_type("CLIENT-IP", FIELD_CLIENT_IP),
         str_field_map_t::value_type("REQUEST_URL", FIELD_REQUEST_URL),
         str_field_map_t::value_type("REQUEST-URL", FIELD_REQUEST_URL),
+        str_field_map_t::value_type("USER_AGENT", FIELD_USER_AGENT),
+        str_field_map_t::value_type("USER-AGENT", FIELD_USER_AGENT),
+        str_field_map_t::value_type("RULE_MSG", FIELD_RULE_MSG),
+        str_field_map_t::value_type("RULE-MSG", FIELD_RULE_MSG),
         str_field_map_t::value_type("TIMESTAMP", FIELD_TIMESTAMP)
 };
 const str_field_map_t g_str_field_map(g_str_field_map_pairs,
@@ -258,6 +265,41 @@ static int32_t rr_render(char* ao_buf,
                         break;
                 }
                 // -----------------------------------------
+                // FIELD_USER_AGENT
+                // -----------------------------------------
+                case FIELD_USER_AGENT:
+                {
+                        if(!a_ctx)
+                        {
+                                break;
+                        }
+#define _GET_HEADER(_header) do { \
+        l_d.m_data = _header; \
+        l_d.m_len = sizeof(_header); \
+        data_map_t::const_iterator i_h = a_ctx->m_header_map.find(l_d); \
+        if(i_h != a_ctx->m_header_map.end()) \
+        { \
+                l_v.m_data = i_h->second.m_data; \
+                l_v.m_len = i_h->second.m_len; \
+        } \
+} while(0)
+                        data_t l_d;
+                        data_t l_v;
+                        _GET_HEADER("User-Agent");
+                        if(!l_v.m_data ||
+                           !l_v.m_len)
+                        {
+                                break;
+                        }
+                        ao_len += l_v.m_len;
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, l_v.m_data, l_v.m_len);
+                                l_buf += l_v.m_len;
+                        }
+                        break;
+                }
+                // -----------------------------------------
                 // FIELD_TIMESTAMP
                 // -----------------------------------------
                 case FIELD_TIMESTAMP:
@@ -289,6 +331,26 @@ static int32_t rr_render(char* ao_buf,
                                         memcpy(l_buf, l_tmp, l_tmp_len);
                                         l_buf += l_tmp_len;
                                 }
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // FIELD_RULE_MSG
+                // -----------------------------------------
+                case FIELD_RULE_MSG:
+                {
+                        if(!a_ctx ||
+                           !a_ctx->m_event ||
+                           !a_ctx->m_event->has_rule_msg())
+                        {
+                                break;
+                        }
+                        const std::string &l_msg = a_ctx->m_event->rule_msg();
+                        ao_len += l_msg.length();
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, l_msg.c_str(), l_msg.length());
+                                l_buf += l_msg.length();
                         }
                         break;
                 }

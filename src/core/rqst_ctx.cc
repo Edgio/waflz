@@ -218,6 +218,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_intercepted(false),
         m_skip(0),
         m_skip_after(NULL),
+        m_event(NULL),
         // -------------------------------------------------
         // *************************************************
         // xml optimization

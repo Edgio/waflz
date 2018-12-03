@@ -197,12 +197,10 @@ Ignore Example
 
 General Settings
 ----------------
-TODO
 
 
 Allowed Settings
 ^^^^^^^^^^^^^^^^
-TODO
 
 .. code-block:: json
 
@@ -230,9 +228,8 @@ TODO
       ]
     }
 
-Anmomaly Settings
+Anomaly Settings
 ^^^^^^^^^^^^^^^^^
-TODO
 
 .. code-block:: json
 

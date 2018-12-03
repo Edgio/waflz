@@ -158,13 +158,13 @@
 * <code class="docutils literal notranslate"><span class="pre">&quot;country&quot;</span></code>: 2 letter country code
 * <code class="docutils literal notranslate"><span class="pre">&quot;user_agent&quot;</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;User-Agent&quot;</span></code> header from client http request (w/ regex support)
 * <code class="docutils literal notranslate"><span class="pre">&quot;referer&quot;</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;Referer&quot;</span></code> header from client http request (w/ regex support)</p>
-<div class="section" id="example">
-<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="block-example">
+<h3>Block Example<a class="headerlink" href="#block-example" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>block traffic with “2001:db8::/32” ipv6 prefix or “192.0.2.0/24” ipv4 prefix</li>
-<li>block traffic from Virgin Islands or Sweden</li>
-<li>block curl or wget clients…</li>
-<li>block traffic coming from google or yahoo…</li>
+<li>IP addresses with “2001:db8::/32” ipv6 prefix or “192.0.2.0/24” ipv4 prefix</li>
+<li>IP addresses from Virgin Islands or Sweden</li>
+<li>curl or wget clients…</li>
+<li>traffic coming from google or yahoo (via referer)</li>
 </ul>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="nt">&quot;access_settings&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -191,17 +191,16 @@
 </div>
 <div class="section" id="ignore-fields">
 <h2>Ignore Fields<a class="headerlink" href="#ignore-fields" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
 <p>The following features are included in ACL’s:
 * <code class="docutils literal notranslate"><span class="pre">&quot;ignore_header&quot;</span></code>: Headers from the client http request (w/ regex support)
 * <code class="docutils literal notranslate"><span class="pre">&quot;ignore_cookie&quot;</span></code>: Field names from the parsed <code class="docutils literal notranslate"><span class="pre">&quot;Cookie&quot;</span></code> header in the client http request (w/ regex support)
 * <code class="docutils literal notranslate"><span class="pre">&quot;ignore_query_args&quot;</span></code>: Fields names from the parsed query string in the url from the client http request line (w/ regex support)</p>
-<div class="section" id="id1">
-<h3>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ignore-example">
+<h3>Ignore Example<a class="headerlink" href="#ignore-example" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>ignore <code class="docutils literal notranslate"><span class="pre">Benign-Header</span></code> (case insensitive), and any headers starting with numbers.</li>
-<li>ignore <code class="docutils literal notranslate"><span class="pre">crazy_cookie</span></code> cookies, and cookies starting with characters <code class="docutils literal notranslate"><span class="pre">a</span></code>,``b``, or <code class="docutils literal notranslate"><span class="pre">c</span></code>.</li>
-<li>ignore query string arguments named <code class="docutils literal notranslate"><span class="pre">ignore</span></code> or <code class="docutils literal notranslate"><span class="pre">this</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Benign-Header</span></code> (case insensitive), and any headers starting with numbers.</li>
+<li><code class="docutils literal notranslate"><span class="pre">crazy_cookie</span></code> cookies, and cookies starting with characters <code class="docutils literal notranslate"><span class="pre">a</span></code>,``b``, or <code class="docutils literal notranslate"><span class="pre">c</span></code>.</li>
+<li>query string arguments named <code class="docutils literal notranslate"><span class="pre">ignore</span></code> or <code class="docutils literal notranslate"><span class="pre">this</span></code>.</li>
 </ul>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;ignore_header&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -332,11 +331,11 @@
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#example-profile-json">Example Profile json</a></li>
 <li><a class="reference internal" href="#access-control-lists">Access Control Lists</a><ul>
-<li><a class="reference internal" href="#example">Example</a></li>
+<li><a class="reference internal" href="#block-example">Block Example</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ignore-fields">Ignore Fields</a><ul>
-<li><a class="reference internal" href="#id1">Example</a></li>
+<li><a class="reference internal" href="#ignore-example">Ignore Example</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#general-settings">General Settings</a><ul>

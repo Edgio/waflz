@@ -541,10 +541,7 @@ int32_t profile::validate(void)
         {
                 m_paranoia_level = l_gs.paranoia_level();
         }
-        VERIFY_HAS(l_gs, process_request_body);
         VERIFY_HAS(l_gs, xml_parser);
-        VERIFY_HAS(l_gs, process_response_body);
-        VERIFY_HAS(l_gs, engine);
         VERIFY_HAS(l_gs, validate_utf8_encoding);
         VERIFY_HAS(l_gs, max_num_args);
         VERIFY_HAS(l_gs, arg_name_length);

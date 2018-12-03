@@ -1,8 +1,9 @@
 waflz_server
 -------------
 ``waflz_server`` is a waflz test utility for verifying the behavior of the engine with a given ModSecurity rule config, or profile.  ``waflz_server`` is an http server can run in 1 of 2 modes.
-* in standard mode ``waflz_server`` will respond with the ``waflz`` alert that would have fired
-* in proxy mode ``waflz_server`` will either proxy the request or block with a 403 page.
+
+* In standard mode, respond with the ``waflz`` alert that would have fired.
+* In proxy mode, either proxy or block with a 403 page.
 
 standard mode
 ^^^^^^^^^^^^^

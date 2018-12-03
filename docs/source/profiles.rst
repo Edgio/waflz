@@ -132,12 +132,13 @@ The following features are included in ACL's:
 * ``"user_agent"``: ``"User-Agent"`` header from client http request (w/ regex support)
 * ``"referer"``: ``"Referer"`` header from client http request (w/ regex support)
 
-Example
-^^^^^^^
-* block traffic with "2001:db8::/32" ipv6 prefix or "192.0.2.0/24" ipv4 prefix
-* block traffic from Virgin Islands or Sweden
-* block curl or wget clients...
-* block traffic coming from google or yahoo...
+Block Example
+^^^^^^^^^^^^^
+
+* IP addresses with "2001:db8::/32" ipv6 prefix or "192.0.2.0/24" ipv4 prefix
+* IP addresses from Virgin Islands or Sweden
+* curl or wget clients...
+* traffic coming from google or yahoo (via referer)
 
 .. code-block:: json
 
@@ -163,18 +164,18 @@ Example
 
 Ignore Fields
 -------------
-TODO
 
 The following features are included in ACL's:
 * ``"ignore_header"``: Headers from the client http request (w/ regex support)
 * ``"ignore_cookie"``: Field names from the parsed ``"Cookie"`` header in the client http request (w/ regex support)
 * ``"ignore_query_args"``: Fields names from the parsed query string in the url from the client http request line (w/ regex support)
 
-Example
-^^^^^^^
-* ignore ``Benign-Header`` (case insensitive), and any headers starting with numbers.
-* ignore ``crazy_cookie`` cookies, and cookies starting with characters ``a``,``b``, or ``c``.
-* ignore query string arguments named ``ignore`` or ``this``.
+Ignore Example
+^^^^^^^^^^^^^^
+
+* ``Benign-Header`` (case insensitive), and any headers starting with numbers.
+* ``crazy_cookie`` cookies, and cookies starting with characters ``a``,``b``, or ``c``.
+* query string arguments named ``ignore`` or ``this``.
 
 .. code-block:: json
 

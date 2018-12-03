@@ -250,8 +250,8 @@ Specify the WAF ruleset and "version" to use.
 
 Ruleset Configuration
 ^^^^^^^^^^^^^^^^^^^^^
-**waflz** expects the ruleset directory to be setup as:
-* ``<"ruleset_id">/version/<"ruleset_version">/...``  We've found it useful to have a top level directory of rulesets that were versioned (usually by date).
+It's been useful to have a top level directory of rulesets that were versioned (usually by date), so 
+**waflz** expects the WAF ruleset directory containing ModSecurity rule files organized as: ``<"ruleset_id">/version/<"ruleset_version">/...``
 
 So in the example below if
 

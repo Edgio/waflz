@@ -271,8 +271,8 @@
 <p>Specify the WAF ruleset and “version” to use.</p>
 <div class="section" id="ruleset-configuration">
 <h3>Ruleset Configuration<a class="headerlink" href="#ruleset-configuration" title="Permalink to this headline">¶</a></h3>
-<p><strong>waflz</strong> expects the ruleset directory to be setup as:
-* <code class="docutils literal notranslate"><span class="pre">&lt;&quot;ruleset_id&quot;&gt;/version/&lt;&quot;ruleset_version&quot;&gt;/...</span></code>  We’ve found it useful to have a top level directory of rulesets that were versioned (usually by date).</p>
+<p>It’s been useful to have a top level directory of rulesets that were versioned (usually by date), so
+<strong>waflz</strong> expects the WAF ruleset directory containing ModSecurity rule files organized as: <code class="docutils literal notranslate"><span class="pre">&lt;&quot;ruleset_id&quot;&gt;/version/&lt;&quot;ruleset_version&quot;&gt;/...</span></code></p>
 <p>So in the example below if</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;ruleset_id&quot;</span><span class="p">:</span> <span class="s2">&quot;OWASP-CRS-2.2.9&quot;</span><span class="p">,</span>

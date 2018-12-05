@@ -66,6 +66,21 @@ public:
         const std::string &get_id(void) { return m_id; }
         const std::string &get_name(void) { return m_name; }
         const std::string &get_customer_id(void) { return m_customer_id; }
+        //: ------------------------------------------------
+        //: \brief   get the audit settings values
+        //: \details The returned pointer is only valid as long as waf_config
+        //:          object is alive
+        //: \return  The class representing audit settings on success
+        //: ------------------------------------------------
+        inline profile* get_audit_profile() { return m_profile_audit; }
+        //: ------------------------------------------------
+        //: \brief   get the prod settings values
+        //: \details The returned pointer is only valid as long as waf_config
+        //:          object is alive
+        //: \return  The class representing prod settings on success
+        //:          NULL is compiler hasn't been validated yet
+        //: ------------------------------------------------
+        inline profile* get_prod_profile() { return m_profile_prod; }
         enforcement_list_t &get_mutable_prod_enfx_list(void);
         int32_t load_config(const char *a_buf,
                             uint32_t a_buf_len,

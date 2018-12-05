@@ -83,6 +83,7 @@ public:
         static get_rqst_data_cb_t s_get_rqst_path_cb;
         static get_rqst_data_cb_t s_get_rqst_query_str_cb;
         static get_rqst_data_size_cb_t s_get_rqst_header_size_cb;
+        static get_rqst_data_w_key_cb_t s_get_rqst_header_w_key_cb;
         static get_rqst_kv_w_idx_cb_t s_get_rqst_header_w_idx_cb;
         static get_rqst_data_cb_t s_get_rqst_id_cb;
         static get_rqst_body_data_cb_t s_get_rqst_body_str_cb;

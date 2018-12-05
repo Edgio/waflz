@@ -71,6 +71,7 @@ get_rqst_data_cb_t rqst_ctx::s_get_rqst_path_cb = NULL;
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_query_str_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_header_size_cb = NULL;
 get_rqst_kv_w_idx_cb_t rqst_ctx::s_get_rqst_header_w_idx_cb = NULL;
+get_rqst_data_w_key_cb_t rqst_ctx::s_get_rqst_header_w_key_cb = NULL;
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_id_cb = NULL;
 get_rqst_body_data_cb_t rqst_ctx::s_get_rqst_body_str_cb = NULL;
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_local_addr_cb = NULL;

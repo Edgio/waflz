@@ -420,7 +420,7 @@ process_prod:
         }
         if(l_prod_event)
         {
-                set_event_properties(*l_prod_event, *m_profile_audit);
+                set_event_properties(*l_prod_event, *m_profile_prod);
         }
 done:
         *ao_audit_event = l_audit_event;

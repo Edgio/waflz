@@ -404,7 +404,10 @@ int32_t instance::process(waflz_pb::event **ao_audit_event,
         }
         // reset phase 1
         // -------------------------------------------------
-        l_s = l_rqst_ctx->reset_phase_1();
+        if(l_rqst_ctx)
+        {
+                l_s = l_rqst_ctx->reset_phase_1();
+        }
         // -------------------------------------------------
         // *************************************************
         //                     P R O D

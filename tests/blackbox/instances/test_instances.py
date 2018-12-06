@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''Test WAF Ruleset Policies'''
+'''Test WAF instances with Policies'''
 #TODO: make so waflz_server only runs once and then can post to it 
 # ------------------------------------------------------------------------------
 # Imports

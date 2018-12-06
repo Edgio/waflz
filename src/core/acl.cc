@@ -1298,7 +1298,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 }
         }
         // -------------------------------------------------
-        // init phase 0 for processing acl
+        // init phase 1 for processing acl
         // -------------------------------------------------
         int32_t l_s;
         l_s = l_rqst_ctx->init_phase_1();

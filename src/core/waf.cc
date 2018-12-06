@@ -2245,6 +2245,7 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
                            const marker_map_t &a_mm,
                            rqst_ctx &a_ctx)
 {
+        a_ctx.m_intercepted = false;
         for(directive_list_t::const_iterator i_d = a_dl.begin();
             i_d != a_dl.end();
             ++i_d)
@@ -2375,16 +2376,6 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
         //                   P H A S E  1
         // *************************************************
         // -------------------------------------------------
-        // -------------------------------------------------
-        // init
-        // -------------------------------------------------
-        l_s = l_ctx->init_phase_1();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                // TODO -log error???
-                if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
-                return WAFLZ_STATUS_ERROR;
-        }
         // -------------------------------------------------
         // process
         // -------------------------------------------------

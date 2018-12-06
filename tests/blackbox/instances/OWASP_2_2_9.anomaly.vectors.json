@@ -1,0 +1,48 @@
+{
+"config":
+{
+  "ruleset_id": "OWASP-CRS-2.2.9",
+  "ruleset_version": "2017-08-01",
+  "general_settings": 
+  {
+    "engine": "anomaly"
+  }
+},
+"vectors":
+[
+  {
+    "uri": "index.html",
+    "query_str": "a=%27select%20*%20from%20testing%27",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "basic sql injection"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 20, SQLi=10, XSS=0): Last Matched Message: 981247-Detects concatenated basic SQL injection and SQLLFI attempts",
+      "sub_event":
+      [
+        {
+          "rule_msg": "SQL Injection Attack: Common Injection Testing Detected"
+        },
+        {
+          "rule_msg": "Detects MSSQL code execution and information gathering attempts"
+        },
+        {
+          "rule_msg": "Detects MySQL comment-/space-obfuscated injections and backtick termination"
+        },
+        {
+          "rule_msg": "Detects concatenated basic SQL injection and SQLLFI attempts"
+        }
+      ]
+    }
+  }
+]
+}

@@ -396,7 +396,6 @@ int32_t instance::process(waflz_pb::event **ao_audit_event,
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                NDBG_PRINT("error\n");
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_audit_event)
@@ -417,7 +416,6 @@ process_prod:
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                NDBG_PRINT("error\n");
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_prod_event)

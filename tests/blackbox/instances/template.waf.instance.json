@@ -198,7 +198,7 @@
             "warning_score": 3
           },
           "debug_log": "",
-          "response_header_name": "X-EC-Security-Audit",
+          "response_header_name": "X-EC-Security",
           "allowed_http_methods": [
             "GET",
             "POST",

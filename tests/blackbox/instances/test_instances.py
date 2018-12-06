@@ -139,6 +139,7 @@ def check_rqst(a_host, a_id, a_rqst):
                     # Find subevent matching since
                     # events could appear in any order
                     l_diff = False
+
                     for l_k_s, l_v_s in i_s.iteritems():
                         print 'XPECTD: %s: %s'%(l_k_s, l_v_s)
                         if l_k_s not in i_actual_s:
@@ -162,6 +163,7 @@ def check_rqst(a_host, a_id, a_rqst):
             assert l_k in l_r_json['prod_profile']
             print 'ACTUAL: %s --> %s'%(l_k, l_r_json['prod_profile'][l_k])
             assert l_r_json['prod_profile'][l_k] == l_v
+    assert 'X-EC-Security' in l_r_json['prod_profile']['response_header_name']
 # ------------------------------------------------------------------------------
 # check_vectors
 # ------------------------------------------------------------------------------

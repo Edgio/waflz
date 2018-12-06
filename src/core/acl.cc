@@ -1297,16 +1297,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
                         *ao_rqst_ctx = l_rqst_ctx;
                 }
         }
-        // -------------------------------------------------
-        // init phase 1 for processing acl
-        // -------------------------------------------------
         int32_t l_s;
-        l_s = l_rqst_ctx->init_phase_1();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
-                return WAFLZ_STATUS_ERROR;
-        }
         bool l_match = false;
         // -------------------------------------------------
         // whitelist...

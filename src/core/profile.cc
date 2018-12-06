@@ -646,8 +646,9 @@ int32_t profile::process(waflz_pb::event **ao_event,
                         *ao_rqst_ctx = l_rqst_ctx;
                 }
         }
-        // Reset before processing acl
-        l_s = l_rqst_ctx->reset_phase_1();
+        // run phase 1 init
+        // -------------------------------------------------
+        l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
@@ -672,13 +673,6 @@ int32_t profile::process(waflz_pb::event **ao_event,
         {
                 goto done;
         }
-        // acl calls init_phase_1 without any ignore lists
-        // Reset here and call init again with ig lists
-        l_s = l_rqst_ctx->reset_phase_1();
-        // -------------------------------------------------
-        // run phase 1 init
-        // -------------------------------------------------
-        l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
         // -------------------------------------------------
         // process waf...
         // -------------------------------------------------

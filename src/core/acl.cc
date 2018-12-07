@@ -1298,6 +1298,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 }
         }
         int32_t l_s;
+        l_s = l_rqst_ctx->init_phase_1();
         bool l_match = false;
         // -------------------------------------------------
         // whitelist...

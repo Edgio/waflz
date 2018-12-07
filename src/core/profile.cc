@@ -649,6 +649,12 @@ int32_t profile::process(waflz_pb::event **ao_event,
         // run phase 1 init
         // -------------------------------------------------
         l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO -log error???
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
         // -------------------------------------------------
         // acl
         // -------------------------------------------------

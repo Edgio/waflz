@@ -2245,6 +2245,7 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
                            const marker_map_t &a_mm,
                            rqst_ctx &a_ctx)
 {
+        a_ctx.m_intercepted = false;
         for(directive_list_t::const_iterator i_d = a_dl.begin();
             i_d != a_dl.end();
             ++i_d)
@@ -2374,7 +2375,6 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
         // *************************************************
         //                   P H A S E  1
         // *************************************************
-        // -------------------------------------------------
         // -------------------------------------------------
         // init
         // -------------------------------------------------

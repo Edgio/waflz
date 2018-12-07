@@ -109,6 +109,7 @@ public:
                              const pcre_list_t *a_il_header = NULL,
                              const pcre_list_t *a_il_cookie = NULL);
         int32_t init_phase_2(const ctype_parser_map_t &a_ctype_parser_map);
+        int32_t reset_phase_1();
         int32_t append_rqst_info(waflz_pb::event &ao_event);
         void show(void);
         // -------------------------------------------------

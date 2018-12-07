@@ -295,6 +295,79 @@ rqst_ctx::~rqst_ctx()
         // -------------------------------------------------
         if(m_body_parser) { delete m_body_parser; m_body_parser = NULL;}
 }
+int32_t rqst_ctx::reset_phase_1()
+{
+        // -------------------------------------------------
+        // delete query args
+        // -------------------------------------------------
+        if(!m_query_arg_list.empty())
+        {
+                for(arg_list_t::iterator i_q = m_query_arg_list.begin();
+                    i_q != m_query_arg_list.end();
+                    ++i_q)
+                {
+                        if(i_q->m_key) { free(i_q->m_key); i_q->m_key = NULL; }
+                        if(i_q->m_val) { free(i_q->m_val); i_q->m_val = NULL; }
+                }
+                m_query_arg_list.clear();
+        }
+        // -------------------------------------------------
+        // clear cookies
+        // -------------------------------------------------
+        m_cookie_list.clear();
+        // -------------------------------------------------
+        // clear headers
+        // -------------------------------------------------
+        m_header_list.clear();
+        // -------------------------------------------------
+        // clear tx map
+        // -------------------------------------------------
+        if(!m_cx_tx_map.empty())
+        {
+                for(cx_map_t::iterator i_t = m_cx_tx_map.begin();
+                    i_t != m_cx_tx_map.end();
+                    ++i_t)
+                {
+                        m_cx_tx_map.erase(i_t);
+                }
+                m_cx_tx_map.clear();
+        }
+        // -------------------------------------------------
+        // clear header map
+        // -------------------------------------------------
+        if(!m_header_map.empty())
+        {
+                for(data_map_t::iterator i_t = m_header_map.begin();
+                   i_t != m_header_map.end();
+                   ++i_t)
+                {
+                        m_header_map.erase(i_t);
+                }
+                m_header_map.clear();
+        }
+        // -------------------------------------------------
+        // clear rule map
+        // -------------------------------------------------
+        if(!m_cx_rule_map.empty())
+        {
+                for(data_map_t::iterator i_t = m_cx_rule_map.begin();
+                    i_t != m_cx_rule_map.end();
+                    ++i_t)
+                {
+                        m_cx_rule_map.erase(i_t);
+                }
+                m_cx_rule_map.clear();
+        }
+        // -------------------------------------------------
+        // clear vars
+        // -------------------------------------------------
+        m_cx_matched_var.clear();
+        m_cx_matched_var_name.clear();
+        m_cookie_mutated.clear();
+        m_init_phase_1 = false;
+        m_intercepted = false;
+        return WAFLZ_STATUS_OK;
+}
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO

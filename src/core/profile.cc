@@ -646,7 +646,6 @@ int32_t profile::process(waflz_pb::event **ao_event,
                         *ao_rqst_ctx = l_rqst_ctx;
                 }
         }
-        // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------
         l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);

@@ -1,0 +1,247 @@
+{
+"config":
+{
+  "ruleset_id": "OWASP-CRS-2.2.9",
+  "ruleset_version": "2017-08-01",
+  "general_settings": 
+  {
+    "engine": "anomaly",
+    "anomaly_settings": {
+      "error_score": 4,
+      "notice_score": 2,
+      "inbound_threshold": 1,
+      "critical_score": 5,
+      "outbound_threshold": 4,
+      "warning_score": 3
+    }
+  }
+},
+"vectors":
+[
+  {
+    "uri": "index.html",
+    "query_str": "cool=beans",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez"
+    },
+    "tags":
+    [
+      "ok"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2, SQLi=0, XSS=0): Last Matched Message: Request Missing an Accept Header",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Request Missing an Accept Header"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "index.html",
+    "query_str": "a=%27select%20*%20from%20testing%27",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "basic sql injection"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=5, XSS=0): Last Matched Message: SQL Injection Attack: Common Injection Testing Detected",
+      "sub_event":
+      [
+        {
+          "rule_msg": "SQL Injection Attack: Common Injection Testing Detected"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "index.html",
+    "query_str": "a=b",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "protocol anomalies"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2, SQLi=0, XSS=0): Last Matched Message: Empty User Agent Header",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Empty User Agent Header"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "index.html",
+    "query_str": "hotelId=1927&availabilityId=33edd70a-b419-4a55-a37b-cf8a0fb54855&spsoGuid=f9d83f47-40ff-4171-8e44-3b74cb74fd8b",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "sql injection"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3, SQLi=1, XSS=0): Last Matched Message: Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "x",
+    "query_str": "",
+    "headers":
+    {
+      "Host": "not_an_ip",
+      "User-Agent": "digout4uagent",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "bad robots"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3, SQLi=0, XSS=0): Last Matched Message: Rogue web site crawler",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Rogue web site crawler"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "x",
+    "query_str": "u=http://www.labnol.org\">example</a>",
+    "headers":
+    {
+      "Host": "not_an_ip",
+      "User-Agent": "waflz_server testing",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "rfi"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "x",
+    "query_str": "",
+    "headers":
+    {
+      "Host": "not_an_ip",
+      "User-Agent": "() { :; }; /bin/eject",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "shellshock"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: ",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Bash shellshock attack detected"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "index.html",
+    "query_str": "cool=beans",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez",
+      "Accept": "*/*"
+      
+    },
+    "body": "X2VnY1Y9eyJfZWdjViI6IjMuNi4wLjc0JTI3c2VsZWN0JTIwKiUyMGZyb20lMjB0ZXN0aW5nJTI3In0K",
+    "tags":
+    [
+      "ok", "body"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3, SQLi=0, XSS=0): Last Matched Message: Meta-Character Anomaly Detection Alert - Repetitive Non-Word Characters",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Meta-Character Anomaly Detection Alert - Repetitive Non-Word Characters"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "index.html",
+    "query_str": "so=good",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez",
+      "Accept": "*/*",
+      "Content-Type": "application/json"
+    },
+    "body": "ew0KCSJkaXN0aW5jdF9pZCI6ICJsaWppZS56aG91QG9wZXJhc29sdXRpb25zLmNvbSIsDQoJIiRpbml0aWFsX3JlZmVycmVyIjogImh0dHBzOi8vYXBwLmVudm95Z2xvYmFsLmNvbS9hcHAvbG9naW4/X2dhPTIuMTgwNTQxMjkuOTEzOTMyMDMxLjE1Mjg2NTI4NTctNTI5NDU2MDQ3LjE1MjgxMzY1MzYiLA0KCSIkaW5pdGlhbF9yZWZlcnJpbmdfZG9tYWluIjogImFwcC5lbnZveWdsb2JhbC5jb20iLA0KCSJfX21wcyI6IHt9LA0KCSJfX21wc28iOiB7fSwNCgkiX19tcHVzIjoge30sDQoJIl9fbXBhIjoge30sDQoJIl9fbXB1Ijoge30sDQoJIl9fbXBhcCI6IFtdLA==",
+    "tags":
+    [
+      "ok", "body"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link"
+        }
+      ]
+    }
+  }
+]
+}

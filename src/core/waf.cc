@@ -23,27 +23,19 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-// ---------------------------------------------------------
-// proto
-// ---------------------------------------------------------
 #include "rule.pb.h"
 #include "event.pb.h"
 #include "config.pb.h"
-// ---------------------------------------------------------
-// internal
-// ---------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/engine.h"
 #include "waflz/profile.h"
-#include "op/regex.h"
 #include "op/ac.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
 #include "support/md5_hasher.h"
-#include "support/time_util.h"
 #include "core/op.h"
 #include "core/var.h"
 #include "core/tx.h"
@@ -52,39 +44,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
-#define DEL_LAST_CHAR(_str) _str.erase(_str.size() - 1)
-#define GET_RQST_DATA(_cb) do { \
-        l_buf = NULL; \
-        l_buf_len = 0; \
-        if(rqst_ctx::_cb) { \
-                l_s = rqst_ctx::_cb(&l_buf, l_buf_len, a_ctx); \
-                if(l_s != 0) { \
-                        return WAFLZ_STATUS_ERROR; \
-                } \
-        } \
-} while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-static void clear_ignore_list(pcre_list_t &a_pcre_list)
-{
-        for(pcre_list_t::iterator i_r = a_pcre_list.begin();
-            i_r != a_pcre_list.end();
-            ++i_r)
-        {
-                if(*i_r)
-                {
-                        delete *i_r;
-                        *i_r = NULL;
-                }
-        }
-}
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -104,14 +64,12 @@ waf::waf(engine &a_engine):
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         ,m_anomaly_score_cur(0),
 #endif
-        m_il_query(),
-        m_il_header(),
-        m_il_cookie(),
         m_is_initd(false),
         m_engine(a_engine),
         m_id("NA"),
         m_name("NA"),
         m_owasp_ruleset_version(0),
+        m_paranoia_level(1),
         m_no_log_matched(false),
         m_parse_json(false)
 {
@@ -134,9 +92,6 @@ waf::~waf()
                 delete *i_d;
                 *i_d = NULL;
         }
-        clear_ignore_list(m_il_query);
-        clear_ignore_list(m_il_header);
-        clear_ignore_list(m_il_cookie);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -162,28 +117,19 @@ void waf::show_status(void)
         m_parser.show_status();
 }
 #endif
-int32_t waf::regex_list_add(const std::string &a_regex,
-                             pcre_list_t &a_pcre_list)
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+uint32_t waf::get_request_body_in_memory_limit(void)
 {
-        int32_t l_s;
-        regex *l_regex = new regex();
-        l_s = l_regex->init(a_regex.c_str(), a_regex.length());
-        if(l_s != WAFLZ_STATUS_OK)
+        if(m_pb &&
+           m_pb->has_request_body_in_memory_limit())
         {
-                const char *l_err_ptr;
-                int l_err_off;
-                l_regex->get_err_info(&l_err_ptr, l_err_off);
-                delete l_regex;
-                l_regex = NULL;
-                //WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in access_settings ignore list. Reason: %s -offset: %d\n",
-                //            a_regex.c_str(),
-                //            l_err_ptr,
-                //            l_err_off);
-                return WAFLZ_STATUS_ERROR;
+                return m_pb->request_body_in_memory_limit();
         }
-        // add to map
-        a_pcre_list.push_back(l_regex);
-        return WAFLZ_STATUS_OK;
+        return 0;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -901,11 +847,6 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         // allowed http methods
         // -------------------------------------------------
         std::string l_alw_mth;
-        if(!l_gs.allowed_http_methods_size())
-        {
-                WAFLZ_PERROR(m_err_msg, "No allowed http methods provided.  Would block all traffic.  Not applying.");
-                return WAFLZ_STATUS_ERROR;
-        }
         for(int32_t i_ahm = 0; i_ahm < l_gs.allowed_http_methods_size(); ++i_ahm)
         {
                 // for each allowed http method
@@ -920,11 +861,6 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         // -------------------------------------------------
         // allowed_request_content_types
         // -------------------------------------------------
-        if(!l_gs.allowed_request_content_types_size())
-        {
-                WAFLZ_PERROR(m_err_msg, "No allowed http request content-types provided.  Could block all traffic.  Not applying.");
-                return WAFLZ_STATUS_ERROR;
-        }
         std::string l_alw_rct;
         for(int32_t i_arct = 0; i_arct < l_gs.allowed_request_content_types_size(); ++i_arct)
         {
@@ -1173,7 +1109,7 @@ done:
         l_conf_pb.set_ruleset_id(l_prof_pb.ruleset_id());
         l_conf_pb.set_ruleset_version(l_prof_pb.ruleset_version());
         {
-        struct dirent** l_conf_list;
+        struct dirent** l_conf_list = NULL;
         std::string l_ruleset_dir = a_profile.s_ruleset_dir;
         l_ruleset_dir.append(l_prof_pb.ruleset_id());
         l_ruleset_dir.append("/version/");
@@ -1216,40 +1152,18 @@ done:
                                 l_inc.append(l_ruleset_dir);
                                 l_inc.append(l_conf_list[i_f]->d_name);
                         }
-                        if(l_conf_list[i_f])
-                        {
-                                free(l_conf_list[i_f]);
-                                l_conf_list[i_f] = NULL;
-                        }
-                }
-        }
-        // -------------------------------------------------
-        // exclude policies
-        // -------------------------------------------------
-        else
-        {
-                policy_t l_disabled_policies;
-                for(int32_t i_p = 0; i_p < l_prof_pb.disabled_policies_size(); ++i_p)
-                {
-                        l_disabled_policies.insert(l_prof_pb.disabled_policies(i_p).policy_id());
-                }
-                for(int32_t i_f = 0; i_f < l_num_files; ++i_f)
-                {
-                        if(l_disabled_policies.find(l_conf_list[i_f]->d_name) == l_disabled_policies.end())
-                        {
-                                std::string &l_inc = *(l_conf_pb.add_directive()->mutable_include());
-                                l_inc.append(l_ruleset_dir);
-                                l_inc.append(l_conf_list[i_f]->d_name);
-                        }
-                        if(l_conf_list[i_f])
-                        {
-                                free(l_conf_list[i_f]);
-                                l_conf_list[i_f] = NULL;
-                        }
                 }
         }
         if(l_conf_list)
         {
+                for(int32_t i_f = 0; i_f < l_num_files; ++i_f)
+                {
+                        if(l_conf_list[i_f])
+                        {
+                                free(l_conf_list[i_f]);
+                                l_conf_list[i_f] = NULL;
+                        }
+                }
                 free(l_conf_list);
                 l_conf_list = NULL;
         }
@@ -1788,22 +1702,6 @@ a_ctx.m_cx_rule_map[l_k] = l_v; \
                 a_ctx.m_skip = 0;
                 a_ctx.m_skip_after = NULL;
         }
-#if 0
-        +---------------------------------+----------+
-        | Actions                         | Count    |
-        +---------------------------------+----------+
-        | block                           |      186 |
-        | capture                         |      175 |
-        | deny                            |        4 |
-        | drop                            |        2 |
-        | expirevar                       |       16 |
-        | nolog                           |      257 |
-        | pass                            |      273 |
-        | setvar                          |      814 |
-        | skip                            |        2 |
-        | skipafter                       |      188 |
-        +---------------------------------+----------+
-#endif
         return WAFLZ_STATUS_OK;
 }
 /// ----------------------------------------------------------------------------
@@ -2024,6 +1922,60 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // -------------------------------------------------
         cx_map_t::const_iterator i_t;
         int32_t l_anomaly_score = -1;
+        // -------------------------------------------------
+        // handle paranoia...
+        // Based on paranoia level different rules set
+        // different scores. The CRS uses the following vars
+        // tx.anomaly_score_pl1
+        // tx.anomaly_score_pl2
+        // tx.anomaly_score_pl3
+        // tx.anomaly_score_pl4
+        // -------------------------------------------------
+        // Here we emulate the blocking evaluation config
+        // 1. Check current paranoia level
+        // 2. Sum up all pl scores until current pl
+        // 3. Set the anomaly_score = sum of #2
+        // -------------------------------------------------
+        // Only calculate score if the rule is setting a var
+        // e.g setvar:'tx.anomaly_score_pl1=+%{tx.notice_anomaly_score}
+        // Or is a chained rule
+        if(get_owasp_ruleset_version() >= 300 &&
+           (l_action.setvar_size() > 0 ||
+            a_rule.chained_rule_size() > 0))
+        {
+                uint32_t l_cur_anomaly = 0;
+                uint32_t i_pl = 1;
+                do
+                {
+                        std::string l_ex_anomaly = "anomaly_score_pl" + to_string(i_pl);
+                        i_t = a_ctx.m_cx_tx_map.find(l_ex_anomaly);
+                        if(i_t == a_ctx.m_cx_tx_map.end())
+                        {
+                                ++i_pl;
+                                continue;
+                        }
+                        int32_t l_pl_score;
+                        char *l_end_ptr = NULL;
+                        l_pl_score = strntol(i_t->second.c_str(), i_t->second.length(), &l_end_ptr, 10);
+                        if((l_pl_score == LONG_MAX) ||
+                            (l_pl_score == LONG_MIN))
+                        {
+                                ++i_pl;
+                                continue;
+                        }
+                        if(l_end_ptr == i_t->second.c_str())
+                        {
+                                ++i_pl;
+                                continue;
+                        }
+                        l_cur_anomaly += l_pl_score;
+                        ++i_pl;
+                } while(m_paranoia_level >= i_pl);
+                if(l_cur_anomaly)
+                {
+                        a_ctx.m_cx_tx_map["anomaly_score"]  = to_string(l_cur_anomaly);
+                }
+        }
         // -------------------------------------------------
         // get anomaly score
         // -------------------------------------------------
@@ -2293,6 +2245,7 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
                            const marker_map_t &a_mm,
                            rqst_ctx &a_ctx)
 {
+        a_ctx.m_intercepted = false;
         for(directive_list_t::const_iterator i_d = a_dl.begin();
             i_d != a_dl.end();
             ++i_d)
@@ -2380,288 +2333,56 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t waf::append_rqst_info(waflz_pb::event &ao_event, void *a_ctx)
-{
-        const char *l_buf = NULL;
-        uint32_t l_buf_len = 0;
-        int32_t l_s;
-        waflz_pb::request_info *l_request_info = ao_event.mutable_req_info();
-        // -------------------------------------------------
-        // Common headers
-        // -------------------------------------------------
-        if(rqst_ctx::s_get_rqst_header_w_key_cb)
-        {
-                waflz_pb::request_info::common_header_t* l_headers = l_request_info->mutable_common_header();
-                // -----------------------------------------
-                // Referer
-                // -----------------------------------------
-                const char *l_key = "Referer";
-                l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_buf_len, a_ctx, l_key, strlen(l_key));
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                }
-                if(l_buf &&
-                   l_buf_len)
-                {
-                        l_headers->set_referer(l_buf, l_buf_len);
-                }
-                // -----------------------------------------
-                // User-Agent
-                // -----------------------------------------
-                l_key = "User-Agent";
-                l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_buf_len, a_ctx, l_key, strlen(l_key));
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                }
-                if(l_buf &&
-                   l_buf_len)
-                {
-                        l_headers->set_user_agent(l_buf, l_buf_len);
-                }
-                // -----------------------------------------
-                // Host
-                // -----------------------------------------
-                l_key = "Host";
-                l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_buf_len, a_ctx, l_key, strlen(l_key));
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                }
-                if(l_buf &&
-                   l_buf_len)
-                {
-                        l_headers->set_host(l_buf, l_buf_len);
-                }
-                // -----------------------------------------
-                // X-Forwarded-For
-                // -----------------------------------------
-                l_key = "X-Forwarded-For";
-                l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_buf_len, a_ctx, l_key, strlen(l_key));
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                }
-                if(l_buf &&
-                   l_buf_len)
-                {
-                        l_headers->set_x_forwarded_for(l_buf, l_buf_len);
-                }
-                // -----------------------------------------
-                // Content-type
-                // -----------------------------------------
-                l_key = "Content-type";
-                l_s = rqst_ctx::s_get_rqst_header_w_key_cb(&l_buf, l_buf_len, a_ctx, l_key, strlen(l_key));
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_w_key_cb: key: %s", l_key);
-                }
-                if(l_buf &&
-                   l_buf_len)
-                {
-                        l_headers->set_content_type(l_buf, l_buf_len);
-                }
-        }
-        // -------------------------------------------------
-        // Virtual remote host
-        // -------------------------------------------------
-        GET_RQST_DATA(s_get_rqst_src_addr_cb);
-        if (l_buf_len > 0)
-        {
-                l_request_info->set_virt_remote_host(l_buf, l_buf_len);
-        }
-        // -------------------------------------------------
-        // Local address
-        // -------------------------------------------------
-        GET_RQST_DATA(s_get_rqst_local_addr_cb);
-        if (l_buf_len > 0)
-        {
-                l_request_info->set_local_addr(l_buf, l_buf_len);
-        }
-        // -------------------------------------------------
-        // Server canonical port
-        // -------------------------------------------------
-        if(rqst_ctx::s_get_rqst_canonical_port_cb)
-        {
-                uint32_t l_canonical_port;
-                l_s = rqst_ctx::s_get_rqst_canonical_port_cb(l_canonical_port, a_ctx);
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_canonical_port_cb");
-                }
-                l_request_info->set_server_canonical_port(l_canonical_port);
-        }
-        // -------------------------------------------------
-        // File size
-        // TODO: Not logged in waf events
-        // -------------------------------------------------
-        // -------------------------------------------------
-        // APPARENT_CACHE_STATUS
-        // TODO: check again
-        // -------------------------------------------------
-        if(rqst_ctx::s_get_rqst_apparent_cache_status_cb)
-        {
-                uint32_t l_log_status = 0;
-                l_s = rqst_ctx::s_get_rqst_apparent_cache_status_cb(l_log_status, a_ctx);
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_apparent_cache_status_cb");
-                }
-                l_request_info->set_apparent_cache_log_status(static_cast <waflz_pb::request_info::log_status_t>(l_log_status));
-        }
-        // -------------------------------------------------
-        // Status
-        // -------------------------------------------------
-        // -------------------------------------------------
-        // Bytes out
-        // -------------------------------------------------
-        if(rqst_ctx::s_get_rqst_bytes_out_cb)
-        {
-                uint32_t l_bytes_out;
-                l_s =  rqst_ctx::s_get_rqst_bytes_out_cb(l_bytes_out, a_ctx);
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_bytes_out_cb");
-                }
-                l_request_info->set_bytes_out(l_bytes_out);
-        }
-        // -------------------------------------------------
-        // Bytes in
-        // -------------------------------------------------
-        if(rqst_ctx::s_get_rqst_bytes_in_cb)
-        {
-                uint32_t l_bytes_in;
-                l_s =  rqst_ctx::s_get_rqst_bytes_in_cb(l_bytes_in, a_ctx);
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_bytes_in_cb");
-                }
-                l_request_info->set_bytes_in(l_bytes_in);
-        }
-        // -------------------------------------------------
-        // Epoch time
-        // -------------------------------------------------
-        uint32_t l_now_s = get_time_s();
-        uint32_t l_now_ms = get_time_ms();
-        waflz_pb::request_info_timespec_t *l_epoch = l_request_info->mutable_epoch_time();
-        l_epoch->set_sec(l_now_s);
-        l_epoch->set_nsec(l_now_ms);
-        // -------------------------------------------------
-        // Orig url
-        // -------------------------------------------------
-        GET_RQST_DATA(s_get_rqst_uri_cb);
-        if (l_buf_len > 0)
-        {
-                l_request_info->set_orig_url(l_buf, l_buf_len);
-        }
-        // -------------------------------------------------
-        // Url
-        // -------------------------------------------------
-        GET_RQST_DATA(s_get_rqst_url_cb);
-        if (l_buf_len > 0)
-        {
-                l_request_info->set_url(l_buf, l_buf_len);
-        }
-        // -------------------------------------------------
-        // Query string
-        // -------------------------------------------------
-        GET_RQST_DATA(s_get_rqst_query_str_cb);
-        if (l_buf_len > 0)
-        {
-                l_request_info->set_query_string(l_buf, l_buf_len);
-        }
-        // -------------------------------------------------
-        // Request ID
-        // -------------------------------------------------
-        if(rqst_ctx::s_get_rqst_req_id_cb)
-        {
-                uint32_t l_req_id;
-                l_s =  rqst_ctx::s_get_rqst_req_id_cb(l_req_id, a_ctx);
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_req_id_cb");
-                }
-                l_request_info->set_request_id(l_req_id);
-        }
-        // -------------------------------------------------
-        // REQ_UUID
-        // -------------------------------------------------
-        GET_RQST_DATA(s_get_rqst_id_cb);
-        if (l_buf_len > 0)
-        {
-                l_request_info->set_req_uuid(l_buf, l_buf_len);
-        }
-        // -------------------------------------------------
-        // HTTP Method
-        // -------------------------------------------------
-        GET_RQST_DATA(s_get_rqst_method_cb);
-        if (l_buf_len > 0)
-        {
-                l_request_info->set_request_method(l_buf, l_buf_len);
-        }
-        // -------------------------------------------------
-        // Customer ID
-        // -------------------------------------------------
-        if(rqst_ctx::s_get_rqst_req_id_cb)
-        {
-                uint32_t l_cust_id;
-                l_s =  rqst_ctx::s_get_cust_id_cb(l_cust_id, a_ctx);
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_cust_id_cb");
-                }
-                l_request_info->set_customer_id(l_cust_id);
-        }
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx)
+int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx)
 {
-        //int32_t l_s = WAFLZ_STATUS_OK;
         if(!m_pb)
         {
                 return WAFLZ_STATUS_ERROR;
         }
+        int32_t l_status = WAFLZ_STATUS_OK;
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         m_anomaly_score_cur = 0;
 #endif
-        // -------------------------------------------------
-        // get rqst_ctx
-        // -------------------------------------------------
         int32_t l_s;
-        // get body size max
-        uint32_t l_body_size_max = DEFAULT_BODY_SIZE_MAX;
-        if(m_pb->has_request_body_in_memory_limit())
+        // -------------------------------------------------
+        // create new if null
+        // -------------------------------------------------
+        rqst_ctx *l_ctx = NULL;
+        if(ao_rqst_ctx &&
+           *ao_rqst_ctx)
         {
-                l_body_size_max = m_pb->request_body_in_memory_limit();
+                l_ctx = *ao_rqst_ctx;
         }
-        rqst_ctx *l_ctx = new rqst_ctx(l_body_size_max, m_parse_json);
+        if(!l_ctx)
+        {
+                // get body size max
+                uint32_t l_body_size_max = DEFAULT_BODY_SIZE_MAX;
+                if(m_pb->has_request_body_in_memory_limit())
+                {
+                        l_body_size_max = m_pb->request_body_in_memory_limit();
+                }
+                l_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_parse_json);
+                if(ao_rqst_ctx)
+                {
+                        *ao_rqst_ctx = l_ctx;
+                }
+        }
         // -------------------------------------------------
         // *************************************************
-        //                 P H A S E  1
+        //                   P H A S E  1
         // *************************************************
-        // -------------------------------------------------
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = l_ctx->init_phase_1(a_ctx,
-                                  m_il_query,
-                                  m_il_header,
-                                  m_il_cookie);
+        l_s = l_ctx->init_phase_1();
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
-                NDBG_PRINT("error init_phase_1\n");
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -2674,7 +2395,7 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx)
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -2685,12 +2406,11 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx)
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = l_ctx->init_phase_2(m_ctype_parser_map, a_ctx);
+        l_s = l_ctx->init_phase_2(m_ctype_parser_map);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
-                NDBG_PRINT("error init_phase_2\n");
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -2703,7 +2423,7 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx)
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -2716,41 +2436,31 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx)
                         delete *ao_event;
                         *ao_event = NULL;
                 }
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         if(!*ao_event)
         {
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
-        }
-
-        // ---------------------------------
-        // add rqst info
-        // ---------------------------------
-        waflz_pb::event &l_event = **ao_event;
-        l_s = append_rqst_info(l_event, a_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error...\n");
-                return WAFLZ_STATUS_ERROR;
         }
         // ---------------------------------
         // add meta
         // ---------------------------------
+        waflz_pb::event &l_event = **ao_event;
         // ---------------------------------
         // *********************************
         // handling anomaly mode natively...
         // *********************************
         // ---------------------------------
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
-        l_event.set_rule_id(981176);
         const char l_msg_macro[] = "Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE}, XSS=%{TX.XSS_SCORE}): Last Matched Message: %{tx.msg}";
         std::string l_msg;
         macro *l_macro =  &(m_engine.get_macro());
         l_s = (*l_macro)(l_msg, l_msg_macro, l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         l_event.set_rule_msg(l_msg);
@@ -2800,7 +2510,7 @@ else { l_event.set_##_field(0); } \
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+        if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
         return WAFLZ_STATUS_OK;
 }
 }

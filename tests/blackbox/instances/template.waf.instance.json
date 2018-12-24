@@ -1,0 +1,218 @@
+{
+  "id": "1001",
+    "name": "Default Policy for www.edgecast.com",
+    "customer_id": "0050",
+    "enabled_date": "03/13/2014",
+    "audit_profile_action": "alert",
+    "audit_profile":
+    {
+        "access_settings": {
+          "url": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "user-agent": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "referer": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "ip": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "country": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "ignore_cookie": [],
+          "ignore_query_args": ["ignore", "this", "crap"]
+        },
+        "name": "test",
+        "rule_target_updates": [],
+        "policies" : [
+            "modsecurity_crs_20_protocol_violations.conf.json",
+            "modsecurity_crs_21_protocol_anomalies.conf.json",
+            "modsecurity_crs_22_custom_ec_rules.conf.json",
+            "modsecurity_crs_23_request_limits.conf.json",
+            "modsecurity_crs_30_http_policy.conf.json",
+            "modsecurity_crs_35_bad_robots.conf.json",
+            "modsecurity_crs_40_generic_attacks.conf.json",
+            "modsecurity_crs_41_sql_injection_attacks.conf.json",
+            "modsecurity_crs_41_xss_attacks.conf.json",
+            "modsecurity_crs_42_tight_security.conf.json",
+            "modsecurity_crs_45_trojans.conf.json",
+            "modsecurity_crs_47_common_exceptions.conf.json",
+            "modsecurity_crs_49_inbound_blocking.conf.json",
+            "modsecurity_crs_50_outbound.conf.json",
+            "modsecurity_crs_59_outbound_blocking.conf.json",
+            "modsecurity_crs_60_correlation.conf.json"
+        ],
+        "custom_rules": [],
+        "disabled_rules": [],
+        "general_settings": {
+          "disallowed_extensions": [
+            ".asa",
+            ".asax",
+            ".xsx"
+          ],
+          "engine": "signature",
+          "validate_utf8_encoding": true,
+          "allowed_request_content_types": [
+            "application/x-www-form-urlencoded",
+            "multipart/form-data",
+            "text/xml",
+            "application/xml",
+            "application/x-amf",
+            "application/json"
+          ],
+          "max_num_args": 512,
+          "total_arg_length": 64000,
+          "process_response_body": false,
+          "allowed_http_versions": [
+            "HTTP/1.0",
+            "HTTP/1.1"
+          ],
+          "process_request_body": true,
+          "disallowed_headers": [],
+          "xml_parser": true,
+          "json_parser" : true,
+          "arg_length": 8000,
+          "combined_file_sizes": 6291456,
+          "max_file_size": 6291456,
+          "debug_level": 0,
+          "anomaly_settings": {
+            "error_score": 4,
+            "notice_score": 2,
+            "inbound_threshold": 20,
+            "critical_score": 5,
+            "outbound_threshold": 4,
+            "warning_score": 3
+          },
+          "debug_log": "",
+          "response_header_name": "X-EC-Security-Audit",
+          "allowed_http_methods": [
+            "GET",
+            "POST",
+            "OPTIONS",
+            "HEAD",
+            "PUT",
+            "DELETE"
+          ],
+          "arg_name_length": 1024,
+          "response_mime_types": []
+        },
+        "created_date": "5/28/2016 1:39:46 PM",
+        "ruleset_id": "OWASP-CRS-2.2.9",
+        "ruleset_version": "2017-08-01",
+        "id": "4291"
+      },
+      "prod_profile_action": "block",
+      "prod_profile":
+      {
+          "access_settings": {
+          "url": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "user-agent": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "referer": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "ip": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "country": {
+            "blacklist": [],
+            "whitelist": []
+          },
+          "ignore_cookie": [],
+          "ignore_query_args": ["ignore", "this", "crap"]
+        },
+        "name": "test",
+        "rule_target_updates": [],
+        "policies" : [
+            "modsecurity_crs_20_protocol_violations.conf.json",
+            "modsecurity_crs_21_protocol_anomalies.conf.json",
+            "modsecurity_crs_22_custom_ec_rules.conf.json",
+            "modsecurity_crs_23_request_limits.conf.json",
+            "modsecurity_crs_30_http_policy.conf.json",
+            "modsecurity_crs_35_bad_robots.conf.json",
+            "modsecurity_crs_40_generic_attacks.conf.json",
+            "modsecurity_crs_41_sql_injection_attacks.conf.json",
+            "modsecurity_crs_41_xss_attacks.conf.json",
+            "modsecurity_crs_42_tight_security.conf.json",
+            "modsecurity_crs_45_trojans.conf.json",
+            "modsecurity_crs_47_common_exceptions.conf.json",
+            "modsecurity_crs_49_inbound_blocking.conf.json",
+            "modsecurity_crs_50_outbound.conf.json",
+            "modsecurity_crs_59_outbound_blocking.conf.json",
+            "modsecurity_crs_60_correlation.conf.json"
+        ],
+        "custom_rules": [],
+        "disabled_rules": [],
+        "general_settings": {
+          "disallowed_extensions": [
+            ".asa",
+            ".asax",
+            ".xsx"
+          ],
+          "engine": "signature",
+          "validate_utf8_encoding": true,
+          "allowed_request_content_types": [
+            "application/x-www-form-urlencoded",
+            "multipart/form-data",
+            "text/xml",
+            "application/xml",
+            "application/x-amf",
+            "application/json"
+          ],
+          "max_num_args": 512,
+          "total_arg_length": 64000,
+          "process_response_body": false,
+          "allowed_http_versions": [
+            "HTTP/1.0",
+            "HTTP/1.1"
+          ],
+          "process_request_body": true,
+          "disallowed_headers": [],
+          "xml_parser": true,
+          "json_parser" : true,
+          "arg_length": 8000,
+          "combined_file_sizes": 6291456,
+          "max_file_size": 6291456,
+          "debug_level": 0,
+          "anomaly_settings": {
+            "error_score": 4,
+            "notice_score": 2,
+            "inbound_threshold": 20,
+            "critical_score": 5,
+            "outbound_threshold": 4,
+            "warning_score": 3
+          },
+          "debug_log": "",
+          "response_header_name": "X-EC-Security",
+          "allowed_http_methods": [
+            "GET",
+            "POST",
+            "OPTIONS",
+            "HEAD",
+            "PUT",
+            "DELETE"
+          ],
+          "arg_name_length": 1024,
+          "response_mime_types": []
+        },
+        "created_date": "5/28/2016 1:39:46 PM",
+        "ruleset_id": "OWASP-CRS-2.2.9",
+        "ruleset_version": "2017-08-01",
+        "id": "4291"
+      }
+}

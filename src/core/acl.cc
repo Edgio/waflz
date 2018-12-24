@@ -1272,76 +1272,93 @@ done:
 //: ----------------------------------------------------------------------------
 int32_t acl::process(waflz_pb::event **ao_event,
                      bool &ao_whitelist,
-                     void *a_ctx)
+                     void *a_ctx,
+                     rqst_ctx **ao_rqst_ctx)
 {
         if(!ao_event)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
-        rqst_ctx *l_ctx = new rqst_ctx(0, false);
+        // -------------------------------------------------
+        // create new if null
+        // -------------------------------------------------
+        rqst_ctx *l_rqst_ctx = NULL;
+        if(ao_rqst_ctx &&
+           *ao_rqst_ctx)
+        {
+                l_rqst_ctx = *ao_rqst_ctx;
+        }
+        if(!l_rqst_ctx)
+        {
+                l_rqst_ctx = new rqst_ctx(a_ctx, 0, false);
+                if(ao_rqst_ctx)
+                {
+                        *ao_rqst_ctx = l_rqst_ctx;
+                }
+        }
+        // -------------------------------------------------
+        // init phase 1 for processing acl
+        // -------------------------------------------------
         int32_t l_s;
-        // -------------------------------------------------
-        // init phase 0 for processing acl
-        // -------------------------------------------------
-        l_s = l_ctx->init_phase_0(a_ctx);
+        l_s = l_rqst_ctx->init_phase_1();
         if(l_s != WAFLZ_STATUS_OK)
         {
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         bool l_match = false;
         // -------------------------------------------------
         // whitelist...
         // -------------------------------------------------
-        l_s = process_whitelist(l_match, *l_ctx);
+        l_s = process_whitelist(l_match, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         // if whitelist match, we outtie
         if(l_match)
         {
                 ao_whitelist = true;
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         waflz_pb::event *l_event = NULL;
         // -------------------------------------------------
         // blacklist...
         // -------------------------------------------------
-        l_s = process_blacklist(&l_event, *l_ctx);
+        l_s = process_blacklist(&l_event, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_event)
         {
                 *ao_event = l_event;
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // settings...
         // -------------------------------------------------
-        l_s = process_settings(&l_event, *l_ctx);
+        l_s = process_settings(&l_event, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_event)
         {
                 *ao_event = l_event;
-                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
         return WAFLZ_STATUS_OK;
 }
 }

@@ -1269,7 +1269,7 @@ GET_VAR(REQBODY_ERROR)
         l_data.m_key = l_key.c_str();
         l_data.m_key_len = l_key.length();
         l_data.m_val = l_str.c_str();
-        l_data.m_val_len = l_len;
+        l_data.m_val_len = l_str.length();
         ao_list.push_back(l_data);
         return WAFLZ_STATUS_OK;
 }

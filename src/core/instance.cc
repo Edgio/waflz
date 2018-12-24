@@ -23,14 +23,16 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
+#include "event.pb.h"
+#include "config.pb.h"
+#include "enforcement.pb.h"
 #include "jspb/jspb.h"
 #include "support/ndebug.h"
 #include "support/trace_internal.h"
 #include "waflz/def.h"
 #include "waflz/instance.h"
 #include "waflz/profile.h"
-#include "config.pb.h"
-#include "enforcement.pb.h"
+#include "waflz/rqst_ctx.h"
 #include <dirent.h>
 #include <string.h>
 #include <errno.h>
@@ -339,6 +341,103 @@ int32_t instance::validate(void)
                         WAFLZ_PERROR(m_err_msg, "(prod_profile): %s", m_profile_prod->get_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+void instance::set_event_properties(waflz_pb::event &ao_event, profile &a_profile)
+{
+        // -------------------------------------------------
+        // set waf config specifics for logging
+        // -------------------------------------------------
+        ao_event.set_waf_instance_id(m_id);
+        ao_event.set_waf_instance_name(m_name);
+        ao_event.set_waf_profile_action(a_profile.get_action());
+        waflz_pb::profile *l_p_pb = a_profile.get_pb();
+        ao_event.set_ruleset_id(l_p_pb->ruleset_id());
+        ao_event.set_ruleset_version(l_p_pb->ruleset_version());
+        if(l_p_pb->general_settings().has_paranoia_level())
+        {
+                ao_event.set_paranoia_level(l_p_pb->general_settings().paranoia_level());
+        }
+        if (!a_profile.get_resp_header_name().empty())
+        {
+                ao_event.set_response_header_name(a_profile.get_resp_header_name());
+        }
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t instance::process(waflz_pb::event **ao_audit_event,
+                          waflz_pb::event **ao_prod_event,
+                          void *a_ctx,
+                          rqst_ctx **ao_rqst_ctx)
+{
+        int32_t l_s;
+        rqst_ctx *l_rqst_ctx = NULL;
+        waflz_pb::event *l_audit_event = NULL;
+        waflz_pb::event *l_prod_event = NULL;
+        // -------------------------------------------------
+        // *************************************************
+        //                    A U D I T
+        // *************************************************
+        // -------------------------------------------------
+        if(!m_profile_audit)
+        {
+                goto process_prod;
+        }
+        l_s = m_profile_audit->process(&l_audit_event, a_ctx, &l_rqst_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_audit_event)
+        {
+                set_event_properties(*l_audit_event, *m_profile_audit);
+        }
+        // reset phase 1
+        // -------------------------------------------------
+        if(l_rqst_ctx)
+        {
+                l_s = l_rqst_ctx->reset_phase_1();
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                     P R O D
+        // *************************************************
+        // -------------------------------------------------
+process_prod:
+        if(!m_profile_prod)
+        {
+                goto done;
+        }
+        l_s = m_profile_prod->process(&l_prod_event, a_ctx, &l_rqst_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_prod_event)
+        {
+                set_event_properties(*l_prod_event, *m_profile_prod);
+        }
+done:
+        *ao_audit_event = l_audit_event;
+        *ao_prod_event = l_prod_event;
+        if(ao_rqst_ctx)
+        {
+                *ao_rqst_ctx = l_rqst_ctx;
+        }
+        else
+        {
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         }
         return WAFLZ_STATUS_OK;
 }

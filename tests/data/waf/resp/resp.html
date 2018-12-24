@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+</head>
+
+<body>
+    <style>
+        * {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+        
+        div {
+            display: block;
+        }
+        
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #333;
+            background-color: #fff;
+        }
+        
+        html {
+            font-size: 10px;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            font-family: sans-serif;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        
+        :before,
+        :after {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+        
+        .container {
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-right: auto;
+            margin-left: auto;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                width: 750px;
+            }
+        }
+        
+        .callout+.callout {
+            margin-top: -5px;
+        }
+        
+        .callout {
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #eee;
+            border-left-width: 5px;
+            border-radius: 3px;
+        }
+        
+        .callout-danger {
+            border-left-color: #fa0e1c;
+        }
+        
+        .callout-danger h4 {
+            color: #fa0e1c;
+        }
+        
+        .callout h4 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        
+        h4,
+        .h4 {
+            font-size: 18px;
+        }
+        
+        h4,
+        .h4,
+        h5,
+        .h5,
+        h6,
+        .h6 {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .h1,
+        .h2,
+        .h3,
+        .h4,
+        .h5,
+        .h6 {
+            font-family: Apex, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-weight: 400;
+            line-height: 1.1;
+            color: inherit;
+        }
+        
+        h4 {
+            display: block;
+            -webkit-margin-before: 1.33em;
+            -webkit-margin-after: 1.33em;
+            -webkit-margin-start: 0px;
+            -webkit-margin-end: 0px;
+            font-weight: bold;
+        }
+        
+        label {
+            display: inline-block;
+            max-width: 100%;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+        
+        dl {
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: block;
+            -webkit-margin-before: 1em;
+            -webkit-margin-after: 1em;
+            -webkit-margin-start: 0px;
+            -webkit-margin-end: 0px;
+        }
+        
+        dd {
+            display: block;
+            -webkit-margin-start: 40px;
+            margin-left: 0;
+            word-wrap: break-word;
+        }
+        
+        dt {
+            font-weight: 700;
+            display: block;
+        }
+        
+        dt,
+        dd {
+            line-height: 1.42857143;
+        }
+        
+        .dl-horizontal dt {
+            float: left;
+            width: 160px;
+            overflow: hidden;
+            clear: left;
+            text-align: right;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .dl-horizontal dd {
+            margin-left: 180px;
+        }
+    </style>
+    <div class="container">
+        <div class="callout callout-danger">
+            <h4 class="label">Forbidden</h4>
+            <dl class="dl-horizontal">
+                <dt>Client IP</dt> <dd>{{CLIENT_IP}}</dd>
+                <dt>User-Agent</dt> <dd>{{USER_AGENT}}</dd>
+                <dt>Request URL</dt> <dd>{{REQUEST_URL}}</dd>
+                <dt>Reason</dt> <dd>{{RULE_MSG}}</dd>
+                <dt>Date</dt> <dd>{{TIMESTAMP}}</dd>
+            </dl>
+        </div>
+    </div>
+</body>
+
+</html>

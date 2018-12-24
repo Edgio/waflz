@@ -1,0 +1,64 @@
+{
+"config":
+{
+  "ruleset_id": "OWASP-CRS-3.2",
+  "ruleset_version": "2018-10-04",
+  "general_settings":
+  {
+    "engine": "anomaly",
+    "paranoia_level": 4
+  },
+  "policies" : [
+      "REQUEST-905-COMMON-EXCEPTIONS.conf",
+      "REQUEST-911-METHOD-ENFORCEMENT.conf",
+      "REQUEST-913-SCANNER-DETECTION.conf",
+      "REQUEST-920-PROTOCOL-ENFORCEMENT.conf",
+      "REQUEST-921-PROTOCOL-ATTACK.conf",
+      "REQUEST-930-APPLICATION-ATTACK-LFI.conf",
+      "REQUEST-931-APPLICATION-ATTACK-RFI.conf",
+      "REQUEST-932-APPLICATION-ATTACK-RCE.conf",
+      "REQUEST-933-APPLICATION-ATTACK-PHP.conf",
+      "REQUEST-941-APPLICATION-ATTACK-XSS.conf",
+      "REQUEST-942-APPLICATION-ATTACK-SQLI.conf",
+      "REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf",
+      "REQUEST-949-BLOCKING-EVALUATION.conf"
+  ]
+},
+"vectors":
+[
+  {
+    "uri": "index.html",
+    "query_str": "a=%27select%20*%20from%20testing%27",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "basic sql injection"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 20, SQLi=15, XSS=0): Last Matched Message: Detects concatenated basic SQL injection and SQLLFI attempts",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Invalid character in request (outside of very strict set)"
+        },
+        {
+          "rule_msg": "SQL Injection Attack Detected via libinjection"
+        },
+        {
+          "rule_msg": "Detects MSSQL code execution and information gathering attempts"
+        },
+        {
+          "rule_msg": "Detects concatenated basic SQL injection and SQLLFI attempts"
+        }
+      ]
+    }
+  }
+]
+}

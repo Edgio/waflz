@@ -1,0 +1,237 @@
+{
+"config":
+{
+  "ruleset_id": "OWASP-CRS-3.2",
+  "ruleset_version": "2018-10-04",
+  "general_settings": 
+  {
+    "engine": "anomaly",
+    "paranoia_level": 4,
+    "anomaly_settings": {
+      "error_score": 4,
+      "notice_score": 2,
+      "inbound_threshold": 1,
+      "critical_score": 5,
+      "outbound_threshold": 4,
+      "warning_score": 3
+    }
+  },
+   "policies" : [
+      "REQUEST-905-COMMON-EXCEPTIONS.conf",
+      "REQUEST-911-METHOD-ENFORCEMENT.conf",
+      "REQUEST-913-SCANNER-DETECTION.conf",
+      "REQUEST-920-PROTOCOL-ENFORCEMENT.conf",
+      "REQUEST-921-PROTOCOL-ATTACK.conf",
+      "REQUEST-930-APPLICATION-ATTACK-LFI.conf",
+      "REQUEST-931-APPLICATION-ATTACK-RFI.conf",
+      "REQUEST-932-APPLICATION-ATTACK-RCE.conf",
+      "REQUEST-933-APPLICATION-ATTACK-PHP.conf",
+      "REQUEST-941-APPLICATION-ATTACK-XSS.conf",
+      "REQUEST-942-APPLICATION-ATTACK-SQLI.conf",
+      "REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf",
+      "REQUEST-949-BLOCKING-EVALUATION.conf"
+  ]
+},
+"vectors":
+[
+  {
+    "uri": "index.html",
+    "query_str": "cool=beans",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez"
+    },
+    "tags":
+    [
+      "ok"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2, SQLi=0, XSS=0): Last Matched Message: Request Missing an Accept Header",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Request Missing an Accept Header"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "index.html",
+    "query_str": "a=%27select%20*%20from%20testing%27",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "basic sql injection"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Invalid character in request (outside of very strict set)",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Invalid character in request (outside of very strict set)"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "index.html",
+    "query_str": "*****",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "protocol anomalies"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2, SQLi=0, XSS=0): Last Matched Message: Empty User Agent Header",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Empty User Agent Header"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "index.html",
+    "query_str": "hotelId=1927&availabilityId=33edd70a-b419-4a55-a37b-cf8a0fb54855&spsoGuid=f9d83f47-40ff-4171-8e44-3b74cb74fd8b",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "sql injection"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3, SQLi=3, XSS=0): Last Matched Message: Restricted SQL Character Anomaly Detection (args): # of special characters exceeded (2)",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Restricted SQL Character Anomaly Detection (args): # of special characters exceeded (2)"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "x",
+    "query_str": "",
+    "headers":
+    {
+      "Host": "not_an_ip",
+      "User-Agent": "SearchmetricsBot",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "bad robots"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Found User-Agent associated with web crawler/bot",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Found User-Agent associated with web crawler/bot"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "x",
+    "query_str": "u=http://www.labnol.org\">example</a>",
+    "headers":
+    {
+      "Host": "not_an_ip",
+      "User-Agent": "waflz_server testing",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "rfi"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Invalid character in request (outside of very strict set)",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Invalid character in request (outside of very strict set)"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "x",
+    "query_str": "",
+    "headers":
+    {
+      "Host": "not_an_ip",
+      "User-Agent": "() { :; }; /bin/eject",
+      "Accept": "*/*"
+      
+    },
+    "tags":
+    [
+      "shellshock"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Remote Command Execution: Shellshock (CVE-2014-6271)",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Remote Command Execution: Shellshock (CVE-2014-6271)"
+        }
+      ]
+    }
+  },
+  {
+    "uri": "index.html",
+    "query_str": "cool=beans",
+    "headers":
+    {
+      "Host": "donuts.com",
+      "User-Agent": "monkeez",
+      "Accept": "*/*"
+      
+    },
+    "body": "X2VnY1Y9eyJfZWdjViI6IjMuNi4wLjc0JTI3c2VsZWN0JTIwKiUyMGZyb20lMjB0ZXN0aW5nJTI3In0K",
+    "tags":
+    [
+      "ok", "body"
+    ],
+    "response":
+    {
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Invalid character in request (outside of printable chars below ascii 127)",
+      "sub_event":
+      [
+        {
+          "rule_msg": "Invalid character in request (outside of printable chars below ascii 127)"
+        }
+      ]
+    }
+  }
+]
+}

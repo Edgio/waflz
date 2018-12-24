@@ -58,7 +58,6 @@ class profile;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
-typedef std::list<regex *> pcre_list_t;
 typedef std::list<regex *> regex_list_t;
 typedef std::list<ac *> ac_list_t;
 typedef std::list<nms *> nms_list_t;
@@ -91,10 +90,9 @@ public:
         // -------------------------------------------------
         waf(engine &a_engine);
         ~waf();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx);
+        int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t init(profile &a_profile, bool a_leave_tmp_file = false);
         int32_t init(config_parser::format_t a_format, const std::string &a_path, bool a_apply_defaults = false);
-        int32_t regex_list_add(const std::string &a_regex, pcre_list_t &a_pcre_list);
         int32_t get_str(std::string &ao_str, config_parser::format_t a_format);
         const char *get_err_msg(void) { return m_err_msg; }
         // -------------------------------------------------
@@ -103,21 +101,16 @@ public:
         void set_id(const std::string &a_id) { m_id = a_id; }
         void set_name(const std::string &a_name) { m_name = a_name; }
         void set_owasp_ruleset_version(uint32_t a_version) { m_owasp_ruleset_version = a_version; }
+        void set_paranoia_level(uint32_t a_paranoia_level) { m_paranoia_level = a_paranoia_level; }
         void set_parse_json( const bool &a_parse_json) { m_parse_json = a_parse_json; }
         uint32_t get_owasp_ruleset_version(void) { return m_owasp_ruleset_version; }
-        // -------------------------------------------------
-        // public static methods
-        // -------------------------------------------------
-        static int32_t append_rqst_info(waflz_pb::event &ao_event, void *a_ctx);
-        // TODO -make private!!!
-        pcre_list_t m_il_query;
-        pcre_list_t m_il_header;
-        pcre_list_t m_il_cookie;
+        uint32_t get_paranoia_level(void) { return m_paranoia_level; }
+        bool get_parse_json(void) { return m_parse_json; }
+        uint32_t get_request_body_in_memory_limit(void);
 private:
         // -------------------------------------------------
         // private types
         // -------------------------------------------------
-        typedef std::list<regex *> regex_list_t;
         typedef std::list<ac *> ac_list_t;
         // -------------------------------------------------
         // private methods
@@ -159,6 +152,7 @@ private:
         std::string m_id;
         std::string m_name;
         uint32_t m_owasp_ruleset_version;
+        uint32_t m_paranoia_level;
         bool m_no_log_matched;
         bool m_parse_json;
 #endif

@@ -28,8 +28,6 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <a class="reference internal image-reference" href="_images/waflz_white.svg"><img alt="waflz" src="_images/waflz_white.svg" width="200" /></a>
@@ -42,6 +40,10 @@
 <li class="toctree-l2"><a class="reference internal" href="overview.html#what-is-it">What is it?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="overview.html#why-another-modsecurity-engine">Why another ModSecurity engine?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="overview.html#architecture">Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dedication.html">Dedication</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dedication.html#to-our-friend">To our friend</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="building.html">Building</a><ul>
@@ -58,14 +60,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="profiles.html">Profiles</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="profiles.html#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="profiles.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiles.html#example-profile-json">Example Profile json</a></li>
 <li class="toctree-l2"><a class="reference internal" href="profiles.html#access-control-lists">Access Control Lists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiles.html#ignore-fields">Ignore Fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiles.html#general-settings">General Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiles.html#waf-ruleset">WAF Ruleset</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="waflz_server.html">Testing with waflz_server</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="waflz_server.html#modsecurity-rules">ModSecurity Rules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="waflz_server.html#profiles">Profiles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="waflz_server.html#test-vectors">Test Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="waflz_server.html">waflz_server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="waflz_server.html#standard-mode">standard mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="waflz_server.html#proxy-mode">proxy mode</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="waflz_dump.html">Format Conversions with waflz_dump</a><ul>
@@ -94,33 +98,15 @@
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="#">Waflz</a></h1>
-
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="building.html">Building</a></li>
-<li class="toctree-l1"><a class="reference internal" href="capabilities.html">Supported ModSecurity Functionality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="profiles.html">Profiles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="waflz_server.html">Testing with waflz_server</a></li>
-<li class="toctree-l1"><a class="reference internal" href="waflz_dump.html">Format Conversions with waflz_dump</a></li>
-<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
-<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><strong>waflz</strong></a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
-
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
@@ -129,6 +115,13 @@
   </ul></li>
 </ul>
 </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <div class="searchformwrapper">
@@ -149,8 +142,8 @@
       &copy;2018, Reed Morrison, Devender Singh.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.8</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
       <a href="_sources/index.rst.txt"

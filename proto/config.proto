@@ -1,3 +1,4 @@
+syntax = "proto2";
 package waflz_pb;
 import "enforcement.proto";
 //: ----------------------------------------------------------------------------
@@ -168,7 +169,12 @@ message profile {
         optional string ruleset_id = 200;
         optional string ruleset_version = 201;
         repeated custom_rule_t custom_rules = 210;
-        repeated disabled_policy_t disabled_policies = 211;
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // *******************************
+        // Deprecated
+        // repeated disabled_policy_t disabled_policies = 211;
+        // *******************************
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         repeated disabled_rule_t disabled_rules = 212;
         repeated rule_target_update_t rule_target_updates = 213;
         repeated string policies = 214;

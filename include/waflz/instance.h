@@ -35,6 +35,7 @@ namespace waflz_pb {
         class enforcement;
         class instance;
         class profile;
+        class event;
 }
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
@@ -43,6 +44,7 @@ namespace ns_waflz {
 class profile;
 class geoip2_mmdb;
 class engine;
+class rqst_ctx;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
@@ -59,14 +61,6 @@ public:
         // -------------------------------------------------
         instance(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
         ~instance();
-        //: ------------------------------------------------
-        //:               G E T T E R S
-        //: ------------------------------------------------
-        //: ------------------------------------------------
-        //: \brief   get error message
-        //: \details Get last error message string
-        //: \return  last error message (in buffer)
-        //: ------------------------------------------------
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::instance *get_pb(void) { return m_pb; }
         const std::string &get_id(void) { return m_id; }
@@ -93,6 +87,10 @@ public:
                             bool a_leave_compiled_file = false);
         int32_t load_config(void *a_js,
                             bool a_leave_compiled_file = false);
+        int32_t process(waflz_pb::event **ao_audit_event,
+                        waflz_pb::event **ao_prod_event,
+                        void *a_ctx,
+                        rqst_ctx **ao_rqst_ctx);
 private:
         // -------------------------------------------------
         // private methods
@@ -102,6 +100,7 @@ private:
         instance(const instance &);
         instance& operator=(const instance &);
         int32_t validate(void);
+        void set_event_properties(waflz_pb::event &ao_event, profile &a_profile);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

@@ -49,9 +49,12 @@ class engine;
 class waf;
 class acl;
 class geoip2_mmdb;
+class regex;
+class rqst_ctx;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
+typedef std::list<regex *> pcre_list_t;
 typedef std::list <std::string> str_list_t;
 typedef std::list <waflz_pb::enforcement *> enforcement_list_t;
 //: ----------------------------------------------------------------------------
@@ -65,7 +68,7 @@ public:
         // -------------------------------------------------
         profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
         ~profile();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx);
+        int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t load_config(const char *a_buf, uint32_t a_buf_len, bool a_leave_compiled_file = false);
         int32_t load_config(const waflz_pb::profile *a_pb, bool a_leave_compiled_file = false);
         //: ------------------------------------------------
@@ -82,12 +85,6 @@ public:
         const std::string &get_name(void) { return m_name; }
         const std::string &get_resp_header_name(void) { return m_resp_header_name; }
         uint16_t get_action(void) { return m_action; }
-        //: ------------------------------------------------
-        //:               S E T T E R S
-        //: ------------------------------------------------
-        //: ------------------------------------------------
-        //: TODO
-        //: ------------------------------------------------
         void set_pb(waflz_pb::profile *a_pb);
         // -------------------------------------------------
         // public static members
@@ -100,12 +97,17 @@ public:
         static std::string s_geoip2_isp_db;
 private:
         // -------------------------------------------------
+        // private types
+        // -------------------------------------------------
+        typedef std::list<regex *> regex_list_t;
+        // -------------------------------------------------
         // private methods
         // -------------------------------------------------
         //DISALLOW_DEFAULT_CTOR(profile);
         // disallow copy/assign
         profile(const profile &);
         profile& operator=(const profile &);
+        int32_t regex_list_add(const std::string &a_regex, pcre_list_t &a_pcre_list);
         int32_t init(void);
         int32_t validate(void);
         // -------------------------------------------------
@@ -115,6 +117,7 @@ private:
         waflz_pb::profile *m_pb;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
+        geoip2_mmdb &m_geoip2_mmdb;
         // -------------------------------------------------
         // engines...
         // -------------------------------------------------
@@ -129,6 +132,10 @@ private:
         uint16_t m_action;
         bool m_leave_compiled_file;
         uint32_t m_owasp_ruleset_version;
+        uint32_t m_paranoia_level;
+        pcre_list_t m_il_query;
+        pcre_list_t m_il_header;
+        pcre_list_t m_il_cookie;
         // -------------------------------------------------
         // class members
         // -------------------------------------------------

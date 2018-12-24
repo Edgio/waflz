@@ -133,8 +133,6 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 ns_waflz::engine *l_engine = new ns_waflz::engine();
                 l_s = l_engine->init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_engine->init_post_fork();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
                 ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
                 waflz_pb::profile *l_pb = init_std_profile_pb();
 #if 0
@@ -168,10 +166,6 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 //---------------------------------------------
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
 #endif
-                // -----------------------------------------
-                // finalize
-                // -----------------------------------------
-                l_engine->finalize();
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------

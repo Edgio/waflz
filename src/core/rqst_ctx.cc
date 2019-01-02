@@ -324,12 +324,6 @@ int32_t rqst_ctx::reset_phase_1()
         // -------------------------------------------------
         if(!m_cx_tx_map.empty())
         {
-                for(cx_map_t::iterator i_t = m_cx_tx_map.begin();
-                    i_t != m_cx_tx_map.end();
-                    ++i_t)
-                {
-                        m_cx_tx_map.erase(i_t);
-                }
                 m_cx_tx_map.clear();
         }
         // -------------------------------------------------
@@ -337,12 +331,6 @@ int32_t rqst_ctx::reset_phase_1()
         // -------------------------------------------------
         if(!m_header_map.empty())
         {
-                for(data_map_t::iterator i_t = m_header_map.begin();
-                   i_t != m_header_map.end();
-                   ++i_t)
-                {
-                        m_header_map.erase(i_t);
-                }
                 m_header_map.clear();
         }
         // -------------------------------------------------
@@ -350,12 +338,6 @@ int32_t rqst_ctx::reset_phase_1()
         // -------------------------------------------------
         if(!m_cx_rule_map.empty())
         {
-                for(data_map_t::iterator i_t = m_cx_rule_map.begin();
-                    i_t != m_cx_rule_map.end();
-                    ++i_t)
-                {
-                        m_cx_rule_map.erase(i_t);
-                }
                 m_cx_rule_map.clear();
         }
         // -------------------------------------------------

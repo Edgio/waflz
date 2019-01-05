@@ -64,6 +64,7 @@ message profile {
                 optional bool process_response_body = 505;
                 optional bool json_parser = 506;
                 optional uint32 paranoia_level = 550;
+                optional uint32 anomaly_threshold = 560;
                 // -------------------------------
                 // logging
                 // -------------------------------

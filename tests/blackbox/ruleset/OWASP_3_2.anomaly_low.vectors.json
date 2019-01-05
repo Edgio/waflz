@@ -48,7 +48,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2, SQLi=0, XSS=0): Last Matched Message: Request Missing an Accept Header",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2): Last Matched Message: Request Missing an Accept Header",
       "sub_event":
       [
         {
@@ -73,7 +73,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Invalid character in request (outside of very strict set)",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: Invalid character in request (outside of very strict set)",
       "sub_event":
       [
         {
@@ -98,7 +98,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2, SQLi=0, XSS=0): Last Matched Message: Empty User Agent Header",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2): Last Matched Message: Empty User Agent Header",
       "sub_event":
       [
         {
@@ -123,7 +123,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3, SQLi=3, XSS=0): Last Matched Message: Restricted SQL Character Anomaly Detection (args): # of special characters exceeded (2)",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3): Last Matched Message: Restricted SQL Character Anomaly Detection (args): # of special characters exceeded (2)",
       "sub_event":
       [
         {
@@ -148,7 +148,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Found User-Agent associated with web crawler/bot",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: Found User-Agent associated with web crawler/bot",
       "sub_event":
       [
         {
@@ -173,7 +173,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Invalid character in request (outside of very strict set)",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: Invalid character in request (outside of very strict set)",
       "sub_event":
       [
         {
@@ -198,7 +198,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Remote Command Execution: Shellshock (CVE-2014-6271)",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: Remote Command Execution: Shellshock (CVE-2014-6271)",
       "sub_event":
       [
         {
@@ -224,7 +224,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Invalid character in request (outside of printable chars below ascii 127)",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: Invalid character in request (outside of printable chars below ascii 127)",
       "sub_event":
       [
         {

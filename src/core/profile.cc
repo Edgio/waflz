@@ -566,14 +566,17 @@ int32_t profile::validate(void)
         // -------------------------------------------------
         // anomaly settings
         // -------------------------------------------------
-        VERIFY_HAS(l_gs, anomaly_settings);
-        const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
-        VERIFY_HAS(l_ax, critical_score);
-        VERIFY_HAS(l_ax, error_score);
-        VERIFY_HAS(l_ax, warning_score);
-        VERIFY_HAS(l_ax, notice_score);
-        VERIFY_HAS(l_ax, inbound_threshold);
-        VERIFY_HAS(l_ax, outbound_threshold);
+        if(!l_gs.has_anomaly_threshold())
+        {
+                VERIFY_HAS(l_gs, anomaly_settings);
+                const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
+                VERIFY_HAS(l_ax, critical_score);
+                VERIFY_HAS(l_ax, error_score);
+                VERIFY_HAS(l_ax, warning_score);
+                VERIFY_HAS(l_ax, notice_score);
+                VERIFY_HAS(l_ax, inbound_threshold);
+                VERIFY_HAS(l_ax, outbound_threshold);
+        }
         // -------------------------------------------------
         // disabled rules
         // -------------------------------------------------

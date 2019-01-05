@@ -32,7 +32,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2, SQLi=0, XSS=0): Last Matched Message: Request Missing an Accept Header",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2): Last Matched Message: Request Missing an Accept Header",
       "sub_event":
       [
         {
@@ -57,7 +57,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=5, XSS=0): Last Matched Message: SQL Injection Attack: Common Injection Testing Detected",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: SQL Injection Attack: Common Injection Testing Detected",
       "sub_event":
       [
         {
@@ -82,7 +82,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2, SQLi=0, XSS=0): Last Matched Message: Empty User Agent Header",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 2): Last Matched Message: Empty User Agent Header",
       "sub_event":
       [
         {
@@ -107,7 +107,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3, SQLi=1, XSS=0): Last Matched Message: Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3): Last Matched Message: Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded",
       "sub_event":
       [
         {
@@ -132,7 +132,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3, SQLi=0, XSS=0): Last Matched Message: Rogue web site crawler",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3): Last Matched Message: Rogue web site crawler",
       "sub_event":
       [
         {
@@ -157,7 +157,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link",
       "sub_event":
       [
         {
@@ -182,7 +182,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: ",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: ",
       "sub_event":
       [
         {
@@ -208,7 +208,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3, SQLi=0, XSS=0): Last Matched Message: Meta-Character Anomaly Detection Alert - Repetitive Non-Word Characters",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3): Last Matched Message: Meta-Character Anomaly Detection Alert - Repetitive Non-Word Characters",
       "sub_event":
       [
         {
@@ -234,7 +234,7 @@
     ],
     "response":
     {
-      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=0, XSS=0): Last Matched Message: Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link",
+      "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link",
       "sub_event":
       [
         {

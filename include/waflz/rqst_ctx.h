@@ -140,6 +140,9 @@ public:
         uint32_t m_content_length;
         bool m_parse_json;
         std::string m_cookie_mutated;
+        data_t m_req_uuid;
+        uint32_t m_resp_status;
+
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------

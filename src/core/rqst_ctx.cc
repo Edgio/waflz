@@ -203,6 +203,8 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_content_length(0),
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
+        m_req_uuid(),
+        m_resp_status(0),
         m_body_parser(),
         // -------------------------------------------------
         // collections
@@ -324,6 +326,12 @@ int32_t rqst_ctx::reset_phase_1()
         // -------------------------------------------------
         if(!m_cx_tx_map.empty())
         {
+                for(cx_map_t::iterator i_t = m_cx_tx_map.begin();
+                    i_t != m_cx_tx_map.end();
+                    ++i_t)
+                {
+                        m_cx_tx_map.erase(i_t);
+                }
                 m_cx_tx_map.clear();
         }
         // -------------------------------------------------
@@ -331,6 +339,12 @@ int32_t rqst_ctx::reset_phase_1()
         // -------------------------------------------------
         if(!m_header_map.empty())
         {
+                for(data_map_t::iterator i_t = m_header_map.begin();
+                   i_t != m_header_map.end();
+                   ++i_t)
+                {
+                        m_header_map.erase(i_t);
+                }
                 m_header_map.clear();
         }
         // -------------------------------------------------
@@ -338,6 +352,12 @@ int32_t rqst_ctx::reset_phase_1()
         // -------------------------------------------------
         if(!m_cx_rule_map.empty())
         {
+                for(data_map_t::iterator i_t = m_cx_rule_map.begin();
+                    i_t != m_cx_rule_map.end();
+                    ++i_t)
+                {
+                        m_cx_rule_map.erase(i_t);
+                }
                 m_cx_rule_map.clear();
         }
         // -------------------------------------------------
@@ -424,6 +444,18 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                 {
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
+                }
+        }
+        if(s_get_rqst_id_cb)
+        {
+                int32_t l_s;
+                l_s = s_get_rqst_id_cb(&m_req_uuid.m_data,
+                                       m_req_uuid.m_len,
+                                       m_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        //return STATUS_ERROR;
                 }
         }
 #if 0
@@ -1101,12 +1133,13 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // REQ_UUID
         // -------------------------------------------------
-        GET_RQST_DATA(s_get_rqst_id_cb);
-        if (l_buf_len > 0)
+        if(s_get_rqst_id_cb)
         {
-                l_request_info->set_req_uuid(l_buf, l_buf_len);
+                if(m_req_uuid.m_len > 0)
+                {
+                        l_request_info->set_req_uuid(m_req_uuid.m_data, m_req_uuid.m_len);
+                }
         }
-
         // -------------------------------------------------
         // Customer ID
         // -------------------------------------------------

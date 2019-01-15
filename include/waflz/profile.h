@@ -56,7 +56,6 @@ class rqst_ctx;
 //: ----------------------------------------------------------------------------
 typedef std::list<regex *> pcre_list_t;
 typedef std::list <std::string> str_list_t;
-typedef std::list <waflz_pb::enforcement *> enforcement_list_t;
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------

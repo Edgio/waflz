@@ -45,7 +45,9 @@ typedef enum {
         FIELD_REQUEST_URL,
         FIELD_USER_AGENT,
         FIELD_RULE_MSG,
-        FIELD_TIMESTAMP
+        FIELD_TIMESTAMP,
+        FIELD_STATUS_CODE,
+        FIELD_EVENT_ID
 } field_t;
 //! ----------------------------------------------------------------------------
 //! Types
@@ -74,7 +76,9 @@ const str_field_map_t::value_type g_str_field_map_pairs[]= {
         str_field_map_t::value_type("USER-AGENT", FIELD_USER_AGENT),
         str_field_map_t::value_type("RULE_MSG", FIELD_RULE_MSG),
         str_field_map_t::value_type("RULE-MSG", FIELD_RULE_MSG),
-        str_field_map_t::value_type("TIMESTAMP", FIELD_TIMESTAMP)
+        str_field_map_t::value_type("TIMESTAMP", FIELD_TIMESTAMP),
+        str_field_map_t::value_type("STATUS_CODE", FIELD_STATUS_CODE),
+        str_field_map_t::value_type("EVENT_ID", FIELD_EVENT_ID)
 };
 const str_field_map_t g_str_field_map(g_str_field_map_pairs,
                                       g_str_field_map_pairs + (sizeof(g_str_field_map_pairs)/sizeof(g_str_field_map_pairs[0])));
@@ -351,6 +355,41 @@ static int32_t rr_render(char* ao_buf,
                         {
                                 memcpy(l_buf, l_msg.c_str(), l_msg.length());
                                 l_buf += l_msg.length();
+                        }
+                        break;
+                }
+               // -----------------------------------------
+                // FIELD_STATUS_CODE
+                // -----------------------------------------
+                case FIELD_STATUS_CODE:
+                {
+                        char l_tmp[8];
+                        int l_tmp_len;
+                        l_tmp_len = snprintf(l_tmp, 8, "%u", a_ctx->m_resp_status);
+                        ao_len += l_tmp_len;
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, l_tmp, l_tmp_len);
+                                l_buf += l_tmp_len;
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // FIELD_EVENT_ID
+                // -----------------------------------------
+                case FIELD_EVENT_ID:
+                {
+                        if(!a_ctx ||
+                          !a_ctx->m_req_uuid.m_data ||
+                          !a_ctx->m_req_uuid.m_len)
+                        {
+                                break;
+                        }
+                        ao_len += a_ctx->m_req_uuid.m_len;
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, a_ctx->m_req_uuid.m_data, a_ctx->m_req_uuid.m_len);
+                                l_buf += a_ctx->m_req_uuid.m_len;
                         }
                         break;
                 }

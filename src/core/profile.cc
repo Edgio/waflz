@@ -566,17 +566,14 @@ int32_t profile::validate(void)
         // -------------------------------------------------
         // anomaly settings
         // -------------------------------------------------
-        if(!l_gs.has_anomaly_threshold())
-        {
-                VERIFY_HAS(l_gs, anomaly_settings);
-                const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
-                VERIFY_HAS(l_ax, critical_score);
-                VERIFY_HAS(l_ax, error_score);
-                VERIFY_HAS(l_ax, warning_score);
-                VERIFY_HAS(l_ax, notice_score);
-                VERIFY_HAS(l_ax, inbound_threshold);
-                VERIFY_HAS(l_ax, outbound_threshold);
-        }
+        VERIFY_HAS(l_gs, anomaly_settings);
+        const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
+        VERIFY_HAS(l_ax, critical_score);
+        VERIFY_HAS(l_ax, error_score);
+        VERIFY_HAS(l_ax, warning_score);
+        VERIFY_HAS(l_ax, notice_score);
+        VERIFY_HAS(l_ax, inbound_threshold);
+        VERIFY_HAS(l_ax, outbound_threshold);
         // -------------------------------------------------
         // disabled rules
         // -------------------------------------------------
@@ -626,6 +623,80 @@ int32_t profile::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
+        waflz_pb::event *l_event = NULL;
+        int32_t l_s;
+        // -------------------------------------------------
+        // create new if null
+        // -------------------------------------------------
+        rqst_ctx *l_rqst_ctx = NULL;
+        if(ao_rqst_ctx &&
+           *ao_rqst_ctx)
+        {
+                l_rqst_ctx = *ao_rqst_ctx;
+        }
+        if(!l_rqst_ctx)
+        {
+                uint32_t l_body_size_max = DEFAULT_BODY_SIZE_MAX;
+                if(m_waf->get_request_body_in_memory_limit() > 0)
+                {
+                        l_body_size_max = m_waf->get_request_body_in_memory_limit();
+                }
+                l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
+                if(ao_rqst_ctx)
+                {
+                        *ao_rqst_ctx = l_rqst_ctx;
+                }
+        }
+        // run phase 1 init
+        // -------------------------------------------------
+        l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO -log error???
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // process waf...
+        // -------------------------------------------------
+        l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO log error reason???
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+done:
+        // -------------------------------------------------
+        // done...
+        // -------------------------------------------------
+        if(l_event)
+        {
+                l_s = l_rqst_ctx->append_rqst_info(*l_event);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO log error reason???
+                        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_event->set_rule_intercept_status(403);
+                l_event->set_waf_profile_id(m_pb->id());
+                l_event->set_waf_profile_name(m_pb->name());
+                *ao_event = l_event;
+        }
+        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+        return WAFLZ_STATUS_OK;
+}
+int32_t profile::process_acl(waflz_pb::event **ao_event,
+                             void *a_ctx,
+                             bool &ao_whitelisted,
+                             rqst_ctx **ao_rqst_ctx)
+{
+        if(!ao_event)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_event = NULL;
         int32_t l_s;
         // -------------------------------------------------
         // create new if null
@@ -663,7 +734,7 @@ int32_t profile::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         bool l_whitelist = false;
         waflz_pb::event *l_event = NULL;
-        l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
+        l_s = m_acl->process(&l_event, ao_whitelisted, a_ctx, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO log error reason???
@@ -673,7 +744,7 @@ int32_t profile::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // if in whitelist -bail out of modsec processing
         // -------------------------------------------------
-        if(l_whitelist)
+        if(ao_whitelisted)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_OK;
@@ -681,16 +752,6 @@ int32_t profile::process(waflz_pb::event **ao_event,
         else if(l_event)
         {
                 goto done;
-        }
-        // -------------------------------------------------
-        // process waf...
-        // -------------------------------------------------
-        l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                // TODO log error reason???
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                return WAFLZ_STATUS_ERROR;
         }
 done:
         // -------------------------------------------------

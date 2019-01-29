@@ -91,6 +91,11 @@ public:
                         void *a_ctx,
                         const std::string &a_id,
                         rqst_ctx **ao_rqst_ctx);
+        int32_t process_acl(waflz_pb::event **ao_audit_event,
+                            waflz_pb::event **ao_prod_event,
+                            void *a_ctx,
+                            const std::string &a_id,
+                            rqst_ctx **ao_rqst_ctx);
         void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }
         const char *get_err_msg(void) { return m_err_msg; }
         instance *get_instance(const std::string &a_id);

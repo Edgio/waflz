@@ -153,8 +153,6 @@ int32_t instances::load_config(instance **ao_instance,
                 return WAFLZ_STATUS_ERROR;
         }
         const std::string& l_id = l_instance->get_id();
-        // TODO REMOVE
-        //NDBG_PRINT("l_id: %s\n", l_id.c_str());
         // -------------------------------------------------
         // check for exist in map
         // -------------------------------------------------

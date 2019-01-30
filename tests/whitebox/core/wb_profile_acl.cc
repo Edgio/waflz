@@ -820,7 +820,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // -----------------------------------------
                 // validate block
                 // -----------------------------------------
-                s_path = "my/path/is/abc.def.php";
+                s_path = "my/path/is/abc.def.php?hello=1";
                 l_s = l_profile->process_acl(&l_event, l_ctx, l_whitelist);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));

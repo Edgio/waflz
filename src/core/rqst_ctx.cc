@@ -560,7 +560,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                         if(l_ptr)
                         {
                                 m_file_ext.m_data = ((const char *)(l_ptr));
-                                m_file_ext.m_len = m_base.m_len - ((uint32_t)((const char *)l_ptr - m_base.m_data)) - 1;
+                                m_file_ext.m_len = m_base.m_len - ((uint32_t)((const char *)l_ptr - m_base.m_data));
                         }
                 }
         }

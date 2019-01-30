@@ -462,13 +462,6 @@ int32_t instance::process_waf(waflz_pb::event **ao_audit_event,
         rqst_ctx *l_rqst_ctx = NULL;
         waflz_pb::event *l_audit_event = NULL;
         waflz_pb::event *l_prod_event = NULL;
-        if(ao_audit_event &&
-           *ao_audit_event)
-        {
-                delete *ao_audit_event;
-                *ao_audit_event = NULL;
-                goto process_prod;
-        }
         // Check if rqst_ctx is already allocated
         // The order is acl -> waf. acl should allocate
         // and waf should resuse
@@ -477,6 +470,14 @@ int32_t instance::process_waf(waflz_pb::event **ao_audit_event,
         {
                 l_rqst_ctx = *ao_rqst_ctx;
         }
+        // We already have an event
+        // Skip to prod profile
+        if(ao_audit_event &&
+           *ao_audit_event)
+        {
+                //NDBG_PRINT("goto prod\n");
+                goto process_prod;
+        }
         // -------------------------------------------------
         // *************************************************
         //                    A U D I T
@@ -484,6 +485,7 @@ int32_t instance::process_waf(waflz_pb::event **ao_audit_event,
         // -------------------------------------------------
         if(!m_profile_audit)
         {
+                //NDBG_PRINT("goto prod\n");
                 goto process_prod;
         }
         if(l_rqst_ctx)
@@ -515,11 +517,11 @@ int32_t instance::process_waf(waflz_pb::event **ao_audit_event,
         // *************************************************
         // -------------------------------------------------
 process_prod:
+        // We have a prod event as well.
+        // we outie
         if(ao_prod_event &&
            *ao_prod_event)
         {
-                delete *ao_prod_event;
-                *ao_prod_event = NULL;
                 goto done;
         }
         if(!m_profile_prod)
@@ -544,8 +546,14 @@ process_prod:
                 set_event_properties(*l_prod_event, *m_profile_prod);
         }
 done:
-        *ao_audit_event = l_audit_event;
-        *ao_prod_event = l_prod_event;
+        if(l_audit_event)
+        {
+                *ao_audit_event = l_audit_event;
+        }
+        if(l_prod_event)
+        {
+                *ao_prod_event = l_prod_event;
+        }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }

@@ -477,6 +477,8 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 }
                 // -----------------------------------------
                 // process waf
+                // If acl already set event, waf will return
+                // same event
                 // -----------------------------------------
                 l_s = m_instances->process_waf(&l_event_audit, &l_event, &a_session, l_id, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)

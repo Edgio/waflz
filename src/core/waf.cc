@@ -822,7 +822,7 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         {
                 const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
                 l_anomaly_threshold = to_string(l_ax.inbound_threshold());
-                NDBG_PRINT("setting anomaly %s\n", l_anomaly_threshold.c_str());
+                //NDBG_PRINT("setting anomaly %s\n", l_anomaly_threshold.c_str());
         }
         if(m_owasp_ruleset_version >= 300)
         {

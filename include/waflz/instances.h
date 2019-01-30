@@ -86,11 +86,11 @@ public:
                                 uint32_t a_dir_path_len,
                                 bool a_leave_compiled_file = false,
                                 bool a_update = false);
-        int32_t process(waflz_pb::event **ao_audit_event,
-                        waflz_pb::event **ao_prod_event,
-                        void *a_ctx,
-                        const std::string &a_id,
-                        rqst_ctx **ao_rqst_ctx);
+        int32_t process_waf(waflz_pb::event **ao_audit_event,
+                            waflz_pb::event **ao_prod_event,
+                            void *a_ctx,
+                            const std::string &a_id,
+                            rqst_ctx **ao_rqst_ctx);
         int32_t process_acl(waflz_pb::event **ao_audit_event,
                             waflz_pb::event **ao_prod_event,
                             void *a_ctx,

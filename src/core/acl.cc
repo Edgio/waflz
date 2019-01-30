@@ -1054,6 +1054,7 @@ method_check:
                         // Found the method in allowed list
                         goto content_type_check;
                 }
+                NDBG_PRINT("in method check\n");
                 // -----------------------------------------
                 // top level event
                 // -----------------------------------------
@@ -1280,6 +1281,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
+        ao_whitelist = false;
         // -------------------------------------------------
         // create new if null
         // -------------------------------------------------

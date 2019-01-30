@@ -352,6 +352,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
         waflz_pb::event *l_event_audit = NULL;
         waflz_pb::enforcement *l_enfx = g_enfx;
         ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
+        bool l_whitelist = false;
         // -------------------------------------------------
         // conf
         // -------------------------------------------------
@@ -361,7 +362,6 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason. TBD\n");
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                         if(l_event) { delete l_event; l_event = NULL; }
                         if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
@@ -372,12 +372,11 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
         // -------------------------------------------------
         else if(m_profile)
         {
-                l_s = m_profile->process(&l_event, &a_session, &l_rqst_ctx);
+                l_s = m_profile->process_acl(&l_event, &a_session, l_whitelist, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("error processing config. reason: %s\n",
+                        NDBG_PRINT("error processing acl config. reason: %s\n",
                                    m_profile->get_err_msg());
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                         if(l_event) { delete l_event; l_event = NULL; }
                         if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
@@ -391,6 +390,19 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 //NDBG_OUTPUT("*               D E B U G               *\n");
                 //NDBG_OUTPUT("*****************************************\n");
                 //l_waf->show_debug();
+                if(l_event == NULL &&
+                   !l_whitelist)
+                {
+                        l_s = m_profile->process_waf(&l_event, &a_session, &l_rqst_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                NDBG_PRINT("error processing waf config. reason: %s\n",
+                                           m_profile->get_err_msg());
+                                if(l_event) { delete l_event; l_event = NULL; }
+                                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                                return ns_is2::H_RESP_SERVER_ERROR;
+                        }
+                }
         }
         // -------------------------------------------------
         // instances
@@ -451,9 +463,22 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                         a_session.m_rqst->get_body_q()->reset_read();
                 }
                 // -----------------------------------------
-                // process audit
+                // process acl
                 // -----------------------------------------
-                l_s = m_instances->process(&l_event_audit, &l_event, &a_session, l_id, &l_rqst_ctx);
+                l_s = m_instances->process_acl(&l_event_audit, &l_event, &a_session, l_id, &l_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error processing config. reason: %s\n",
+                                   m_instances->get_err_msg());
+                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
+                // -----------------------------------------
+                // process waf
+                // -----------------------------------------
+                l_s = m_instances->process_waf(&l_event_audit, &l_event, &a_session, l_id, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason: %s\n",

@@ -451,42 +451,6 @@ int32_t instances::load_config_dir(const char *a_dir_path,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instances::process(waflz_pb::event **ao_audit_event,
-                           waflz_pb::event **ao_prod_event,
-                           void *a_ctx,
-                           const std::string &a_id,
-                           rqst_ctx **ao_rqst_ctx)
-{
-        if(m_enable_locking)
-        {
-                pthread_mutex_lock(&m_mutex);
-        }
-        ns_waflz::instance *l_instance = NULL;
-        l_instance = get_instance(a_id);
-        if(!l_instance)
-        {
-                if(m_enable_locking)
-                {
-                        pthread_mutex_unlock(&m_mutex);
-                }
-                return WAFLZ_STATUS_OK;
-        }
-        int32_t l_s;
-        l_s = l_instance->process(ao_audit_event, ao_prod_event, a_ctx, ao_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(m_enable_locking)
-                {
-                        pthread_mutex_unlock(&m_mutex);
-                }
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(m_enable_locking)
-        {
-                pthread_mutex_unlock(&m_mutex);
-        }
-        return WAFLZ_STATUS_OK;
-}
 int32_t instances::process_acl(waflz_pb::event **ao_audit_event,
                                waflz_pb::event **ao_prod_event,
                                void *a_ctx,
@@ -509,6 +473,47 @@ int32_t instances::process_acl(waflz_pb::event **ao_audit_event,
         }
         int32_t l_s;
         l_s = l_instance->process_acl(ao_audit_event, ao_prod_event, a_ctx, ao_rqst_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                if(m_enable_locking)
+                {
+                        pthread_mutex_unlock(&m_mutex);
+                }
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t instances::process_waf(waflz_pb::event **ao_audit_event,
+                           waflz_pb::event **ao_prod_event,
+                           void *a_ctx,
+                           const std::string &a_id,
+                           rqst_ctx **ao_rqst_ctx)
+{
+        if(m_enable_locking)
+        {
+                pthread_mutex_lock(&m_mutex);
+        }
+        ns_waflz::instance *l_instance = NULL;
+        l_instance = get_instance(a_id);
+        if(!l_instance)
+        {
+                if(m_enable_locking)
+                {
+                        pthread_mutex_unlock(&m_mutex);
+                }
+                return WAFLZ_STATUS_OK;
+        }
+        int32_t l_s;
+        l_s = l_instance->process_waf(ao_audit_event, ao_prod_event, a_ctx, ao_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)

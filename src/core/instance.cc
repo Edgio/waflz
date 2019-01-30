@@ -380,7 +380,7 @@ int32_t instance::process_acl(waflz_pb::event **ao_audit_event,
                               rqst_ctx **ao_rqst_ctx)
 {
         int32_t l_s;
-        rqst_ctx *l_rqst_ctx = *ao_rqst_ctx;
+        rqst_ctx *l_rqst_ctx = NULL;
         waflz_pb::event *l_audit_event = NULL;
         waflz_pb::event *l_prod_event = NULL;
         bool l_whitelist = false;
@@ -440,6 +440,11 @@ process_prod:
 done:
         *ao_audit_event = l_audit_event;
         *ao_prod_event = l_prod_event;
+        // Return allocated rqst_ctx obj
+        if(ao_rqst_ctx)
+        {
+                *ao_rqst_ctx = l_rqst_ctx;
+        }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
@@ -454,9 +459,16 @@ int32_t instance::process_waf(waflz_pb::event **ao_audit_event,
                           rqst_ctx **ao_rqst_ctx)
 {
         int32_t l_s;
-        rqst_ctx *l_rqst_ctx = *ao_rqst_ctx;
+        rqst_ctx *l_rqst_ctx = NULL;
         waflz_pb::event *l_audit_event = NULL;
         waflz_pb::event *l_prod_event = NULL;
+        // Check if rqst_ctx is already allocated
+        // if yes then reuse
+        if(ao_rqst_ctx &&
+           *ao_rqst_ctx)
+        {
+                l_rqst_ctx = *ao_rqst_ctx;
+        }
         // -------------------------------------------------
         // *************************************************
         //                    A U D I T

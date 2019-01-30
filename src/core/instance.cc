@@ -462,8 +462,16 @@ int32_t instance::process_waf(waflz_pb::event **ao_audit_event,
         rqst_ctx *l_rqst_ctx = NULL;
         waflz_pb::event *l_audit_event = NULL;
         waflz_pb::event *l_prod_event = NULL;
+        if(ao_audit_event &&
+           *ao_audit_event)
+        {
+                delete *ao_audit_event;
+                *ao_audit_event = NULL;
+                goto process_prod;
+        }
         // Check if rqst_ctx is already allocated
-        // if yes then reuse
+        // The order is acl -> waf. acl should allocate
+        // and waf should resuse
         if(ao_rqst_ctx &&
            *ao_rqst_ctx)
         {
@@ -507,6 +515,13 @@ int32_t instance::process_waf(waflz_pb::event **ao_audit_event,
         // *************************************************
         // -------------------------------------------------
 process_prod:
+        if(ao_prod_event &&
+           *ao_prod_event)
+        {
+                delete *ao_prod_event;
+                *ao_prod_event = NULL;
+                goto done;
+        }
         if(!m_profile_prod)
         {
                 goto done;

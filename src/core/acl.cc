@@ -1055,7 +1055,6 @@ method_check:
                         // Found the method in allowed list
                         goto content_type_check;
                 }
-                NDBG_PRINT("in method check\n");
                 // -----------------------------------------
                 // top level event
                 // -----------------------------------------

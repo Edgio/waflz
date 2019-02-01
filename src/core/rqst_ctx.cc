@@ -219,6 +219,8 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_init_phase_1(false),
         m_init_phase_2(false),
         m_intercepted(false),
+        m_wl_audit(false),
+        m_wl_prod(false),
         m_skip(0),
         m_skip_after(NULL),
         m_event(NULL),
@@ -558,7 +560,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                         if(l_ptr)
                         {
                                 m_file_ext.m_data = ((const char *)(l_ptr));
-                                m_file_ext.m_len = m_base.m_len - ((uint32_t)((const char *)l_ptr - m_base.m_data)) - 1;
+                                m_file_ext.m_len = m_base.m_len - ((uint32_t)((const char *)l_ptr - m_base.m_data));
                         }
                 }
         }

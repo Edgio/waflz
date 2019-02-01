@@ -374,15 +374,16 @@ void instance::set_event_properties(waflz_pb::event &ao_event, profile &a_profil
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instance::process(waflz_pb::event **ao_audit_event,
-                          waflz_pb::event **ao_prod_event,
-                          void *a_ctx,
-                          rqst_ctx **ao_rqst_ctx)
+int32_t instance::process_acl(waflz_pb::event **ao_audit_event,
+                              waflz_pb::event **ao_prod_event,
+                              void *a_ctx,
+                              rqst_ctx **ao_rqst_ctx)
 {
         int32_t l_s;
         rqst_ctx *l_rqst_ctx = NULL;
         waflz_pb::event *l_audit_event = NULL;
         waflz_pb::event *l_prod_event = NULL;
+        bool l_whitelist = false;
         // -------------------------------------------------
         // *************************************************
         //                    A U D I T
@@ -392,7 +393,109 @@ int32_t instance::process(waflz_pb::event **ao_audit_event,
         {
                 goto process_prod;
         }
-        l_s = m_profile_audit->process(&l_audit_event, a_ctx, &l_rqst_ctx);
+        l_s = m_profile_audit->process_acl(&l_audit_event, a_ctx, l_whitelist, &l_rqst_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_audit_event)
+        {
+                set_event_properties(*l_audit_event, *m_profile_audit);
+        }
+        // reset phase 1
+        // -------------------------------------------------
+        if(l_rqst_ctx)
+        {
+                l_rqst_ctx->m_wl_audit = l_whitelist;
+                l_s = l_rqst_ctx->reset_phase_1();
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                     P R O D
+        // *************************************************
+        // -------------------------------------------------
+process_prod:
+        //reset whitelist
+        l_whitelist = false;
+        if(!m_profile_prod)
+        {
+                goto done;
+        }
+        l_s = m_profile_prod->process_acl(&l_prod_event, a_ctx, l_whitelist, &l_rqst_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_prod_event)
+        {
+                set_event_properties(*l_prod_event, *m_profile_prod);
+        }
+        if(l_rqst_ctx)
+        {
+                l_rqst_ctx->m_wl_prod = l_whitelist;
+                l_s = l_rqst_ctx->reset_phase_1();
+        }
+done:
+        *ao_audit_event = l_audit_event;
+        *ao_prod_event = l_prod_event;
+        // Return allocated rqst_ctx obj
+        if(ao_rqst_ctx)
+        {
+                *ao_rqst_ctx = l_rqst_ctx;
+        }
+        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t instance::process_waf(waflz_pb::event **ao_audit_event,
+                          waflz_pb::event **ao_prod_event,
+                          void *a_ctx,
+                          rqst_ctx **ao_rqst_ctx)
+{
+        int32_t l_s;
+        rqst_ctx *l_rqst_ctx = NULL;
+        waflz_pb::event *l_audit_event = NULL;
+        waflz_pb::event *l_prod_event = NULL;
+        // Check if rqst_ctx is already allocated
+        // The order is acl -> waf. acl should allocate
+        // and waf should resuse
+        if(ao_rqst_ctx &&
+           *ao_rqst_ctx)
+        {
+                l_rqst_ctx = *ao_rqst_ctx;
+        }
+        // We already have an event
+        // Skip to prod profile
+        if(ao_audit_event &&
+           *ao_audit_event)
+        {
+                //NDBG_PRINT("goto prod\n");
+                goto process_prod;
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                    A U D I T
+        // *************************************************
+        // -------------------------------------------------
+        if(!m_profile_audit)
+        {
+                //NDBG_PRINT("goto prod\n");
+                goto process_prod;
+        }
+        if(l_rqst_ctx)
+        {
+                if(l_rqst_ctx->m_wl_audit)
+                {
+                        goto process_prod;
+                }
+        }
+        l_s = m_profile_audit->process_waf(&l_audit_event, a_ctx, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -414,11 +517,25 @@ int32_t instance::process(waflz_pb::event **ao_audit_event,
         // *************************************************
         // -------------------------------------------------
 process_prod:
+        // We have a prod event as well.
+        // we outie
+        if(ao_prod_event &&
+           *ao_prod_event)
+        {
+                goto done;
+        }
         if(!m_profile_prod)
         {
                 goto done;
         }
-        l_s = m_profile_prod->process(&l_prod_event, a_ctx, &l_rqst_ctx);
+        if(l_rqst_ctx)
+        {
+                if(l_rqst_ctx->m_wl_prod)
+                {
+                        goto done;
+                }
+        }
+        l_s = m_profile_prod->process_waf(&l_prod_event, a_ctx, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -429,16 +546,21 @@ process_prod:
                 set_event_properties(*l_prod_event, *m_profile_prod);
         }
 done:
-        *ao_audit_event = l_audit_event;
-        *ao_prod_event = l_prod_event;
-        if(ao_rqst_ctx)
+        if(l_audit_event)
         {
-                *ao_rqst_ctx = l_rqst_ctx;
+                *ao_audit_event = l_audit_event;
         }
-        else
+        if(l_prod_event)
         {
-                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                *ao_prod_event = l_prod_event;
         }
+        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+
 }

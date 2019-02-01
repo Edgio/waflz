@@ -67,7 +67,8 @@ public:
         // -------------------------------------------------
         profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
         ~profile();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process_waf(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process_acl(waflz_pb::event **ao_event, void *a_ctx, bool &ao_whitelisted, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t load_config(const char *a_buf, uint32_t a_buf_len, bool a_leave_compiled_file = false);
         int32_t load_config(const waflz_pb::profile *a_pb, bool a_leave_compiled_file = false);
         //: ------------------------------------------------

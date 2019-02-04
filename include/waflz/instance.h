@@ -87,14 +87,15 @@ public:
                             bool a_leave_compiled_file = false);
         int32_t load_config(void *a_js,
                             bool a_leave_compiled_file = false);
-        int32_t process_waf(waflz_pb::event **ao_audit_event,
-                            waflz_pb::event **ao_prod_event,
-                            void *a_ctx,
-                            rqst_ctx **ao_rqst_ctx);
-        int32_t process_acl(waflz_pb::event **ao_audit_event,
-                            waflz_pb::event **ao_prod_event,
-                            void *a_ctx,
-                            rqst_ctx **ao_rqst_ctx);
+        int32_t process(waflz_pb::event **ao_audit_event,
+                        waflz_pb::event **ao_prod_event,
+                        void *a_ctx,
+                        rqst_ctx **ao_rqst_ctx);
+        int32_t process_part(waflz_pb::event **ao_audit_event,
+                             waflz_pb::event **ao_prod_event,
+                             void *a_ctx,
+                             part_mk_t a_part_mk,
+                             rqst_ctx **ao_rqst_ctx);
 private:
         // -------------------------------------------------
         // private methods

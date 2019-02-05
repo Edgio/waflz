@@ -456,8 +456,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist IP match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -468,8 +467,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == true);
+                REQUIRE(l_rqst_ctx->m_wl == true);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
                 // validate whitelist cidr
@@ -478,8 +476,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == true);
+                REQUIRE(l_rqst_ctx->m_wl == true);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
                 // validate whitelist included in blacklist
@@ -488,8 +485,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == true);
+                REQUIRE(l_rqst_ctx->m_wl == true);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
                 // revert
@@ -511,8 +507,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist Country match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -521,8 +516,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_ip = "202.32.115.5";
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == true);
+                REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -545,8 +539,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist ASN match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -555,8 +548,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_ip = "72.21.92.7";
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == true);
+                REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -579,8 +571,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist URL match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -594,8 +585,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist URL match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -604,8 +594,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_uri = "/chickenkiller/kill_chickenzz.html";
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == true);
+                REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -629,8 +618,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist User-Agent match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -644,8 +632,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist User-Agent match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -654,8 +641,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_header_user_agent = "monkeys luv bananas";
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == true);
+                REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -678,8 +664,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist Referer match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -693,8 +678,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist Referer match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -703,8 +687,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_header_referer = "monkeys luv referers";
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == true);
+                REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -727,8 +710,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist Cookie match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -742,8 +724,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist Cookie match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -757,8 +738,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist Cookie match"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -767,8 +747,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_header_cookie = "__cookie_a=a_value; monkeys_cookie=b_value; __cookie_c=c_value;";
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == true);
+                REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -792,8 +771,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event(0).rule_id() == 80009));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Method is not allowed by policy"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -828,8 +806,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event(0).rule_id() == 80002));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Request content type is not allowed by policy"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -840,8 +817,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_header_content_length = NULL;
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -852,8 +828,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_header_content_length = NULL;
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -880,8 +855,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event(0).rule_id() == 80005));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "File extension is not allowed by policy"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -932,8 +906,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_host = "www.google.com";
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -959,8 +932,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 REQUIRE((l_event->sub_event(0).rule_id() == 80007));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Request header is not allowed by policy"));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
@@ -971,8 +943,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 s_test_header = NULL;
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // TODO FIX!!!
-                //REQUIRE(l_whitelist == false);
+                REQUIRE(l_rqst_ctx->m_wl == false);
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------

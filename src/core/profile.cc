@@ -690,6 +690,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                 // -------------------------------------------------
                 if(l_whitelist)
                 {
+                        if(l_rqst_ctx) { l_rqst_ctx->m_wl = true;}
                         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_OK;
                 }

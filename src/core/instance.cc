@@ -471,10 +471,16 @@ int32_t instance::process_part(waflz_pb::event **ao_audit_event,
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
+        // check for whitelist
+        if(l_rqst_ctx && l_rqst_ctx->m_wl) { l_rqst_ctx->m_wl_audit = true; }
+        // -------------------------------------------------
+        // set properties
+        // -------------------------------------------------
         if(l_audit_event)
         {
                 set_event_properties(*l_audit_event, *m_profile_audit);
         }
+        // -------------------------------------------------
         // reset phase 1
         // -------------------------------------------------
         if(l_rqst_ctx)
@@ -497,6 +503,11 @@ process_prod:
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
+        // check for whitelist
+        if(l_rqst_ctx && l_rqst_ctx->m_wl) { l_rqst_ctx->m_wl_prod = true; }
+        // -------------------------------------------------
+        // set properties
+        // -------------------------------------------------
         if(l_prod_event)
         {
                 set_event_properties(*l_prod_event, *m_profile_prod);

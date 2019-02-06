@@ -63,6 +63,11 @@
 //: types
 //: ----------------------------------------------------------------------------
 namespace ns_waflz {
+typedef enum {
+	PART_MK_ACL = 1,
+	PART_MK_WAF = 2,
+	PART_MK_ALL = 3,
+} part_mk_t;
 // callbacks
 typedef int32_t (*get_rqst_data_size_cb_t)(uint32_t &, void *);
 typedef int32_t (*get_rqst_data_cb_t)(const char **, uint32_t &, void *);

@@ -11,6 +11,7 @@ import sys
 import json
 from pprint import pprint
 import time
+import requests
 from urllib2 import urlopen
 from urllib2 import Request
 import base64
@@ -246,4 +247,114 @@ def test_OWASP_3_2_anomaly():
 # ------------------------------------------------------------------------------
 def test_OWASP_3_2_anomaly_low():
    check_vectors('OWASP_3_2.anomaly_low.vectors.json')
+# ------------------------------------------------------------------------------
+# test_bb_instances_acl_first_before_waf
+# ------------------------------------------------------------------------------
+def test_bb_instances_acl_first_before_waf():
+    # test with a url that can be catched by waf. But ACL should catch it 
+    # and event should be acl
+    l_uri = G_TEST_HOST + '/mytest.asa?' + 'a=%27select%20*%20from%20testing%27'
+    l_headers = {"host": "myhost.com"}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    #print json.dumps(l_r_json,indent=4)
+    assert l_r_json['prod_profile']['rule_intercept_status'] == 403
+    assert l_r_json['audit_profile']['rule_intercept_status'] == 403
+    # Both profiles should catch with acl
+    assert 'File extension is not allowed by policy' in l_r_json['prod_profile']['rule_msg']
+    assert 'File extension is not allowed by policy' in l_r_json['audit_profile']['rule_msg']
 
+def test_bb_instances_acl_audit_waf_prod():
+    # ------------------------------------------------------
+    # update template
+    # ------------------------------------------------------
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_conf = {}
+    l_conf_path = os.path.realpath(os.path.join(l_file_path, 'template.waf.instance.json'))
+    try:
+        with open(l_conf_path) as l_f:
+            l_conf = json.load(l_f)
+    except Exception as l_e:
+        print 'error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
+            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message)
+        assert False
+    
+    l_conf['audit_profile']['general_settings']['disallowed_extensions'] =[
+        "html"
+    ]
+    # ------------------------------------------------------
+    # post conf
+    # ------------------------------------------------------
+    l_url = '%s/update_instance'%(G_TEST_HOST)
+    # ------------------------------------------------------
+    # urlopen (POST)
+    # ------------------------------------------------------
+    l_headers = {"Content-Type": "application/json"}
+    l_r = requests.post(l_url,
+                            headers=l_headers,
+                            data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    # test with a url that can be catched by waf. But ACL should catch it 
+    # and event should be acl
+    l_uri = G_TEST_HOST + '/mytest.asa?' + 'a=%27select%20*%20from%20testing%27'
+    l_headers = {"host": "myhost.com"}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    #print json.dumps(l_r_json,indent=4)
+    assert l_r_json['prod_profile']['rule_intercept_status'] == 403
+    assert l_r_json['audit_profile']['rule_intercept_status'] == 403
+    # same request but prod prodile should catch with acl
+    assert 'File extension is not allowed by policy' in l_r_json['prod_profile']['rule_msg']
+    # Audit profile should catch using waf
+    assert 'Inbound Anomaly Score Exceeded (Total Score: 20): Last Matched Message: 981247-Detects concatenated basic SQL injection and SQLLFI attempts' in l_r_json['audit_profile']['rule_msg']
+
+def test_bb_instances_whitelist_audit_waf_prod():
+    # ------------------------------------------------------
+    # update template
+    # ------------------------------------------------------
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_conf = {}
+    l_conf_path = os.path.realpath(os.path.join(l_file_path, 'template.waf.instance.json'))
+    try:
+        with open(l_conf_path) as l_f:
+            l_conf = json.load(l_f)
+    except Exception as l_e:
+        print 'error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
+            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message)
+        assert False
+    
+    l_conf['audit_profile']['access_settings']['url'] ['whitelist']=["mycooltest/bleep"]
+    # ------------------------------------------------------
+    # post conf
+    # ------------------------------------------------------
+    l_url = '%s/update_instance'%(G_TEST_HOST)
+    print l_conf['audit_profile']['general_settings']
+    # ------------------------------------------------------
+    # urlopen (POST)
+    # ------------------------------------------------------
+    l_headers = {"Content-Type": "application/json"}
+    l_r = requests.post(l_url,
+                            headers=l_headers,
+                            data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    # test with a url that can be catched by waf. But ACL should catch it 
+    # and event should be acl
+    l_uri = G_TEST_HOST + '/mycooltest/bleep?' + 'a=%27select%20*%20from%20testing%27'
+    l_headers = {"host": "myhost.com"}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    #print json.dumps(l_r_json,indent=4)
+    # check that audit profile returns null because of whitelisted url
+    assert l_r_json['audit_profile'] == None
+    assert l_r_json['prod_profile']['rule_intercept_status'] == 403
+    # same request but prod prodile should catch with waf
+    # Test that whitelist are exlusive between audit and prod
+    assert 'Inbound Anomaly Score Exceeded (Total Score: 20): Last Matched Message: 981247-Detects concatenated basic SQL injection and SQLLFI attempts' in l_r_json['prod_profile']['rule_msg']
+
+    teardown_func()

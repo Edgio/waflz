@@ -140,6 +140,9 @@ public:
         uint32_t m_content_length;
         bool m_parse_json;
         std::string m_cookie_mutated;
+        data_t m_req_uuid;
+        uint32_t m_resp_status;
+
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------
@@ -157,6 +160,9 @@ public:
         bool m_init_phase_1;
         bool m_init_phase_2;
         bool m_intercepted;
+        bool m_wl;
+        bool m_wl_audit;
+        bool m_wl_prod;
         uint32_t m_skip;
         const char * m_skip_after;
         waflz_pb::event *m_event;

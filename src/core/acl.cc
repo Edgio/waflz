@@ -1049,7 +1049,8 @@ method_check:
            a_ctx.m_method.m_len)
         {
                 // Look for method in allowed m set
-                if(m_allowed_http_methods.find(a_ctx.m_method.m_data) != m_allowed_http_methods.end())
+                std::string l_method(a_ctx.m_method.m_data, a_ctx.m_method.m_len);
+                if(m_allowed_http_methods.find(l_method) != m_allowed_http_methods.end())
                 {
                         // Found the method in allowed list
                         goto content_type_check;
@@ -1150,8 +1151,9 @@ file_ext_check:
            a_ctx.m_file_ext.m_data &&
            a_ctx.m_file_ext.m_len)
         {
+                std::string l_file_ext(a_ctx.m_file_ext.m_data, a_ctx.m_file_ext.m_len);
                 // unlike previous checks, extension shouldnt be in list, hence ==
-                if(m_disallowed_extensions.find(a_ctx.m_file_ext.m_data) == m_disallowed_extensions.end())
+                if(m_disallowed_extensions.find(l_file_ext) == m_disallowed_extensions.end())
                 {
                         // extension not found in disallowed list
                         goto header_check;
@@ -1175,7 +1177,7 @@ file_ext_check:
                 l_rule_target->set_param("disallowed_extensions");
                 ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
                 l_var->set_name("FILE_EXT");
-                l_var->set_value(a_ctx.m_file_ext.m_data);
+                l_var->set_value(l_file_ext);
                 *ao_event = l_event;
                 return WAFLZ_STATUS_OK;
         }
@@ -1280,6 +1282,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
+        ao_whitelist = false;
         // -------------------------------------------------
         // create new if null
         // -------------------------------------------------

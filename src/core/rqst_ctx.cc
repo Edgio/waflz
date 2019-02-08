@@ -203,6 +203,8 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_content_length(0),
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
+        m_req_uuid(),
+        m_resp_status(0),
         m_body_parser(),
         // -------------------------------------------------
         // collections
@@ -217,6 +219,9 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_init_phase_1(false),
         m_init_phase_2(false),
         m_intercepted(false),
+        m_wl(false),
+        m_wl_audit(false),
+        m_wl_prod(false),
         m_skip(0),
         m_skip_after(NULL),
         m_event(NULL),
@@ -295,6 +300,11 @@ rqst_ctx::~rqst_ctx()
         // -------------------------------------------------
         if(m_body_parser) { delete m_body_parser; m_body_parser = NULL;}
 }
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
 int32_t rqst_ctx::reset_phase_1()
 {
         // -------------------------------------------------
@@ -322,42 +332,15 @@ int32_t rqst_ctx::reset_phase_1()
         // -------------------------------------------------
         // clear tx map
         // -------------------------------------------------
-        if(!m_cx_tx_map.empty())
-        {
-                for(cx_map_t::iterator i_t = m_cx_tx_map.begin();
-                    i_t != m_cx_tx_map.end();
-                    ++i_t)
-                {
-                        m_cx_tx_map.erase(i_t);
-                }
-                m_cx_tx_map.clear();
-        }
+        m_cx_tx_map.clear();
         // -------------------------------------------------
         // clear header map
         // -------------------------------------------------
-        if(!m_header_map.empty())
-        {
-                for(data_map_t::iterator i_t = m_header_map.begin();
-                   i_t != m_header_map.end();
-                   ++i_t)
-                {
-                        m_header_map.erase(i_t);
-                }
-                m_header_map.clear();
-        }
+        m_header_map.clear();
         // -------------------------------------------------
         // clear rule map
         // -------------------------------------------------
-        if(!m_cx_rule_map.empty())
-        {
-                for(data_map_t::iterator i_t = m_cx_rule_map.begin();
-                    i_t != m_cx_rule_map.end();
-                    ++i_t)
-                {
-                        m_cx_rule_map.erase(i_t);
-                }
-                m_cx_rule_map.clear();
-        }
+        m_cx_rule_map.clear();
         // -------------------------------------------------
         // clear vars
         // -------------------------------------------------
@@ -366,6 +349,7 @@ int32_t rqst_ctx::reset_phase_1()
         m_cookie_mutated.clear();
         m_init_phase_1 = false;
         m_intercepted = false;
+        m_wl = false;
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -442,6 +426,18 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                 {
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
+                }
+        }
+        if(s_get_rqst_id_cb)
+        {
+                int32_t l_s;
+                l_s = s_get_rqst_id_cb(&m_req_uuid.m_data,
+                                       m_req_uuid.m_len,
+                                       m_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        //return STATUS_ERROR;
                 }
         }
 #if 0
@@ -571,7 +567,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                         if(l_ptr)
                         {
                                 m_file_ext.m_data = ((const char *)(l_ptr));
-                                m_file_ext.m_len = m_base.m_len - ((uint32_t)((const char *)l_ptr - m_base.m_data)) - 1;
+                                m_file_ext.m_len = m_base.m_len - ((uint32_t)((const char *)l_ptr - m_base.m_data));
                         }
                 }
         }
@@ -1119,12 +1115,13 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // REQ_UUID
         // -------------------------------------------------
-        GET_RQST_DATA(s_get_rqst_id_cb);
-        if (l_buf_len > 0)
+        if(s_get_rqst_id_cb)
         {
-                l_request_info->set_req_uuid(l_buf, l_buf_len);
+                if(m_req_uuid.m_len > 0)
+                {
+                        l_request_info->set_req_uuid(m_req_uuid.m_data, m_req_uuid.m_len);
+                }
         }
-
         // -------------------------------------------------
         // Customer ID
         // -------------------------------------------------

@@ -715,17 +715,7 @@ int32_t waf::set_defaults(void)
         set_var_tx(l_conf_pb, "900006", "sql_injection_score", "0");
         set_var_tx(l_conf_pb, "900007", "xss_score", "0");
         set_var_tx(l_conf_pb, "900008", "inbound_anomaly_score", "0");
-        set_var_tx(l_conf_pb, "900009", "outbound_anomaly_score", "0");
-        // -------------------------------------------------
-        // changing var names depending on ruleset
-        // version...
-        // OWASP changed from:
-        //   inbound_anomaly_score_level
-        //   to
-        //   outbound_anomaly_score_threshold
-        // -------------------------------------------------
         set_var_tx(l_conf_pb, "900012", "inbound_anomaly_score_level", "1");
-        set_var_tx(l_conf_pb, "900013", "outbound_anomaly_score_level", "4");
         set_var_tx(l_conf_pb, "900014", "anomaly_score_blocking", "on");
         // -------------------------------------------------
         // general settings
@@ -805,16 +795,14 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         // -------------------------------------------------
         // anomaly settings
         // -------------------------------------------------
-        const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
-        set_var_tx(l_conf_pb, "900001", "critical_anomaly_score", to_string(l_ax.critical_score()));
-        set_var_tx(l_conf_pb, "900002", "error_anomaly_score", to_string(l_ax.error_score()));
-        set_var_tx(l_conf_pb, "900003", "warning_anomaly_score", to_string(l_ax.warning_score()));
-        set_var_tx(l_conf_pb, "900004", "notice_anomaly_score", to_string(l_ax.notice_score()));
+        set_var_tx(l_conf_pb, "900001", "critical_anomaly_score", "5");
+        set_var_tx(l_conf_pb, "900002", "error_anomaly_score", "4");
+        set_var_tx(l_conf_pb, "900003", "warning_anomaly_score", "3");
+        set_var_tx(l_conf_pb, "900004", "notice_anomaly_score", "2");
         set_var_tx(l_conf_pb, "900005", "anomaly_score", "0");
         set_var_tx(l_conf_pb, "900006", "sql_injection_score", "0");
         set_var_tx(l_conf_pb, "900007", "xss_score", "0");
         set_var_tx(l_conf_pb, "900008", "inbound_anomaly_score", "0");
-        set_var_tx(l_conf_pb, "900009", "outbound_anomaly_score", "0");
         // -------------------------------------------------
         // changing var names depending on ruleset
         // version...
@@ -823,17 +811,28 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         //   to
         //   outbound_anomaly_score_threshold
         // -------------------------------------------------
+        //Default anomaly threshold
+        std::string l_anomaly_threshold = "5";
+        // Use top level threshold setting
+        if(l_gs.has_anomaly_threshold())
+        {
+                l_anomaly_threshold = to_string(l_gs.anomaly_threshold());
+        }
+        else if(l_gs.has_anomaly_settings())
+        {
+                const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
+                l_anomaly_threshold = to_string(l_ax.inbound_threshold());
+                //NDBG_PRINT("setting anomaly %s\n", l_anomaly_threshold.c_str());
+        }
         if(m_owasp_ruleset_version >= 300)
         {
-        set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", to_string(l_ax.inbound_threshold()));
-        set_var_tx(l_conf_pb, "900011", "outbound_anomaly_score_threshold", to_string(l_ax.outbound_threshold()));
+
+                set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", l_anomaly_threshold);
         }
         else
         {
-        set_var_tx(l_conf_pb, "900012", "inbound_anomaly_score_level", to_string(l_ax.inbound_threshold()));
-        set_var_tx(l_conf_pb, "900013", "outbound_anomaly_score_level", to_string(l_ax.outbound_threshold()));
+                set_var_tx(l_conf_pb, "900012", "inbound_anomaly_score_level", l_anomaly_threshold);
         }
-        set_var_tx(l_conf_pb, "900014", "anomaly_score_blocking", "on");
         // -------------------------------------------------
         // general settings
         // -------------------------------------------------
@@ -1043,18 +1042,6 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         l_sv->set_var("real_ip");
         l_sv->set_val("%{remote_addr}");
         }
-        // -------------------------------------------------
-        // The CRS checks the tx.crs_setup_version variable
-        // to ensure that the setup has been loaded. If not
-        // planning to use this setup template manually set
-        // tx.crs_setup_version variable before including
-        // the CRS rules/* files.
-        //
-        // The variable is a numerical representation of the
-        // CRS version number.
-        // E.g., v3.0.0 is represented as 300.
-        // -------------------------------------------------
-        set_var_tx(l_conf_pb, "900990", "crs_setup_version", to_string(m_owasp_ruleset_version));
         // -------------------------------------------------
         // conf file functor
         // -------------------------------------------------
@@ -2125,13 +2112,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // -------------------------------------------------
         // tx vars
         // -------------------------------------------------
-        int32_t l_sql_injection_score;
-        int32_t l_xss_score;
-        _GET_TX_FIELD("sql_injection_score", l_sql_injection_score);
-        _GET_TX_FIELD("xss_score", l_xss_score);
         l_sub_event->set_total_anomaly_score(l_anomaly_score);
-        l_sub_event->set_total_sql_injection_score(l_sql_injection_score);
-        l_sub_event->set_total_xss_score(l_xss_score);
         // -------------------------------------------------
         // rule targets
         // -------------------------------------------------
@@ -2454,7 +2435,7 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
         // *********************************
         // ---------------------------------
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
-        const char l_msg_macro[] = "Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE}, XSS=%{TX.XSS_SCORE}): Last Matched Message: %{tx.msg}";
+        const char l_msg_macro[] = "Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}): Last Matched Message: %{tx.msg}";
         std::string l_msg;
         macro *l_macro =  &(m_engine.get_macro());
         l_s = (*l_macro)(l_msg, l_msg_macro, l_ctx);
@@ -2505,8 +2486,6 @@ if(l_ctx->m_cx_tx_map.find(_str) != l_ctx->m_cx_tx_map.end()) \
 else { l_event.set_##_field(0); } \
 } while(0)
         _SET_IF_EXIST("ANOMALY_SCORE", total_anomaly_score);
-        _SET_IF_EXIST("SQL_INJECTION_SCORE", total_sql_injection_score);
-        _SET_IF_EXIST("XSS_SCORE", total_xss_score);
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------

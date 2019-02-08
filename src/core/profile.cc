@@ -566,14 +566,17 @@ int32_t profile::validate(void)
         // -------------------------------------------------
         // anomaly settings
         // -------------------------------------------------
-        VERIFY_HAS(l_gs, anomaly_settings);
-        const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
-        VERIFY_HAS(l_ax, critical_score);
-        VERIFY_HAS(l_ax, error_score);
-        VERIFY_HAS(l_ax, warning_score);
-        VERIFY_HAS(l_ax, notice_score);
-        VERIFY_HAS(l_ax, inbound_threshold);
-        VERIFY_HAS(l_ax, outbound_threshold);
+        if(!l_gs.has_anomaly_threshold())
+        {
+                VERIFY_HAS(l_gs, anomaly_settings);
+                const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
+                VERIFY_HAS(l_ax, critical_score);
+                VERIFY_HAS(l_ax, error_score);
+                VERIFY_HAS(l_ax, warning_score);
+                VERIFY_HAS(l_ax, notice_score);
+                VERIFY_HAS(l_ax, inbound_threshold);
+                VERIFY_HAS(l_ax, outbound_threshold);
+        }
         // -------------------------------------------------
         // disabled rules
         // -------------------------------------------------
@@ -618,6 +621,18 @@ int32_t profile::process(waflz_pb::event **ao_event,
                          void *a_ctx,
                          rqst_ctx **ao_rqst_ctx)
 {
+        return process_part(ao_event, a_ctx, PART_MK_ALL, ao_rqst_ctx);
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t profile::process_part(waflz_pb::event **ao_event,
+                              void *a_ctx,
+                              part_mk_t a_part_mk,
+                              rqst_ctx **ao_rqst_ctx)
+{
         if(!ao_event)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -646,6 +661,7 @@ int32_t profile::process(waflz_pb::event **ao_event,
                         *ao_rqst_ctx = l_rqst_ctx;
                 }
         }
+        // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------
         l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
@@ -655,39 +671,46 @@ int32_t profile::process(waflz_pb::event **ao_event,
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
+        waflz_pb::event *l_event = NULL;
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-        bool l_whitelist = false;
-        waflz_pb::event *l_event = NULL;
-        l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
+        if(a_part_mk & PART_MK_ACL)
         {
-                // TODO log error reason???
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // if in whitelist -bail out of modsec processing
-        // -------------------------------------------------
-        if(l_whitelist)
-        {
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                return WAFLZ_STATUS_OK;
-        }
-        else if(l_event)
-        {
-                goto done;
+                bool l_whitelist = false;
+                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO log error reason???
+                        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -------------------------------------------------
+                // if in whitelist -bail out of modsec processing
+                // -------------------------------------------------
+                if(l_whitelist)
+                {
+                        if(l_rqst_ctx) { l_rqst_ctx->m_wl = true;}
+                        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                        return WAFLZ_STATUS_OK;
+                }
+                else if(l_event)
+                {
+                        goto done;
+                }
         }
         // -------------------------------------------------
         // process waf...
         // -------------------------------------------------
-        l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
+        if(a_part_mk & PART_MK_WAF)
         {
-                // TODO log error reason???
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                return WAFLZ_STATUS_ERROR;
+                l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO log error reason???
+                        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
         }
 done:
         // -------------------------------------------------

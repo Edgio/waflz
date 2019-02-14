@@ -51,7 +51,6 @@
                 fflush(stdout); \
         } while(0)
 #endif
-
 #ifndef NDBG_PRINT
 #define NDBG_PRINT(...) \
         do { \
@@ -60,7 +59,6 @@
                 fflush(stdout); \
         } while(0)
 #endif
-
 #ifndef WAFLZ_PERROR
 #define WAFLZ_PERROR(_str, ...) do { \
   snprintf(_str, WAFLZ_ERR_LEN, "%s.%s.%d: ",__FILE__,__FUNCTION__,__LINE__); \
@@ -125,4 +123,3 @@ int32_t create_ac_from_str(ac **ao_ac, const std::string &a_str);
 int32_t create_ac_from_file(ac **ao_ac, const std::string &a_file);
 }
 #endif
-

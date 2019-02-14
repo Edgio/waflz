@@ -613,4 +613,3 @@ int32_t macro::operator ()(std::string &ao_exp,
         return WAFLZ_STATUS_OK;
 }
 }
-

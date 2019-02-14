@@ -104,6 +104,5 @@ private:
 //: ----------------------------------------------------------------------------
 int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str);
 int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file);
-
 }
 #endif

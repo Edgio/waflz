@@ -20,24 +20,19 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
 #include "jspb/jspb.h"
-
 #include <string>
-
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/repeated_field.h>
 #include <stdio.h>
-
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
 #include "base64/base64.h"
-
 //: ----------------------------------------------------------------------------
 //: Macros
 //: ----------------------------------------------------------------------------
@@ -49,7 +44,6 @@
     fflush(stdout); \
   }
 #endif
-
 #define JSPB_ERR_LEN 4096
 #define JSPB_PERROR(...) do { \
   if(s_trace) { \
@@ -62,15 +56,12 @@
   int _len = strlen(s_err_msg); \
   snprintf(s_err_msg + _len, JSPB_ERR_LEN - _len, __VA_ARGS__); \
 }while(0)
-
 namespace ns_waflz {
-
 //: ----------------------------------------------------------------------------
 //: Globals
 //: ----------------------------------------------------------------------------
 static bool s_trace;
 static char s_err_msg[JSPB_ERR_LEN];
-
 //: ----------------------------------------------------------------------------
 //: \details: Set a single field value in the json object.
 //: \return:  TODO
@@ -194,7 +185,6 @@ static int32_t convert_single_field(rapidjson::Value &ao_val,
         }
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a repeated field to json for various types.
 //: \return:  TODO
@@ -222,7 +212,6 @@ static int32_t convert_repeated_field(rapidjson::Value &ao_val,
         ao_val.AddMember(rapidjson::Value(a_field->name().c_str(), a_alx).Move(), l_arr, a_alx);
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a repeated field to json for various types.
 //: \return:  TODO
@@ -253,7 +242,6 @@ static int32_t convert_repeated_field_str(rapidjson::Value &ao_val,
         ao_val.AddMember(rapidjson::Value(a_field->name().c_str(), a_alx).Move(), l_arr, a_alx);
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a repeated field to json for a message type.
 //: \return:  TODO
@@ -284,7 +272,6 @@ static int32_t convert_repeated_message_field(rapidjson::Value &ao_val,
         ao_val.AddMember(rapidjson::Value(a_field->name().c_str(), a_alx).Move(), l_arr, a_alx);
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a repeated field to json for an enum type.
 //: \return:  TODO
@@ -310,7 +297,6 @@ static int32_t convert_repeated_enum_field(rapidjson::Value &ao_val,
         ao_val.AddMember(rapidjson::Value(a_field->name().c_str(), a_alx).Move(), l_arr, a_alx);
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a repeated field to json.
 //: \return:  TODO
@@ -455,7 +441,6 @@ static int32_t convert_repeated_field(rapidjson::Value &ao_val,
         }
         return l_s;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Update a field within a message from a given json object,
 //:           for many types of values.
@@ -487,7 +472,6 @@ static int32_t update_field(google::protobuf::Message& ao_msg,
         (a_ref->*a_updater)(&ao_msg, a_field, (a_val.*a_accessor)());
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Update single enum field within message from json object.
 //: \return:  TODO
@@ -518,7 +502,6 @@ static int32_t update_enum_field(google::protobuf::Message& ao_msg,
         (a_ref->*a_updater)(&ao_msg, a_field, enumValueDescriptor);
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Update single field within message from json object.
 //: \return:  TODO
@@ -686,7 +669,6 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         }
         return l_s;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Update a repeated field within a message from a given json object,
 //:           for many types of values.
@@ -728,7 +710,6 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Update repeated message field within message from json object.
 //: \return:  TODO
@@ -757,7 +738,6 @@ static int32_t update_repeated_message_field(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Update repeated enum field within message from json object.
 //: \return:  TODO
@@ -790,7 +770,6 @@ static int32_t update_repeated_enum_field(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Update repeated field within message from json object.
 //: \return:  TODO
@@ -941,7 +920,6 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         }
         return l_s;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -961,7 +939,6 @@ int32_t convert_to_json(rapidjson::Value &ao_val,
              ++i_f)
         {
                 const google::protobuf::FieldDescriptor* l_f = *i_f;
-
                 switch (l_f->label())
                 {
                 case google::protobuf::FieldDescriptor::LABEL_OPTIONAL:
@@ -994,7 +971,6 @@ int32_t convert_to_json(rapidjson::Value &ao_val,
         }
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a protobuf message to a json object, storing
 //:           the result in a rapidjson::Document object.
@@ -1015,7 +991,6 @@ int32_t convert_to_json(rapidjson::Document& ao_js,
              ++i_f)
         {
                 const google::protobuf::FieldDescriptor* l_f = *i_f;
-
                 switch (l_f->label())
                 {
                 case google::protobuf::FieldDescriptor::LABEL_OPTIONAL:
@@ -1048,7 +1023,6 @@ int32_t convert_to_json(rapidjson::Document& ao_js,
         }
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a protobuf message to a json object, storing the
 //:           result in a std::string.
@@ -1081,7 +1055,6 @@ done:
         }
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -1235,7 +1208,6 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a json object to a protobuf message, reading the
 //:           json value from a Json::Value object.
@@ -1334,7 +1306,6 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a json object to a protobuf message, reading the
 //:           json value from a std::string.
@@ -1382,7 +1353,6 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
         }
         return l_s;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a json object to a protobuf message, reading the
 //:           json value from a std::string.
@@ -1395,7 +1365,6 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 {
         return update_from_json(ao_msg, a_str.c_str(), a_str.length());
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: Get last error
 //: \return:  Last error reason
@@ -1404,7 +1373,6 @@ const char * get_jspb_err_msg(void)
 {
         return s_err_msg;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \param:   TODO
@@ -1413,6 +1381,4 @@ void set_trace(bool a_val)
 {
         s_trace = a_val;
 }
-
 } // namespace
-

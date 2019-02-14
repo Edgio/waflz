@@ -35,11 +35,9 @@
 #ifndef WAFLZ_STATUS_OK
   #define WAFLZ_STATUS_OK 0
 #endif
-
 #ifndef WAFLZ_STATUS_ERROR
   #define WAFLZ_STATUS_ERROR -1
 #endif
-
 #ifndef WAFLZ_ERR_LEN
   #define WAFLZ_ERR_LEN 4096
 #endif
@@ -53,7 +51,6 @@
                 fflush(stdout); \
         } while(0)
 #endif
-
 #ifndef NDBG_PRINT
 #define NDBG_PRINT(...) \
         do { \
@@ -62,7 +59,6 @@
                 fflush(stdout); \
         } while(0)
 #endif
-
 #ifndef WAFLZ_PERROR
 #define WAFLZ_PERROR(_str, ...) do { \
   snprintf(_str, WAFLZ_ERR_LEN, "%s.%s.%d: ",__FILE__,__FUNCTION__,__LINE__); \

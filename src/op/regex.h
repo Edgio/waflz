@@ -91,7 +91,6 @@ public:
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
-
                 m_regex_study = pcre_study(m_regex,
                                            s_pcre_study_options,
                                            &m_err_ptr);

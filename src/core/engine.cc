@@ -35,9 +35,6 @@
 #include "core/tx.h"
 #include "core/var.h"
 #include "core/op.h"
-// ---------------------------------------------------------
-// xml support
-// ---------------------------------------------------------
 #include <libxml/parser.h>
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
@@ -83,7 +80,6 @@ _compiled_config::~_compiled_config()
         {
                 if(*i_p) { delete *i_p; *i_p = NULL;}
         }
-
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -724,4 +720,3 @@ int32_t engine::merge(compiled_config_t &ao_cx_cfg,
         return WAFLZ_STATUS_OK;
 }
 }
-

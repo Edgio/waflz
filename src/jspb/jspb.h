@@ -22,26 +22,21 @@
 //: ----------------------------------------------------------------------------
 #ifndef __JSPB_H__
 #define __JSPB_H__
-
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
 #include <google/protobuf/message.h>
 #include <rapidjson/document.h>
-
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
 #ifndef JSPB_OK
 #define JSPB_OK 0
 #endif
-
 #ifndef JSPB_ERROR
 #define JSPB_ERROR -1
 #endif
-
 namespace ns_waflz {
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -51,7 +46,6 @@ namespace ns_waflz {
 int32_t convert_to_json(rapidjson::Value &ao_val,
                         rapidjson::Document::AllocatorType &a_alx,
                         const google::protobuf::Message& a_msg);
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a protobuf message to a json object, storing
 //:           the result in a rapidjson::Document object.
@@ -61,7 +55,6 @@ int32_t convert_to_json(rapidjson::Value &ao_val,
 //: ----------------------------------------------------------------------------
 int32_t convert_to_json(rapidjson::Document& ao_js,
                         const google::protobuf::Message& a_msg);
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a protobuf message to json object, storing result in
 //:           a std::string.
@@ -71,7 +64,6 @@ int32_t convert_to_json(rapidjson::Document& ao_js,
 //: ----------------------------------------------------------------------------
 int32_t convert_to_json(std::string& ao_str,
                         const google::protobuf::Message& a_msg);
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -80,7 +72,6 @@ int32_t convert_to_json(std::string& ao_str,
 //: ----------------------------------------------------------------------------
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const rapidjson::Value &a_val);
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a json object to a protobuf message, reading the
 //:           json value from a Json::Value object.
@@ -90,7 +81,6 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 //: ----------------------------------------------------------------------------
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const rapidjson::Document& a_js);
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a json object to a protobuf message, reading the
 //:           json value from a std::string.
@@ -101,7 +91,6 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const char *a_buf,
                          uint32_t a_len);
-
 //: ----------------------------------------------------------------------------
 //: \details: Convert a json object to a protobuf message, reading the
 //:           json value from a std::string.
@@ -111,19 +100,15 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 //: ----------------------------------------------------------------------------
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const std::string& a_str);
-
 //: ----------------------------------------------------------------------------
 //: \details: Get last error
 //: \return:  Last error reason
 //: ----------------------------------------------------------------------------
 const char * get_jspb_err_msg(void);
-
 //: ----------------------------------------------------------------------------
 //: \details: Get last error
 //: \return:  Last error reason
 //: ----------------------------------------------------------------------------
 void set_trace(bool a_val);
-
 } // namespace ns_waflz
-
 #endif // __JSON_PROTOBUF_H__

@@ -1084,7 +1084,7 @@ static int32_t get_rqst_body_str_cb(char *ao_data,
 //: \param   TODO
 //: \notes   strnstr from freebsd
 //: ----------------------------------------------------------------------------
-#if 0
+#if !defined(__APPLE__) || !defined(__darwin__)
 static char* strnstr(const char *s, const char *find, size_t slen)
 {
         char c;

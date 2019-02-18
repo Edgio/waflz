@@ -28,7 +28,11 @@
 #include <stdint.h>
 #include <list>
 #include <map>
-#include <strings.h>
+#if defined(__APPLE__) || defined(__darwin__)
+  #include <strings.h>
+#else
+  #include <string.h>
+#endif
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------

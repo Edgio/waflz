@@ -33,6 +33,25 @@ $ pip install -r requirements.txt
 ```sh
 $ ./build.sh
 ```
+### OS X Build requirements (brew)
+```bash
+brew install cmake
+brew install openssl
+brew install protobuf
+brew install libxml2
+brew install pcre
+```
+
+### Building the tools
+```bash
+./build_simple.sh
+```
+
+And optionally install
+```bash
+cd ./build
+sudo make install
+```
 
 ### Running standalone waflz_server for testing WAF rules
 

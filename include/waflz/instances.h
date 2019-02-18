@@ -27,9 +27,14 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "cityhash/city.h"
+#include <pthread.h>
 #include <string>
 #include <vector>
-#include <tr1/unordered_map>
+#if defined(__APPLE__) || defined(__darwin__)
+    #include <unordered_map>
+#else
+    #include <tr1/unordered_map>
+#endif
 namespace waflz_pb {
         class event;
 }
@@ -64,7 +69,11 @@ public:
                         return CityHash64(a_key.c_str(), a_key.length());
                 }
         };
-        typedef std::tr1::unordered_map<std::string, instance*, str_hash> id_instance_map_t;
+        #if defined(__APPLE__) || defined(__darwin__)
+            typedef std::unordered_map<std::string, instance*, str_hash> id_instance_map_t;
+        #else
+            typedef std::tr1::unordered_map<std::string, instance*, str_hash> id_instance_map_t;
+        #endif
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------

@@ -312,6 +312,26 @@ uint64_t strntoull(const char *a_str, size_t a_size, char **ao_end, int a_base)
         return l_ret;
 }
 //: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+#if defined(__APPLE__) || defined(__darwin__)
+void * memrchr(const void *s, int c, size_t n)
+{
+    const unsigned char *cp;
+    if (n != 0) {
+            cp = (unsigned char *)s + n;
+            do
+            {
+                    if (*(--cp) == (unsigned char)c)
+                    return (void *)cp;
+            }while (--n != 0);
+    }
+    return (void *)0;
+}
+#endif
+//: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO

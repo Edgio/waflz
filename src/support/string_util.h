@@ -43,6 +43,9 @@ int32_t strntol(const char *a_str, size_t a_size, char **ao_end, int a_base);
 int64_t strntoll(const char *a_str, size_t a_size, char **ao_end, int a_base);
 uint32_t strntoul(const char *a_str, size_t a_size, char **ao_end, int a_base);
 uint64_t strntoull(const char *a_str, size_t a_size, char **ao_end, int a_base);
+#if defined(__APPLE__) || defined(__darwin__)
+void * memrchr(const void *s, int c, size_t n);
+#endif
 template <typename T>
 std::string to_string(const T& a_num)
 {

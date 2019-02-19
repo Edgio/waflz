@@ -1,10 +1,10 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
-# Copyright (C) 2016 Verizon.  All Rights Reserved.
+# Copyright (C) 2014 Verizon.  All Rights Reserved.
 # All Rights Reserved
 #
 #   Author: Reed P Morrison
-#   Date:   09/13/2016
+#   Date:   02/07/2014
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+
 # ------------------------------------------------------------------------------
-# Requirements to build...
+# To build...
 # ------------------------------------------------------------------------------
-which cmake g++ make || {
-    echo "Failed to find required build packages. Please install with: sudo apt-get install cmake make g++"
+which cmake || {
+    echo "Failed to find all required apps to build (cmake)."
     exit 1
 }
 # This is necessary in scenarios where the URL of the remote for a given submodule has changed.
@@ -35,19 +36,11 @@ git submodule update -f --init || {
     echo "FAILED TO UPDATE TO LATEST IS2 LIB"
     exit 1
 }
-# ------------------------------------------------------------------------------
-# Build waflz
-# ------------------------------------------------------------------------------
 mkdir -p build
 pushd build && \
     cmake ../ \
-    -DBUILD_SYMBOLS=ON \
     -DBUILD_APPS=ON \
-    -DBUILD_UBUNTU=ON \
-    -DCMAKE_INSTALL_PREFIX=/usr && \
-    make -j$(nproc) && \
-    make test && \
-    umask 0022 && chmod -R a+rX . && \
-    make package && \
-popd && \
+    -DBUILD_TESTS=OFF && \
+    make 
+	popd && \
 exit $?

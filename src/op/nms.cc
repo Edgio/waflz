@@ -35,13 +35,21 @@
 #ifndef WAFLZ_STATUS_OK
   #define WAFLZ_STATUS_OK 0
 #endif
-
 #ifndef WAFLZ_STATUS_ERROR
   #define WAFLZ_STATUS_ERROR -1
 #endif
-
 #ifndef WAFLZ_ERR_LEN
   #define WAFLZ_ERR_LEN 4096
+#endif
+
+#if defined(__APPLE__) || defined(__darwin__)
+/* OSX seems not to define these. */
+#ifndef s6_addr16
+#define s6_addr16 __u6_addr.__u6_addr16
+#endif
+#ifndef s6_addr32
+#define s6_addr32 __u6_addr.__u6_addr32
+#endif
 #endif
 //: ----------------------------------------------------------------------------
 //: macros
@@ -53,7 +61,6 @@
                 fflush(stdout); \
         } while(0)
 #endif
-
 #ifndef NDBG_PRINT
 #define NDBG_PRINT(...) \
         do { \
@@ -62,7 +69,6 @@
                 fflush(stdout); \
         } while(0)
 #endif
-
 #ifndef WAFLZ_PERROR
 #define WAFLZ_PERROR(_str, ...) do { \
   snprintf(_str, WAFLZ_ERR_LEN, "%s.%s.%d: ",__FILE__,__FUNCTION__,__LINE__); \

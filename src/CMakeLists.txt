@@ -166,7 +166,6 @@ SET(SRCS
     # --------------------------------------------
     # parsers
     # --------------------------------------------
-    parser/parser.cc
     parser/parser_url_encoded.cc
     parser/parser_xml.cc
     parser/parser_json.cc

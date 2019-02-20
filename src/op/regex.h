@@ -20,8 +20,8 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _REGEX_H_
-#define _REGEX_H_
+#ifndef _REGEXX_H_
+#define _REGEXX_H_
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
@@ -91,7 +91,6 @@ public:
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
-
                 m_regex_study = pcre_study(m_regex,
                                            s_pcre_study_options,
                                            &m_err_ptr);

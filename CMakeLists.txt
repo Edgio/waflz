@@ -36,6 +36,7 @@ option(BUILD_ASAN        "Build with Address Sanitizer" OFF)
 option(BUILD_UBSAN       "Build with Undefined Behavior Sanitizer" OFF)
 option(BUILD_TESTS       "Build the unit tests." ON)
 option(BUILD_APPS        "Build the apps." OFF)
+option(BUILD_UBUNTU      "Build for Ubuntu" OFF)
 option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
 # ------------------------------------------------------------------------------
 # Compiler options
@@ -63,13 +64,15 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
   #message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++0x support. Please use a different C++ compiler.")
 endif()
-if(BUILD_CUSTOM_OPENSSL)
+if(BUILD_UBUNTU AND BUILD_CUSTOM_OPENSSL)
   INCLUDE_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/include")
   set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libssl.so")
   set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libcrypto.so")
   add_definitions(-DBUILD_CUSTOM_OPENSSL=1)
-else()
+elseif(BUILD_UBUNTU)
   set(LIBRARIES ${LIBRARIES} pthread ssl crypto)
+else()
+  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
 endif()
 # ------------------------------------------------------------------------------
 # Display the current settings
@@ -88,6 +91,7 @@ message("    Build with Address Sanitizer:              " "BUILD_ASAN           
 message("    Build with Undefined Behavior Sanitizer:   " "BUILD_UBSAN             " ${BUILD_UBSAN})
 message("    Build unit tests:                          " "BUILD_TESTS             " ${BUILD_TESTS})
 message("    Build applications:                        " "BUILD_APPS              " ${BUILD_APPS})
+message("    Build for Ubuntu (adds package help):      " "BUILD_UBUNTU            " ${BUILD_UBUNTU})
 message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
 message("")
 # ------------------------------------------------------------------------------
@@ -151,6 +155,23 @@ macro(find_ubuntu_package output_var_prefix
   endif()
 endmacro(find_ubuntu_package)
 # ------------------------------------------------------------------------------
+# Mac OS X
+# ------------------------------------------------------------------------------
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+   # Mac OS X specific code
+   SET(OperatingSystem "Mac OS X")
+   # Add MacPorts
+   INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
+   INCLUDE_DIRECTORIES(/usr/local/opt/protobuf/include)
+   INCLUDE_DIRECTORIES(/usr/local/opt/pcre/include)
+   INCLUDE_DIRECTORIES(/usr/local/opt/libxml2/include/libxml2)
+   LINK_DIRECTORIES(/usr/local/opt/openssl/lib)
+   LINK_DIRECTORIES(/usr/local/opt/protobuf/lib)
+   LINK_DIRECTORIES(/usr/local/opt/pcre/lib)
+   LINK_DIRECTORIES(/usr/local/opt/libxml2/lib)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+# ------------------------------------------------------------------------------
 # ASAN
 # ------------------------------------------------------------------------------
 if (BUILD_ASAN)
@@ -174,48 +195,57 @@ endif()
 # ------------------------------------------------------------------------------
 if(BUILD_PROFILER)
   add_definitions(-DENABLE_PROFILER=1)
-  find_ubuntu_package(LIBPROFILER google/profiler.h libprofiler.a google-perftools libgoogle-perftools-dev)
-  set(LIBRARIES ${LIBRARIES} unwind)
+  if (BUILD_UBUNTU)
+    find_ubuntu_package(LIBPROFILER google/profiler.h libprofiler.a google-perftools libgoogle-perftools-dev)
+    set(LIBRARIES ${LIBRARIES} unwind)
+  else()
+    set(LIBRARIES ${LIBRARIES} tcmalloc profiler)
+  endif()
 endif()
 # ------------------------------------------------------------------------------
 # Build TCMALLOC
 # ------------------------------------------------------------------------------
 if (BUILD_TCMALLOC)
-  find_ubuntu_package(LIBTCMALLOC google/tcmalloc.h libtcmalloc.a "" libgoogle-perftools-dev)
-  find_ubuntu_package(LIBUNWIND libunwind.h libunwind.a "" libunwind8-dev)
-  # yes it's wierd as shit to have to include this again...
-  LIST(APPEND LIBRARIES pthread)
+  if(BUILD_UBUNTU)
+    find_ubuntu_package(LIBTCMALLOC google/tcmalloc.h libtcmalloc.a "" libgoogle-perftools-dev)
+    find_ubuntu_package(LIBUNWIND libunwind.h libunwind.a "" libunwind8-dev)
+    # yes it's wierd as shit to have to include this again...
+    LIST(APPEND LIBRARIES pthread)
+  endif()
 endif()
-# ------------------------------------------------------------------------------
-# Link OpenSSL (crypto)
-# ------------------------------------------------------------------------------
-find_ubuntu_package(LIBCRYPTO openssl/crypto.h libcrypto.a libssl1.0.0 libssl-dev)
-# ------------------------------------------------------------------------------
-# Link pcre
-# ------------------------------------------------------------------------------
-find_ubuntu_package(LIBPCRE pcre.h libpcre.a libpcre.so libpcre3-dev)
-# ------------------------------------------------------------------------------
-# Link xml2
-# ------------------------------------------------------------------------------
-find_ubuntu_package(LIBXML2 libxml2/libxml/xmlversion.h libxml2.a libxml2 libxml2-dev)
-# ------------------------------------------------------------------------------
-# Link ZLIB
-# ------------------------------------------------------------------------------
-find_ubuntu_package(LIBZ zlib.h libz.a zlib1g zlib1g-dev)
-# ------------------------------------------------------------------------------
-# Link ZMA
-# ------------------------------------------------------------------------------
-find_ubuntu_package(LIBZMA "" liblzma.a "" liblzma-dev)
-# ------------------------------------------------------------------------------
-# Link icu (unicode lib)
-# ------------------------------------------------------------------------------
-find_ubuntu_package(LIBICUIL8N unicode/uversion.h libicui18n.a libicu libicu-dev)
-find_ubuntu_package(LIBICU unicode/uversion.h libicuuc.a libicu libicu-dev)
-find_ubuntu_package(LIBICUDATA unicode/uversion.h libicudata.a libicu libicu-dev)
-# ------------------------------------------------------------------------------
-# Link PROTOBUF
-# ------------------------------------------------------------------------------
-find_ubuntu_package(LIBPROTOBUF google/protobuf/message.h libprotobuf.a libprotobuf libprotobuf-dev)
+
+if(BUILD_UBUNTU)
+  # ------------------------------------------------------------------------------
+  # Link OpenSSL (crypto)
+  # ------------------------------------------------------------------------------
+  find_ubuntu_package(LIBCRYPTO openssl/crypto.h libcrypto.a libssl1.0.0 libssl-dev)
+  # ------------------------------------------------------------------------------
+  # Link pcre
+  # ------------------------------------------------------------------------------
+  find_ubuntu_package(LIBPCRE pcre.h libpcre.a libpcre.so libpcre3-dev)
+  # ------------------------------------------------------------------------------
+  # Link xml2
+  # ------------------------------------------------------------------------------
+  find_ubuntu_package(LIBXML2 libxml2/libxml/xmlversion.h libxml2.a libxml2 libxml2-dev)
+  # ------------------------------------------------------------------------------
+  # Link ZLIB
+  # ------------------------------------------------------------------------------
+  find_ubuntu_package(LIBZ zlib.h libz.a zlib1g zlib1g-dev)
+  # ------------------------------------------------------------------------------
+  # Link ZMA
+  # ------------------------------------------------------------------------------
+  find_ubuntu_package(LIBZMA "" liblzma.a "" liblzma-dev)
+  # ------------------------------------------------------------------------------
+  # Link icu (unicode lib)
+  # ------------------------------------------------------------------------------
+  find_ubuntu_package(LIBICUIL8N unicode/uversion.h libicui18n.a libicu libicu-dev)
+  find_ubuntu_package(LIBICU unicode/uversion.h libicuuc.a libicu libicu-dev)
+  find_ubuntu_package(LIBICUDATA unicode/uversion.h libicudata.a libicu libicu-dev)
+  # ------------------------------------------------------------------------------
+  # Link PROTOBUF
+  # ------------------------------------------------------------------------------
+  find_ubuntu_package(LIBPROTOBUF google/protobuf/message.h libprotobuf.a libprotobuf libprotobuf-dev)
+endif()
 # ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------
@@ -229,10 +259,12 @@ endif()
 # ------------------------------------------------------------------------------
 set(LIBRARIES ${LIBRARIES} dl)
 set(LIBRARIES ${LIBRARIES} pthread)
-set(LIBRARIES ${LIBRARIES} rt)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    set(LIBRARIES ${LIBRARIES} rt)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(LIBRARIES ${LIBRARIES} m)
-set(LIBRARIES ${LIBRARIES} crypt)
-message(STATUS "Libraries: ${LIBRARIES}")
+set(LIBRARIES ${LIBRARIES} crypto)
+message(STATUS "Libraries: ${LIBARIES}")
 # ------------------------------------------------------------------------------
 # Optional flags
 # ------------------------------------------------------------------------------

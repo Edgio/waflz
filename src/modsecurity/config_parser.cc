@@ -3078,7 +3078,6 @@ int32_t config_parser::get_modsec_rule_line(std::string &ao_str,
         //NDBG_PRINT("%s\n", ao_str.c_str());
         return WAFLZ_STATUS_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO

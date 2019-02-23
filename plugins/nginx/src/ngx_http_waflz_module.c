@@ -28,26 +28,65 @@
 #include <ngx_http.h>
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
-//: waflz
+//: Module directives
 //: ----------------------------------------------------------------------------
-static ngx_core_module_t  ngx_waflz_module_ctx = {
-    ngx_string("waflz"),
-    ngx_waflz_create_conf,
-    ngx_waflz_init_conf
-};
+static ngx_command_t ngx_http_waflz_commands[] = {
+        {
+                ngx_string("profile"),
+                NGX_HTTP_LOC_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_MAIN_CONF,
+                ngx_conf_set_flag_slot, // Turn it on/off
+                NGX_HTTP_LOC_CONF_OFFSET, // Where to save this value
+                0,
+                NULL
+        },
+        ngx_null_command
+}
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: Module context
+//: ----------------------------------------------------------------------------
+static ngx_http_module_t  ngx_http_waflz_module_ctx = {
+        NULL,                          /* preconfiguration */
+        NULL,                          /* postconfiguration */
 
+        NULL,                          /* create main configuration */
+        NULL,                          /* init main configuration */
 
-ngx_module_t  ngx_waflz_module = {
-    NGX_MODULE_V1,
-    &ngx_waflz_module_ctx,                   /* module context */
-    ngx_waflz_commands,                      /* module directives */
-    NGX_CORE_MODULE,                       	 /* module type */
-    NULL,                                    /* init master */
-    NULL,                                    /* init module */
-    NULL,                                    /* init process */
-    NULL,                                    /* init thread */
-    NULL,                                    /* exit thread */
-    NULL,                                    /* exit process */
-    NULL,                                    /* exit master */
-    NGX_MODULE_V1_PADDING
+        NULL,                          /* create server configuration */
+        NULL,                          /* merge server configuration */
+
+        ngx_http_waflz_create_loc_conf,  /* create location configuration */
+        ngx_http_waflz_merge_loc_conf /* merge location configuration */
 };
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: Module context
+//: ----------------------------------------------------------------------------
+ngx_module_t  ngx_http_waflz_module = {
+        NGX_MODULE_V1,
+        &ngx_http_waflz_module_ctx,                   /* module context */
+        ngx_http_waflz_commands,                      /* module directives */
+        NGX_HTTP_MODULE,                       	      /* module type */
+        NULL,                                         /* init master */
+        NULL,                                         /* init module */
+        NULL,                                         /* init process */
+        NULL,                                         /* init thread */
+        NULL,                                         /* exit thread */
+        NULL,                                         /* exit process */
+        NULL,                                         /* exit master */
+        NGX_MODULE_V1_PADDING
+};
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: Create location conf
+//: ----------------------------------------------------------------------------
+static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
+{
+        ngx_http_waflz_loc_conf_t *conf;
+        conf = (ngx_http_waflz_loc_conf_t)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_loc_conf_t));
+        if (conf == NULL)
+        {
+                return NGX_CONF_ERROR;
+        }
+        
+}

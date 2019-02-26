@@ -88,14 +88,7 @@ Example Profile json
         "max_file_size": 6291456,
         "validate_utf8_encoding": true,
         "xml_parser": true,
-        "anomaly_settings": {
-          "error_score": 4,
-          "notice_score": 2,
-          "inbound_threshold": 1,
-          "critical_score": 5,
-          "outbound_threshold": 4,
-          "warning_score": 3
-        }
+        "anomaly_threshold" : 1,
       },
       "ruleset_id": "OWASP-CRS-2.2.9",
       "ruleset_version": "2017-08-01",
@@ -233,16 +226,7 @@ Anomaly Settings
 
 .. code-block:: json
 
-    {
-        "anomaly_settings": {
-          "error_score": 4,
-          "notice_score": 2,
-          "inbound_threshold": 1,
-          "critical_score": 5,
-          "outbound_threshold": 4,
-          "warning_score": 3
-        }
-    }
+    "anomaly_threshold" : 1
 
 WAF Ruleset
 -----------

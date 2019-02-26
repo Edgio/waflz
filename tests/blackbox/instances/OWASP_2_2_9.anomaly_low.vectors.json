@@ -6,14 +6,7 @@
   "general_settings": 
   {
     "engine": "anomaly",
-    "anomaly_settings": {
-      "error_score": 4,
-      "notice_score": 2,
-      "inbound_threshold": 1,
-      "critical_score": 5,
-      "outbound_threshold": 4,
-      "warning_score": 3
-    }
+    "anomaly_threshold" : 1
   }
 },
 "vectors":

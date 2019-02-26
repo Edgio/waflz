@@ -117,14 +117,7 @@
     <span class="nt">&quot;max_file_size&quot;</span><span class="p">:</span> <span class="mi">6291456</span><span class="p">,</span>
     <span class="nt">&quot;validate_utf8_encoding&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
     <span class="nt">&quot;xml_parser&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
-    <span class="nt">&quot;anomaly_settings&quot;</span><span class="p">:</span> <span class="p">{</span>
-      <span class="nt">&quot;error_score&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-      <span class="nt">&quot;notice_score&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-      <span class="nt">&quot;inbound_threshold&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="nt">&quot;critical_score&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-      <span class="nt">&quot;outbound_threshold&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-      <span class="nt">&quot;warning_score&quot;</span><span class="p">:</span> <span class="mi">3</span>
-    <span class="p">}</span>
+    <span class="nt">&quot;anomaly_threshold&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
   <span class="p">},</span>
   <span class="nt">&quot;ruleset_id&quot;</span><span class="p">:</span> <span class="s2">&quot;OWASP-CRS-2.2.9&quot;</span><span class="p">,</span>
   <span class="nt">&quot;ruleset_version&quot;</span><span class="p">:</span> <span class="s2">&quot;2017-08-01&quot;</span><span class="p">,</span>
@@ -252,16 +245,7 @@
 </div>
 <div class="section" id="anomaly-settings">
 <h3>Anomaly Settings<a class="headerlink" href="#anomaly-settings" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nt">&quot;anomaly_settings&quot;</span><span class="p">:</span> <span class="p">{</span>
-      <span class="nt">&quot;error_score&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-      <span class="nt">&quot;notice_score&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-      <span class="nt">&quot;inbound_threshold&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="nt">&quot;critical_score&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-      <span class="nt">&quot;outbound_threshold&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-      <span class="nt">&quot;warning_score&quot;</span><span class="p">:</span> <span class="mi">3</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>&quot;anomaly_threshold&quot; : 1
 </pre></div>
 </div>
 </div>

@@ -308,4 +308,7 @@ int32_t geoip2_mmdb::get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_l
         }
         return WAFLZ_STATUS_OK;
 }
+extern "C" geoip2_mmdb *get_geoip(void) {
+    return new geoip2_mmdb();
+}
 }

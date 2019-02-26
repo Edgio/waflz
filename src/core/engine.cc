@@ -719,4 +719,12 @@ int32_t engine::merge(compiled_config_t &ao_cx_cfg,
         }
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details C bindings for nginx module
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+extern "C" engine *init_engine(void) {
+    return new engine();
+}
 }

@@ -66,6 +66,7 @@ public:
         // public methods
         // -------------------------------------------------
         profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
+        profile();
         ~profile();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t process_part(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);

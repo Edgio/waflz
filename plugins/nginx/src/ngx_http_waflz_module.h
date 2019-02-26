@@ -53,6 +53,17 @@
 //: ----------------------------------------------------------------------------
 typedef struct {
     void                    *pool;
-    profile                 *m_profile;
     engine                  *m_engine;
+    geoip2_mmdb             *m_geoip2_db
+    // Config values
+    ngx_str_t               m_ruleset_dir;
+    ngx_str_t               m_geoip2_db_file;
+} ngx_http_waflz_conf_t;
+
+
+typedef struct {
+    void                    *pool;
+    profile                 *m_profile;
+    // Config values
+    ngx_str_t               m_profile_file;
 } ngx_http_waflz_loc_conf_t;

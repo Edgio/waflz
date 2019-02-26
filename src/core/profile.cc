@@ -119,6 +119,32 @@ profile::profile(engine &a_engine,
         m_acl = new acl(a_geoip2_mmdb);
 }
 //: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+profile::profile():
+        m_init(false),
+        m_pb(NULL),
+        m_err_msg(),
+        m_engine(),
+        m_geoip2_mmdb(),
+        m_acl(NULL),
+        m_waf(NULL),
+        m_id(),
+        m_name(profile::s_default_name),
+        m_resp_header_name(),
+        m_action(waflz_pb::enforcement_type_t_NOP),
+        m_leave_compiled_file(false),
+        m_owasp_ruleset_version(229),
+        m_paranoia_level(1),
+        m_il_query(),
+        m_il_header(),
+        m_il_cookie()
+{
+        
+}
+//: ----------------------------------------------------------------------------
 //: \details dtor
 //: \return  TODO
 //: \param   TODO
@@ -733,4 +759,21 @@ done:
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details C bindings for nginx module
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+extern "C" engine *create_profile()
+{
+        return new profile();
+}
+extern set_engine(engine &a_engine)
+{
+        m_engine = a_engine;
+}
+extern set_acl( geoip2_mmdb &a_geoip2_mmdb)
+{
+        m_geoip2_mmdb = a_geoip2_mmdb
+} 
 }

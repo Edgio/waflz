@@ -25,18 +25,25 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
+#ifdef __cplusplus
 #include <stdint.h>
 #include <list>
 #include <string>
 #include <map>
 #include "waflz/waf.h"
 #include "waflz/parser.h"
+#endif
+
+#ifndef __cplusplus
+typedef struct engine_t engine;
+#endif
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
 //: fwd decl's -proto
 //: ----------------------------------------------------------------------------
+#ifdef __cplusplus
 namespace waflz_pb {
 class directive_t;
 class sec_config_t;
@@ -94,5 +101,13 @@ private:
         std::string m_ruleset_dir;
         char m_err_msg[WAFLZ_ERR_LEN];
 };
-}
+#ifdef __cplusplus
+extern "C" {
 #endif
+engine *init_engine(void);
+#ifdef __cplusplus
+}
+} // namespace
+#endif
+#endif
+#endif // header

@@ -26,6 +26,14 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
+#include "ngx_http_waflz_module.h"
+
+static ngx_int_t ngx_http_waflz_init(ngx_conf_t *cf);
+static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf);
+static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf);
+static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *child);
+
+
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
 //: Module directives
@@ -64,7 +72,7 @@ static ngx_command_t ngx_http_waflz_commands[] = {
                 NULL
         },
         ngx_null_command
-}
+};
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
 //: Module context
@@ -92,7 +100,7 @@ static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf)
         ngx_pool_cleanup_t          *cln;
         ngx_http_waflz_conf_t       *l_conf;
 
-        l_conf = (ngx_http_waflz_conf_t)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
+        l_conf = (ngx_http_waflz_conf_t *)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
         if (l_conf == NULL)
         {
                 return NGX_CONF_ERROR;
@@ -109,9 +117,9 @@ static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf)
         conf->pool = cf->pool;
 #endif
         l_conf->m_engine = init_engine();
-        l_conf->m_geoip2_db = get_geoip();
+        //l_conf->m_geoip2_db = get_geoip();
         // Initialize obj with db files
-        l_conf->m_geoip2_db->init(l_conf->m_geoip2_db_file);
+        //l_conf->m_geoip2_db->init(l_conf->m_geoip2_db_file);
         
         return l_conf;
 }
@@ -123,12 +131,12 @@ static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf)
 static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
 {
         ngx_http_waflz_loc_conf_t *l_conf;
-        l_conf = (ngx_http_waflz_conf_t)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
+        l_conf = (ngx_http_waflz_loc_conf_t *)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
         if (l_conf == NULL)
         {
                 return NGX_CONF_ERROR;
         }
-        l_conf->m_profile = create_profile();
+        //l_conf->m_profile = create_profile(l_main_conf->m_engine, l_main_conf->m_geoip2_db);
         if(!l_conf->m_profile)
         {
                 return NGX_CONF_ERROR;
@@ -174,7 +182,7 @@ static ngx_int_t ngx_http_waflz_init(ngx_conf_t *cf)
 {
         ngx_http_handler_pt *h_preaccess;
         ngx_http_core_main_conf_t *cmcf;
-        int rc = 0;
+        //int rc = 0;
         cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
         if (cmcf == NULL)
         {
@@ -183,7 +191,6 @@ static ngx_int_t ngx_http_waflz_init(ngx_conf_t *cf)
         h_preaccess = ngx_array_push(&cmcf->phases[NGX_HTTP_PREACCESS_PHASE].handlers);
         if (h_preaccess == NULL)
         {
-            dd("Not able to create a new NGX_HTTP_PREACCESS_PHASE handle");
             return NGX_ERROR;
         }
         *h_preaccess = ngx_http_waflz_pre_access_handler;
@@ -196,7 +203,7 @@ static ngx_int_t ngx_http_waflz_init(ngx_conf_t *cf)
 //: ----------------------------------------------------------------------------
 ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *rqst_ctx)
 {
-        ngx_pool_t *old_pool;
+        //ngx_pool_t *old_pool;
         ngx_http_waflz_conf_t *l_main_conf;
         ngx_http_waflz_loc_conf_t *l_loc_conf;
 
@@ -210,9 +217,10 @@ ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *rqst_ctx)
         {
                 return NGX_DECLINED;
         }
-        l_loc_conf->m_profile->set_engine(*(l_main_conf->m_engine));
-        l_loc_conf->m_profile->set_acl(*(l_main_conf->m_geoip2_db));
+        //l_loc_conf->m_profile->set_engine(*(l_main_conf->m_engine));
+        //l_loc_conf->m_profile->set_acl(*(l_main_conf->m_geoip2_db));
 
         // process_request
-        l_loc_conf->process(&rqst_ctx);
+        //l_loc_conf->m_profile->process(&rqst_ctx);
+        return NGX_DONE;
 }

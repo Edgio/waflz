@@ -33,29 +33,24 @@
 // -----------------------------------------------
 // waflz includes
 // -----------------------------------------------
-#include "waflz/instances.h"
-#include "waflz/instance.h"
-#include "waflz/profile.h"
-#include "waflz/rqst_ctx.h"
-#include "waflz/trace.h"
-#include "waflz/engine.h"
-#include "waflz/render.h"
+#include <waflz/profile.h>
+#include <waflz/engine.h>
+#include <geoip2_mmdb.h>
 // -----------------------------------------------
 // waflz pb
 // -----------------------------------------------
+#if 0
 #include "waflz/proto/config.pb.h"
 #include "waflz/proto/enforcement.pb.h"
 #include "waflz/proto/event.pb.h"
-// -----------------------------------------------
-// waflz utils
-// -----------------------------------------------
-#include "waflz/src/support/time_util.h"
+#endif
 //: ----------------------------------------------------------------------------
 typedef struct {
     void                    *pool;
     engine                  *m_engine;
-    geoip2_mmdb             *m_geoip2_db
+    geoip2_mmdb             *m_geoip2_db;
     // Config values
+    ngx_flag_t              enable;
     ngx_str_t               m_ruleset_dir;
     ngx_str_t               m_geoip2_db_file;
 } ngx_http_waflz_conf_t;
@@ -67,3 +62,5 @@ typedef struct {
     // Config values
     ngx_str_t               m_profile_file;
 } ngx_http_waflz_loc_conf_t;
+ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *rqst_ctx);
+#endif // header

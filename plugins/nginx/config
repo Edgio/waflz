@@ -1,18 +1,78 @@
-ngx_module_type=HTTP_FILTER
-ngx_module_name=ngx_http_waflz_module
-ngx_module_srcs="ngx_addon_dir/src/ngx_http_waflz_module.c"
+ngx_feature_name=
+ngx_feature_run=no
+ngx_feature_incs="#include <waflz/engine.h>"
+
+ngx_feature_libs="-lwaflzcore"
+ngx_feature_test='printf("hello");'
+
+
+# auto-discovery
+ngx_feature="waflz library"
+ngx_feature_libs="-lwaflzcore"
+. auto/feature
+
+if [ $ngx_found = no ]; then
+    ngx_feature="Waflz library in $ngx_addon_dir/../../build/src/"
+    ngx_feature_path="$ngx_addon_dir/../../include"
+    if [ $NGX_RPATH = YES ]; then
+        ngx_feature_libs="-R$ngx_addon_dir/../../build/src/ -L$ngx_addon_dir/../../build/src/ -lwaflzcore"
+    elif [ "$NGX_IGNORE_RPATH" != "YES" -a $NGX_SYSTEM = "Linux" ]; then
+        ngx_feature_libs="-Wl,-rpath,$ngx_addon_dir/../../build/src/ -L$ngx_addon_dir/../../build/src/ -lwaflzcore"
+    else
+        ngx_feature_libs="-L$ngx_addon_dir/../../build/src/ -lwaflzcore"
+    fi
+
+    . auto/feature
+
+fi
+
+
+
+if [ $ngx_found = no ]; then
+ cat << END
+ $0: error: ngx_http_waflz_module requires the waflz library.
+END
+ exit 1
+fi
+
 
 # waflz includes
-WAFLZ_INC=../../include
+WAFLZ_INC="$ngx_addon_dir/../../include \
+		   $ngx_addon_dir/../../src/support"
 ngx_feature_path="$WAFLZ_INC"
-ngx_module_incs="$ngx_feature_path"
-#Dependency
-#ngx_module_deps="$"
 
-ngx_module_order="ngx_http_chunked_filter_module \
+# waflz lib
+WAFLZ_LIB="$ngx_addon_dir/../../build/src/"
+ngx_feature_libs="-L$WAFLZ_LIB -lwaflzcore"
+
+ngx_module_name=ngx_http_waflz_module
+ngx_addon_name=$ngx_module_name
+
+if test -n "$ngx_module_link"; then
+    ngx_module_type=HTTP_FILTER
+    ngx_module_name=$ngx_addon_name
+    ngx_module_srcs="$ngx_addon_dir/src/ngx_http_waflz_module.c"
+
+    ngx_module_deps="$ngx_addon_dir/src/ngx_http_waflz_module.h"
+
+    ngx_module_incs="$ngx_feature_path"
+    ngx_module_libs="$ngx_feature_libs"
+
+    ngx_module_order="ngx_http_chunked_filter_module \
                   ngx_http_v2_filter_module \
                   ngx_http_range_header_filter_module \
                   $ngx_module_name";
-. auto/module
 
-ngx_addon_name=$ngx_module_name
+    . auto/module
+else
+    CORE_INCS="$CORE_INCS $ngx_feature_path"
+	CORE_LIBS="$CORE_LIBS $ngx_feature_libs"
+
+    HTTP_FILTER_MODULES="$HTTP_FILTER_MODULES ngx_http_waflz_module"
+    NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dirsrc/ngx_http_waflz_module.c"
+
+    NGX_ADDON_DEPS="\
+	    $NGX_ADDON_DEPS \
+	    $ngx_addon_dir/src/ngx_http_waflz_module.h \
+	    "
+fi

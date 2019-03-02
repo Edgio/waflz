@@ -25,9 +25,11 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
+#ifdef __cplusplus
 #include <stdint.h>
 #include <list>
 #include <map>
+#endif
 #if defined(__APPLE__) || defined(__darwin__)
   #include <strings.h>
 #else

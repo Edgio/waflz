@@ -34,9 +34,7 @@
 #include "waflz/parser.h"
 #endif
 
-#ifndef __cplusplus
-typedef struct engine_t engine;
-#endif
+
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
@@ -48,6 +46,10 @@ namespace waflz_pb {
 class directive_t;
 class sec_config_t;
 };
+#endif
+#ifndef __cplusplus
+typedef struct engine_t engine;
+#else
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
@@ -101,6 +103,8 @@ private:
         std::string m_ruleset_dir;
         char m_err_msg[WAFLZ_ERR_LEN];
 };
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -108,6 +112,5 @@ engine *init_engine(void);
 #ifdef __cplusplus
 }
 } // namespace
-#endif
 #endif
 #endif // header

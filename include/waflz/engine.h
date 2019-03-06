@@ -20,8 +20,7 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _ENGINE_H_
-#define _ENGINE_H_
+
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
@@ -34,6 +33,8 @@
 #include "waflz/parser.h"
 #endif
 
+#ifndef _ENGINE_H_
+#define _ENGINE_H_
 
 //: ----------------------------------------------------------------------------
 //: fwd decl's
@@ -41,15 +42,18 @@
 //: ----------------------------------------------------------------------------
 //: fwd decl's -proto
 //: ----------------------------------------------------------------------------
+#ifndef __cplusplus
+typedef struct engine_t engine;
+#endif
+
 #ifdef __cplusplus
 namespace waflz_pb {
 class directive_t;
 class sec_config_t;
 };
 #endif
-#ifndef __cplusplus
-typedef struct engine_t engine;
-#else
+
+#ifdef __cplusplus
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
@@ -108,9 +112,12 @@ private:
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 engine *init_engine(void);
+
 #ifdef __cplusplus
 }
-} // namespace
-#endif
+
+}
+#endif // namespace
 #endif // header

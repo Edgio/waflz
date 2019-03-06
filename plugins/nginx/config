@@ -12,14 +12,14 @@ ngx_feature_libs="-lwaflzcore"
 . auto/feature
 
 if [ $ngx_found = no ]; then
-    ngx_feature="Waflz library in $ngx_addon_dir/../../build/src/"
+    ngx_feature="Waflz library in $ngx_addon_dir/../../build/src"
     ngx_feature_path="$ngx_addon_dir/../../include"
     if [ $NGX_RPATH = YES ]; then
-        ngx_feature_libs="-R$ngx_addon_dir/../../build/src/ -L$ngx_addon_dir/../../build/src/ -lwaflzcore"
+        ngx_feature_libs="-R$ngx_addon_dir/../../build/src -L$ngx_addon_dir/../../build/src -lwaflzcore"
     elif [ "$NGX_IGNORE_RPATH" != "YES" -a $NGX_SYSTEM = "Linux" ]; then
-        ngx_feature_libs="-Wl,-rpath,$ngx_addon_dir/../../build/src/ -L$ngx_addon_dir/../../build/src/ -lwaflzcore"
+        ngx_feature_libs="-Wl,-rpath,$ngx_addon_dir/../../build/src/ -L$ngx_addon_dir/../../build/src -lwaflzcore"
     else
-        ngx_feature_libs="-L$ngx_addon_dir/../../build/src/ -lwaflzcore"
+        ngx_feature_libs="-L$ngx_addon_dir/../../build/src -lwaflzcore"
     fi
 
     . auto/feature
@@ -42,8 +42,8 @@ WAFLZ_INC="$ngx_addon_dir/../../include \
 ngx_feature_path="$WAFLZ_INC"
 
 # waflz lib
-WAFLZ_LIB="$ngx_addon_dir/../../build/src/"
-ngx_feature_libs="-L$WAFLZ_LIB -lwaflzcore"
+WAFLZ_LIB="$ngx_addon_dir/../../build/src"
+ngx_feature_libs="-L/usr/lib/x86_64-linux-gnu/ -lprotobuf -L$WAFLZ_LIB -lwaflzcore"
 
 ngx_module_name=ngx_http_waflz_module
 ngx_addon_name=$ngx_module_name

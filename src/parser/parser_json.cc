@@ -185,7 +185,8 @@ static int yajl_start_map_cb(void *a_ctx)
         if(l_prefix_len)
         {
                 size_t l_max_cat_len;
-                l_max_cat_len = PARSER_JSON_PREFIX_LEN_MAX - l_prefix_len;
+                // strncat appends a null character at the end, so account for that
+                l_max_cat_len = PARSER_JSON_PREFIX_LEN_MAX - l_prefix_len - 1;
                 if(l_max_cat_len)
                 {
                         strncat((char *)l_parser->m_prefix, ".", l_max_cat_len);

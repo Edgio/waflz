@@ -2,24 +2,24 @@ ngx_feature_name=
 ngx_feature_run=no
 ngx_feature_incs="#include <waflz/engine.h>"
 
-ngx_feature_libs="-lwaflzcore"
+ngx_feature_libs="-lwaflz"
 ngx_feature_test='printf("hello");'
 
 
 # auto-discovery
 ngx_feature="waflz library"
-ngx_feature_libs="-lwaflzcore"
+ngx_feature_libs="-lwaflz"
 . auto/feature
 
 if [ $ngx_found = no ]; then
     ngx_feature="Waflz library in $ngx_addon_dir/../../build/src"
     ngx_feature_path="$ngx_addon_dir/../../include"
     if [ $NGX_RPATH = YES ]; then
-        ngx_feature_libs="-R$ngx_addon_dir/../../build/src -L$ngx_addon_dir/../../build/src -lwaflzcore"
+        ngx_feature_libs="-R$ngx_addon_dir/../../build/src -L$ngx_addon_dir/../../build/src -lwaflz"
     elif [ "$NGX_IGNORE_RPATH" != "YES" -a $NGX_SYSTEM = "Linux" ]; then
-        ngx_feature_libs="-Wl,-rpath,$ngx_addon_dir/../../build/src/ -L$ngx_addon_dir/../../build/src -lwaflzcore"
+        ngx_feature_libs="-Wl,-rpath,$ngx_addon_dir/../../build/src/ -L$ngx_addon_dir/../../build/src -lwaflz"
     else
-        ngx_feature_libs="-L$ngx_addon_dir/../../build/src -lwaflzcore"
+        ngx_feature_libs="-L$ngx_addon_dir/../../build/src -lwaflz"
     fi
 
     . auto/feature
@@ -39,11 +39,11 @@ fi
 # waflz includes
 WAFLZ_INC="$ngx_addon_dir/../../include \
 		   $ngx_addon_dir/../../src/support"
-ngx_feature_path="$WAFLZ_INC"
+ngx_feature_path="$WAFLZ_INC -I/home/dsingh/development/include"
 
 # waflz lib
 WAFLZ_LIB="$ngx_addon_dir/../../build/src"
-ngx_feature_libs="-L/usr/lib/x86_64-linux-gnu/ -lprotobuf -L$WAFLZ_LIB -lwaflzcore"
+ngx_feature_libs="-L$WAFLZ_LIB -lwaflz"
 
 ngx_module_name=ngx_http_waflz_module
 ngx_addon_name=$ngx_module_name

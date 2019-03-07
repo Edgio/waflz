@@ -88,6 +88,7 @@ private:
         MMDB_s* m_city_mmdb;
         MMDB_s* m_asn_mmdb;
 };
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -246,9 +246,11 @@ install(FILES ${PY_INST}
 # library
 # ------------------------------------------------------------------------------
 add_library(waflzcore STATIC ${HDRS} ${SRCS})
+add_library(waflz SHARED ${HDRS} ${SRCS})
 
+target_link_libraries(waflz pthread ssl crypto pcre protobuf xml2)
 # Create symlink for libwaflz.so.<soversion>
-SET_TARGET_PROPERTIES(waflzcore
+SET_TARGET_PROPERTIES(waflz
   PROPERTIES
   SOVERSION 0
 )
@@ -256,6 +258,7 @@ SET_TARGET_PROPERTIES(waflzcore
 # Add install target for the library
 install(TARGETS waflzcore
   ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
   COMPONENT Libraries
 )
 

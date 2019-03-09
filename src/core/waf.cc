@@ -1615,7 +1615,7 @@ run_op:
                                 a_ctx.m_cx_matched_var_name = l_var_desc->name();
                                 if(i_v->m_key_len)
                                 {
-                                        std::string l_var_name(i_v->m_key, i_v->m_key_len);
+                                        std::string l_var_name(i_v->m_key, strnlen(i_v->m_key, i_v->m_key_len));
                                         a_ctx.m_cx_matched_var_name +=":";
                                         a_ctx.m_cx_matched_var_name.append(l_var_name);
                                 }

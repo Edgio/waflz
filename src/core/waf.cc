@@ -1519,7 +1519,6 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                         int32_t l_t_size = l_a.t_size() ? l_a.t_size() : 1;
                         l_x_data = i_v->m_val;
                         l_x_len = i_v->m_val_len;
-                        //NDBG_PRINT("VAR: [%d]: %.*s\n", l_x_len, l_x_len, l_x_data);
                         bool l_mutated = false;
                         for(int32_t i_t = 0; i_t < l_t_size; ++i_t)
                         {
@@ -1614,8 +1613,12 @@ run_op:
                                                 waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
                                 a_ctx.m_cx_matched_var.assign(l_x_data, l_x_len);
                                 a_ctx.m_cx_matched_var_name = l_var_desc->name();
-                                a_ctx.m_cx_matched_var_name += ":";
-                                a_ctx.m_cx_matched_var_name.append(i_v->m_key, i_v->m_key_len);
+                                if(i_v->m_key_len)
+                                {
+                                        std::string l_var_name(i_v->m_key, strnlen(i_v->m_key, i_v->m_key_len));
+                                        a_ctx.m_cx_matched_var_name +=":";
+                                        a_ctx.m_cx_matched_var_name.append(l_var_name);
+                                }
                                 //NDBG_PRINT("%sMATCH%s: !!!%s%s%s\n",
                                 //           ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF,
                                 //           ANSI_COLOR_FG_MAGENTA, a_rule.ShortDebugString().c_str(), ANSI_COLOR_OFF);
@@ -1896,7 +1899,6 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         if(!ao_event ||
            !a_rule.has_action())
         {
-                NDBG_PRINT("missing event or action\n");
                 return WAFLZ_STATUS_ERROR;
         }
         const waflz_pb::sec_action_t &l_action = a_rule.action();
@@ -2379,6 +2381,10 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
                 if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
+        if(l_ctx->m_intercepted)
+        {
+                goto report;
+        }
         // -------------------------------------------------
         // *************************************************
         //                 P H A S E  2
@@ -2420,6 +2426,7 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
                 if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
+report:
         if(!*ao_event)
         {
                 if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}

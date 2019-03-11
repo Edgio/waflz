@@ -51,6 +51,7 @@ int json_add_argument(arg_list_t &ao_arg_list,
                       const char *a_val,
                       unsigned a_len)
 {
+        //NDBG_PRINT("add arg...\n");
         // -------------------------------------------------
         // if no prefix -cannot create var name to ref arg
         // -ignore for now
@@ -79,7 +80,7 @@ int json_add_argument(arg_list_t &ao_arg_list,
         }
         l_arg.m_val = strndup(a_val, a_len);
         l_arg.m_val_len = strnlen(l_arg.m_val, a_len);
-        //NDBG_PRINT("ADD_ARG %.*s: %.*s\n", l_arg.m_key_len, l_arg.m_key, l_arg.m_val_len, l_arg.m_val);
+        //NDBG_PRINT("ADD_ARG [%d]%.*s: [%d]%.*s\n", l_arg.m_key_len, l_arg.m_key_len, l_arg.m_key, l_arg.m_val_len, l_arg.m_val_len, l_arg.m_val);
         ao_arg_list.push_back(l_arg);
         return 1;
 }
@@ -180,31 +181,27 @@ static int yajl_start_map_cb(void *a_ctx)
         // -------------------------------------------------
         // check if inside hash ctx
         // -------------------------------------------------
-        //NDBG_PRINT("l_parser->m_current_key: %s\n", (char *)l_parser->m_current_key);
-        if(l_parser->m_prefix[0] == '\0')
+        uint32_t l_prefix_len = strnlen((char *)l_parser->m_prefix, PARSER_JSON_PREFIX_LEN_MAX);
+        if(l_prefix_len)
         {
-                // TODO -this sucks :(
                 size_t l_max_cat_len;
-                l_max_cat_len = PARSER_JSON_PREFIX_LEN_MAX - strnlen((char *)l_parser->m_prefix, PARSER_JSON_PREFIX_LEN_MAX);
-                //NDBG_PRINT("l_max_cat_len: %d\n", (int)l_max_cat_len);
+                // strncat appends a null character at the end, so account for that
+                l_max_cat_len = PARSER_JSON_PREFIX_LEN_MAX - l_prefix_len - 1;
                 if(l_max_cat_len)
                 {
                         strncat((char *)l_parser->m_prefix, ".", l_max_cat_len);
-                        //NDBG_PRINT("l_parser->m_prefix: %s\n", l_parser->m_prefix);
                         --l_max_cat_len;
                 }
-                //NDBG_PRINT("l_max_cat_len: %d\n", (int)l_max_cat_len);
                 if(l_max_cat_len)
                 {
                         strncat((char *)l_parser->m_prefix, (char *)l_parser->m_current_key, l_max_cat_len);
-                        //NDBG_PRINT("l_parser->m_prefix: %s\n", l_parser->m_prefix);
                 }
         }
         else
         {
                 strncpy((char *)l_parser->m_prefix, (char *)l_parser->m_current_key, PARSER_JSON_PREFIX_LEN_MAX);
-                //NDBG_PRINT("l_parser->m_prefix: %s\n", l_parser->m_prefix);
         }
+        //NDBG_PRINT("PREFIX: [%d]%s\n", strlen((char *)l_parser->m_prefix), (char *)l_parser->m_prefix);
         return 1;
 }
 //: ----------------------------------------------------------------------------

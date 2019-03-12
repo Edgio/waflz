@@ -52,7 +52,8 @@ typedef struct {
     // Config values
     ngx_flag_t              enable;
     ngx_str_t               m_ruleset_dir;
-    ngx_str_t               m_geoip2_db_file;
+    ngx_str_t               m_city_mmdb_path;
+    ngx_str_t               m_asn_mmdb_path;
 } ngx_http_waflz_conf_t;
 
 
@@ -63,4 +64,5 @@ typedef struct {
     ngx_str_t               m_profile_file;
 } ngx_http_waflz_loc_conf_t;
 ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *rqst_ctx);
+char *ngx_str_to_char(ngx_str_t a, ngx_pool_t *p);
 #endif // header

@@ -152,6 +152,7 @@ private:
         friend class instance;
         friend class acl;
 };
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -160,6 +161,5 @@ profile *create_profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
 #ifdef __cplusplus
 }
 } // namespace waflz
-#endif
 #endif
 #endif // Header

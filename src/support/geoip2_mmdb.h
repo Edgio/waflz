@@ -88,15 +88,14 @@ private:
         MMDB_s* m_city_mmdb;
         MMDB_s* m_asn_mmdb;
 };
-
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
 geoip2_mmdb *get_geoip(void);
-int32_t init(geoip2_mmdb *a_geoip2_mmdb, char * a_city_mmdb_path, char *a_asn_mmdb_path);
+int32_t init_db(geoip2_mmdb *a_geoip2_mmdb, char * a_city_mmdb_path, char *a_asn_mmdb_path);
 #ifdef __cplusplus
 }
-#endif
 }// namespace
 #endif
 #endif

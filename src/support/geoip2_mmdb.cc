@@ -311,7 +311,7 @@ int32_t geoip2_mmdb::get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_l
 extern "C" geoip2_mmdb *get_geoip(void) {
     return new geoip2_mmdb();
 }
-extern "C" int32_t init(geoip2_mmdb *a_geoip2_mmdb, char *a_city_mmdb_path, char *a_asn_mmdb_path)
+extern "C" int32_t init_db(geoip2_mmdb *a_geoip2_mmdb, char *a_city_mmdb_path, char *a_asn_mmdb_path)
 {
         return a_geoip2_mmdb->init(a_city_mmdb_path, a_asn_mmdb_path);
 }

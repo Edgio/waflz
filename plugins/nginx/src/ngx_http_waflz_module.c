@@ -64,11 +64,19 @@ static ngx_command_t ngx_http_waflz_commands[] = {
                 NULL
         },
         {
-                ngx_string("geoip_db_file"),
+                ngx_string("city_mmdb_path"),
                 NGX_HTTP_LOC_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
                 ngx_conf_set_str_slot, // Turn it on/off
                 NGX_HTTP_LOC_CONF_OFFSET, // Where to save this value
-                offsetof(ngx_http_waflz_conf_t, m_geoip2_db_file),
+                offsetof(ngx_http_waflz_conf_t, m_city_mmdb_path),
+                NULL
+        },
+        {
+                ngx_string("asn_mmdb_path"),
+                NGX_HTTP_LOC_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
+                ngx_conf_set_str_slot, // Turn it on/off
+                NGX_HTTP_LOC_CONF_OFFSET, // Where to save this value
+                offsetof(ngx_http_waflz_conf_t, m_asn_mmdb_path),
                 NULL
         },
         ngx_null_command
@@ -117,43 +125,15 @@ static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf)
         conf->pool = cf->pool;
 #endif
         l_conf->m_engine = init_engine();
-        //l_conf->m_geoip2_db = get_geoip();
+        l_conf->m_geoip2_db = get_geoip();
         // Initialize obj with db files
-        //l_conf->m_geoip2_db->init(l_conf->m_geoip2_db_file);
-        
-        return l_conf;
-}
-//: ----------------------------------------------------------------------------
-//: \details allocate space for location config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
-{
-        ngx_http_waflz_loc_conf_t *l_conf;
-        l_conf = (ngx_http_waflz_loc_conf_t *)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
-        if (l_conf == NULL)
+        int32_t l_s = 0;
+        init_db(l_conf->m_geoip2_db, ngx_str_to_char(l_conf->m_city_mmdb_path, cf->pool), ngx_str_to_char(l_conf->m_asn_mmdb_path, cf->pool));
+        if(l_s != 0)
         {
-                return NGX_CONF_ERROR;
-        }
-        //l_conf->m_profile = create_profile(l_main_conf->m_engine, l_main_conf->m_geoip2_db);
-        if(!l_conf->m_profile)
-        {
-                return NGX_CONF_ERROR;
+              return NGX_CONF_ERROR;  
         }
         return l_conf;
-}
-//: ----------------------------------------------------------------------------
-//: \details merge configs
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *child)
-{
-        ngx_http_waflz_loc_conf_t *l_p = parent;
-        ngx_http_waflz_loc_conf_t *l_c = child;
-        ngx_conf_merge_str_value(l_p->m_profile_file, l_c->m_profile_file, "waf_prof.json");
-        return NGX_CONF_OK;
 }
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
@@ -173,6 +153,40 @@ ngx_module_t  ngx_http_waflz_module = {
         NULL,                                         /* exit master */
         NGX_MODULE_V1_PADDING
 };
+//: ----------------------------------------------------------------------------
+//: \details allocate space for location config
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
+{
+        ngx_http_waflz_loc_conf_t *l_conf;
+        ngx_http_waflz_conf_t *l_main_conf;
+        l_conf = (ngx_http_waflz_loc_conf_t *)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
+        if (l_conf == NULL)
+        {
+                return NGX_CONF_ERROR;
+        }
+        l_main_conf = ngx_http_conf_get_module_main_conf(cf, ngx_http_waflz_module);
+        l_conf->m_profile = create_profile(l_main_conf->m_engine, l_main_conf->m_geoip2_db);
+        if(!l_conf->m_profile)
+        {
+                return NGX_CONF_ERROR;
+        }
+        return l_conf;
+}
+//: ----------------------------------------------------------------------------
+//: \details merge configs
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *child)
+{
+        ngx_http_waflz_loc_conf_t *l_p = parent;
+        ngx_http_waflz_loc_conf_t *l_c = child;
+        ngx_conf_merge_str_value(l_p->m_profile_file, l_c->m_profile_file, "waf_prof.json");
+        return NGX_CONF_OK;
+}
 //: ----------------------------------------------------------------------------
 //: \details Hook the handlers
 //: \return  TODO
@@ -223,4 +237,26 @@ ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *rqst_ctx)
         // process_request
         //l_loc_conf->m_profile->process(&rqst_ctx);
         return NGX_DONE;
+}
+/*
+ * ngx_string's are not null-terminated in common case, so we need to convert
+ * them into null-terminated ones before passing to ModSecurity
+ */
+ngx_inline char *ngx_str_to_char(ngx_str_t a, ngx_pool_t *p)
+{
+    char *str = NULL;
+
+    if (a.len == 0) {
+        return NULL;
+    }
+
+    str = ngx_pnalloc(p, a.len+1);
+    if (str == NULL) {
+        /* We already returned NULL for an empty string, so return -1 here to indicate allocation error */
+        return (char *)-1;
+    }
+    ngx_memcpy(str, a.data, a.len);
+    str[a.len] = '\0';
+
+    return str;
 }

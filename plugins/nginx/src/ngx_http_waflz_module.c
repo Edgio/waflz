@@ -178,6 +178,26 @@ static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
         return l_conf;
 }
 //: ----------------------------------------------------------------------------
+//: \details allocate space for location config
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t get_rqst_src_addr_cb(const char **ao_data,
+                                    uint32_t *ao_data_len,
+                                    void *a_ctx)
+{
+        if(!a_ctx)
+        {
+                return -1;
+        }
+        ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
+        //ngx_connection_t *connection = l_txn->connection;
+        ngx_str_t l_addr_text = l_txn->connection->addr_text;
+        *ao_data = (const char *)l_addr_text.data;
+        ao_data_len = (uint32_t*)l_addr_text.len;
+        return 0;
+}
+//: ----------------------------------------------------------------------------
 //: \details merge configs
 //: \return  TODO
 //: \param   TODO
@@ -210,6 +230,30 @@ static ngx_int_t ngx_http_waflz_init(ngx_conf_t *cf)
             return NGX_ERROR;
         }
         *h_preaccess = ngx_http_waflz_pre_access_handler;
+        get_rqst_data_cb_t s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
+        #if 0
+        s_get_rqst_host_cb = get_rqst_host_cb;
+        s_get_rqst_port_cb = get_rqst_port_cb;
+        s_get_rqst_scheme_cb = get_rqst_scheme_cb;
+        s_get_rqst_protocol_cb = get_rqst_protocol_cb;
+        s_get_rqst_line_cb = get_rqst_line_cb;
+        s_get_rqst_method_cb = get_rqst_method_cb;
+        s_get_rqst_uri_cb = get_rqst_uri_cb;
+        s_get_rqst_url_cb = get_rqst_url_cb;
+        s_get_rqst_path_cb = get_rqst_path_cb;
+        s_get_rqst_query_str_cb = get_rqst_query_str_cb;
+        s_get_rqst_header_size_cb = get_rqst_header_size_cb;
+        s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
+        s_get_rqst_id_cb = get_rqst_id_cb;
+        s_get_rqst_body_str_cb = get_rqst_body_str_cb;
+        s_get_rqst_local_addr_cb = get_rqst_local_addr_cb;
+        s_get_rqst_canonical_port_cb = get_rqst_canonical_port_cb;
+        s_get_rqst_apparent_cache_status_cb = get_rqst_apparent_cache_status_cb;
+        s_get_rqst_bytes_out_cb = get_rqst_bytes_out_cb;
+        s_get_rqst_bytes_in_cb = get_rqst_bytes_in_cb;
+        s_get_rqst_req_id_cb = get_rqst_req_id_cb;
+        s_get_cust_id_cb = get_cust_id_cb;
+        #endif
         return NGX_OK;
 }
 //: ----------------------------------------------------------------------------

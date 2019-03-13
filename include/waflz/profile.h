@@ -20,8 +20,7 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _PROFILE_H_
-#define _PROFILE_H_
+
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
@@ -33,9 +32,16 @@
 #include <map>
 #include "waflz/def.h"
 #endif
+
+#ifndef _PROFILE_H_
+#define _PROFILE_H_
+
 #ifndef __cplusplus
 typedef struct profile_t profile;
+typedef struct engine_t engine;
+typedef struct geoip2_mmdb_t geoip2_mmdb;
 #endif
+
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
@@ -47,6 +53,8 @@ class event;
 class request_info;
 class acl;
 }
+#endif
+#ifdef __cplusplus
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: fwd decl's
@@ -153,13 +161,17 @@ private:
         friend class acl;
 };
 #endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-profile *create_profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
 
+profile *create_profile(engine *a_engine, geoip2_mmdb *a_geoip2_mmdb);
+int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a_len);
+int32_t process_request(profile *a_profile, void *ao_rqst_ctx);
 #ifdef __cplusplus
 }
+
 } // namespace waflz
 #endif
 #endif // Header

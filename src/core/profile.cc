@@ -738,9 +738,17 @@ done:
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-extern "C" profile *create_profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb)
+extern "C" profile *create_profile(engine *a_engine, geoip2_mmdb *a_geoip2_mmdb)
 {
-        return new profile(a_engine, a_geoip2_mmdb);
+        return new profile(*a_engine, *a_geoip2_mmdb);
 }
 
+extern "C" int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a_len)
+{
+        return a_profile->load_config(a_buf, a_len);
+}
+extern "C" int32_t process_request(profile *a_profile, void *a_rqst_ctx)
+{
+        return a_profile->process(NULL, a_rqst_ctx);
+}
 }

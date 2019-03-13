@@ -36,14 +36,7 @@
 #include <waflz/profile.h>
 #include <waflz/engine.h>
 #include <geoip2_mmdb.h>
-// -----------------------------------------------
-// waflz pb
-// -----------------------------------------------
-#if 0
-#include "waflz/proto/config.pb.h"
-#include "waflz/proto/enforcement.pb.h"
-#include "waflz/proto/event.pb.h"
-#endif
+#include <waflz/def.h>
 //: ----------------------------------------------------------------------------
 typedef struct {
     void                    *pool;

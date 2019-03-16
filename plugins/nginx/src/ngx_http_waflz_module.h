@@ -36,8 +36,10 @@
 #include <waflz/profile.h>
 #include <waflz/engine.h>
 #include <geoip2_mmdb.h>
+#include <waflz/rqst_ctx.h>
 #include <waflz/def.h>
 //: ----------------------------------------------------------------------------
+#define DEFAULT_BODY_SIZE_MAX (128*1024)
 typedef struct {
     void                    *pool;
     engine                  *m_engine;

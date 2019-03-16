@@ -42,7 +42,6 @@
 #include "waflz/profile.h"
 #include "waflz/acl.h"
 #include "waflz/waf.h"
-#include "waflz/rqst_ctx.h"
 #include "waflz/config_parser.h"
 #include <string.h>
 #include <errno.h>
@@ -623,6 +622,21 @@ int32_t profile::process(waflz_pb::event **ao_event,
 {
         return process_part(ao_event, a_ctx, PART_MK_ALL, ao_rqst_ctx);
 }
+int32_t profile::process_request_plugin(char *ao_event, 
+                                 void *a_ctx,
+                                 rqst_ctx **ao_rqst_ctx)
+{
+        waflz_pb::event **a_event = NULL;
+        int32_t l_s;
+        l_s = process_part(a_event, a_ctx, PART_MK_ALL, ao_rqst_ctx);
+        if(a_event)
+        {
+                int32_t l_len = strlen((*a_event)->DebugString().c_str());
+                ao_event = (char*)malloc(sizeof(char*) * l_len);
+                strncpy(ao_event, (*a_event)->DebugString().c_str(), l_len);
+        }
+        return l_s;
+}
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -747,8 +761,8 @@ extern "C" int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a
 {
         return a_profile->load_config(a_buf, a_len);
 }
-extern "C" int32_t process_request(profile *a_profile, void *a_rqst_ctx)
+extern "C" int32_t process_request(profile *a_profile, void *a_ctx, rqst_ctx *a_rqst_ctx, char *a_event)
 {
-        return a_profile->process(NULL, a_rqst_ctx);
+        return a_profile->process_request_plugin(a_event, a_ctx, &a_rqst_ctx);
 }
 }

@@ -31,15 +31,15 @@
 #include <strings.h>
 #include <map>
 #include "waflz/def.h"
+#include "waflz/rqst_ctx.h"
 #endif
-
 #ifndef _PROFILE_H_
 #define _PROFILE_H_
-
 #ifndef __cplusplus
 typedef struct profile_t profile;
 typedef struct engine_t engine;
 typedef struct geoip2_mmdb_t geoip2_mmdb;
+typedef struct rqst_ctx_t rqst_ctx;
 #endif
 
 //: ----------------------------------------------------------------------------
@@ -82,6 +82,7 @@ public:
         profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
         ~profile();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process_request_plugin(char *ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx);
         int32_t process_part(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t load_config(const char *a_buf, uint32_t a_buf_len, bool a_leave_compiled_file = false);
         int32_t load_config(const waflz_pb::profile *a_pb, bool a_leave_compiled_file = false);
@@ -168,7 +169,7 @@ extern "C" {
 
 profile *create_profile(engine *a_engine, geoip2_mmdb *a_geoip2_mmdb);
 int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a_len);
-int32_t process_request(profile *a_profile, void *ao_rqst_ctx);
+int32_t process_request(profile *a_profile, void *ao_rqst_ctx, rqst_ctx *a_rqst_ctx, char *a_event);
 #ifdef __cplusplus
 }
 

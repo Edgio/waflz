@@ -178,26 +178,6 @@ static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
         return l_conf;
 }
 //: ----------------------------------------------------------------------------
-//: \details allocate space for location config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_src_addr_cb(const char **ao_data,
-                                    uint32_t *ao_data_len,
-                                    void *a_ctx)
-{
-        if(!a_ctx)
-        {
-                return -1;
-        }
-        ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
-        //ngx_connection_t *connection = l_txn->connection;
-        ngx_str_t l_addr_text = l_txn->connection->addr_text;
-        *ao_data = (const char *)l_addr_text.data;
-        ao_data_len = (uint32_t*)l_addr_text.len;
-        return 0;
-}
-//: ----------------------------------------------------------------------------
 //: \details merge configs
 //: \return  TODO
 //: \param   TODO
@@ -218,6 +198,7 @@ static ngx_int_t ngx_http_waflz_init(ngx_conf_t *cf)
 {
         ngx_http_handler_pt *h_preaccess;
         ngx_http_core_main_conf_t *cmcf;
+        
         //int rc = 0;
         cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
         if (cmcf == NULL)
@@ -230,7 +211,8 @@ static ngx_int_t ngx_http_waflz_init(ngx_conf_t *cf)
             return NGX_ERROR;
         }
         *h_preaccess = ngx_http_waflz_pre_access_handler;
-        get_rqst_data_cb_t s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
+        
+        //get_rqst_data_cb_t s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
         #if 0
         s_get_rqst_host_cb = get_rqst_host_cb;
         s_get_rqst_port_cb = get_rqst_port_cb;
@@ -257,28 +239,53 @@ static ngx_int_t ngx_http_waflz_init(ngx_conf_t *cf)
         return NGX_OK;
 }
 //: ----------------------------------------------------------------------------
+//: \details allocate space for location config
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t get_rqst_src_addr_cb(const char **ao_data,
+                                    uint32_t *ao_data_len,
+                                    void *a_ctx)
+{
+        if(!a_ctx)
+        {
+                return -1;
+        }
+        ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
+        *ao_data = (const char *)l_txn->connection->addr_text.data;
+        *ao_data_len = l_txn->connection->addr_text.len;
+        return 0;
+}
+//: ----------------------------------------------------------------------------
 //: \details Run waflz
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *rqst_ctx)
+ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *r)
 {
         //ngx_pool_t *old_pool;
         ngx_http_waflz_conf_t *l_main_conf;
         ngx_http_waflz_loc_conf_t *l_loc_conf;
-
-        l_main_conf = ngx_http_get_module_main_conf(rqst_ctx,  ngx_http_waflz_module);
+        static rqst_ctx_callbacks l_callbacks = {
+                get_rqst_src_addr_cb
+        };
+        l_main_conf = ngx_http_get_module_main_conf(r,  ngx_http_waflz_module);
         if(l_main_conf == NULL)
         {
                 return NGX_DECLINED;
         }
-        l_loc_conf = ngx_http_get_module_loc_conf(rqst_ctx, ngx_http_waflz_module);
+        l_loc_conf = ngx_http_get_module_loc_conf(r, ngx_http_waflz_module);
         if(l_loc_conf == NULL)
         {
                 return NGX_DECLINED;
         }
+        rqst_ctx *l_rqst_ctx = init_rqst_ctx(r, DEFAULT_BODY_SIZE_MAX, true);
+        set_callbacks(l_rqst_ctx, l_callbacks);
         // process_request
-        process_request(l_loc_conf->m_profile, rqst_ctx);
+        char *l_event = NULL;
+        process_request(l_loc_conf->m_profile, r, l_rqst_ctx, l_event);
+        rqst_ctx_cleanup(l_rqst_ctx);
+
         return NGX_DONE;
 }
 /*

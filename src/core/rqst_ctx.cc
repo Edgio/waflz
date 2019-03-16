@@ -231,6 +231,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         // *************************************************
         // -------------------------------------------------
         m_xpath_cache_map(NULL),
+        m_callbacks(),
         m_ctx(a_ctx)
 {
 }
@@ -1190,5 +1191,21 @@ void rqst_ctx::show(void)
         }
         NDBG_OUTPUT("+------------------------------------------------------------------------------+\n");
 }
+//: ----------------------------------------------------------------------------
+//: \details C bindings for nginx module
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+extern "C" rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, bool a_parse_json) {
+    return new rqst_ctx(a_ctx, a_max_body_len, a_parse_json);
+}
+extern "C" int32_t set_callbacks(rqst_ctx *a_rqst_ctx, rqst_ctx_callbacks a_callbacks) {
+    a_rqst_ctx->m_callbacks = a_callbacks;
+}
+extern "C" int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx) {
+    delete a_rqst_ctx;
+    a_rqst_ctx = NULL;
+}
+
 }
 

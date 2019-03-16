@@ -20,28 +20,48 @@
 //!   limitations under the License.
 //:
 //! ----------------------------------------------------------------------------
-#ifndef _RQST_CTX_H
-#define _RQST_CTX_H
-//! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+#ifndef _RQST_CTX_H
+#define _RQST_CTX_H
 #include <waflz/def.h>
+#ifdef __cplusplus
 #include <waflz/arg.h>
 #include <waflz/parser.h>
 #include <waflz/profile.h>
 #include <list>
 #include <map>
 #include <strings.h>
+#endif
+
 //! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
+#ifndef __cplusplus
+typedef struct rqst_ctx_t rqst_ctx;
+#endif
+
+#ifdef __cplusplus
 namespace waflz_pb {
 class event;
 }
 namespace ns_waflz {
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef struct {
+        get_rqst_data_cb_t s_get_rqst_src_addr_cb;
+}rqst_ctx_callbacks;
+
+#ifdef __cplusplus
+}
+#endif
 //! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
+#ifdef __cplusplus
 class waf;
 //! ----------------------------------------------------------------------------
 //! types
@@ -170,6 +190,7 @@ public:
         // xpath optimization
         // -------------------------------------------------
         xpath_cache_map_t *m_xpath_cache_map;
+        rqst_ctx_callbacks m_callbacks;
 private:
         // -------------------------------------------------
         // private methods
@@ -180,6 +201,17 @@ private:
         // private members
         // -------------------------------------------------
         void *m_ctx;
+        
 };
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, bool a_parse_json);
+int32_t set_callbacks(rqst_ctx *a_rqst_ctx, rqst_ctx_callbacks a_callbacks);
+int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx);
+#ifdef __cplusplus
 }
+}
+#endif
 #endif

@@ -1608,16 +1608,24 @@ run_op:
                                 {
                                         continue;
                                 }
-                                // Reflect Variable name
-                                const google::protobuf::EnumValueDescriptor* l_var_desc =
-                                                waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
-                                a_ctx.m_cx_matched_var.assign(l_x_data, l_x_len);
-                                a_ctx.m_cx_matched_var_name = l_var_desc->name();
-                                if(i_v->m_key_len)
+                                if(l_var.type() ==  waflz_pb::variable_t_type_t_ARGS_COMBINED_SIZE)
                                 {
-                                        std::string l_var_name(i_v->m_key, strnlen(i_v->m_key, i_v->m_key_len));
-                                        a_ctx.m_cx_matched_var_name +=":";
-                                        a_ctx.m_cx_matched_var_name.append(l_var_name);
+                                        a_ctx.m_cx_matched_var_name = "ARGS_COMBINED_SIZE";
+                                        a_ctx.m_cx_matched_var = to_string(l_x_len);
+                                }
+                                else
+                                {
+                                        // Reflect Variable name
+                                        const google::protobuf::EnumValueDescriptor* l_var_desc =
+                                                        waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
+                                        a_ctx.m_cx_matched_var.assign(l_x_data, l_x_len);
+                                        a_ctx.m_cx_matched_var_name = l_var_desc->name();
+                                        if(i_v->m_key_len)
+                                        {
+                                                std::string l_var_name(i_v->m_key, strnlen(i_v->m_key, i_v->m_key_len));
+                                                a_ctx.m_cx_matched_var_name +=":";
+                                                a_ctx.m_cx_matched_var_name.append(l_var_name);
+                                        }
                                 }
                                 //NDBG_PRINT("%sMATCH%s: !!!%s%s%s\n",
                                 //           ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF,

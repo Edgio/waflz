@@ -34,7 +34,7 @@ class macro;
 typedef int32_t (*op_t)(bool &,
                         const waflz_pb::sec_rule_t_operator_t &,
                         const char *,
-                        const uint32_t &,
+                        const uint32_t,
                         macro *,
                         rqst_ctx *);
 //: ----------------------------------------------------------------------------

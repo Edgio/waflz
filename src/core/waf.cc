@@ -900,10 +900,9 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
                 // for each allowed http method
                 l_dis_hdr.append("/");
                 // ---------------------------------------
-                // Due to our customizations to this rule,
+                // due to customizations to rule,
                 // to get it to actually work properly
-                // (See [SECC-115])
-                // we need to md5 the headers
+                // need to md5 the headers
                 // ---------------------------------------
                 std::string l_dh = l_gs.disallowed_headers(i_dh);
                 md5_hasher md5_header;

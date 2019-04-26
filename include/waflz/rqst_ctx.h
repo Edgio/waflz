@@ -53,6 +53,29 @@ extern "C" {
 #endif
 typedef struct {
         get_rqst_data_cb_t s_get_rqst_src_addr_cb;
+        get_rqst_data_cb_t s_get_rqst_host_cb;
+        get_rqst_data_size_cb_t s_get_rqst_port_cb;
+        get_rqst_data_cb_t s_get_rqst_scheme_cb;
+        get_rqst_data_cb_t s_get_rqst_protocol_cb;
+        get_rqst_data_cb_t s_get_rqst_line_cb;
+        get_rqst_data_cb_t s_get_rqst_method_cb;
+        get_rqst_data_cb_t s_get_rqst_url_cb;
+        get_rqst_data_cb_t s_get_rqst_uri_cb;
+        get_rqst_data_cb_t s_get_rqst_path_cb;
+        get_rqst_data_cb_t s_get_rqst_query_str_cb;
+        get_rqst_data_size_cb_t s_get_rqst_header_size_cb;
+        get_rqst_data_w_key_cb_t s_get_rqst_header_w_key_cb;
+        get_rqst_kv_w_idx_cb_t s_get_rqst_header_w_idx_cb;
+        get_rqst_data_cb_t s_get_rqst_id_cb;
+        get_rqst_body_data_cb_t s_get_rqst_body_str_cb;
+        get_rqst_data_cb_t s_get_rqst_local_addr_cb;
+        get_rqst_data_size_cb_t s_get_rqst_canonical_port_cb;
+        get_rqst_data_size_cb_t s_get_rqst_apparent_cache_status_cb;
+        get_rqst_data_size_cb_t s_get_rqst_bytes_out_cb;
+        get_rqst_data_size_cb_t s_get_rqst_bytes_in_cb;
+        get_rqst_data_size_cb_t s_get_rqst_req_id_cb;
+        get_rqst_data_size_cb_t s_get_cust_id_cb;
+
 }rqst_ctx_callbacks;
 
 #ifdef __cplusplus
@@ -88,32 +111,6 @@ typedef std::map <std::string, xpath_arg_list_t> xpath_cache_map_t;
 class rqst_ctx
 {
 public:
-        // -------------------------------------------------
-        // callbacks
-        // -------------------------------------------------
-        static get_rqst_data_cb_t s_get_rqst_src_addr_cb;
-        static get_rqst_data_cb_t s_get_rqst_host_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_port_cb;
-        static get_rqst_data_cb_t s_get_rqst_scheme_cb;
-        static get_rqst_data_cb_t s_get_rqst_protocol_cb;
-        static get_rqst_data_cb_t s_get_rqst_line_cb;
-        static get_rqst_data_cb_t s_get_rqst_method_cb;
-        static get_rqst_data_cb_t s_get_rqst_url_cb;
-        static get_rqst_data_cb_t s_get_rqst_uri_cb;
-        static get_rqst_data_cb_t s_get_rqst_path_cb;
-        static get_rqst_data_cb_t s_get_rqst_query_str_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_header_size_cb;
-        static get_rqst_data_w_key_cb_t s_get_rqst_header_w_key_cb;
-        static get_rqst_kv_w_idx_cb_t s_get_rqst_header_w_idx_cb;
-        static get_rqst_data_cb_t s_get_rqst_id_cb;
-        static get_rqst_body_data_cb_t s_get_rqst_body_str_cb;
-        static get_rqst_data_cb_t s_get_rqst_local_addr_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_canonical_port_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_apparent_cache_status_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_bytes_out_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_bytes_in_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_req_id_cb;
-        static get_rqst_data_size_cb_t s_get_cust_id_cb;
         // -------------------------------------------------
         // static members
         // -------------------------------------------------
@@ -190,7 +187,7 @@ public:
         // xpath optimization
         // -------------------------------------------------
         xpath_cache_map_t *m_xpath_cache_map;
-        rqst_ctx_callbacks m_callbacks;
+        rqst_ctx_callbacks *m_callbacks;
 private:
         // -------------------------------------------------
         // private methods
@@ -208,7 +205,7 @@ private:
 extern "C" {
 #endif
 rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, bool a_parse_json);
-int32_t set_callbacks(rqst_ctx *a_rqst_ctx, rqst_ctx_callbacks a_callbacks);
+int32_t set_callbacks(rqst_ctx *a_rqst_ctx, rqst_ctx_callbacks *a_callbacks);
 int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx);
 #ifdef __cplusplus
 }

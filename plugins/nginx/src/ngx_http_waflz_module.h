@@ -44,6 +44,7 @@ typedef struct {
     void                    *pool;
     engine                  *m_engine;
     geoip2_mmdb             *m_geoip2_db;
+    rqst_ctx_callbacks      *m_callbacks;
     // Config values
     ngx_flag_t              enable;
     ngx_str_t               m_ruleset_dir;

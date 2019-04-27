@@ -326,6 +326,7 @@ public:
         ns_waflz::profile *m_profile;
         ns_waflz::waf *m_wafl;
         ns_waflz::instances::id_vector_t m_id_vector;
+        const ns_waflz::rqst_ctx_callbacks *m_callbacks; 
         std::string m_out_file;
         FILE *m_out_file_ptr;
 };
@@ -357,7 +358,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
         // -------------------------------------------------
         if(m_wafl)
         {
-                l_s = m_wafl->process(&l_event, &a_session, &l_rqst_ctx);
+                l_s = m_wafl->process(&l_event, &a_session, m_callbacks, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason. TBD\n");
@@ -372,7 +373,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
         // -------------------------------------------------
         else if(m_profile)
         {
-                l_s = m_profile->process(&l_event, &a_session, &l_rqst_ctx);
+                l_s = m_profile->process(&l_event, &a_session, m_callbacks, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason: %s\n",
@@ -453,7 +454,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 // -----------------------------------------
                 // process audit
                 // -----------------------------------------
-                l_s = m_instances->process(&l_event_audit, &l_event, &a_session, l_id, &l_rqst_ctx);
+                l_s = m_instances->process(&l_event_audit, &l_event, &a_session, l_id, m_callbacks, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason: %s\n",
@@ -1568,21 +1569,32 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // callbacks request context
         // -------------------------------------------------
-        ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_ip_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_line_cb = get_rqst_line_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_scheme_cb = get_rqst_scheme_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_port_cb = get_rqst_port_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_host_cb = get_rqst_host_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_method_cb = get_rqst_method_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_protocol_cb = get_rqst_protocol_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_url_cb = get_rqst_url_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_path_cb = get_rqst_path_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_query_str_cb = get_rqst_query_str_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_id_cb = get_rqst_id_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_body_str_cb = get_rqst_body_str_cb;
+        static ns_waflz::rqst_ctx_callbacks s_callbacks = {
+                get_rqst_ip_cb,
+                get_rqst_host_cb,
+                get_rqst_port_cb,
+                get_rqst_scheme_cb,
+                get_rqst_protocol_cb,
+                get_rqst_line_cb,
+                get_rqst_method_cb,
+                get_rqst_url_cb,
+                get_rqst_uri_cb,
+                get_rqst_path_cb,
+                get_rqst_query_str_cb,
+                get_rqst_header_size_cb,
+                NULL, //get_rqst_header_w_key_cb,
+                get_rqst_header_w_idx_cb,
+                get_rqst_id_cb,
+                get_rqst_body_str_cb,
+                NULL, //get_rqst_local_addr_cb,
+                NULL, //get_rqst_canonical_port_cb,
+                NULL, //get_rqst_apparent_cache_status_cb,
+                NULL, //get_rqst_bytes_out_cb,
+                NULL, //get_rqst_bytes_in_cb,
+                NULL, //get_rqst_req_id_cb,
+                NULL //get_cust_id_cb
+        };
+        
 #ifdef ENABLE_PROFILER
         // -------------------------------------------------
         // start profiler(s)
@@ -1639,6 +1651,7 @@ int main(int argc, char** argv)
                 return STATUS_ERROR;
         }
         l_lsnr->set_default_route(l_waflz_h);
+        l_waflz_h->m_callbacks = &s_callbacks;
         // -------------------------------------------------
         // setup
         // -------------------------------------------------

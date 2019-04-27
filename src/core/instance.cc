@@ -377,6 +377,7 @@ void instance::set_event_properties(waflz_pb::event &ao_event, profile &a_profil
 int32_t instance::process(waflz_pb::event **ao_audit_event,
                           waflz_pb::event **ao_prod_event,
                           void *a_ctx,
+                          const rqst_ctx_callbacks *a_callbacks,
                           rqst_ctx **ao_rqst_ctx)
 {
         int32_t l_s;
@@ -392,7 +393,7 @@ int32_t instance::process(waflz_pb::event **ao_audit_event,
         {
                 goto process_prod;
         }
-        l_s = m_profile_audit->process(&l_audit_event, a_ctx, &l_rqst_ctx);
+        l_s = m_profile_audit->process(&l_audit_event, a_ctx, a_callbacks, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -418,7 +419,7 @@ process_prod:
         {
                 goto done;
         }
-        l_s = m_profile_prod->process(&l_prod_event, a_ctx, &l_rqst_ctx);
+        l_s = m_profile_prod->process(&l_prod_event, a_ctx, a_callbacks, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -450,6 +451,7 @@ int32_t instance::process_part(waflz_pb::event **ao_audit_event,
                                waflz_pb::event **ao_prod_event,
                                void *a_ctx,
                                part_mk_t a_part_mk,
+                               const rqst_ctx_callbacks *a_callbacks,
                                rqst_ctx **ao_rqst_ctx)
 {
         int32_t l_s;
@@ -465,7 +467,7 @@ int32_t instance::process_part(waflz_pb::event **ao_audit_event,
         {
                 goto process_prod;
         }
-        l_s = m_profile_audit->process_part(&l_audit_event, a_ctx, a_part_mk, &l_rqst_ctx);
+        l_s = m_profile_audit->process_part(&l_audit_event, a_ctx, a_part_mk, a_callbacks, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -497,7 +499,7 @@ process_prod:
         {
                 goto done;
         }
-        l_s = m_profile_prod->process_part(&l_prod_event, a_ctx, a_part_mk, &l_rqst_ctx);
+        l_s = m_profile_prod->process_part(&l_prod_event, a_ctx, a_part_mk, a_callbacks, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }

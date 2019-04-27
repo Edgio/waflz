@@ -618,9 +618,10 @@ int32_t profile::validate(void)
 //: ----------------------------------------------------------------------------
 int32_t profile::process(waflz_pb::event **ao_event,
                          void *a_ctx,
+                         const rqst_ctx_callbacks *a_callbacks,
                          rqst_ctx **ao_rqst_ctx)
 {
-        return process_part(ao_event, a_ctx, PART_MK_ALL, ao_rqst_ctx);
+        return process_part(ao_event, a_ctx, PART_MK_ALL, a_callbacks, ao_rqst_ctx);
 }
 int32_t profile::process_request_plugin(char *ao_event, 
                                  void *a_ctx,
@@ -628,7 +629,7 @@ int32_t profile::process_request_plugin(char *ao_event,
 {
         waflz_pb::event **a_event = NULL;
         int32_t l_s;
-        l_s = process_part(a_event, a_ctx, PART_MK_ALL, ao_rqst_ctx);
+        l_s = process_part(a_event, a_ctx, PART_MK_ALL, NULL, ao_rqst_ctx);
         if(a_event)
         {
                 int32_t l_len = strlen((*a_event)->DebugString().c_str());
@@ -645,6 +646,7 @@ int32_t profile::process_request_plugin(char *ao_event,
 int32_t profile::process_part(waflz_pb::event **ao_event,
                               void *a_ctx,
                               part_mk_t a_part_mk,
+                              const rqst_ctx_callbacks *a_callbacks,
                               rqst_ctx **ao_rqst_ctx)
 {
         if(!ao_event)
@@ -669,7 +671,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                 {
                         l_body_size_max = m_waf->get_request_body_in_memory_limit();
                 }
-                l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
+                l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, a_callbacks, m_waf->get_parse_json());
                 if(ao_rqst_ctx)
                 {
                         *ao_rqst_ctx = l_rqst_ctx;
@@ -692,7 +694,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         if(a_part_mk & PART_MK_ACL)
         {
                 bool l_whitelist = false;
-                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
+                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, a_callbacks, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???
@@ -718,7 +720,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         // -------------------------------------------------
         if(a_part_mk & PART_MK_WAF)
         {
-                l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
+                l_s = m_waf->process(&l_event, a_ctx, a_callbacks, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???

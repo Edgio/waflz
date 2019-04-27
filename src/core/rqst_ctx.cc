@@ -25,7 +25,6 @@
 //: ----------------------------------------------------------------------------
 #include "event.pb.h"
 #include "waflz/def.h"
-#include "waflz/profile.h"
 #include "waflz/rqst_ctx.h"
 #include "core/decode.h"
 #include "op/regex.h"
@@ -182,6 +181,7 @@ static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
 //: ----------------------------------------------------------------------------
 rqst_ctx::rqst_ctx(void *a_ctx,
                    uint32_t a_body_len_max,
+                   const rqst_ctx_callbacks *a_callbacks,
                    bool a_parse_json):
         m_src_addr(),
         m_host(),
@@ -234,7 +234,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         // *************************************************
         // -------------------------------------------------
         m_xpath_cache_map(NULL),
-        m_callbacks(NULL),
+        m_callbacks(a_callbacks),
         m_ctx(a_ctx)
 {
 }
@@ -372,7 +372,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // src addr
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_src_addr_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_src_addr_cb)
         {
                 int32_t l_s;
                 // get src address
@@ -388,7 +388,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // host
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_host_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_host_cb)
         {
                 int32_t l_s;
                 // get src address
@@ -404,7 +404,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // port
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_port_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_port_cb)
         {
                 int32_t l_s;
                 // get request port
@@ -419,7 +419,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // scheme (http/https)
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_scheme_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_scheme_cb)
         {
                 int32_t l_s;
                 // get request scheme
@@ -432,7 +432,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-        if(m_callbacks->s_get_rqst_id_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_id_cb)
         {
                 int32_t l_s;
                 l_s = m_callbacks->s_get_rqst_id_cb(&m_req_uuid.m_data,
@@ -470,7 +470,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // line
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_line_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_line_cb)
         {
                 int32_t l_s;
                 // get request line
@@ -486,7 +486,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // method
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_method_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_method_cb)
         {
                 int32_t l_s;
                 // get method
@@ -502,7 +502,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // url
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_url_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_url_cb)
         {
                 int32_t l_s;
                 // get uri
@@ -518,7 +518,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // uri
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_uri_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_uri_cb)
         {
                 int32_t l_s;
                 // get uri
@@ -534,7 +534,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // uri_raw
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_path_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_path_cb)
         {
                 int32_t l_s;
                 // get raw uri
@@ -578,7 +578,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // -------------------------------------------------
         // query string...
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_query_str_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_query_str_cb)
         {
                 int32_t l_s;
                 // get q string
@@ -619,7 +619,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         // headers
         // -------------------------------------------------
         uint32_t l_hdr_size = 0;
-        if(m_callbacks->s_get_rqst_header_size_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_header_size_cb)
         {
                 int32_t l_s;
                 l_s = m_callbacks->s_get_rqst_header_size_cb(&l_hdr_size, m_ctx);
@@ -631,7 +631,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         for(uint32_t i_h = 0; i_h < l_hdr_size; ++i_h)
         {
                 const_arg_t l_hdr;
-                if(!m_callbacks->s_get_rqst_header_w_idx_cb)
+                if(!m_callbacks || m_callbacks->s_get_rqst_header_w_idx_cb)
                 {
                         continue;
                 }
@@ -1067,7 +1067,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // apparent cache status
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_apparent_cache_status_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_apparent_cache_status_cb)
         {
                 uint32_t l_log_status = 0;
                 l_s = m_callbacks->s_get_rqst_apparent_cache_status_cb(&l_log_status, m_ctx);
@@ -1080,7 +1080,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // Bytes out
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_bytes_out_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_bytes_out_cb)
         {
                 uint32_t l_bytes_out;
                 l_s =  m_callbacks->s_get_rqst_bytes_out_cb(&l_bytes_out, m_ctx);
@@ -1093,7 +1093,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // Bytes in
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_bytes_in_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_bytes_in_cb)
         {
                 uint32_t l_bytes_in;
                 l_s =  m_callbacks->s_get_rqst_bytes_in_cb(&l_bytes_in, m_ctx);
@@ -1106,7 +1106,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // Request ID
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_req_id_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_req_id_cb)
         {
                 uint32_t l_req_id;
                 l_s =  m_callbacks->s_get_rqst_req_id_cb(&l_req_id, m_ctx);
@@ -1119,7 +1119,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // REQ_UUID
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_id_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_id_cb)
         {
                 if(m_req_uuid.m_len > 0)
                 {
@@ -1129,7 +1129,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // Customer ID
         // -------------------------------------------------
-        if(m_callbacks->s_get_rqst_req_id_cb)
+        if(m_callbacks && m_callbacks->s_get_rqst_req_id_cb)
         {
                 uint32_t l_cust_id;
                 l_s =  m_callbacks->s_get_cust_id_cb(&l_cust_id, m_ctx);
@@ -1199,8 +1199,8 @@ void rqst_ctx::show(void)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-extern "C" rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, bool a_parse_json) {
-    return new rqst_ctx(a_ctx, a_max_body_len, a_parse_json);
+extern "C" rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, const rqst_ctx_callbacks *a_callbacks, bool a_parse_json) {
+    return new rqst_ctx(a_ctx, a_max_body_len, a_callbacks, a_parse_json);
 }
 extern "C" int32_t set_callbacks(rqst_ctx *a_rqst_ctx, rqst_ctx_callbacks *a_callbacks) {
     a_rqst_ctx->m_callbacks = a_callbacks;

@@ -238,22 +238,33 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
 TEST_CASE( "test var", "[var]" ) {
         ns_waflz::init_var_cb_vector();
         
-        ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true);
+        static ns_waflz::rqst_ctx_callbacks s_callbacks = {
+                get_rqst_src_addr_cb,
+                NULL, //get_rqst_host_cb,
+                get_rqst_port_cb,
+                get_rqst_scheme_cb,
+                get_rqst_protocol_cb,
+                get_rqst_line_cb,
+                get_rqst_method_cb,
+                get_rqst_url_cb,
+                get_rqst_uri_cb,
+                get_rqst_path_cb,
+                get_rqst_query_str_cb,
+                get_rqst_header_size_cb,
+                NULL, //get_rqst_header_w_key_cb,
+                get_rqst_header_w_idx_cb,
+                NULL, //get_rqst_id_cb,
+                get_rqst_body_str_cb,
+                NULL, //get_rqst_local_addr_cb,
+                NULL, //get_rqst_canonical_port_cb,
+                NULL, //get_rqst_apparent_cache_status_cb,
+                NULL, //get_rqst_bytes_out_cb,
+                NULL, //get_rqst_bytes_in_cb,
+                NULL, //get_rqst_req_id_cb,
+                NULL //get_cust_id_cb
+        };
+        ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true);
 
-        l_rqst_ctx->m_callbacks = new ns_waflz::rqst_ctx_callbacks();
-        l_rqst_ctx->m_callbacks->s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_url_cb = get_rqst_url_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_uri_cb = get_rqst_uri_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_path_cb = get_rqst_path_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_query_str_cb = get_rqst_query_str_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_line_cb = get_rqst_line_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_scheme_cb = get_rqst_scheme_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_port_cb = get_rqst_port_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_method_cb = get_rqst_method_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_protocol_cb = get_rqst_protocol_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_header_size_cb = get_rqst_header_size_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
-        l_rqst_ctx->m_callbacks->s_get_rqst_body_str_cb = get_rqst_body_str_cb;
         // -------------------------------------------------
         // *************************************************
         //         Content-Type --> parser map
@@ -286,6 +297,7 @@ TEST_CASE( "test var", "[var]" ) {
                 l_al.clear();
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
+                NDBG_PRINT("size %lu\n", l_al.size());
                 REQUIRE((l_al.size() == 5));
                 i_idx = 0;
                 for(ns_waflz::const_arg_list_t::iterator i_a = l_al.begin();
@@ -1670,7 +1682,7 @@ TEST_CASE( "test var", "[var]" ) {
                 {
                         delete l_rqst_ctx;
                         l_rqst_ctx = NULL;
-                        l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true);
+                        l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true);
                 }
                 l_rqst_ctx->m_content_type_list.clear();
                 l_rqst_ctx->init_phase_1();
@@ -1762,7 +1774,7 @@ TEST_CASE( "test var", "[var]" ) {
                 {
                         delete l_rqst_ctx;
                         l_rqst_ctx = NULL;
-                        l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true);
+                        l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true);
                 }
                 l_rqst_ctx->m_content_type_list.clear();
                 l_rqst_ctx->init_phase_1();

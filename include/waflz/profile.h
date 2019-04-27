@@ -63,13 +63,12 @@ class engine;
 class waf;
 class acl;
 class geoip2_mmdb;
-class regex;
+
 class rqst_ctx;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
-typedef std::list<regex *> pcre_list_t;
-typedef std::list <std::string> str_list_t;
+
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
@@ -81,9 +80,9 @@ public:
         // -------------------------------------------------
         profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
         ~profile();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process(waflz_pb::event **ao_event, void *a_ctx, const rqst_ctx_callbacks *a_callbacks, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t process_request_plugin(char *ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx);
-        int32_t process_part(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process_part(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, const rqst_ctx_callbacks *a_callbacks, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t load_config(const char *a_buf, uint32_t a_buf_len, bool a_leave_compiled_file = false);
         int32_t load_config(const waflz_pb::profile *a_pb, bool a_leave_compiled_file = false);
         //: ------------------------------------------------

@@ -50,97 +50,97 @@
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_uri[] = "243.49.2.0";
         *a_data = s_uri;
-        a_len = strlen(s_uri);
+        *a_len = strlen(s_uri);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_line_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "GET /800050/origin.testsuite.com/sec_arg_check/info.html?a=%27select%20*%20from%20test_5%27 HTTP/1.1";
         *a_data = s_line;
-        a_len = strlen(s_line);
+        *a_len = strlen(s_line);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_method_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "GET";
         *a_data = s_line;
-        a_len = strlen(s_line);
+        *a_len = strlen(s_line);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "HTTP/1.1";
         *a_data = s_line;
-        a_len = strlen(s_line);
+        *a_len = strlen(s_line);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "http";
         *a_data = s_line;
-        a_len = strlen(s_line);
+        *a_len = strlen(s_line);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_port_cb(uint32_t &a_val, void *a_ctx)
+static int32_t get_rqst_port_cb(uint32_t *a_val, void *a_ctx)
 {
-        a_val = 80;
+        *a_val = 80;
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_uri_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "/800050/origin.testsuite.com/sec_arg_check/info.html?a=%27select%20*%20from%20test_5%27";
         *a_data = s_line;
-        a_len = strlen(s_line);
+        *a_len = strlen(s_line);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_query_str_long_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_query_str_long_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "mooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnkkkkkkkkkkkkkkkkkkeeeeeeeeeeeeeeeyyyyyyyyyyssssss=100000000000000000000000000000000000000";
         *a_data = s_line;
-        a_len = strlen(s_line);
+        *a_len = strlen(s_line);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "a=%27select%20*%20from%20test_5%27";
         *a_data = s_line;
-        a_len = strlen(s_line);
+        *a_len = strlen(s_line);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
+static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
-        a_val = 3;
+        *a_val = 3;
         return 0;
 }
 //: ----------------------------------------------------------------------------
@@ -244,6 +244,31 @@ TEST_CASE( "instances test", "[instances]" ) {
                 ns_waflz::profile::s_geoip2_db = l_geoip2_city_file;
                 ns_waflz::profile::s_geoip2_isp_db = l_geoip2_asn_file;
                 // waf
+                static ns_waflz::rqst_ctx_callbacks s_callbacks = {
+                        get_rqst_src_addr_cb,
+                        NULL, //get_rqst_host_cb,
+                        get_rqst_port_cb,
+                        get_rqst_scheme_cb,
+                        get_rqst_protocol_cb,
+                        get_rqst_line_cb,
+                        get_rqst_method_cb,
+                        NULL,
+                        get_rqst_uri_cb,
+                        NULL,
+                        get_rqst_query_str_cb,
+                        get_rqst_header_size_cb,
+                        NULL, //get_rqst_header_w_key_cb,
+                        get_rqst_header_w_idx_cb,
+                        NULL, //get_rqst_id_cb,
+                        NULL,
+                        NULL, //get_rqst_local_addr_cb,
+                        NULL, //get_rqst_canonical_port_cb,
+                        NULL, //get_rqst_apparent_cache_status_cb,
+                        NULL, //get_rqst_bytes_out_cb,
+                        NULL, //get_rqst_bytes_in_cb,
+                        NULL, //get_rqst_req_id_cb,
+                        NULL //get_cust_id_cb
+                };
                 ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_query_str_cb = get_rqst_query_str_cb;

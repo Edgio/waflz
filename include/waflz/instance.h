@@ -26,6 +26,7 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
+#include "waflz/rqst_ctx.h"
 #include <string>
 #include <list>
 //: ----------------------------------------------------------------------------
@@ -90,11 +91,13 @@ public:
         int32_t process(waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
+                        const rqst_ctx_callbacks *a_callbacks,
                         rqst_ctx **ao_rqst_ctx);
         int32_t process_part(waflz_pb::event **ao_audit_event,
                              waflz_pb::event **ao_prod_event,
                              void *a_ctx,
                              part_mk_t a_part_mk,
+                             const rqst_ctx_callbacks *a_callbacks,
                              rqst_ctx **ao_rqst_ctx);
 private:
         // -------------------------------------------------

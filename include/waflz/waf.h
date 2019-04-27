@@ -28,6 +28,7 @@
 #include "waflz/parser.h"
 #include <waflz/config_parser.h>
 #include "waflz/def.h"
+#include "waflz/rqst_ctx.h"
 #include <set>
 //: ----------------------------------------------------------------------------
 //: constants
@@ -90,7 +91,7 @@ public:
         // -------------------------------------------------
         waf(engine &a_engine);
         ~waf();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process(waflz_pb::event **ao_event, void *a_ctx, const rqst_ctx_callbacks *a_callbacks, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t init(profile &a_profile, bool a_leave_tmp_file = false);
         int32_t init(config_parser::format_t a_format, const std::string &a_path, bool a_apply_defaults = false);
         int32_t get_str(std::string &ao_str, config_parser::format_t a_format);

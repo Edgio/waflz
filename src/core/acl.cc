@@ -1275,6 +1275,7 @@ done:
 int32_t acl::process(waflz_pb::event **ao_event,
                      bool &ao_whitelist,
                      void *a_ctx,
+                     const rqst_ctx_callbacks *a_callbacks,
                      rqst_ctx **ao_rqst_ctx)
 {
         if(!ao_event)
@@ -1294,7 +1295,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         }
         if(!l_rqst_ctx)
         {
-                l_rqst_ctx = new rqst_ctx(a_ctx, 0, false);
+                l_rqst_ctx = new rqst_ctx(a_ctx, 0, a_callbacks, false);
                 if(ao_rqst_ctx)
                 {
                         *ao_rqst_ctx = l_rqst_ctx;

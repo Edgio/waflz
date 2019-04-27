@@ -29,7 +29,6 @@
 #ifdef __cplusplus
 #include <waflz/arg.h>
 #include <waflz/parser.h>
-#include <waflz/profile.h>
 #include <list>
 #include <map>
 #include <strings.h>
@@ -75,7 +74,6 @@ typedef struct {
         get_rqst_data_size_cb_t s_get_rqst_bytes_in_cb;
         get_rqst_data_size_cb_t s_get_rqst_req_id_cb;
         get_rqst_data_size_cb_t s_get_cust_id_cb;
-
 }rqst_ctx_callbacks;
 
 #ifdef __cplusplus
@@ -86,6 +84,7 @@ typedef struct {
 //! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 class waf;
+class regex;
 //! ----------------------------------------------------------------------------
 //! types
 //! ----------------------------------------------------------------------------
@@ -100,6 +99,8 @@ typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <std::string, uint32_t> count_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 typedef std::list<data_t> data_list_t;
+typedef std::list<regex *> pcre_list_t;
+typedef std::list <std::string> str_list_t;
 //! ----------------------------------------------------------------------------
 //! xpath optimization
 //! ----------------------------------------------------------------------------
@@ -120,6 +121,7 @@ public:
         // -------------------------------------------------
         rqst_ctx(void *a_ctx,
                  uint32_t a_body_len_max,
+                 const rqst_ctx_callbacks *a_callbacks,
                  bool a_parse_json = false);
         ~rqst_ctx();
         int32_t init_phase_1(const pcre_list_t *a_il_query = NULL,
@@ -187,7 +189,7 @@ public:
         // xpath optimization
         // -------------------------------------------------
         xpath_cache_map_t *m_xpath_cache_map;
-        rqst_ctx_callbacks *m_callbacks;
+        const rqst_ctx_callbacks *m_callbacks;
 private:
         // -------------------------------------------------
         // private methods
@@ -204,7 +206,7 @@ private:
 #ifdef __cplusplus
 extern "C" {
 #endif
-rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, bool a_parse_json);
+rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, const rqst_ctx_callbacks *a_callbacks, bool a_parse_json);
 int32_t set_callbacks(rqst_ctx *a_rqst_ctx, rqst_ctx_callbacks *a_callbacks);
 int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx);
 #ifdef __cplusplus

@@ -86,6 +86,14 @@ typedef struct _data {
                 m_len(0)
         {}
 } data_t;
+typedef struct _mutable_data {
+        char *m_data;
+        uint32_t m_len;
+        _mutable_data():
+                m_data(NULL),
+                m_len(0)
+        {}
+} mutable_data_t;
 typedef std::list <data_t> data_list_t;
 struct data_case_i_comp
 {

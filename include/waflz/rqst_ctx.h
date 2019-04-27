@@ -133,6 +133,7 @@ public:
         data_map_t m_header_map;
         const_arg_list_t m_header_list;
         const_arg_list_t m_cookie_list;
+        data_map_t m_cookie_map;
         data_list_t m_content_type_list;
         const uint32_t m_body_len_max;
         char *m_body_data;
@@ -141,8 +142,8 @@ public:
         bool m_parse_json;
         std::string m_cookie_mutated;
         data_t m_req_uuid;
+        mutable_data_t m_token;
         uint32_t m_resp_status;
-
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------

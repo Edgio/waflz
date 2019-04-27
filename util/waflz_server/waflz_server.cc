@@ -649,7 +649,7 @@ write_out:
 //: ----------------------------------------------------------------------------
 //: get ip callback
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_ip_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_ip_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static __thread char s_clnt_addr_str[INET6_ADDRSTRLEN];
         // -------------------------------------------------
@@ -670,7 +670,7 @@ static int32_t get_rqst_ip_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
                          ((l_addr & 0x000000FF)));
                 //NDBG_PRINT("addr: %s\n", s_clnt_addr_str);
                 *a_data = s_clnt_addr_str;
-                a_len = strnlen(s_clnt_addr_str, INET6_ADDRSTRLEN);
+                *a_len = strnlen(s_clnt_addr_str, INET6_ADDRSTRLEN);
                 return 0;
         }
         // -------------------------------------------------
@@ -690,7 +690,7 @@ static int32_t get_rqst_ip_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
         if(ns_is2::find_first(i_hdr, l_headers, _HEADER_SRC_IP, sizeof(_HEADER_SRC_IP)))
         {
                 *a_data = i_hdr.m_data;
-                a_len = i_hdr.m_len;
+                *a_len = i_hdr.m_len;
                 return 0;
         }
         // -------------------------------------------------
@@ -734,13 +734,13 @@ static int32_t get_rqst_ip_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
                 return -1;
         }
         *a_data = s_clnt_addr_str;
-        a_len = strnlen(s_clnt_addr_str, INET6_ADDRSTRLEN);
+        *a_len = strnlen(s_clnt_addr_str, INET6_ADDRSTRLEN);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get rqst line callback
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_line_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static __thread char s_rqst_line[4096];
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -759,13 +759,13 @@ static int32_t get_rqst_line_cb(const char **a_data, uint32_t &a_len, void *a_ct
                  l_rqst->m_http_major,
                  l_rqst->m_http_minor);
         *a_data = s_rqst_line;
-        a_len = strnlen(s_rqst_line, 4096);
+        *a_len = strnlen(s_rqst_line, 4096);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get rqst method callback
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_method_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
@@ -778,13 +778,13 @@ static int32_t get_rqst_method_cb(const char **a_data, uint32_t &a_len, void *a_
                 return -1;
         }
         *a_data = l_rqst->get_method_str();
-        a_len = strlen(l_rqst->get_method_str());
+        *a_len = strlen(l_rqst->get_method_str());
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_protocol_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static char s_protocol[32];
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -801,13 +801,13 @@ static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t &a_len, void *
                  l_rqst->m_http_major,
                  l_rqst->m_http_minor);
         *a_data = s_protocol;
-        a_len = strlen(s_protocol);
+        *a_len = strlen(s_protocol);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_scheme_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static char s_scheme[32];
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -825,35 +825,35 @@ static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t &a_len, void *a_
                 snprintf(s_scheme,32,"https");
         }
         *a_data = s_scheme;
-        a_len = strlen(s_scheme);
+        *a_len = strlen(s_scheme);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_port_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_port_cb(uint32_t &a_val, void *a_ctx)
+static int32_t get_rqst_port_cb(uint32_t *a_val, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
         {
                 return -1;
         }
-        a_val = l_ctx->m_lsnr->get_port();
+        *a_val = l_ctx->m_lsnr->get_port();
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_port_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_host_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_host_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         *a_data = "localhost";
-        a_len = strlen("localhost");
+        *a_len = strlen("localhost");
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_url_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_url_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_url_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
@@ -866,13 +866,13 @@ static int32_t get_rqst_url_cb(const char **a_data, uint32_t &a_len, void *a_ctx
                 return -1;
         }
         *a_data = l_rqst->get_url().m_data;
-        a_len = l_rqst->get_url().m_len;
+        *a_len = l_rqst->get_url().m_len;
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_uri_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_uri_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
@@ -885,13 +885,13 @@ static int32_t get_rqst_uri_cb(const char **a_data, uint32_t &a_len, void *a_ctx
                 return -1;
         }
         *a_data = l_rqst->get_url().m_data;
-        a_len = l_rqst->get_url().m_len;
+        *a_len = l_rqst->get_url().m_len;
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_uri_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_path_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_path_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
@@ -904,13 +904,13 @@ static int32_t get_rqst_path_cb(const char **a_data, uint32_t &a_len, void *a_ct
                 return -1;
         }
         *a_data = l_rqst->get_url_path().m_data;
-        a_len = l_rqst->get_url_path().m_len;
+        *a_len = l_rqst->get_url_path().m_len;
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_query_str_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
@@ -923,23 +923,23 @@ static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t &a_len, void 
                 return -1;
         }
         *a_data = l_rqst->get_url_query().m_data;
-        a_len = l_rqst->get_url_query().m_len;
+        *a_len = l_rqst->get_url_query().m_len;
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_id_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_id_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_id_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "aabbccddeeff";
         *a_data = s_line;
-        a_len = strlen(s_line);
+        *a_len = strlen(s_line);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_header_size_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
+static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
@@ -951,16 +951,16 @@ static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
         {
                 return -1;
         }
-        a_val = l_rqst->get_header_list().size();
+        *a_val = l_rqst->get_header_list().size();
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_header_w_idx_cb
 //: ----------------------------------------------------------------------------
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
-                                        uint32_t &ao_key_len,
+                                        uint32_t *ao_key_len,
                                         const char **ao_val,
-                                        uint32_t &ao_val_len,
+                                        uint32_t *ao_val_len,
                                         void *a_ctx,
                                         uint32_t a_idx)
 {
@@ -975,9 +975,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                 return -1;
         }
         *ao_key = NULL;
-        ao_key_len = 0;
+        *ao_key_len = 0;
         *ao_val = NULL;
-        ao_val_len = 0;
+        *ao_val_len = 0;
         const ns_is2::mutable_arg_list_t &l_h_list = l_rqst->get_header_list();
         ns_is2::mutable_arg_list_t::const_iterator i_h = l_h_list.begin();
         std::advance(i_h, a_idx);
@@ -986,19 +986,19 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                 return -1;
         }
         *ao_key = i_h->m_key;
-        ao_key_len = i_h->m_key_len;
+        *ao_key_len = i_h->m_key_len;
         *ao_val = i_h->m_val;
-        ao_val_len = i_h->m_val_len;
+        *ao_val_len = i_h->m_val_len;
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_body_str_cb
 //: ----------------------------------------------------------------------------
 static int32_t get_rqst_body_str_cb(char *ao_data,
-                                    uint32_t &ao_data_len,
-                                    bool &ao_is_eos,
+                                    uint32_t *ao_data_len,
+                                    bool ao_is_eos,
                                     void *a_ctx,
-                                    uint32_t a_to_read)
+                                    uint32_t *a_to_read)
 {
         //NDBG_PRINT(": ======================== \n");
         //NDBG_PRINT(": ao_data:     %p\n", ao_data);
@@ -1009,40 +1009,40 @@ static int32_t get_rqst_body_str_cb(char *ao_data,
         if (NULL == a_ctx)
         {
                 ao_is_eos = true;
-                ao_data_len = 0;
+                *ao_data_len = 0;
                 return 0;
         }
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
         {
                 ao_is_eos = true;
-                ao_data_len = 0;
+                *ao_data_len = 0;
                 return 0;
         }
         ns_is2::rqst *l_rqst = l_ctx->m_rqst;
         if(!l_rqst)
         {
                 ao_is_eos = true;
-                ao_data_len = 0;
+                *ao_data_len = 0;
                 return 0;
         }
         ns_is2::nbq *l_q = l_rqst->get_body_q();
         if(!l_q)
         {
                 ao_is_eos = true;
-                ao_data_len = 0;
+                *ao_data_len = 0;
                 return 0;
         }
         // -------------------------------------------------
         // set not done
         // -------------------------------------------------
         ao_is_eos = false;
-        ao_data_len = 0;
+        *ao_data_len = 0;
         // -------------------------------------------------
         // cal how much to read
         // -------------------------------------------------
-        uint32_t l_left = a_to_read;
-        if(a_to_read > l_q->read_avail())
+        uint32_t l_left = *a_to_read;
+        if(*a_to_read > l_q->read_avail())
         {
                 l_left = l_q->read_avail();
         }
@@ -1058,11 +1058,11 @@ static int32_t get_rqst_body_str_cb(char *ao_data,
                 {
                         // TODO error
                         ao_is_eos = true;
-                        ao_data_len = 0;
+                        *ao_data_len = 0;
                         return 0;
                 }
                 l_cur_ptr += (uint32_t)l_read;
-                ao_data_len += (uint32_t)l_read;
+                *ao_data_len += (uint32_t)l_read;
                 l_left -= (uint32_t)l_read;
         }
         if(!l_q->read_avail())

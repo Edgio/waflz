@@ -130,7 +130,7 @@ static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx
 //: ----------------------------------------------------------------------------
 //: get_rqst_header_size_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
+static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
         *a_val = 8;
         return 0;

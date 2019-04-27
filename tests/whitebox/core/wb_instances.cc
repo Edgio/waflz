@@ -147,9 +147,9 @@ static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 //: TODO
 //: ----------------------------------------------------------------------------
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
-                                        uint32_t &ao_key_len,
+                                        uint32_t *ao_key_len,
                                         const char **ao_val,
-                                        uint32_t &ao_val_len,
+                                        uint32_t *ao_val_len,
                                         void *a_ctx,
                                         uint32_t a_idx)
 {
@@ -159,40 +159,40 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         {
                 static const char s_host_key[] = "Host";
                 *ao_key = s_host_key;
-                ao_key_len = strlen(s_host_key);
+                *ao_key_len = strlen(s_host_key);
                 static const char s_host_val[] = "www.google.com";
                 *ao_val = s_host_val;
-                ao_val_len = strlen(s_host_val);
+                *ao_val_len = strlen(s_host_val);
                 break;
         }
         case 1:
         {
                 static const char s_ua_key[] = "User-Agent";
                 *ao_key = s_ua_key;
-                ao_key_len = strlen(s_ua_key);
+                *ao_key_len = strlen(s_ua_key);
                 static const char s_ua_val[] = "curl/7.47.0";
                 *ao_val = s_ua_val;
-                ao_val_len = strlen(s_ua_val);
+                *ao_val_len = strlen(s_ua_val);
                 break;
         }
         case 2:
         {
                 static const char s_acct_key[] = "Accept";
                 *ao_key = s_acct_key;
-                ao_key_len = strlen(s_acct_key);
+                *ao_key_len = strlen(s_acct_key);
                 static const char s_acct_val[] = "*/*";
                 *ao_val = s_acct_val;
-                ao_val_len = strlen(s_acct_val);
+                *ao_val_len = strlen(s_acct_val);
                 break;
         }
         default:
         {
                 static const char s_host_key_d[] = "Host";
                 *ao_key = s_host_key_d;
-                ao_key_len = strlen(s_host_key_d);
+                *ao_key_len = strlen(s_host_key_d);
                 static const char s_host_value_d[] = "www.google.com";
                 *ao_val = s_host_value_d;
-                ao_val_len = strlen(s_host_value_d);
+                *ao_val_len = strlen(s_host_value_d);
                 break;
         }
         }
@@ -269,17 +269,6 @@ TEST_CASE( "instances test", "[instances]" ) {
                         NULL, //get_rqst_req_id_cb,
                         NULL //get_cust_id_cb
                 };
-                ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_query_str_cb = get_rqst_query_str_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_line_cb = get_rqst_line_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_scheme_cb = get_rqst_scheme_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_port_cb = get_rqst_port_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_method_cb = get_rqst_method_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_protocol_cb = get_rqst_protocol_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
-                //ns_waflz::rqst_ctx::s_get_rqst_id_cb = get_rqst_id_cb;
                 // -----------------------------------------
                 // init
                 // -----------------------------------------

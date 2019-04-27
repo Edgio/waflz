@@ -52,6 +52,31 @@ static int32_t get_rqst_src_addr_cb(const char **ao_data,
         return 0;
 }
 
+static rqst_ctx_callbacks s_callbacks = {
+                get_rqst_src_addr_cb,
+                NULL,//get_rqst_host_cb,
+                NULL,//get_rqst_port_cb,
+                NULL,//get_rqst_scheme_cb,
+                NULL,//get_rqst_protocol_cb,
+                NULL,//get_rqst_line_cb,
+                NULL,//get_rqst_method_cb,
+                NULL,//get_rqst_url_cb,
+                NULL,//get_rqst_uri_cb,
+                NULL,//get_rqst_path_cb,
+                NULL,//get_rqst_query_str_cb,
+                NULL,//get_rqst_header_size_cb,
+                NULL, //get_rqst_header_w_key_cb,
+                NULL,//get_rqst_header_w_idx_cb,
+                NULL,//get_rqst_id_cb,
+                NULL,//get_rqst_body_str_cb,
+                NULL, //get_rqst_local_addr_cb,
+                NULL, //get_rqst_canonical_port_cb,
+                NULL, //get_rqst_apparent_cache_status_cb,
+                NULL, //get_rqst_bytes_out_cb,
+                NULL, //get_rqst_bytes_in_cb,
+                NULL, //get_rqst_req_id_cb,
+                NULL //get_cust_id_cb
+};
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
 //: Module directives
@@ -151,34 +176,6 @@ static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf)
         {
               return NGX_CONF_ERROR;  
         }
-        l_conf->m_callbacks = malloc(sizeof(rqst_ctx_callbacks));
-        l_conf->m_callbacks->s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
-#if 0
-                get_rqst_src_addr_cb,
-                NULL, //get_rqst_host_cb,
-                NULL, //get_rqst_port_cb,
-                NULL, //get_rqst_scheme_cb,
-                NULL, //get_rqst_protocol_cb,
-                NULL, //get_rqst_line_cb,
-                NULL, //get_rqst_method_cb,
-                NULL, //get_rqst_url_cb,
-                NULL, //get_rqst_uri_cb,
-                NULL, //get_rqst_path_cb,
-                NULL, //get_rqst_query_str_cb,
-                NULL, //get_rqst_header_size_cb,
-                NULL, //get_rqst_header_w_key_cb,
-                NULL, //get_rqst_header_w_idx_cb,
-                NULL, //get_rqst_id_cb,
-                NULL, //get_rqst_body_str_cb,
-                NULL, //get_rqst_local_addr_cb,
-                NULL, //get_rqst_canonical_port_cb,
-                NULL, //get_rqst_apparent_cache_status_cb,
-                NULL, //get_rqst_bytes_out_cb,
-                NULL, //get_rqst_bytes_in_cb,
-                NULL, //get_rqst_req_id_cb,
-                NULL //get_cust_id_cb
-        };
-#endif
         return l_conf;
 }
 //: ----------------------------------------------------------------------------
@@ -206,6 +203,8 @@ ngx_module_t  ngx_http_waflz_module = {
 //: ----------------------------------------------------------------------------
 static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
 {
+        char *l_buf = NULL;
+        uint32_t l_len = 0;
         ngx_http_waflz_loc_conf_t *l_conf;
         ngx_http_waflz_conf_t *l_main_conf;
         l_conf = (ngx_http_waflz_loc_conf_t *)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
@@ -216,6 +215,29 @@ static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
         l_main_conf = ngx_http_conf_get_module_main_conf(cf, ngx_http_waflz_module);
         // create a profile for this loc block
         l_conf->m_profile = create_profile(l_main_conf->m_engine, l_main_conf->m_geoip2_db);
+        set_ruleset(l_conf->m_profile, ngx_str_to_char(l_main_conf->m_ruleset_dir, cf->pool));
+        FILE *f = fopen(ngx_str_to_char(l_conf->m_profile_file, cf->pool), "rb");
+        if(f)
+        {
+                fseek (f, 0, SEEK_END);
+                l_len = ftell(f);
+                fseek (f, 0, SEEK_SET);
+                l_buf = malloc(l_len+1);
+                if(l_buf)
+                {
+                        size_t l_ret_code = fread(l_buf, 1, l_len, f);
+                        if(l_ret_code == 0)
+                        {
+                                return NGX_CONF_ERROR;
+                        }
+                }
+                fclose(f);
+                l_buf[l_len] = '\0';
+        }
+        if(l_buf)
+        {
+                load_config(l_conf->m_profile, l_buf, l_len);
+        }
         if(!l_conf->m_profile)
         {
                 return NGX_CONF_ERROR;
@@ -280,8 +302,7 @@ ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *r)
         {
                 return NGX_DECLINED;
         }
-        rqst_ctx *l_rqst_ctx = init_rqst_ctx(r, DEFAULT_BODY_SIZE_MAX, true);
-        set_callbacks(l_rqst_ctx, l_main_conf->m_callbacks);
+        rqst_ctx *l_rqst_ctx = init_rqst_ctx(r, DEFAULT_BODY_SIZE_MAX, &s_callbacks, true);
         // process_request
         char *l_event = NULL;
         process_request(l_loc_conf->m_profile, r, l_rqst_ctx, l_event);

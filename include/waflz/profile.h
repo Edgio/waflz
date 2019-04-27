@@ -168,6 +168,7 @@ extern "C" {
 
 profile *create_profile(engine *a_engine, geoip2_mmdb *a_geoip2_mmdb);
 int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a_len);
+int32_t set_ruleset(profile *a_profile, const char *a_ruleset_dir);
 int32_t process_request(profile *a_profile, void *ao_rqst_ctx, rqst_ctx *a_rqst_ctx, char *a_event);
 #ifdef __cplusplus
 }

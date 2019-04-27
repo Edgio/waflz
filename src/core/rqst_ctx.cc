@@ -55,35 +55,6 @@
 } while(0)
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
-//: callbacks
-//: ----------------------------------------------------------------------------
-
-#if 0
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_src_addr_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_host_cb = NULL;
-get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_port_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_scheme_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_protocol_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_line_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_method_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_url_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_uri_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_path_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_query_str_cb = NULL;
-get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_header_size_cb = NULL;
-get_rqst_kv_w_idx_cb_t rqst_ctx::s_get_rqst_header_w_idx_cb = NULL;
-get_rqst_data_w_key_cb_t rqst_ctx::s_get_rqst_header_w_key_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_id_cb = NULL;
-get_rqst_body_data_cb_t rqst_ctx::s_get_rqst_body_str_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_local_addr_cb = NULL;
-get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_canonical_port_cb = NULL;
-get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_apparent_cache_status_cb = NULL;
-get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_bytes_out_cb = NULL;
-get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_bytes_in_cb = NULL;
-get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_req_id_cb = NULL;
-get_rqst_data_size_cb_t rqst_ctx::s_get_cust_id_cb = NULL;
-#endif
-//: ----------------------------------------------------------------------------
 //: static
 //: ----------------------------------------------------------------------------
 uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
@@ -631,7 +602,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
         for(uint32_t i_h = 0; i_h < l_hdr_size; ++i_h)
         {
                 const_arg_t l_hdr;
-                if(!m_callbacks || m_callbacks->s_get_rqst_header_w_idx_cb)
+                if(!m_callbacks || !m_callbacks->s_get_rqst_header_w_idx_cb)
                 {
                         continue;
                 }
@@ -1201,9 +1172,6 @@ void rqst_ctx::show(void)
 //: ----------------------------------------------------------------------------
 extern "C" rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, const rqst_ctx_callbacks *a_callbacks, bool a_parse_json) {
     return new rqst_ctx(a_ctx, a_max_body_len, a_callbacks, a_parse_json);
-}
-extern "C" int32_t set_callbacks(rqst_ctx *a_rqst_ctx, rqst_ctx_callbacks *a_callbacks) {
-    a_rqst_ctx->m_callbacks = a_callbacks;
 }
 extern "C" int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx) {
     delete a_rqst_ctx;

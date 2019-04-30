@@ -41,13 +41,14 @@ namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 typedef enum {
         FIELD_NULL = 0,
+        FIELD_EVENT_ID,
         FIELD_CLIENT_IP,
         FIELD_REQUEST_URL,
         FIELD_USER_AGENT,
         FIELD_RULE_MSG,
         FIELD_TIMESTAMP,
         FIELD_STATUS_CODE,
-        FIELD_EVENT_ID
+        FIELD_EC_TOKEN,
 } field_t;
 //! ----------------------------------------------------------------------------
 //! Types
@@ -68,6 +69,8 @@ typedef std::map <std::string, field_t, case_i_comp> str_field_map_t;
 //! Initialize the map statically
 //! ----------------------------------------------------------------------------
 const str_field_map_t::value_type g_str_field_map_pairs[]= {
+        str_field_map_t::value_type("EVENT_ID", FIELD_EVENT_ID),
+        str_field_map_t::value_type("EVENT-ID", FIELD_EVENT_ID),
         str_field_map_t::value_type("CLIENT_IP", FIELD_CLIENT_IP),
         str_field_map_t::value_type("CLIENT-IP", FIELD_CLIENT_IP),
         str_field_map_t::value_type("REQUEST_URL", FIELD_REQUEST_URL),
@@ -78,7 +81,9 @@ const str_field_map_t::value_type g_str_field_map_pairs[]= {
         str_field_map_t::value_type("RULE-MSG", FIELD_RULE_MSG),
         str_field_map_t::value_type("TIMESTAMP", FIELD_TIMESTAMP),
         str_field_map_t::value_type("STATUS_CODE", FIELD_STATUS_CODE),
-        str_field_map_t::value_type("EVENT_ID", FIELD_EVENT_ID)
+        str_field_map_t::value_type("STATUS-CODE", FIELD_STATUS_CODE),
+        str_field_map_t::value_type("EC_TOKEN", FIELD_EC_TOKEN),
+        str_field_map_t::value_type("EC-TOKEN", FIELD_EC_TOKEN)
 };
 const str_field_map_t g_str_field_map(g_str_field_map_pairs,
                                       g_str_field_map_pairs + (sizeof(g_str_field_map_pairs)/sizeof(g_str_field_map_pairs[0])));
@@ -198,6 +203,25 @@ static int32_t rr_render(char* ao_buf,
                 switch(l_tp.m_field)
                 {
                 // -----------------------------------------
+                // FIELD_EVENT_ID
+                // -----------------------------------------
+                case FIELD_EVENT_ID:
+                {
+                        if(!a_ctx ||
+                          !a_ctx->m_req_uuid.m_data ||
+                          !a_ctx->m_req_uuid.m_len)
+                        {
+                                break;
+                        }
+                        ao_len += a_ctx->m_req_uuid.m_len;
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, a_ctx->m_req_uuid.m_data, a_ctx->m_req_uuid.m_len);
+                                l_buf += a_ctx->m_req_uuid.m_len;
+                        }
+                        break;
+                }
+                // -----------------------------------------
                 // FIELD_CLIENT_IP
                 // -----------------------------------------
                 case FIELD_CLIENT_IP:
@@ -266,6 +290,74 @@ static int32_t rr_render(char* ao_buf,
                                 memcpy(l_buf, a_ctx->m_uri.m_data, a_ctx->m_uri.m_len);
                                 l_buf += a_ctx->m_uri.m_len;
                         }
+                        // ---------------------------------
+                        // query...
+                        // ---------------------------------
+                        if(!a_ctx ||
+                          !a_ctx->m_query_str.m_data ||
+                          !a_ctx->m_query_str.m_len)
+                        {
+                                break;
+                        }
+                        ao_len += 1;
+                        ao_len += a_ctx->m_query_str.m_len;
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, "?", 1);
+                                l_buf += 1;
+                                memcpy(l_buf, a_ctx->m_query_str.m_data, a_ctx->m_query_str.m_len);
+                                l_buf += a_ctx->m_query_str.m_len;
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // FIELD_TIMESTAMP
+                // -----------------------------------------
+                case FIELD_TIMESTAMP:
+                {
+                        uint64_t l_t_s = 0;
+                        l_t_s = get_time_s();
+                        tm l_tm;
+                        gmtime_r((const time_t *)&l_t_s, &l_tm);
+                        char l_tmp[64];
+                        size_t l_tmp_len;
+                        l_tmp_len = strftime(l_tmp, sizeof(l_tmp), "%Y-%m-%d %H:%M:%S", &l_tm);
+#define _DEFAULT_TIMESTAMP "1970-1-1 00:00:00"
+                        if(l_tmp_len == 0)
+                        {
+                                l_tmp_len = sizeof(_DEFAULT_TIMESTAMP) - 1;
+                                ao_len += l_tmp_len;
+                                if(ao_buf)
+                                {
+                                        memcpy(l_buf, _DEFAULT_TIMESTAMP, l_tmp_len);
+                                        l_buf += l_tmp_len;
+                                }
+                        }
+                        else
+                        {
+                                ao_len += l_tmp_len;
+                                if(ao_buf)
+                                {
+                                        memcpy(l_buf, l_tmp, l_tmp_len);
+                                        l_buf += l_tmp_len;
+                                }
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // FIELD_STATUS_CODE
+                // -----------------------------------------
+                case FIELD_STATUS_CODE:
+                {
+                        char l_tmp[8];
+                        int l_tmp_len;
+                        l_tmp_len = snprintf(l_tmp, 8, "%u", a_ctx->m_resp_status);
+                        ao_len += l_tmp_len;
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, l_tmp, l_tmp_len);
+                                l_buf += l_tmp_len;
+                        }
                         break;
                 }
                 // -----------------------------------------
@@ -304,41 +396,6 @@ static int32_t rr_render(char* ao_buf,
                         break;
                 }
                 // -----------------------------------------
-                // FIELD_TIMESTAMP
-                // -----------------------------------------
-                case FIELD_TIMESTAMP:
-                {
-                        // TODO FIX!!!
-                        uint64_t l_t_s = 0;
-                        l_t_s = get_time_s();
-                        tm l_tm;
-                        gmtime_r((const time_t *)&l_t_s, &l_tm);
-                        char l_tmp[64];
-                        size_t l_tmp_len;
-                        l_tmp_len = strftime(l_tmp, sizeof(l_tmp), "%Y-%m-%d %H:%M:%S", &l_tm);
-#define _DEFAULT_TIMESTAMP "1970-1-1 00:00:00"
-                        if(l_tmp_len == 0)
-                        {
-                                l_tmp_len = sizeof(_DEFAULT_TIMESTAMP) - 1;
-                                ao_len += l_tmp_len;
-                                if(ao_buf)
-                                {
-                                        memcpy(l_buf, _DEFAULT_TIMESTAMP, l_tmp_len);
-                                        l_buf += l_tmp_len;
-                                }
-                        }
-                        else
-                        {
-                                ao_len += l_tmp_len;
-                                if(ao_buf)
-                                {
-                                        memcpy(l_buf, l_tmp, l_tmp_len);
-                                        l_buf += l_tmp_len;
-                                }
-                        }
-                        break;
-                }
-                // -----------------------------------------
                 // FIELD_RULE_MSG
                 // -----------------------------------------
                 case FIELD_RULE_MSG:
@@ -358,38 +415,22 @@ static int32_t rr_render(char* ao_buf,
                         }
                         break;
                 }
-               // -----------------------------------------
-                // FIELD_STATUS_CODE
                 // -----------------------------------------
-                case FIELD_STATUS_CODE:
-                {
-                        char l_tmp[8];
-                        int l_tmp_len;
-                        l_tmp_len = snprintf(l_tmp, 8, "%u", a_ctx->m_resp_status);
-                        ao_len += l_tmp_len;
-                        if(ao_buf)
-                        {
-                                memcpy(l_buf, l_tmp, l_tmp_len);
-                                l_buf += l_tmp_len;
-                        }
-                        break;
-                }
+                // FIELD_EC_TOKEN
                 // -----------------------------------------
-                // FIELD_EVENT_ID
-                // -----------------------------------------
-                case FIELD_EVENT_ID:
+                case FIELD_EC_TOKEN:
                 {
                         if(!a_ctx ||
-                          !a_ctx->m_req_uuid.m_data ||
-                          !a_ctx->m_req_uuid.m_len)
+                          !a_ctx->m_token.m_data ||
+                          !a_ctx->m_token.m_len)
                         {
                                 break;
                         }
-                        ao_len += a_ctx->m_req_uuid.m_len;
+                        ao_len += a_ctx->m_token.m_len;
                         if(ao_buf)
                         {
-                                memcpy(l_buf, a_ctx->m_req_uuid.m_data, a_ctx->m_req_uuid.m_len);
-                                l_buf += a_ctx->m_req_uuid.m_len;
+                                memcpy(l_buf, a_ctx->m_token.m_data, a_ctx->m_token.m_len);
+                                l_buf += a_ctx->m_token.m_len;
                         }
                         break;
                 }

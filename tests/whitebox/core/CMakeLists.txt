@@ -111,3 +111,12 @@ add_dependencies(wb_tx waflzcore)
 target_link_libraries(wb_tx ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
 SET_TARGET_PROPERTIES(wb_tx PROPERTIES OUTPUT_NAME "wb_tx")
 add_test(tx wb_tx)
+# ------------------------------------------------------------------------------
+# wb_render
+# ------------------------------------------------------------------------------
+SET(SRCS wb_render.cc)
+add_executable(wb_render ${HDRS} ${SRCS})
+add_dependencies(wb_render waflzcore)
+target_link_libraries(wb_render ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
+SET_TARGET_PROPERTIES(wb_render PROPERTIES OUTPUT_NAME "wb_render")
+add_test(render wb_render)

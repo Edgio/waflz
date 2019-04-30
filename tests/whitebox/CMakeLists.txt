@@ -41,5 +41,6 @@ add_subdirectory(parser)
 # ------------------------------------------------------------------------------
 if(BUILD_RATE_LIMITING)
 add_subdirectory(db)
+add_subdirectory(limit)
 endif()
 

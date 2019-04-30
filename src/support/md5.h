@@ -2,7 +2,7 @@
 //: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    md5_hasher.h
+//: \file:    md5.h
 //: \details: TODO
 //: \author:  David Andrews
 //: \date:    02/07/2014
@@ -20,29 +20,38 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _MD5_HASHER_H_
-#define _MD5_HASHER_H_
+#ifndef _MD5_H_
+#define _MD5_H_
 //: ----------------------------------------------------------------------------
-//: Includes
+//: includes
 //: ----------------------------------------------------------------------------
 #include <openssl/md5.h>
+#include <stdint.h>
+//: ----------------------------------------------------------------------------
+//: constants
+//: ----------------------------------------------------------------------------
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: md5 hasher obj
 //: ----------------------------------------------------------------------------
-class md5_hasher
+class md5
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public constants
+        // -------------------------------------------------
+        static const uint16_t s_hash_len = 16;
+        // -------------------------------------------------
+        // public methods
         // -------------------------------------------------
         //: ------------------------------------------------
         //: \details TODO
         //: \return  TODO
         //: ------------------------------------------------
-        md5_hasher():m_ctx(),
-                     m_finished(false),
-                     m_hash_str()
+        md5():
+                m_ctx(),
+                m_finished(false),
+                m_hash_hex()
         {
                 MD5_Init(&m_ctx);
         }
@@ -50,9 +59,9 @@ public:
         //: \details TODO
         //: \return  TODO
         //: ------------------------------------------------
-        void update(const char* str, unsigned int len)
+        void update(const char* a_str, unsigned int a_len)
         {
-                MD5_Update(&m_ctx, (const unsigned char*) str, len);
+                MD5_Update(&m_ctx, (const unsigned char*)a_str, a_len);
         }
         //: ------------------------------------------------
         //: \details TODO
@@ -60,47 +69,57 @@ public:
         //: ------------------------------------------------
         void finish()
         {
-                if (!m_finished)
+                if(m_finished)
                 {
-                        unsigned char h[16];
-                        MD5_Final(h, &m_ctx);
-                        static const char hexchars[] =
-                        {
-                                '0', '1', '2', '3',
-                                '4', '5', '6', '7',
-                                '8', '9', 'a', 'b',
-                                'c', 'd', 'e', 'f'
-                        };
-                        for (size_t i = 0; i < 16; ++i)
-                        {
-                                m_hash_str[2 * i + 0] = hexchars[(h[i] & 0xf0) >> 4];
-                                m_hash_str[2 * i + 1] = hexchars[h[i] & 0x0f];
-                        }
-                        m_hash_str[32] = '\0';
-                        m_finished = true;
+                        return;
                 }
+                MD5_Final((unsigned char *)m_hash, &m_ctx);
+                static const char s_hexchars[] =
+                {
+                        '0', '1', '2', '3',
+                        '4', '5', '6', '7',
+                        '8', '9', 'a', 'b',
+                        'c', 'd', 'e', 'f'
+                };
+                for(size_t i = 0; i < s_hash_len; ++i)
+                {
+                        m_hash_hex[2 * i + 0] = s_hexchars[(m_hash[i] & 0xf0) >> 4];
+                        m_hash_hex[2 * i + 1] = s_hexchars[m_hash[i] & 0x0f];
+                }
+                m_hash_hex[32] = '\0';
+                m_finished = true;
         }
         //: ------------------------------------------------
         //: \details TODO
         //: \return  TODO
         //: ------------------------------------------------
-        const char* hash_str()
+        const char* get_hash_hex()
         {
-                this->finish();
-                return m_hash_str;
+                finish();
+                return m_hash_hex;
+        }
+        //: ------------------------------------------------
+        //: \details TODO
+        //: \return  TODO
+        //: ------------------------------------------------
+        const unsigned char* get_hash()
+        {
+                finish();
+                return m_hash;
         }
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
-        md5_hasher(const md5_hasher&);
-        md5_hasher& operator=(const md5_hasher&);
+        md5(const md5&);
+        md5& operator=(const md5&);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         MD5_CTX m_ctx;
         bool m_finished;
-        char m_hash_str[33];
+        unsigned char m_hash[s_hash_len];
+        char m_hash_hex[33];
 };
 }
 #endif // _MD5_HASHER_H_

@@ -662,4 +662,43 @@ int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
         *ao_nms = l_nms;
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t create_nms_from_ip_str_list(nms **ao_nms,
+                                    const ip_str_list_t &a_ip_str_list)
+{
+        if(!ao_nms)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_nms = NULL;
+        nms *l_nms = new nms();
+        for(ip_str_list_t::const_iterator i_ip = a_ip_str_list.begin();
+            i_ip != a_ip_str_list.end();
+            ++i_ip)
+        {
+                if(!*i_ip)
+                {
+                        continue;
+                }
+                const std::string &l_ip = **i_ip;
+                if(l_ip.empty())
+                {
+                        continue;
+                }
+                int32_t l_s;
+                l_s = l_nms->add(l_ip.c_str(), l_ip.length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_nms) { delete l_nms; l_nms = NULL;}
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        *ao_nms = l_nms;
+        return WAFLZ_STATUS_OK;
+
+}
 }

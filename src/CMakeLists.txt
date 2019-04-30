@@ -171,6 +171,10 @@ SET(SRCS
 # ------------------------------------------------------------------------------
 if(BUILD_RATE_LIMITING)
 list(APPEND SRCS
+    # --------------------------------------------
+    # pb
+    # --------------------------------------------
+    ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
     #---------------------------------------------
     # ectoken
     #---------------------------------------------
@@ -185,6 +189,8 @@ list(APPEND SRCS
     # limit
     # --------------------------------------------
     limit/challenge.cc
+    limit/rl_obj.cc
+    limit/rl_op.cc
 )
 endif()
 # ------------------------------------------------------------------------------
@@ -214,7 +220,9 @@ SET_SOURCE_FILES_PROPERTIES(
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_html5.c
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_sqli.c
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_xss.c
-
+    # --------------------------------------------
+    # properties
+    # --------------------------------------------
     PROPERTIES LANGUAGE C
 )
 set(CMAKE_C_FLAGS "-std=c99")
@@ -242,6 +250,13 @@ set_source_files_properties(
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
     ${CMAKE_BINARY_DIR}/proto/acl.pb.h
     ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
+    # ------------------------------------------------------
+    # rate-limiting proto
+    # ------------------------------------------------------
+    if(BUILD_RATE_LIMITING)
+        ${CMAKE_BINARY_DIR}/proto/limit.pb.h
+        ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
+    endif()
     PROPERTIES GENERATED TRUE
 )
 # ------------------------------------------------------------------------------
@@ -254,6 +269,12 @@ SET(PY_INST
     ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
     ${CMAKE_BINARY_DIR}/proto/rule_pb2.py
     ${CMAKE_BINARY_DIR}/proto/acl_pb2.py
+    # ------------------------------------------------------
+    # rate-limiting proto
+    # ------------------------------------------------------
+    if(BUILD_RATE_LIMITING)
+        ${CMAKE_BINARY_DIR}/proto/limit_pb2.py
+    endif()
 )
 install(FILES ${PY_INST}
     DESTINATION include/waflz-py

@@ -112,7 +112,7 @@ TEST_CASE( "test maps", "[test maps]") {
                 // -----------------------------------------
                 // setup ctx
                 // -----------------------------------------
-                ns_waflz::rqst_ctx l_ctx;
+                ns_waflz::rqst_ctx l_ctx(NULL, 0);
                 // -----------------------------------------
                 // verify challenge string
                 // -----------------------------------------
@@ -134,7 +134,7 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 // -----------------------------------------
                 // setup ctx
                 // -----------------------------------------
-                ns_waflz::rqst_ctx l_ctx;
+                ns_waflz::rqst_ctx l_ctx(NULL, 0);
                 l_ctx.m_src_addr.m_data = "1.1.1.1";
                 l_ctx.m_src_addr.m_len = sizeof(l_ctx.m_src_addr.m_data);
                 // TODO FIX!!!

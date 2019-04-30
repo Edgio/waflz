@@ -50,7 +50,7 @@ SET(SRCS wb_challenge.cc)
 add_executable(wb_challenge ${HDRS} ${SRCS})
 add_dependencies(wb_challenge waflzcore)
 target_link_libraries(wb_challenge ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
-SET_TARGET_PROPERTIES(wb_challenge PROPERTIES OUTPUT_NAME "wb_rl_op")
+SET_TARGET_PROPERTIES(wb_challenge PROPERTIES OUTPUT_NAME "wb_challenge")
 add_test(challenge wb_challenge)
 
 

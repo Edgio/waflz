@@ -137,11 +137,13 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 ns_waflz::rqst_ctx l_ctx(NULL, 0);
                 l_ctx.m_src_addr.m_data = "1.1.1.1";
                 l_ctx.m_src_addr.m_len = sizeof(l_ctx.m_src_addr.m_data);
-                // TODO FIX!!!
-#if 0
-                l_ctx.m_ua.m_data = "chrome";
-                l_ctx.m_ua.m_len = sizeof(l_ctx.m_ua.m_data);
-#endif
+                ns_waflz::data_t l_ua;
+                l_ua.m_data = "User-Agent";
+                l_ua.m_len = strlen(l_ua.m_data);
+                ns_waflz::data_t l_ua_chrome;
+                l_ua_chrome.m_data = "chrome";
+                l_ua_chrome.m_len = strlen(l_ua_chrome.m_data);
+                l_ctx.m_header_map[l_ua] = l_ua_chrome;
                 l_ch.set_ectoken(2, &l_ctx);
                 ns_waflz::data_t l_k;
                 ns_waflz::data_t l_v;
@@ -191,21 +193,16 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 // -----------------------------------------
                 // wang user-agent
                 // -----------------------------------------
-                // TODO FIX!!!
-#if 0
-                l_ctx.m_ua.m_data = "fastly";
-                l_ctx.m_ua.m_len = sizeof(l_ctx.m_ua.m_data);
-#endif
+                ns_waflz::data_t l_ua_fastly;
+                l_ua_fastly.m_data = "fastly";
+                l_ua_fastly.m_len = strlen(l_ua_fastly.m_data);
+                l_ctx.m_header_map[l_ua] = l_ua_fastly;
                 l_s = l_ch.verify(l_pass, 60, &l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_pass == false));
                 //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
                 // put back
-                // TODO FIX!!!
-#if 0
-                l_ctx.m_ua.m_data = "chrome";
-                l_ctx.m_ua.m_len = sizeof(l_ctx.m_ua.m_data);
-#endif
+                l_ctx.m_header_map[l_ua] = l_ua_chrome;
                 // -----------------------------------------
                 // wang answer
                 // -----------------------------------------

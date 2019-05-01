@@ -1,0 +1,24 @@
+#Build
+
+./configure --add-module=<path to nginx module>
+
+#Sample config
+server {
+        listen        8080;
+        server_name   localhost;
+
+        
+        
+        ruleset_dir   /tmp/waf/ruleset/;
+        city_mmdb_path /tmp/maxmind_dbs/GeoIP2City.mmdb;
+        asn_mmdb_path /tmp/maxmind_dbs/GeoIP2ISP.mmdb;
+
+        access_log   logs/access_log  main;
+
+        location / {
+            profile       test.wafprof.json;
+            root /tmp/www/;
+            index  index.html index.htm;
+        }
+
+    }

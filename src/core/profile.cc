@@ -66,7 +66,7 @@ namespace ns_waflz {
 // in an unreserved block
 uint_fast32_t profile::s_next_ec_rule_id = 430000;
 const std::string profile::s_default_name("");
-std::string profile::s_ruleset_dir("/oc/local/waf/ruleset/");
+std::string profile::s_ruleset_dir("/home/dsingh/development/gitrepos/waf/ruleset/");
 std::string profile::s_geoip_db;
 std::string profile::s_geoip_isp_db;
 std::string profile::s_geoip2_db;
@@ -162,6 +162,7 @@ int32_t profile::load_config(const char *a_buf,
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
+        TRC_DEBUG("loading config\n");
         m_leave_compiled_file = a_leave_compiled_file;
         if(m_pb)
         {
@@ -180,9 +181,10 @@ int32_t profile::load_config(const char *a_buf,
         m_pb = new waflz_pb::profile();
         int32_t l_s;
         l_s = update_from_json(*m_pb, a_buf, a_buf_len);
-        //NDBG_PRINT("whole config %s", m_pb->DebugString().c_str());
+//        TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != JSPB_OK)
         {
+                TRC_DEBUG("error loading\n");
                 WAFLZ_PERROR(m_err_msg, "parsing json. reason: %s", get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
@@ -292,9 +294,11 @@ int32_t profile::init(void)
         // validate/compile/load
         // -------------------------------------------------
         int32_t l_s;
+        TRC_DEBUG("init\n");
         l_s = validate();
         if(l_s != WAFLZ_STATUS_OK)
         {
+                TRC_DEBUG("error init");
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -324,6 +328,7 @@ int32_t profile::init(void)
         l_s = m_waf->init(*this, m_leave_compiled_file);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                TRC_DEBUG("error init %s\n", m_waf->get_err_msg());
                 WAFLZ_PERROR(m_err_msg, "waf init reason: %s", m_waf->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
@@ -479,6 +484,7 @@ l_acl_pb->add_##_field(l_gs._field(i_t)); \
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "access settings: reason: %s", m_acl->get_err_msg());
+                TRC_DEBUG("error compiling\n");
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = true;
@@ -502,6 +508,7 @@ int32_t profile::validate(void)
         }
         if(!m_pb)
         {
+                TRC_DEBUG("error here %s\n", m_err_msg);
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
@@ -623,18 +630,22 @@ int32_t profile::process(waflz_pb::event **ao_event,
 {
         return process_part(ao_event, a_ctx, PART_MK_ALL, a_callbacks, ao_rqst_ctx);
 }
-int32_t profile::process_request_plugin(char *ao_event, 
+int32_t profile::process_request_plugin(char **ao_event, 
                                  void *a_ctx,
                                  rqst_ctx **ao_rqst_ctx)
 {
-        waflz_pb::event **a_event = NULL;
+        waflz_pb::event *a_event = NULL;
         int32_t l_s;
-        l_s = process_part(a_event, a_ctx, PART_MK_ALL, NULL, ao_rqst_ctx);
+        
+        l_s = process_part(&a_event, a_ctx, PART_MK_ACL, NULL, ao_rqst_ctx);
         if(a_event)
         {
-                int32_t l_len = strlen((*a_event)->DebugString().c_str());
-                ao_event = (char*)malloc(sizeof(char*) * l_len);
-                strncpy(ao_event, (*a_event)->DebugString().c_str(), l_len);
+                
+                int32_t l_len = strlen(a_event->DebugString().c_str());
+                char *l_event = (char*)malloc(sizeof(char*) * l_len);
+                strncpy(l_event, a_event->DebugString().c_str(), l_len);
+                *ao_event = l_event;
+                TRC_DEBUG("we have an event %s\n", *ao_event);
         }
         return l_s;
 }
@@ -649,8 +660,10 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                               const rqst_ctx_callbacks *a_callbacks,
                               rqst_ctx **ao_rqst_ctx)
 {
+        
         if(!ao_event)
         {
+                TRC_DEBUG("error\n");
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
@@ -681,9 +694,11 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         // run phase 1 init
         // -------------------------------------------------
         l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
+        TRC_DEBUG("init phase 1\n");
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
+                TRC_DEBUG("error\n");
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -691,6 +706,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
+        TRC_DEBUG("processing acl\n");
         if(a_part_mk & PART_MK_ACL)
         {
                 bool l_whitelist = false;
@@ -698,6 +714,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???
+                        TRC_DEBUG("error in process\n");
                         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -762,11 +779,13 @@ extern "C" int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a
 {
         return a_profile->load_config(a_buf, a_len);
 }
-extern "C" int32_t set_ruleset(profile *a_profile, const char *a_ruleset_dir)
+extern "C" int32_t set_ruleset(profile *a_profile, char *a_ruleset_dir)
 {
-        a_profile->s_ruleset_dir = *a_ruleset_dir;
+        
+        a_profile->s_ruleset_dir.copy(a_ruleset_dir, strlen(a_ruleset_dir));
+        TRC_DEBUG("ruleset dir %s\n", a_profile->s_ruleset_dir.c_str());
 }
-extern "C" int32_t process_request(profile *a_profile, void *a_ctx, rqst_ctx *a_rqst_ctx, char *a_event)
+extern "C" int32_t process_request(profile *a_profile, void *a_ctx, rqst_ctx *a_rqst_ctx, char **a_event)
 {
         return a_profile->process_request_plugin(a_event, a_ctx, &a_rqst_ctx);
 }

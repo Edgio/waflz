@@ -58,6 +58,8 @@ typedef struct {
     // Config values
     ngx_str_t               m_profile_file;
 } ngx_http_waflz_loc_conf_t;
-ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *rqst_ctx);
+//ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *rqst_ctx);
+/* ngx_http_waflz_header_filter.c */
+
 char *ngx_str_to_char(ngx_str_t a, ngx_pool_t *p);
 #endif // header

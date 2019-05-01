@@ -94,6 +94,7 @@ extern "C" {
 #endif
 geoip2_mmdb *get_geoip(void);
 int32_t init_db(geoip2_mmdb *a_geoip2_mmdb, char * a_city_mmdb_path, char *a_asn_mmdb_path);
+int32_t cleanup_db(geoip2_mmdb *a_geoip);
 #ifdef __cplusplus
 }
 }// namespace

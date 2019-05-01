@@ -1097,7 +1097,15 @@ done:
         l_conf_pb.set_ruleset_version(l_prof_pb.ruleset_version());
         {
         struct dirent** l_conf_list = NULL;
-        std::string l_ruleset_dir = a_profile.s_ruleset_dir;
+        std::string l_ruleset_dir;
+        if(a_profile.get_ruleset_dir().empty())
+        {
+                l_ruleset_dir = a_profile.s_ruleset_dir;
+        }
+        else
+        {
+                l_ruleset_dir = a_profile.get_ruleset_dir();
+        }
         l_ruleset_dir.append(l_prof_pb.ruleset_id());
         l_ruleset_dir.append("/version/");
         l_ruleset_dir.append(l_prof_pb.ruleset_version());

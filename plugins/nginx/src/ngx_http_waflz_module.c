@@ -30,92 +30,100 @@
 #include "ngx_http_waflz_module.h"
 
 static ngx_int_t ngx_http_waflz_init(ngx_conf_t *cf);
-
+//: ----------------------------------------------------------------------------
+//: routines to allocate and init main conf
+//: ----------------------------------------------------------------------------
 static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf);
 static char *ngx_http_waflz_init_main_conf(ngx_conf_t *cf, void *conf);
-
-
+//: ----------------------------------------------------------------------------
+//: routines to allocate and init location conf
+//: ----------------------------------------------------------------------------
 static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf);
 static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *child);
-
+//: ----------------------------------------------------------------------------
+//: routines for cleanup
+//: ----------------------------------------------------------------------------
+static void ngx_http_waflz_cleanup_engine(void *data);
+static void ngx_http_waflz_cleanup_profile(void *data);
+//: ----------------------------------------------------------------------------
+//: filters
+//: ----------------------------------------------------------------------------
 static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
-
-/*
- * PCRE malloc/free workaround, based on
- * https://github.com/openresty/lua-nginx-module/blob/master/src/ngx_http_lua_pcrefix.c
- */
-
-static void *(*old_pcre_malloc)(size_t);
-static void (*old_pcre_free)(void *ptr);
-static ngx_pool_t *ngx_http_waflz_pcre_pool = NULL;
-
-static void *
-ngx_http_waflz_pcre_malloc(size_t size)
-{
-    if (ngx_http_waflz_pcre_pool) {
-        return ngx_palloc(ngx_http_waflz_pcre_pool, size);
-    }
-
-    fprintf(stderr, "error: waflz pcre malloc failed due to empty pcre pool");
-
-    return NULL;
-}
-
-static void
-ngx_http_waflz_pcre_free(void *ptr)
-{
-    if (ngx_http_waflz_pcre_pool) {
-        ngx_pfree(ngx_http_waflz_pcre_pool, ptr);
-        return;
-    }
-
-#if 0
-    /* this may happen when called from cleanup handlers */
-    fprintf(stderr, "error: modsec pcre free failed due to empty pcre pool");
-#endif
-
-    return;
-}
-
-ngx_pool_t *
-ngx_http_waflz_pcre_malloc_init(ngx_pool_t *pool)
-{
-    ngx_pool_t  *old_pool;
-
-    if (pcre_malloc != ngx_http_waflz_pcre_malloc) {
-        ngx_http_waflz_pcre_pool = pool;
-
-        old_pcre_malloc = pcre_malloc;
-        old_pcre_free = pcre_free;
-
-        pcre_malloc = ngx_http_waflz_pcre_malloc;
-        pcre_free = ngx_http_waflz_pcre_free;
-
-        return NULL;
-    }
-
-    old_pool = ngx_http_waflz_pcre_pool;
-    ngx_http_waflz_pcre_pool = pool;
-
-    return old_pool;
-}
-
-void
-ngx_http_waflz_pcre_malloc_done(ngx_pool_t *old_pool)
-{
-    ngx_http_waflz_pcre_pool = old_pool;
-
-    if (old_pool == NULL) {
-        pcre_malloc = old_pcre_malloc;
-        pcre_free = old_pcre_free;
-    }
-}
-
-
 
 
 //: ----------------------------------------------------------------------------
-//: \details allocate space for location config
+//: work-around to nginx regex subsystem, must init a memory pool
+//: to use PCRE functions
+//: more info https://github.com/openresty/lua-nginx-module/blob/master/src/ngx_http_lua_pcrefix.c
+//: ----------------------------------------------------------------------------
+static void *(*old_pcre_malloc)(size_t);
+static void (*old_pcre_free)(void *ptr);
+static ngx_pool_t *ngx_http_waflz_pcre_pool = NULL;
+//: ----------------------------------------------------------------------------
+//: \details allocate pcre
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static void * ngx_http_waflz_pcre_malloc(size_t size)
+{
+    if (ngx_http_waflz_pcre_pool)
+    {
+            return ngx_palloc(ngx_http_waflz_pcre_pool, size);
+    }
+    fprintf(stderr, "error: waflz pcre malloc failed due to empty pcre pool");
+    return NULL;
+}
+//: ----------------------------------------------------------------------------
+//: \details pcre free
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static void ngx_http_waflz_pcre_free(void *ptr)
+{
+    if (ngx_http_waflz_pcre_pool)
+    {
+            ngx_pfree(ngx_http_waflz_pcre_pool, ptr);
+            return;
+    }
+    fprintf(stderr, "error: waflz pcre free failed due to empty pcre pool");
+}
+//: ----------------------------------------------------------------------------
+//: \details pcre init
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+ngx_pool_t * ngx_http_waflz_pcre_malloc_init(ngx_pool_t *pool)
+{
+    ngx_pool_t  *old_pool;
+    if (pcre_malloc != ngx_http_waflz_pcre_malloc)
+    {
+            ngx_http_waflz_pcre_pool = pool;
+            old_pcre_malloc = pcre_malloc;
+            old_pcre_free = pcre_free;
+            pcre_malloc = ngx_http_waflz_pcre_malloc;
+            pcre_free = ngx_http_waflz_pcre_free;
+            return NULL;
+    }
+    old_pool = ngx_http_waflz_pcre_pool;
+    ngx_http_waflz_pcre_pool = pool;
+    return old_pool;
+}
+//: ----------------------------------------------------------------------------
+//: \details pcre finish
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+void ngx_http_waflz_pcre_malloc_done(ngx_pool_t *old_pool)
+{
+    ngx_http_waflz_pcre_pool = old_pool;
+    if (old_pool == NULL)
+    {
+            pcre_malloc = old_pcre_malloc;
+            pcre_free = old_pcre_free;
+    }
+}
+//: ----------------------------------------------------------------------------
+//: \details callback for getting src ip
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
@@ -123,7 +131,6 @@ static int32_t get_rqst_src_addr_cb(const char **ao_data,
                                     uint32_t *ao_data_len,
                                     void *a_ctx)
 {
-        
         if(!a_ctx)
         {
                 return -1;
@@ -134,7 +141,11 @@ static int32_t get_rqst_src_addr_cb(const char **ao_data,
         *ao_data_len = l_txn->connection->addr_text.len;
         return 0;
 }
-
+//: ----------------------------------------------------------------------------
+//: \details callback struct definition
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 static rqst_ctx_callbacks s_callbacks = {
                 get_rqst_src_addr_cb,
                 NULL,//get_rqst_host_cb,
@@ -168,7 +179,7 @@ static ngx_command_t ngx_http_waflz_commands[] = {
         {
                 ngx_string("waflz"),
                 NGX_HTTP_LOC_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_MAIN_CONF|NGX_CONF_FLAG, // last flag means on/off
-                ngx_conf_set_flag_slot, // Turn it on/off
+                ngx_conf_set_flag_slot, // Turn it on/off: TODO: fix this
                 NGX_HTTP_LOC_CONF_OFFSET, // Where to save this value
                 offsetof(ngx_http_waflz_conf_t, enable),
                 NULL
@@ -214,17 +225,13 @@ static ngx_command_t ngx_http_waflz_commands[] = {
 static ngx_http_module_t  ngx_http_waflz_module_ctx = {
         NULL,                               // preconfiguration
         ngx_http_waflz_init,                // postconfiguration, this sets the filters
-
         ngx_http_waflz_create_main_conf,    // create main configuration
         ngx_http_waflz_init_main_conf,      // init main configuration
-
         NULL,                               // create server configuration
         NULL,                               // merge server configuration
-
         ngx_http_waflz_create_loc_conf,     // create location configuration
         ngx_http_waflz_merge_conf           // merge location configuration
 };
-
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
 //: Module definition
@@ -243,21 +250,20 @@ ngx_module_t  ngx_http_waflz_module = {
         NULL,                                         /* exit master */
         NGX_MODULE_V1_PADDING
 };
-
-
-static ngx_int_t
-ngx_http_waflz_header_filter(ngx_http_request_t *r)
+//: ----------------------------------------------------------------------------
+//: \details Module header filter. TODO: Doesnt do anything, can move acl here
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static ngx_int_t ngx_http_waflz_header_filter(ngx_http_request_t *r)
 {
-    
         ngx_http_waflz_loc_conf_t *l_loc_conf;
-        
         l_loc_conf = ngx_http_get_module_loc_conf(r, ngx_http_waflz_module);
         if(l_loc_conf == NULL)
         {
                 ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)r->connection->log, 0, "loc conf null");
                 return NGX_DECLINED;
         }
-       
         return ngx_http_next_header_filter(r);
 }
 //: ----------------------------------------------------------------------------
@@ -265,13 +271,11 @@ ngx_http_waflz_header_filter(ngx_http_request_t *r)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *r)
+ngx_int_t ngx_http_waflz_handler(ngx_http_request_t *r)
 {
-        //ngx_pool_t *old_pool;
         ngx_int_t rc;
         ngx_http_waflz_loc_conf_t *l_loc_conf;
         unsigned char * l_response;
-        
         l_loc_conf = ngx_http_get_module_loc_conf(r, ngx_http_waflz_module);
         if(l_loc_conf == NULL)
         {
@@ -283,17 +287,14 @@ ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *r)
         char *l_event = NULL;
         ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)r->connection->log, 0, "processing");
         process_request(l_loc_conf->m_profile, r, l_rqst_ctx, &l_event);
-        
         if(l_event)
         {
             r->headers_out.status = NGX_HTTP_FORBIDDEN;
             r->headers_out.content_length_n = strlen(l_event);
             r->headers_out.content_type.len = sizeof("application/json") - 1;
             r->headers_out.content_type.data = (u_char *) "application/json";
-            
             ngx_buf_t    *b;
             ngx_chain_t   out;
-            
             b = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
             if (b == NULL) {
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, 
@@ -306,11 +307,17 @@ ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *r)
             ngx_memcpy(l_response, l_event, strlen(l_event));
             b->pos = l_response;
             b->last = l_response + strlen(l_event);
-            b->memory = 1; /* content is in read-only memory */
-            /* (i.e., filters should copy it rather than rewrite in place) */
-
-            b->last_buf = 1; /* there will be no more buffers in the request */
-            //ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)r->connection->log, 0, "event %s\n", l_event);
+            // content is in read-only memory
+            b->memory = 1;
+            // (i.e., filters should copy it rather than rewrite in place)
+            // there will be no more buffers in the request
+            b->last_buf = 1;
+            // Cleanup
+            if(l_event)
+            {
+                    free(l_event);
+                    l_event = NULL;
+            }
             rqst_ctx_cleanup(l_rqst_ctx);
             rc = ngx_http_send_header(r);
             if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) {
@@ -321,7 +328,6 @@ ngx_int_t ngx_http_waflz_pre_access_handler(ngx_http_request_t *r)
         }
         rqst_ctx_cleanup(l_rqst_ctx);
         ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)r->connection->log, 0, "no errors");
-        
         return NGX_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -344,14 +350,11 @@ ngx_http_waflz_init(ngx_conf_t *cf)
         {
             return NGX_ERROR;
         }
-        *h = ngx_http_waflz_pre_access_handler;
-
+        *h = ngx_http_waflz_handler;
+        // TODO: Right now its a placeholder, can do more stuff here
         ngx_http_next_header_filter = ngx_http_top_header_filter;
         ngx_http_top_header_filter = ngx_http_waflz_header_filter;
-
         return NGX_OK;
-
-
 }
 //: ----------------------------------------------------------------------------
 //: \details Create main config to create profile and engine instances
@@ -361,10 +364,9 @@ ngx_http_waflz_init(ngx_conf_t *cf)
 static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf)
 {
         ngx_pool_cleanup_t          *cln;
-        ngx_http_waflz_conf_t       *l_conf;
-
-        l_conf = (ngx_http_waflz_conf_t *)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
-        if (l_conf == NULL)
+        ngx_http_waflz_conf_t       *mcf;
+        mcf = (ngx_http_waflz_conf_t *)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
+        if (mcf == NULL)
         {
                 return NGX_CONF_ERROR;
         }
@@ -373,14 +375,17 @@ static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf)
         {
                 return NGX_CONF_ERROR;
         }
-#if 0
-        cln->handler = ngx_http_waflz_cleanup_instance;
-        cln->data = conf;
-
-        conf->pool = cf->pool;
-#endif
-        
-        return l_conf;
+        cln->handler = ngx_http_waflz_cleanup_engine;
+        cln->data = cf->pool;
+        // instantiate engine and dbs
+        mcf->m_engine = init_engine();
+        mcf->m_geoip2_db = get_geoip();
+        if(!mcf->m_engine ||
+           !mcf->m_geoip2_db)
+        {
+                return NGX_CONF_ERROR;
+        }
+        return mcf;
 }
 //: ----------------------------------------------------------------------------
 //: \details Create main config to create profile and engine instances
@@ -389,18 +394,13 @@ static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf)
 //: ----------------------------------------------------------------------------
 static char *ngx_http_waflz_init_main_conf(ngx_conf_t *cf, void *conf)
 {
-        ngx_http_waflz_conf_t       *l_conf;
+        ngx_http_waflz_conf_t       *mcf;
         ngx_pool_t                   *old_pool;
-
         old_pool = ngx_http_waflz_pcre_malloc_init(cf->pool);
-
-        l_conf = (ngx_http_waflz_conf_t *) conf;
-        l_conf->m_engine = init_engine();
-        l_conf->m_geoip2_db = get_geoip();
-        printf(" paths %s\n", ngx_str_to_char(l_conf->m_city_mmdb_path, cf->pool));
+        mcf = (ngx_http_waflz_conf_t *) conf;
         // Initialize obj with db files
         int32_t l_s = 0;
-        l_s = init_db(l_conf->m_geoip2_db, ngx_str_to_char(l_conf->m_city_mmdb_path, cf->pool), ngx_str_to_char(l_conf->m_asn_mmdb_path, cf->pool));
+        l_s = init_db(mcf->m_geoip2_db, ngx_str_to_char(mcf->m_city_mmdb_path, cf->pool), ngx_str_to_char(mcf->m_asn_mmdb_path, cf->pool));
         ngx_http_waflz_pcre_malloc_done(old_pool);
         if(l_s != 0)
         {
@@ -408,7 +408,6 @@ static char *ngx_http_waflz_init_main_conf(ngx_conf_t *cf, void *conf)
         }
         return NGX_CONF_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details allocate space for location config
 //: \return  TODO
@@ -416,14 +415,21 @@ static char *ngx_http_waflz_init_main_conf(ngx_conf_t *cf, void *conf)
 //: ----------------------------------------------------------------------------
 static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
 {
-        
-        ngx_http_waflz_loc_conf_t *l_conf;
-        l_conf = (ngx_http_waflz_loc_conf_t *)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_conf_t));
-        if (l_conf == NULL)
+        ngx_pool_cleanup_t          *cln;
+        ngx_http_waflz_loc_conf_t   *clcf;
+        clcf = (ngx_http_waflz_loc_conf_t *)ngx_pcalloc(cf->pool, sizeof(ngx_http_waflz_loc_conf_t));
+        if (clcf == NULL)
         {
                 return NGX_CONF_ERROR;
         }
-        return l_conf;
+        cln = ngx_pool_cleanup_add(cf->pool, 0);
+        if (cln == NULL)
+        {
+                return NGX_CONF_ERROR;
+        }
+        cln->handler = ngx_http_waflz_cleanup_profile;
+        cln->data = cf->pool;
+        return clcf;
 }
 //: ----------------------------------------------------------------------------
 //: \details merge configs
@@ -436,9 +442,8 @@ static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *chil
         ngx_http_waflz_loc_conf_t *l_c = child;
         ngx_pool_t                *old_pool;
         ngx_http_waflz_conf_t *l_main_conf;
-
+        uint32_t l_s;
         old_pool = ngx_http_waflz_pcre_malloc_init(cf->pool);
-
         char *l_buf = NULL;
         uint32_t l_len = 0;
         ngx_conf_merge_str_value(l_p->m_profile_file, l_c->m_profile_file, "waf_prof.json");
@@ -466,8 +471,13 @@ static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *chil
         }
         if(l_buf)
         {
-                load_config(l_c->m_profile, l_buf, l_len);
+                l_s = load_config(l_c->m_profile, l_buf, l_len);
+                if(l_s !=0)
+                {
+                        return NGX_CONF_ERROR;
+                }
         }
+        // pcre jazz
         ngx_http_waflz_pcre_malloc_done(old_pool);
         if(!l_c->m_profile)
         {
@@ -475,26 +485,56 @@ static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *chil
         }
         return NGX_CONF_OK;
 }
-
-/*
- * ngx_string's are not null-terminated in common case, so we need to convert
- * them into null-terminated ones
- */
+//: ----------------------------------------------------------------------------
+//: \details helper to covert nginx string to null terminated ones
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 ngx_inline char *ngx_str_to_char(ngx_str_t a, ngx_pool_t *p)
 {
-    char *str = NULL;
+        char *str = NULL;
+        if (a.len == 0) {
+            return NULL;
+        }
+        str = ngx_pnalloc(p, a.len+1);
+        if (str == NULL) {
+            return (char *)-1;
+        }
+        ngx_memcpy(str, a.data, a.len);
+        str[a.len] = '\0';
+        return str;
+}
+//: ----------------------------------------------------------------------------
+//: \details clean up main conf
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static void ngx_http_waflz_cleanup_engine(void *data)
+{
+        ngx_pool_t                  *old_pool;
+        ngx_http_waflz_conf_t       *mmcf;
 
-    if (a.len == 0) {
-        return NULL;
-    }
+        mmcf = (ngx_http_waflz_conf_t *) data;
+        old_pool = ngx_http_waflz_pcre_malloc_init(mmcf->pool);
+        engine_cleanup(mmcf->m_engine);
+        ngx_http_waflz_pcre_malloc_done(old_pool);
+        cleanup_db(mmcf->m_geoip2_db);
+}
+//: ----------------------------------------------------------------------------
+//: \details cleanup location conf
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static void ngx_http_waflz_cleanup_profile(void *data)
+{
+        ngx_pool_t                  *old_pool;
+        ngx_http_waflz_loc_conf_t   *clcf;
 
-    str = ngx_pnalloc(p, a.len+1);
-    if (str == NULL) {
-        /* We already returned NULL for an empty string, so return -1 here to indicate allocation error */
-        return (char *)-1;
-    }
-    ngx_memcpy(str, a.data, a.len);
-    str[a.len] = '\0';
-
-    return str;
+        clcf = (ngx_http_waflz_loc_conf_t *) data;
+        old_pool = ngx_http_waflz_pcre_malloc_init(clcf->pool);
+        if(clcf->m_profile)
+        {
+                cleanup_profile(clcf->m_profile);
+        }
+        ngx_http_waflz_pcre_malloc_done(old_pool);
 }

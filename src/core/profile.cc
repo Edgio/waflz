@@ -106,6 +106,7 @@ profile::profile(engine &a_engine,
         m_id(),
         m_name(profile::s_default_name),
         m_resp_header_name(),
+        m_ruleset_dir(),
         m_action(waflz_pb::enforcement_type_t_NOP),
         m_leave_compiled_file(false),
         m_owasp_ruleset_version(229),
@@ -116,6 +117,8 @@ profile::profile(engine &a_engine,
 {
         m_pb = new waflz_pb::profile();
         m_acl = new acl(a_geoip2_mmdb);
+        ns_waflz::trc_log_level_set(ns_waflz::TRC_LOG_LEVEL_DEBUG);
+        ns_waflz::trc_log_file_open("/tmp/waflz.log");
 }
 //: ----------------------------------------------------------------------------
 //: \details dtor
@@ -162,7 +165,6 @@ int32_t profile::load_config(const char *a_buf,
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        TRC_DEBUG("loading config\n");
         m_leave_compiled_file = a_leave_compiled_file;
         if(m_pb)
         {
@@ -184,7 +186,6 @@ int32_t profile::load_config(const char *a_buf,
 //        TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != JSPB_OK)
         {
-                TRC_DEBUG("error loading\n");
                 WAFLZ_PERROR(m_err_msg, "parsing json. reason: %s", get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
@@ -294,11 +295,9 @@ int32_t profile::init(void)
         // validate/compile/load
         // -------------------------------------------------
         int32_t l_s;
-        TRC_DEBUG("init\n");
         l_s = validate();
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_DEBUG("error init");
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -328,7 +327,6 @@ int32_t profile::init(void)
         l_s = m_waf->init(*this, m_leave_compiled_file);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_DEBUG("error init %s\n", m_waf->get_err_msg());
                 WAFLZ_PERROR(m_err_msg, "waf init reason: %s", m_waf->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
@@ -484,7 +482,6 @@ l_acl_pb->add_##_field(l_gs._field(i_t)); \
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "access settings: reason: %s", m_acl->get_err_msg());
-                TRC_DEBUG("error compiling\n");
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = true;
@@ -508,7 +505,6 @@ int32_t profile::validate(void)
         }
         if(!m_pb)
         {
-                TRC_DEBUG("error here %s\n", m_err_msg);
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
@@ -645,7 +641,6 @@ int32_t profile::process_request_plugin(char **ao_event,
                 char *l_event = (char*)malloc(sizeof(char*) * l_len);
                 strncpy(l_event, a_event->DebugString().c_str(), l_len);
                 *ao_event = l_event;
-                TRC_DEBUG("we have an event %s\n", *ao_event);
         }
         return l_s;
 }
@@ -663,7 +658,6 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         
         if(!ao_event)
         {
-                TRC_DEBUG("error\n");
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
@@ -694,11 +688,9 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         // run phase 1 init
         // -------------------------------------------------
         l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
-        TRC_DEBUG("init phase 1\n");
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
-                TRC_DEBUG("error\n");
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -706,7 +698,6 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-        TRC_DEBUG("processing acl\n");
         if(a_part_mk & PART_MK_ACL)
         {
                 bool l_whitelist = false;
@@ -714,7 +705,6 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???
-                        TRC_DEBUG("error in process\n");
                         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -781,12 +771,20 @@ extern "C" int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a
 }
 extern "C" int32_t set_ruleset(profile *a_profile, char *a_ruleset_dir)
 {
-        
-        a_profile->s_ruleset_dir.copy(a_ruleset_dir, strlen(a_ruleset_dir));
-        TRC_DEBUG("ruleset dir %s\n", a_profile->s_ruleset_dir.c_str());
+        a_profile->set_ruleset_dir(a_ruleset_dir);
+        return WAFLZ_STATUS_OK;
 }
-extern "C" int32_t process_request(profile *a_profile, void *a_ctx, rqst_ctx *a_rqst_ctx, char **a_event)
+extern "C" int32_t process_request(profile *a_profile, void *ao_ctx, rqst_ctx *a_rqst_ctx, char **ao_event)
 {
-        return a_profile->process_request_plugin(a_event, a_ctx, &a_rqst_ctx);
+        return a_profile->process_request_plugin(ao_event, ao_ctx, &a_rqst_ctx);
+}
+extern "C" int32_t cleanup_profile(profile *a_profile)
+{
+        if(a_profile)
+        {
+                delete a_profile;
+                a_profile = NULL;
+        }
+        return WAFLZ_STATUS_OK;
 }
 }

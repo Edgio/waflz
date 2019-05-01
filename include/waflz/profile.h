@@ -98,8 +98,10 @@ public:
         const std::string &get_id(void) { return m_id; }
         const std::string &get_name(void) { return m_name; }
         const std::string &get_resp_header_name(void) { return m_resp_header_name; }
+        const std::string &get_ruleset_dir(void) { return m_ruleset_dir; }
         uint16_t get_action(void) { return m_action; }
         void set_pb(waflz_pb::profile *a_pb);
+        void set_ruleset_dir(std::string a_ruleset_dir) { m_ruleset_dir = a_ruleset_dir; }
         // -------------------------------------------------
         // public static members
         // -------------------------------------------------
@@ -143,6 +145,7 @@ private:
         std::string m_id;
         std::string m_name;
         std::string m_resp_header_name;
+        std::string m_ruleset_dir;
         uint16_t m_action;
         bool m_leave_compiled_file;
         uint32_t m_owasp_ruleset_version;
@@ -170,6 +173,7 @@ profile *create_profile(engine *a_engine, geoip2_mmdb *a_geoip2_mmdb);
 int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a_len);
 int32_t set_ruleset(profile *a_profile, char *a_ruleset_dir);
 int32_t process_request(profile *a_profile, void *ao_rqst_ctx, rqst_ctx *a_rqst_ctx, char **a_event);
+int32_t cleanup_profile(profile *a_profile);
 #ifdef __cplusplus
 }
 

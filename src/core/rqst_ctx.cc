@@ -1170,12 +1170,17 @@ void rqst_ctx::show(void)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-extern "C" rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, const rqst_ctx_callbacks *a_callbacks, bool a_parse_json) {
+extern "C" rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, const rqst_ctx_callbacks *a_callbacks, bool a_parse_json)
+{
     return new rqst_ctx(a_ctx, a_max_body_len, a_callbacks, a_parse_json);
 }
-extern "C" int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx) {
-    delete a_rqst_ctx;
-    a_rqst_ctx = NULL;
+extern "C" int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx)
+{
+        if(a_rqst_ctx)
+        {
+                delete a_rqst_ctx;
+                a_rqst_ctx = NULL;
+        }
 }
 
 }

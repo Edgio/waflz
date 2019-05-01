@@ -114,6 +114,7 @@ extern "C" {
 #endif
 
 engine *init_engine(void);
+int32_t engine_cleanup(engine *a_engine);
 
 #ifdef __cplusplus
 }

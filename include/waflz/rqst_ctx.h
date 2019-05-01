@@ -207,7 +207,6 @@ private:
 extern "C" {
 #endif
 rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, const rqst_ctx_callbacks *a_callbacks, bool a_parse_json);
-int32_t set_callbacks(rqst_ctx *a_rqst_ctx, rqst_ctx_callbacks *a_callbacks);
 int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx);
 #ifdef __cplusplus
 }

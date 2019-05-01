@@ -724,7 +724,17 @@ int32_t engine::merge(compiled_config_t &ao_cx_cfg,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-extern "C" engine *init_engine(void) {
-    return new engine();
+extern "C" engine *init_engine(void)
+{
+        return new engine();
+}
+extern "C" int32_t engine_cleanup(engine *a_engine)
+{
+        if(a_engine)
+        {
+                delete a_engine;
+                a_engine = NULL;
+        }
+        return WAFLZ_STATUS_OK;
 }
 }

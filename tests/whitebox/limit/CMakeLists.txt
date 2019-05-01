@@ -52,5 +52,13 @@ add_dependencies(wb_challenge waflzcore)
 target_link_libraries(wb_challenge ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
 SET_TARGET_PROPERTIES(wb_challenge PROPERTIES OUTPUT_NAME "wb_challenge")
 add_test(challenge wb_challenge)
-
+# ------------------------------------------------------------------------------
+# wb_enforcer
+# ------------------------------------------------------------------------------
+SET(SRCS wb_enforcer.cc)
+add_executable(wb_enforcer ${HDRS} ${SRCS})
+add_dependencies(wb_enforcer waflzcore)
+target_link_libraries(wb_enforcer ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
+SET_TARGET_PROPERTIES(wb_enforcer PROPERTIES OUTPUT_NAME "wb_enforcer")
+add_test(enforcer wb_enforcer)
 

@@ -38,6 +38,10 @@
 namespace waflz_pb {
 class event;
 }
+namespace waflz_limit_pb {
+class limit;
+class condition_group;
+}
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! fwd decl's
@@ -142,8 +146,12 @@ public:
         bool m_parse_json;
         std::string m_cookie_mutated;
         data_t m_req_uuid;
+        uint32_t m_bytes_out;
+        uint32_t m_bytes_in;
         mutable_data_t m_token;
         uint32_t m_resp_status;
+        const waflz_limit_pb::limit* m_limit;
+        const waflz_limit_pb::condition_group* m_condition_group;
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------
@@ -175,6 +183,7 @@ private:
         // -------------------------------------------------
         // private methods
         // -------------------------------------------------
+        // disallow copy/assign
         rqst_ctx(const rqst_ctx &);
         rqst_ctx& operator=(const rqst_ctx &);
         // -------------------------------------------------

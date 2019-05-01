@@ -191,6 +191,7 @@ list(APPEND SRCS
     limit/challenge.cc
     limit/rl_obj.cc
     limit/rl_op.cc
+    limit/enforcer.cc
 )
 endif()
 # ------------------------------------------------------------------------------

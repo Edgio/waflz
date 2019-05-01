@@ -44,7 +44,7 @@
 //! constants
 //! ----------------------------------------------------------------------------
 // the maximum size of the json defining configuration for a ddos enforcement (1MB)
-#define CONFIG_SECURITY_DDOS_CONFIG_MAX_SIZE (1<<20)
+#define _CONFIG_MAX_SIZE (1<<20)
 #define _MAX_KEY_LEN 1024
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
@@ -338,11 +338,11 @@ int32_t config::load(void *a_js)
 int32_t config::load(const char *a_buf,
                      uint32_t a_buf_len)
 {
-        if(a_buf_len > CONFIG_SECURITY_DDOS_CONFIG_MAX_SIZE)
+        if(a_buf_len > _CONFIG_MAX_SIZE)
         {
                 WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
                              a_buf_len,
-                             CONFIG_SECURITY_DDOS_CONFIG_MAX_SIZE);
+                             _CONFIG_MAX_SIZE);
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------

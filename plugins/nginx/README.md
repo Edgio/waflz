@@ -1,8 +1,11 @@
-#Build
+# waflz nginx module
+
+### build
 
 ./configure --add-module=<path to nginx module>
 
-#Sample config
+### Sample nginx server block
+```sh
 server {
         listen        8080;
         server_name   localhost;
@@ -22,3 +25,4 @@ server {
         }
 
     }
+```

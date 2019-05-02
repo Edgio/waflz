@@ -788,23 +788,19 @@ int32_t config::generate_alert(waflz_limit_pb::alert** ao_alert,
         // others...
         // -------------------------------------------------
         _SET_IF_EXIST_STR(m_src_addr, virt_remote_host);
-        // TODO FIX!!!
-        //_SET_IF_EXIST_STR(m_local_addr, local_addr);
+        _SET_IF_EXIST_STR(m_local_addr, local_addr);
         _SET_IF_EXIST_INT(m_port, server_canonical_port);
         _SET_IF_EXIST_STR(m_uri, orig_url);
         _SET_IF_EXIST_STR(m_url, url);
         _SET_IF_EXIST_STR(m_query_str, query_string);
         _SET_IF_EXIST_STR(m_method, request_method);
-        // TODO FIX!!!
-        //_SET_IF_EXIST_INT(m_request_id, request_id);
         _SET_IF_EXIST_STR(m_req_uuid, req_uuid);
         _SET_IF_EXIST_INT(m_bytes_out, bytes_out);
         _SET_IF_EXIST_INT(m_bytes_in, bytes_in);
         // -------------------------------------------------
         // TODO -apologies for enum casting...
         // -------------------------------------------------
-        // TODO FIX!!!
-        //l_request_info->set_apparent_cache_log_status(static_cast <waflz_limit_pb::request_info::log_status_t>(a_ctx->m_apparent_cache_status));
+        l_request_info->set_apparent_cache_log_status(static_cast <waflz_limit_pb::request_info::log_status_t>(a_ctx->m_apparent_cache_status));
         // -------------------------------------------------
         // set customer id...
         // -------------------------------------------------

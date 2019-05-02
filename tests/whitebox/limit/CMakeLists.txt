@@ -61,4 +61,31 @@ add_dependencies(wb_enforcer waflzcore)
 target_link_libraries(wb_enforcer ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
 SET_TARGET_PROPERTIES(wb_enforcer PROPERTIES OUTPUT_NAME "wb_enforcer")
 add_test(enforcer wb_enforcer)
+# ------------------------------------------------------------------------------
+# wb_config
+# ------------------------------------------------------------------------------
+SET(SRCS wb_config.cc)
+add_executable(wb_config ${HDRS} ${SRCS})
+add_dependencies(wb_config waflzcore)
+target_link_libraries(wb_config ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
+SET_TARGET_PROPERTIES(wb_config PROPERTIES OUTPUT_NAME "wb_config")
+add_test(config wb_config)
+# ------------------------------------------------------------------------------
+# wb_config_bc
+# ------------------------------------------------------------------------------
+SET(SRCS wb_config_bc.cc)
+add_executable(wb_config_bc ${HDRS} ${SRCS})
+add_dependencies(wb_config_bc waflzcore)
+target_link_libraries(wb_config_bc ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
+SET_TARGET_PROPERTIES(wb_config_bc PROPERTIES OUTPUT_NAME "wb_config_bc")
+add_test(config_bc wb_config_bc)
+# ------------------------------------------------------------------------------
+# wb_integration
+# ------------------------------------------------------------------------------
+SET(SRCS wb_integration.cc)
+add_executable(wb_integration ${HDRS} ${SRCS})
+add_dependencies(wb_integration waflzcore)
+target_link_libraries(wb_integration ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
+SET_TARGET_PROPERTIES(wb_integration PROPERTIES OUTPUT_NAME "wb_integration")
+add_test(integration wb_integration)
 

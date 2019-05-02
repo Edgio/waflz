@@ -43,6 +43,19 @@
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------
+#define _GET_HEADER(_header) do { \
+    l_d.m_data = _header; \
+    l_d.m_len = sizeof(_header); \
+    data_map_t::const_iterator i_h = a_ctx->m_header_map.find(l_d); \
+    if(i_h != a_ctx->m_header_map.end()) \
+    { \
+            l_v.m_data = i_h->second.m_data; \
+            l_v.m_len = i_h->second.m_len; \
+    } \
+    } while(0)
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 // the maximum size of the json defining configuration for a ddos enforcement (1MB)
 #define _CONFIG_MAX_SIZE (1<<20)
 #define _MAX_KEY_LEN 1024
@@ -894,9 +907,15 @@ int32_t config::add_limit_with_key(waflz_limit_pb::limit &ao_limit,
         // -------------------------------------------------
         case waflz_limit_pb::limit_key_t_USER_AGENT:
         {
-                // TODO FIX!!!
-                //l_data = a_ctx->m_ua.m_data;
-                //l_len = a_ctx->m_ua.m_len;
+                if(!a_ctx)
+                {
+                        break;
+                }
+                data_t l_d;
+                data_t l_v;
+                _GET_HEADER("User-Agent");
+                l_data = l_v.m_data;
+                l_len = l_v.m_len;
                 break;
         }
         // -------------------------------------------------
@@ -1376,15 +1395,14 @@ int32_t config::get_limit_key_value(char *ao_key,
                 // -----------------------------------------
                 case waflz_limit_pb::limit_key_t_USER_AGENT:
                 {
-                        // TODO FIX!!!
-#if 0
-                        const data_t &l_d = a_ctx->m_ua;
-                        if(l_d.m_data &&
-                           l_d.m_len)
+                        data_t l_d;
+                        data_t l_v;
+                        _GET_HEADER("User-Agent");
+                        if(l_v.m_data &&
+                           l_v.m_len)
                         {
-                                l_dim_hash += CityHash64(l_d.m_data, l_d.m_len);
+                                l_dim_hash += CityHash64(l_v.m_data, l_v.m_len);
                         }
-#endif
                         break;
                 }
                 // -----------------------------------------

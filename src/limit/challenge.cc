@@ -408,6 +408,21 @@ int32_t challenge::set_ectoken(int32_t a_prob_id,
 }
 //! ----------------------------------------------------------------------------
 //! @brief TODO
+//! @param <ao_arg_list> - arg list to clean
+//! @return TODO
+//! ----------------------------------------------------------------------------
+static void free_arg_list(arg_list_t &ao_arg_list)
+{
+        for(arg_list_t::iterator i_q = ao_arg_list.begin();
+            i_q != ao_arg_list.end();
+            ++i_q)
+        {
+                if(i_q->m_key) { free(i_q->m_key); i_q->m_key = NULL; }
+                if(i_q->m_val) { free(i_q->m_val); i_q->m_val = NULL; }
+        }
+}
+//! ----------------------------------------------------------------------------
+//! @brief TODO
 //! @param <ao_pass> - true if challenge passed -false otherwise
 //! @param <a_ctx>   - request ctx
 //! @return TODO
@@ -430,6 +445,7 @@ int32_t challenge::verify_token(bool& ao_pass,
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "ec token decrypt failed");
+                free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -468,11 +484,13 @@ int32_t challenge::verify_token(bool& ao_pass,
            (a_ctx->m_src_addr.m_len <= 0))
         {
                 WAFLZ_PERROR(m_err_msg, "ip missing in the ctx");
+                free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_OK;
         }
         if(strncmp(a_ctx->m_src_addr.m_data, i_t->second.m_data, i_t->second.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "token ip validation failed");
+                free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -489,11 +507,13 @@ int32_t challenge::verify_token(bool& ao_pass,
            (l_v.m_len <= 0))
         {
                 WAFLZ_PERROR(m_err_msg, "user-agent missing in the ctx");
+                free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_OK;
         }
         if(strncmp(l_v.m_data, i_t->second.m_data, i_t->second.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "token user-agent validation failed");
+                free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -505,6 +525,7 @@ int32_t challenge::verify_token(bool& ao_pass,
         if((l_time_cur-l_time_tok) >= a_valid_for_s)
         {
                 WAFLZ_PERROR(m_err_msg, "token expired");
+                free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -516,6 +537,7 @@ int32_t challenge::verify_token(bool& ao_pass,
         if(l_id < 0)
         {
                 WAFLZ_PERROR(m_err_msg, "prob_id is invalid int (%.*s)", i_t->second.m_len, i_t->second.m_data);
+                free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_OK;
         }
         prob_map_t::const_iterator i_c = m_prob_map.begin();
@@ -523,6 +545,7 @@ int32_t challenge::verify_token(bool& ao_pass,
         if(i_c == m_prob_map.end())
         {
                 WAFLZ_PERROR(m_err_msg, "%s", "problem id not found in the config");
+                free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_OK;
         }
         const std::string& l_answer = i_c->second->answer();
@@ -532,10 +555,12 @@ int32_t challenge::verify_token(bool& ao_pass,
         if(strncmp(l_answer.c_str(), a_ans.m_data, a_ans.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "challenge verification failed");
+                free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_OK;
         }
         // challenge passed...
         ao_pass = true;
+        free_arg_list(l_tk_list);
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------

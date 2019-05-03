@@ -98,8 +98,8 @@
 TEST_CASE( "valid_render_html_test", "[load_valid_render_html]" ) {
         SECTION("verify render basic") {
                 int32_t l_s;
-                char *l_buf;
-                size_t l_len;
+                char *l_buf = NULL;
+                size_t l_len = 0;
                 ns_waflz::rqst_ctx *l_ctx = new ns_waflz::rqst_ctx(NULL, 0);
                 // -----------------------------------------
                 // no token
@@ -144,7 +144,6 @@ TEST_CASE( "valid_render_html_test", "[load_valid_render_html]" ) {
                 l_ctx->m_token.m_len = l_tk_len;
                 l_s = ns_waflz::render(&l_buf, l_len, RESP_3, strlen(RESP_3), l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                //NDBG_PRINT("l_buf: %s\n", l_buf);
                 const char l_resp_3[] = "HI MY_COOL_USER_AGENT IS YOUR TOKEN MY_COOL_EC_TOKEN???";
                 REQUIRE((strncmp(l_resp_3, l_buf, sizeof(l_resp_3) - 1) == 0));
                 if(l_buf) { free(l_buf); l_buf = NULL; }

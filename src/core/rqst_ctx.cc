@@ -307,6 +307,10 @@ rqst_ctx::~rqst_ctx()
         // delete parser
         // -------------------------------------------------
         if(m_body_parser) { delete m_body_parser; m_body_parser = NULL;}
+        // -------------------------------------------------
+        // delete any tokens
+        // -------------------------------------------------
+        if(m_token.m_data) { free(m_token.m_data); m_token.m_data = NULL; m_token.m_len = 0; }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO

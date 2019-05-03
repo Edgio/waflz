@@ -31,6 +31,9 @@
 #include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/render.h"
+#include "waflz/limit/configs.h"
+#include "waflz/limit/config.h"
+#include "waflz/limit/challenge.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/geoip2_mmdb.h"
@@ -97,13 +100,19 @@ static std::string get_file_ext(const std::string &a_filename)
 //: ----------------------------------------------------------------------------
 //: ****************************************************************************
 //: ----------------------------------------------------------------------------
-//:
+//: globals
 //: ----------------------------------------------------------------------------
 ns_is2::srvr *g_srvr = NULL;
 bool g_random_ips = false;
 bool g_bg_load = false;
 waflz_pb::enforcement *g_enfx = NULL;
 std::string g_ups_host;
+ns_waflz::instances *g_instances = NULL;
+ns_waflz::profile *g_profile = NULL;
+ns_waflz::waf *g_wafl = NULL;
+ns_waflz::instances::id_vector_t g_id_vector;
+std::string g_out_file;
+FILE *g_out_file_ptr = NULL;
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
@@ -111,16 +120,13 @@ class waflz_update_profile_h: public ns_is2::default_rqst_h
 {
 public:
         waflz_update_profile_h():
-                default_rqst_h(),
-                m_profile(NULL)
+                default_rqst_h()
         {}
         ~waflz_update_profile_h()
         {}
         ns_is2::h_resp_t do_post(ns_is2::session &a_session,
                                  ns_is2::rqst &a_rqst,
                                  const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::profile *m_profile;
-        ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
 };
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -131,9 +137,9 @@ ns_is2::h_resp_t waflz_update_profile_h::do_post(ns_is2::session &a_session,
                                                  ns_is2::rqst &a_rqst,
                                                  const ns_is2::url_pmap_t &a_url_pmap)
 {
-        if(!m_profile)
+        if(!g_profile)
         {
-                TRC_ERROR("m_profile == NULL\n");
+                TRC_ERROR("g_profile == NULL\n");
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
         uint64_t l_buf_len = a_rqst.get_body_len();
@@ -145,10 +151,10 @@ ns_is2::h_resp_t waflz_update_profile_h::do_post(ns_is2::session &a_session,
         // TODO get status
         //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
         int32_t l_s;
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
+        l_s = g_profile->load_config(l_buf, l_buf_len, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_ERROR("performing m_profile->load_config\n");
+                TRC_ERROR("performing g_profile->load_config: reason: %s\n", g_profile->get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -172,15 +178,13 @@ class waflz_update_instances_h: public ns_is2::default_rqst_h
 {
 public:
         waflz_update_instances_h():
-                default_rqst_h(),
-                m_instances(NULL)
+                default_rqst_h()
         {}
         ~waflz_update_instances_h()
         {}
         ns_is2::h_resp_t do_post(ns_is2::session &a_session,
                                  ns_is2::rqst &a_rqst,
                                  const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::instances *m_instances;
 };
 //: ----------------------------------------------------------------------------
 //: type
@@ -188,7 +192,6 @@ public:
 typedef struct _waf_instance_update {
         char *m_buf;
         uint32_t m_buf_len;
-        ns_waflz::instances *m_instances;
 } waf_instance_update_t;
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -204,10 +207,10 @@ static void *t_load_instance(void *a_context)
         }
         int32_t l_s;
         ns_waflz::instance *l_instance = NULL;
-        l_s = l_i->m_instances->load_config(&l_instance, l_i->m_buf, l_i->m_buf_len, true);
+        l_s = g_instances->load_config(&l_instance, l_i->m_buf, l_i->m_buf_len, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_ERROR("performing m_profile->load_config\n");
+                TRC_ERROR("performing g_profile->load_config\n");
                 if(l_i->m_buf) { free(l_i->m_buf); l_i->m_buf = NULL;}
                 return NULL;
         }
@@ -224,9 +227,9 @@ ns_is2::h_resp_t waflz_update_instances_h::do_post(ns_is2::session &a_session,
                                                   ns_is2::rqst &a_rqst,
                                                   const ns_is2::url_pmap_t &a_url_pmap)
 {
-        if(!m_instances)
+        if(!g_instances)
         {
-                TRC_ERROR("m_profile == NULL\n");
+                TRC_ERROR("g_profile == NULL\n");
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
         uint64_t l_buf_len = a_rqst.get_body_len();
@@ -235,17 +238,17 @@ ns_is2::h_resp_t waflz_update_instances_h::do_post(ns_is2::session &a_session,
         char *l_buf;
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
-        m_instances->set_locking(true);
+        g_instances->set_locking(true);
         if(!g_bg_load)
         {
                 // TODO get status
                 //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
                 int32_t l_s;
                 ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len, true);
+                l_s = g_instances->load_config(&l_instance, l_buf, l_buf_len, true);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        TRC_ERROR("performing m_profile->load_config\n");
+                        TRC_ERROR("performing g_profile->load_config\n");
                         if(l_buf) { free(l_buf); l_buf = NULL;}
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
@@ -257,7 +260,6 @@ ns_is2::h_resp_t waflz_update_instances_h::do_post(ns_is2::session &a_session,
                 l_instance_update = new waf_instance_update_t();
                 l_instance_update->m_buf = l_buf;
                 l_instance_update->m_buf_len = l_buf_len;
-                l_instance_update->m_instances = m_instances;
                 pthread_t l_t_thread;
                 int32_t l_pthread_error = 0;
                 l_pthread_error = pthread_create(&l_t_thread,
@@ -288,23 +290,17 @@ class waflz_h: public ns_is2::proxy_h
 {
 public:
         waflz_h(const std::string &a_out_file, const std::string &a_proxy_host):
-                proxy_h(a_proxy_host, ""),
-                m_instances(NULL),
-                m_profile(NULL),
-                m_wafl(NULL),
-                m_id_vector(),
-                m_out_file(a_out_file),
-                m_out_file_ptr(NULL)
+                proxy_h(a_proxy_host, "")
         {}
         int32_t init(void)
         {
-                if(!m_out_file.empty())
+                if(!g_out_file.empty())
                 {
-                        m_out_file_ptr = fopen(m_out_file.c_str(), "a");
-                        if(!m_out_file_ptr)
+                        g_out_file_ptr = fopen(g_out_file.c_str(), "a");
+                        if(!g_out_file_ptr)
                         {
                                 NDBG_PRINT("error opening output file: %s. Reason: %s\n",
-                                           m_out_file.c_str(),
+                                           g_out_file.c_str(),
                                            strerror(errno));
                                 return STATUS_ERROR;
                         }
@@ -313,21 +309,15 @@ public:
         }
         ~waflz_h()
         {
-                if(m_out_file_ptr)
+                if(g_out_file_ptr)
                 {
-                        fclose(m_out_file_ptr);
-                        m_out_file_ptr = NULL;
+                        fclose(g_out_file_ptr);
+                        g_out_file_ptr = NULL;
                 }
         }
         ns_is2::h_resp_t do_default(ns_is2::session &a_session,
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::instances *m_instances;
-        ns_waflz::profile *m_profile;
-        ns_waflz::waf *m_wafl;
-        ns_waflz::instances::id_vector_t m_id_vector;
-        std::string m_out_file;
-        FILE *m_out_file_ptr;
 };
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -338,9 +328,9 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                                      ns_is2::rqst &a_rqst,
                                      const ns_is2::url_pmap_t &a_url_pmap)
 {
-        if(!m_profile &&
-           !m_instances &&
-           !m_wafl)
+        if(!g_profile &&
+           !g_instances &&
+           !g_wafl)
         {
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -355,9 +345,9 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
         // -------------------------------------------------
         // conf
         // -------------------------------------------------
-        if(m_wafl)
+        if(g_wafl)
         {
-                l_s = m_wafl->process(&l_event, &a_session, &l_rqst_ctx);
+                l_s = g_wafl->process(&l_event, &a_session, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason. TBD\n");
@@ -370,19 +360,19 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
         // -------------------------------------------------
         // profile
         // -------------------------------------------------
-        else if(m_profile)
+        else if(g_profile)
         {
-                l_s = m_profile->process(&l_event, &a_session, &l_rqst_ctx);
+                l_s = g_profile->process(&l_event, &a_session, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason: %s\n",
-                                   m_profile->get_err_msg());
+                                   g_profile->get_err_msg());
                         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                         if(l_event) { delete l_event; l_event = NULL; }
                         if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
-                //ns_waflz::waf *l_waf = m_profile->get_waf();
+                //ns_waflz::waf *l_waf = g_profile->get_waf();
                 //NDBG_OUTPUT("*****************************************\n");
                 //NDBG_OUTPUT("*             S T A T U S               *\n");
                 //NDBG_OUTPUT("*****************************************\n");
@@ -395,19 +385,19 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
         // -------------------------------------------------
         // instances
         // -------------------------------------------------
-        else if(m_instances)
+        else if(g_instances)
         {
-                m_instances->set_locking(true);
+                g_instances->set_locking(true);
                 std::string l_id;
                 // -----------------------------------------
                 // pick rand from id set if not empty
                 // -----------------------------------------
-                if(!m_id_vector.empty())
+                if(!g_id_vector.empty())
                 {
-                        uint32_t l_len = (uint32_t)m_id_vector.size();
+                        uint32_t l_len = (uint32_t)g_id_vector.size();
                         uint32_t l_idx = 0;
                         l_idx = ((uint32_t)rand()) % (l_len + 1);
-                        l_id = m_id_vector[l_idx];
+                        l_id = g_id_vector[l_idx];
                 }
                 // -----------------------------------------
                 // get id from header if exists
@@ -425,7 +415,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 if(l_id.empty())
                 {
                         ns_waflz::instance *l_instance = NULL;
-                        l_instance = m_instances->get_first_instance();
+                        l_instance = g_instances->get_first_instance();
                         if(!l_instance)
                         {
                                 if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
@@ -453,11 +443,11 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
                 // -----------------------------------------
                 // process audit
                 // -----------------------------------------
-                l_s = m_instances->process(&l_event_audit, &l_event, &a_session, l_id, &l_rqst_ctx);
+                l_s = g_instances->process(&l_event_audit, &l_event, &a_session, l_id, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason: %s\n",
-                                   m_instances->get_err_msg());
+                                   g_instances->get_err_msg());
                         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                         if(l_event) { delete l_event; l_event = NULL; }
                         if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -473,7 +463,7 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
         // -------------------------------------------------
         // for instances create string with both...
         // -------------------------------------------------
-        if(m_instances)
+        if(g_instances)
         {
                 rapidjson::Document l_event_json;
                 rapidjson::Document l_event_audit_json;
@@ -532,15 +522,15 @@ write_out:
         // -------------------------------------------------
         // write out if output...
         // -------------------------------------------------
-        if(m_out_file_ptr)
+        if(g_out_file_ptr)
         {
                 size_t l_fw_s;
-                l_fw_s = fwrite(l_event_str.c_str(), 1, l_event_str.length(), m_out_file_ptr);
+                l_fw_s = fwrite(l_event_str.c_str(), 1, l_event_str.length(), g_out_file_ptr);
                 if(l_fw_s != l_event_str.length())
                 {
                         NDBG_PRINT("error performing fwrite.\n");
                 }
-                fwrite("\n", 1, 1, m_out_file_ptr);
+                fwrite("\n", 1, 1, g_out_file_ptr);
         }
         // -------------------------------------------------
         // response...
@@ -1642,10 +1632,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // setup
         // -------------------------------------------------
-        ns_waflz::waf *l_wafl = NULL;
-        ns_waflz::instances *l_instances = NULL;
         waflz_update_instances_h *l_waflz_update_instances_h = NULL;
-        ns_waflz::profile *l_profile = NULL;
         waflz_update_profile_h *l_waflz_update_profile_h = NULL;
         // -------------------------------------------------
         // engine
@@ -1661,9 +1648,8 @@ int main(int argc, char** argv)
                 // guess owasp version
                 // -----------------------------------------
                 uint32_t l_owasp_version = 229;
-                l_wafl = new ns_waflz::waf(*l_engine);
-                l_wafl->set_owasp_ruleset_version(l_owasp_version);
-                l_waflz_h->m_wafl = l_wafl;
+                g_wafl = new ns_waflz::waf(*l_engine);
+                g_wafl->set_owasp_ruleset_version(l_owasp_version);
                 // -----------------------------------------
                 // guess format from ext...
                 // -----------------------------------------
@@ -1674,7 +1660,7 @@ int main(int argc, char** argv)
                 {
                         l_fmt = ns_waflz::config_parser::JSON;
                 }
-                l_s = l_wafl->init(l_fmt, l_conf_file, true);
+                l_s = g_wafl->init(l_fmt, l_conf_file, true);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading conf file: %s. reason: %s\n",
@@ -1700,10 +1686,9 @@ int main(int argc, char** argv)
                         NDBG_PRINT("error performing guess_owasp_version\n");
                         return STATUS_ERROR;
                 }
-                l_wafl = new ns_waflz::waf(*l_engine);
-                l_wafl->set_owasp_ruleset_version(l_owasp_version);
-                l_waflz_h->m_wafl = l_wafl;
-                l_s = l_wafl->init(ns_waflz::config_parser::MODSECURITY, l_modsecurity_file);
+                g_wafl = new ns_waflz::waf(*l_engine);
+                g_wafl->set_owasp_ruleset_version(l_owasp_version);
+                l_s = g_wafl->init(ns_waflz::config_parser::MODSECURITY, l_modsecurity_file);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading modsecurity file: %s. reason: %s\n",
@@ -1719,27 +1704,25 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         else if(!l_instance_dir.empty())
         {
-                l_instances = new ns_waflz::instances(*l_engine, g_bg_load);
+                g_instances = new ns_waflz::instances(*l_engine, g_bg_load);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error initializing instances, reason:%s",
-                                   l_instances->get_err_msg());
+                                   g_instances->get_err_msg());
                         return STATUS_ERROR;
                 }
-                l_s = l_instances->init_dbs();
+                l_s = g_instances->init_dbs();
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
                                    ns_waflz::profile::s_geoip2_db.c_str(),
                                    ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                                   l_instances->get_err_msg());
+                                   g_instances->get_err_msg());
                         return STATUS_ERROR;
                 }
-                l_waflz_h->m_instances = l_instances;
                 l_waflz_update_instances_h = new waflz_update_instances_h();
-                l_waflz_update_instances_h->m_instances = l_instances;
                 //NDBG_PRINT("l_instance_dir: %s\n", l_instance_dir.c_str());
-                l_s = l_instances->load_config_dir(l_instance_dir.c_str(),
+                l_s = g_instances->load_config_dir(l_instance_dir.c_str(),
                                                    l_instance_dir.length(),
                                                    true,
                                                    true);
@@ -1747,12 +1730,11 @@ int main(int argc, char** argv)
                 {
                         NDBG_PRINT("error loading config dir: %s. reason: %s\n",
                                      l_instance_dir.c_str(),
-                                     l_instances->get_err_msg());
+                                     g_instances->get_err_msg());
                         l_engine->shutdown();
                         return STATUS_ERROR;
                 }
-                l_instances->get_instance_id_vector(l_waflz_h->m_id_vector);
-                //NDBG_PRINT("m_id_vector size: %u\n", (uint32_t)l_waflz_h->m_id_vector.size());
+                //NDBG_PRINT("g_id_vector size: %u\n", (uint32_t)l_waflz_h->g_id_vector.size());
                 l_lsnr->add_route("/update_instance", l_waflz_update_instances_h);
         }
         // -------------------------------------------------
@@ -1769,36 +1751,34 @@ int main(int argc, char** argv)
                         NDBG_PRINT("error read_file: %s\n", l_instance_file.c_str());
                         return STATUS_ERROR;
                 }
-                l_instances = new ns_waflz::instances(*l_engine, g_bg_load);
+                g_instances = new ns_waflz::instances(*l_engine, g_bg_load);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
                                    ns_waflz::profile::s_geoip2_db.c_str(),
                                    ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                                   l_instances->get_err_msg());
+                                   g_instances->get_err_msg());
                         return STATUS_ERROR;
                 }
-                l_s = l_instances->init_dbs();
+                l_s = g_instances->init_dbs();
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
                                    ns_waflz::profile::s_geoip2_db.c_str(),
                                    ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                                   l_instances->get_err_msg());
+                                   g_instances->get_err_msg());
                         return STATUS_ERROR;
                 }
-                l_waflz_h->m_instances = l_instances;
                 l_waflz_update_instances_h = new waflz_update_instances_h();
-                l_waflz_update_instances_h->m_instances = l_instances;
                 ns_waflz::instance *l_instance = NULL;
-                l_s = l_instances->load_config(&l_instance, l_buf, l_buf_len, true);
+                l_s = g_instances->load_config(&l_instance, l_buf, l_buf_len, true);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_instances)
+                        if(g_instances)
                         {
                                 NDBG_PRINT("error loading config: %s. reason: %s\n",
                                                 l_instance_file.c_str(),
-                                                l_instances->get_err_msg());
+                                                g_instances->get_err_msg());
                         }
                         else
                         {
@@ -1835,17 +1815,15 @@ int main(int argc, char** argv)
                         NDBG_PRINT("error read_file: %s\n", l_profile_file.c_str());
                         return STATUS_ERROR;
                 }
-                l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
-                l_waflz_h->m_profile = l_profile;
+                g_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
                 l_waflz_update_profile_h = new waflz_update_profile_h();
-                l_waflz_update_profile_h->m_profile = l_profile;
                 //NDBG_PRINT("load profile: %s\n", l_profile_file.c_str());
-                l_s = l_profile->load_config(l_buf, l_buf_len, true);
+                l_s = g_profile->load_config(l_buf, l_buf_len, true);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config: %s. reason: %s\n",
                                         l_profile_file.c_str(),
-                                        l_profile->get_err_msg());
+                                        g_profile->get_err_msg());
                         if(l_buf)
                         {
                                 free(l_buf);
@@ -1920,10 +1898,10 @@ int main(int argc, char** argv)
                 delete l_waflz_h;
                 l_waflz_h = NULL;
         }
-        if(l_wafl)
+        if(g_wafl)
         {
-                delete l_wafl;
-                l_wafl = NULL;
+                delete g_wafl;
+                g_wafl = NULL;
         }
         if(l_engine)
         {
@@ -1931,15 +1909,15 @@ int main(int argc, char** argv)
                 delete l_engine;
                 l_engine = NULL;
         }
-        if(l_instances)
+        if(g_instances)
         {
-                delete l_instances;
-                l_instances = NULL;
+                delete g_instances;
+                g_instances = NULL;
         }
-        else if(l_profile)
+        else if(g_profile)
         {
-                delete l_profile;
-                l_profile = NULL;
+                delete g_profile;
+                g_profile = NULL;
         }
         if(l_waflz_update_instances_h)
         {

@@ -284,12 +284,25 @@ ns_is2::h_resp_t waflz_update_instances_h::do_post(ns_is2::session &a_session,
         return ns_is2::H_RESP_DONE;
 }
 //: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+static ns_is2::h_resp_t handle_rqst(ns_is2::session &a_session,
+                                    ns_is2::rqst &a_rqst,
+                                    const ns_is2::url_pmap_t &a_url_pmap)
+{
+        ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
+        // TODO
+        return l_resp_code;
+}
+//: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-class waflz_h: public ns_is2::proxy_h
+class waflz_proxy_h: public ns_is2::proxy_h
 {
 public:
-        waflz_h(const std::string &a_out_file, const std::string &a_proxy_host):
+        waflz_proxy_h(const std::string &a_out_file, const std::string &a_proxy_host):
                 proxy_h(a_proxy_host, "")
         {}
         int32_t init(void)
@@ -307,7 +320,7 @@ public:
                 }
                 return STATUS_OK;
         }
-        ~waflz_h()
+        ~waflz_proxy_h()
         {
                 if(g_out_file_ptr)
                 {
@@ -324,7 +337,7 @@ public:
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
+ns_is2::h_resp_t waflz_proxy_h::do_default(ns_is2::session &a_session,
                                      ns_is2::rqst &a_rqst,
                                      const ns_is2::url_pmap_t &a_url_pmap)
 {
@@ -340,7 +353,6 @@ ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
         int32_t l_s;
         waflz_pb::event *l_event = NULL;
         waflz_pb::event *l_event_audit = NULL;
-        waflz_pb::enforcement *l_enfx = g_enfx;
         ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
         // -------------------------------------------------
         // conf
@@ -1621,7 +1633,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // waflz handler
         // -------------------------------------------------
-        waflz_h *l_waflz_h = new waflz_h(l_out_file, l_proxy_host);
+        waflz_proxy_h *l_waflz_h = new waflz_proxy_h(l_out_file, l_proxy_host);
         l_s = l_waflz_h->init();
         if(l_s != STATUS_OK)
         {

@@ -63,6 +63,7 @@ target_link_libraries(waflz_server
   xml2
   protobuf
   pcre
+  # rate-limiting only...
   hiredis
   kyotocabinet
 )

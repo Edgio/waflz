@@ -103,6 +103,12 @@ if (FORTIFY)
   add_definitions(-D_FORTIFY_SOURCE=2 -O1 -Wl,-z,relro,-z,now)
 endif()
 # ------------------------------------------------------------------------------
+# rate_limiting def
+# ------------------------------------------------------------------------------
+if ()
+  add_defintion(-DWAFLZ_RATE_LIMITING)
+endif()
+# ------------------------------------------------------------------------------
 # \brief   Find ubuntu packages based on their (optional) include and (required) library test files
 # \details
 # \param   output_var_prefix    The prefix for variables output_var_prefix{_INCLUDE_DIR,_LIBS} that are set on success

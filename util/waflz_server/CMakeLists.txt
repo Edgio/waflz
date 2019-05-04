@@ -55,12 +55,16 @@ add_dependencies(waflz_server waflzcore)
 add_dependencies(waflz_server submodule_is2)
 SET_TARGET_PROPERTIES(waflz_server PROPERTIES OUTPUT_NAME "waflz_server")
 target_link_libraries(waflz_server
-  ${DEBUG_LIBRARIES}
   ${CMAKE_BINARY_DIR}/src/libwaflzcore.a
   ${CMAKE_BINARY_DIR}/submodule_is2-prefix/src/submodule_is2-build/src/libis2.a
+  pthread
   ssl
   crypto
-  ${LIBRARIES}
+  xml2
+  protobuf
+  pcre
+  hiredis
+  kyotocabinet
 )
 install(TARGETS waflz_server
         DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/

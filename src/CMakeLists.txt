@@ -30,7 +30,6 @@ endif()
 # Can't add for now...
 # ------------------------------------------------------------------------------
 #add_definitions(-Weffc++)
-add_definitions(-fPIC)
 add_definitions(-DHAVE_CONFIG_H)
 # ------------------------------------------------------------------------------
 # header files to install

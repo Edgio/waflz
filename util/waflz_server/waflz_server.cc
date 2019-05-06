@@ -198,7 +198,8 @@ public:
 //: ----------------------------------------------------------------------------
 //: type
 //: ----------------------------------------------------------------------------
-typedef struct _waf_instance_update {
+typedef struct _waf_instance_update
+{
         char *m_buf;
         uint32_t m_buf_len;
 } waf_instance_update_t;
@@ -1919,8 +1920,8 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         else
         {
-                waflz_h *l_h = new waflz_h();
-                l_h = l_h;
+                waflz_h *l_waflz = new waflz_h();
+                l_h = l_waflz;
         }
         // -------------------------------------------------
         // default route...

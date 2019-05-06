@@ -145,8 +145,8 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------

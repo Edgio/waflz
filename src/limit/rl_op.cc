@@ -38,14 +38,14 @@ namespace ns_waflz
 //: \param    TODO
 //: ----------------------------------------------------------------------------
 int32_t rl_run_op(bool &ao_matched,
-                  const waflz_limit_pb::operator_t &a_op,
+                  const waflz_pb::op_t &a_op,
                   const char *a_data,
                   uint32_t a_len,
                   bool a_case_insensitive)
 {
         // assume operator is STREQ
         ao_matched = false;
-        waflz_limit_pb::operator_t_type_t l_op_type = waflz_limit_pb::operator_t_type_t_STREQ;
+        waflz_pb::op_t_type_t l_op_type = waflz_pb::op_t_type_t_STREQ;
         if(a_op.has_type())
         {
                 // operator type actually provided
@@ -57,7 +57,7 @@ int32_t rl_run_op(bool &ao_matched,
         // -------------------------------------------------
         // RX (regex)
         // -------------------------------------------------
-        case waflz_limit_pb::operator_t_type_t_RX:
+        case waflz_pb::op_t_type_t_RX:
         {
                 // -----------------------------------------
                 // get regex
@@ -88,7 +88,7 @@ int32_t rl_run_op(bool &ao_matched,
         // -------------------------------------------------
         // STREQ
         // -------------------------------------------------
-        case waflz_limit_pb::operator_t_type_t_STREQ:
+        case waflz_pb::op_t_type_t_STREQ:
         {
                 const std::string &l_op_match = a_op.value();
                 uint32_t l_len = l_op_match.length();
@@ -117,7 +117,7 @@ int32_t rl_run_op(bool &ao_matched,
         // -------------------------------------------------
         // PM
         // -------------------------------------------------
-        case waflz_limit_pb::operator_t_type_t_PM:
+        case waflz_pb::op_t_type_t_PM:
         {
                 // -----------------------------------------
                 // substring match multiple strings
@@ -160,7 +160,7 @@ int32_t rl_run_op(bool &ao_matched,
         // -------------------------------------------------
         // GLOB (glob -wildcard match)
         // -------------------------------------------------
-        case waflz_limit_pb::operator_t_type_t_GLOB:
+        case waflz_pb::op_t_type_t_GLOB:
         {
                 int l_flags = FNM_NOESCAPE;
                 if(a_case_insensitive)
@@ -181,7 +181,7 @@ int32_t rl_run_op(bool &ao_matched,
         // -------------------------------------------------
         // TODO
         // -------------------------------------------------
-        case waflz_limit_pb::operator_t_type_t_IPMATCH:
+        case waflz_pb::op_t_type_t_IPMATCH:
         {
                 // -----------------------------------------
                 // get regex
@@ -210,7 +210,7 @@ int32_t rl_run_op(bool &ao_matched,
         // -------------------------------------------------
         // Exact Match list (EM)
         // -------------------------------------------------
-        case waflz_limit_pb::operator_t_type_t_EM:
+        case waflz_pb::op_t_type_t_EM:
         {
                 // -----------------------------------------
                 // get str set

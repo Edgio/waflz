@@ -30,9 +30,9 @@
 //: ----------------------------------------------------------------------------
 //: fwd Decl's
 //: ----------------------------------------------------------------------------
-namespace waflz_limit_pb
+namespace waflz_pb
 {
-class operator_t;
+class op_t;
 }
 namespace ns_waflz
 {
@@ -40,7 +40,7 @@ namespace ns_waflz
 //: run operation
 //: ----------------------------------------------------------------------------
 int32_t rl_run_op(bool &ao_matched,
-                  const waflz_limit_pb::operator_t &a_op,
+                  const waflz_pb::op_t &a_op,
                   const char *a_data,
                   uint32_t a_data_len,
                   bool a_case_insensitive);

@@ -601,8 +601,8 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
@@ -702,8 +702,8 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
@@ -811,8 +811,8 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
@@ -946,8 +946,8 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
@@ -1041,8 +1041,8 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
@@ -1170,8 +1170,8 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
@@ -1305,8 +1305,8 @@ TEST_CASE( "config test", "[config]" ) {
                 //-----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
@@ -1331,17 +1331,17 @@ TEST_CASE( "config test", "[config]" ) {
                 REQUIRE((l_limit == NULL));
                 REQUIRE((l_enf != NULL));
                 REQUIRE((l_enf->has_enf_type()));
-                REQUIRE((l_enf->enf_type() == waflz_limit_pb::enforcement_type_t_REDIRECT_302));
+                REQUIRE((l_enf->enf_type() == waflz_pb::enforcement_type_t_REDIRECT_302));
                 //-----------------------------------------
                 // generate event
                 //-----------------------------------------
-                waflz_limit_pb::alert *l_al;
+                waflz_pb::alert *l_al;
                 l_s = l_c->generate_alert(&l_al, l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_al != NULL));
                 REQUIRE((l_al->has_action()));
                 REQUIRE((l_al->action().has_enf_type()));
-                REQUIRE((l_al->action().enf_type() == waflz_limit_pb::enforcement_type_t_REDIRECT_302));
+                REQUIRE((l_al->action().enf_type() == waflz_pb::enforcement_type_t_REDIRECT_302));
                 REQUIRE((l_al->action().has_type()));
                 REQUIRE((l_al->action().type() == "redirect-302"));
                 if(l_al) { delete l_al; l_al = NULL; }
@@ -1362,7 +1362,7 @@ TEST_CASE( "config test", "[config]" ) {
                         REQUIRE(l_enf != NULL);
                         REQUIRE((l_enf != NULL));
                         REQUIRE((l_enf->has_enf_type()));
-                        REQUIRE((l_enf->enf_type() == waflz_limit_pb::enforcement_type_t_REDIRECT_302));
+                        REQUIRE((l_enf->enf_type() == waflz_pb::enforcement_type_t_REDIRECT_302));
                 }
                 // -----------------------------------------
                 // cleanup
@@ -1395,8 +1395,8 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------

@@ -244,8 +244,8 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
@@ -269,7 +269,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_enf != NULL);
                 REQUIRE(l_enf->has_enf_type());
-                REQUIRE(l_enf->enf_type() == waflz_limit_pb::enforcement_type_t_BROWSER_CHALLENGE);
+                REQUIRE(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE);
                 // -----------------------------------------
                 // render resp
                 // -----------------------------------------
@@ -319,7 +319,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 REQUIRE(l_limit == NULL);
                 REQUIRE(l_enf != NULL);
                 REQUIRE(l_enf->has_enf_type());
-                REQUIRE(l_enf->enf_type() == waflz_limit_pb::enforcement_type_t_BROWSER_CHALLENGE);
+                REQUIRE(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE);
                 // -----------------------------------------
                 // set correct cookie. verify no event
                 // until cookie expiry
@@ -364,7 +364,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_enf != NULL);
                 REQUIRE(l_enf->has_enf_type());
-                REQUIRE(l_enf->enf_type() == waflz_limit_pb::enforcement_type_t_BROWSER_CHALLENGE);
+                REQUIRE(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE);
                 // -----------------------------------------
                 // render resp
                 // -----------------------------------------
@@ -439,8 +439,8 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 void *l_rctx = NULL;
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_limit_pb::enforcement *l_enf = NULL;
-                const ::waflz_limit_pb::limit* l_limit = NULL;
+                const ::waflz_pb::enforcement *l_enf = NULL;
+                const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
@@ -477,7 +477,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 REQUIRE((l_limit != NULL));
                 REQUIRE(l_enf != NULL);
                 REQUIRE(l_enf->has_enf_type());
-                REQUIRE(l_enf->enf_type() == waflz_limit_pb::enforcement_type_t_BROWSER_CHALLENGE);
+                REQUIRE(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE);
                 // -----------------------------------------
                 // render resp
                 // -----------------------------------------
@@ -524,7 +524,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 REQUIRE((l_limit == NULL));
                 REQUIRE(l_enf != NULL);
                 REQUIRE(l_enf->has_enf_type());
-                REQUIRE(l_enf->enf_type() == waflz_limit_pb::enforcement_type_t_BROWSER_CHALLENGE);
+                REQUIRE(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE);
                 // -----------------------------------------
                 // create cookie
                 // -----------------------------------------
@@ -576,7 +576,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 REQUIRE((l_limit != NULL));
                 REQUIRE(l_enf != NULL);
                 REQUIRE(l_enf->has_enf_type());
-                REQUIRE(l_enf->enf_type() == waflz_limit_pb::enforcement_type_t_BROWSER_CHALLENGE);
+                REQUIRE(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE);
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------

@@ -98,7 +98,7 @@ int32_t challenge::validate()
         // -------------------------------------------------
         for(int i_c = 0 ; i_c < m_pb->problems_size(); ++i_c)
         {
-                waflz_limit_pb::problem& i_p = *(m_pb->mutable_problems(i_c));
+                waflz_pb::problem& i_p = *(m_pb->mutable_problems(i_c));
                 if(!i_p.has_id())
                 {
                         WAFLZ_PERROR(m_err_msg, "problem missing id");
@@ -134,7 +134,7 @@ int32_t challenge::load(void* a_js)
         // -------------------------------------------------
         // parse load/json...
         // -------------------------------------------------
-        m_pb = new waflz_limit_pb::challenge();
+        m_pb = new waflz_pb::challenge();
         const rapidjson::Value &l_js = *((rapidjson::Value *)a_js);
         int32_t l_s;
         l_s = update_from_json(*m_pb, l_js);
@@ -163,7 +163,7 @@ int32_t challenge::load(void* a_js)
         m_prob_vector.clear();
         for(int i_c = 0 ; i_c < m_pb->problems_size(); ++i_c)
         {
-                const waflz_limit_pb::problem& i_p = m_pb->problems(i_c);
+                const waflz_pb::problem& i_p = m_pb->problems(i_c);
                 int32_t l_id = i_p.id();
                 m_prob_map[l_id] = &i_p;
                 m_prob_vector.push_back(l_id);
@@ -319,7 +319,7 @@ int32_t challenge::get_challenge(const std::string **ao_html, int32_t a_prob_id,
                 WAFLZ_PERROR(m_err_msg, "%s", "problem id not found in the config");
                 return WAFLZ_STATUS_ERROR;
         }
-        const waflz_limit_pb::problem &l_p = *(i_c->second);
+        const waflz_pb::problem &l_p = *(i_c->second);
         *ao_html = &(l_p.response_body_base64());
         // -------------------------------------------------
         // get ectoken

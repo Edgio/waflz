@@ -54,7 +54,7 @@ rl_obj::rl_obj(bool a_case_insensitive_headers):
                 m_data_set_list(),
                 m_data_case_i_set_list()
 {
-        m_pb = new waflz_limit_pb::config();
+        m_pb = new waflz_pb::config();
 }
 //: ----------------------------------------------------------------------------
 //: \details: dtor
@@ -123,14 +123,14 @@ const std::string &rl_obj::get_customer_id(void)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t rl_obj::compile_limit(waflz_limit_pb::limit &ao_limit)
+int32_t rl_obj::compile_limit(waflz_pb::limit &ao_limit)
 {
         // -------------------------------------------------
         // compile rx...
         // -------------------------------------------------
         if(ao_limit.has_scope())
         {
-                ::waflz_limit_pb::scope* l_scope = ao_limit.mutable_scope();
+                ::waflz_pb::scope* l_scope = ao_limit.mutable_scope();
                 if(l_scope->has_host())
                 {
                         int32_t l_s;
@@ -158,10 +158,10 @@ int32_t rl_obj::compile_limit(waflz_limit_pb::limit &ao_limit)
                 // -------------------------------------------------
                 // and...
                 // -------------------------------------------------
-                ::waflz_limit_pb::condition_group *l_conditions = ao_limit.mutable_condition_groups(i_cg);
+                ::waflz_pb::condition_group *l_conditions = ao_limit.mutable_condition_groups(i_cg);
                 for(int i_m = 0; i_m < l_conditions->conditions_size(); ++i_m)
                 {
-                        ::waflz_limit_pb::condition *l_c = l_conditions->mutable_conditions(i_m);
+                        ::waflz_pb::condition *l_c = l_conditions->mutable_conditions(i_m);
                         if(!l_c->has_op())
                         {
                                 continue;
@@ -171,9 +171,9 @@ int32_t rl_obj::compile_limit(waflz_limit_pb::limit &ao_limit)
                         // ---------------------------------
                         if(l_c->has_target() &&
                            l_c->target().has_type() &&
-                           (l_c->target().type() == ::waflz_limit_pb::condition_target_t_type_t_REMOTE_ADDR))
+                           (l_c->target().type() == ::waflz_pb::condition_target_t_type_t_REMOTE_ADDR))
                         {
-                                l_c->mutable_op()->set_type(::waflz_limit_pb::operator_t_type_t_IPMATCH);
+                                l_c->mutable_op()->set_type(::waflz_pb::op_t_type_t_IPMATCH);
                         }
                         // ---------------------------------
                         // compile
@@ -205,7 +205,7 @@ int32_t rl_obj::compile_limit(waflz_limit_pb::limit &ao_limit)
         // -------------------------------------------------
         if(ao_limit.has_action())
         {
-                waflz_limit_pb::enforcement *l_e = ao_limit.mutable_action();
+                waflz_pb::enforcement *l_e = ao_limit.mutable_action();
                 // -----------------------------------------
                 // coerce type string into enum
                 // -----------------------------------------
@@ -215,7 +215,7 @@ int32_t rl_obj::compile_limit(waflz_limit_pb::limit &ao_limit)
                         const std::string &l_type = l_e->type();
 #define _ELIF_TYPE(_str, _type) else \
 if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
-        l_e->set_enf_type(waflz_limit_pb::enforcement_type_t_##_type); \
+        l_e->set_enf_type(waflz_pb::enforcement_type_t_##_type); \
 }
                         if(0) {}
                         _ELIF_TYPE("REDIRECT_302", REDIRECT_302)
@@ -271,7 +271,7 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t rl_obj::compile_op(::waflz_limit_pb::operator_t& ao_op)
+int32_t rl_obj::compile_op(::waflz_pb::op_t& ao_op)
 {
         // -------------------------------------------------
         // check if exist...
@@ -288,7 +288,7 @@ int32_t rl_obj::compile_op(::waflz_limit_pb::operator_t& ao_op)
         // -------------------------------------------------
         // regex
         // -------------------------------------------------
-        case ::waflz_limit_pb::operator_t_type_t_RX:
+        case ::waflz_pb::op_t_type_t_RX:
         {
                 if(!ao_op.has_value())
                 {
@@ -312,7 +312,7 @@ int32_t rl_obj::compile_op(::waflz_limit_pb::operator_t& ao_op)
         // -------------------------------------------------
         // exact condition list
         // -------------------------------------------------
-        case ::waflz_limit_pb::operator_t_type_t_EM:
+        case ::waflz_pb::op_t_type_t_EM:
         {
                 if(!ao_op.has_value() &&
                    !ao_op.values_size())
@@ -390,7 +390,7 @@ int32_t rl_obj::compile_op(::waflz_limit_pb::operator_t& ao_op)
         // -------------------------------------------------
         // ip condition list
         // -------------------------------------------------
-        case ::waflz_limit_pb::operator_t_type_t_IPMATCH:
+        case ::waflz_pb::op_t_type_t_IPMATCH:
         {
                 if(!ao_op.has_value() &&
                    !ao_op.values_size())
@@ -481,7 +481,7 @@ int32_t rl_obj::compile(void)
         // -------------------------------------------------
         for(int i_r = 0; i_r < m_pb->limits_size(); ++i_r)
         {
-                waflz_limit_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
+                waflz_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
                 // -----------------------------------------
                 // compile
                 // -----------------------------------------
@@ -499,13 +499,13 @@ int32_t rl_obj::compile(void)
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 int32_t rl_obj::process_condition_group(bool &ao_matched,
-                                        const waflz_limit_pb::condition_group &a_cg,
+                                        const waflz_pb::condition_group &a_cg,
                                         rqst_ctx *a_ctx)
 {
         ao_matched = false;
         for(int i_m = 0; i_m < a_cg.conditions_size(); ++i_m)
         {
-                const ::waflz_limit_pb::condition &l_match = a_cg.conditions(i_m);
+                const ::waflz_pb::condition &l_match = a_cg.conditions(i_m);
                 if(!l_match.has_target())
                 {
                         continue;
@@ -519,7 +519,7 @@ int32_t rl_obj::process_condition_group(bool &ao_matched,
                 // TODO
                 // only support single var for now ...
                 // -----------------------------------------
-                const waflz_limit_pb::condition_target_t &l_tgt = l_match.target();
+                const waflz_pb::condition_target_t &l_tgt = l_match.target();
                 if(!l_tgt.has_type())
                 {
                         continue;
@@ -570,7 +570,7 @@ int32_t rl_obj::process_condition_group(bool &ao_matched,
                 // -----------------------------------------
                 bool l_case_i = false;
                 if(l_tgt.has_type() &&
-                   (l_tgt.type() == waflz_limit_pb::condition_target_t::REQUEST_HEADERS) &&
+                   (l_tgt.type() == waflz_pb::condition_target_t::REQUEST_HEADERS) &&
                    m_lowercase_headers)
                 {
                         l_case_i = true;
@@ -608,7 +608,7 @@ int32_t rl_obj::process_condition_group(bool &ao_matched,
 int32_t rl_obj::extract(const char **ao_data,
                         uint32_t &ao_data_len,
                         std::string &ao_buf,
-                        const waflz_limit_pb::condition_target_t &a_tgt,
+                        const waflz_pb::condition_target_t &a_tgt,
                         rqst_ctx *a_ctx)
 {
         if(!a_ctx)
@@ -625,19 +625,19 @@ int32_t rl_obj::extract(const char **ao_data,
         }
         // -------------------------------------------------
         // TODO apologies for enum cast
-        // -to get around using waflz_limit_pb type in header decl
+        // -to get around using waflz_pb type in header decl
         // -------------------------------------------------
 #define _SET_W_CTX(_var) do { \
         *ao_data = a_ctx->_var.m_data;\
         ao_data_len = a_ctx->_var.m_len;\
 } while(0)
-        const waflz_limit_pb::condition_target_t_type_t l_type = a_tgt.type();
+        const waflz_pb::condition_target_t_type_t l_type = a_tgt.type();
         switch (l_type)
         {
         // -------------------------------------------------
         // REMOTE_ADDR
         // -------------------------------------------------
-        case waflz_limit_pb::condition_target_t::REMOTE_ADDR:
+        case waflz_pb::condition_target_t::REMOTE_ADDR:
         {
                 _SET_W_CTX(m_src_addr);
                 break;
@@ -645,7 +645,7 @@ int32_t rl_obj::extract(const char **ao_data,
         // -------------------------------------------------
         // REQUEST_HOST
         // -------------------------------------------------
-        case waflz_limit_pb::condition_target_t::REQUEST_HOST:
+        case waflz_pb::condition_target_t::REQUEST_HOST:
         {
                 _SET_W_CTX(m_host);
                 break;
@@ -653,7 +653,7 @@ int32_t rl_obj::extract(const char **ao_data,
         // -------------------------------------------------
         // REQUEST_URI
         // -------------------------------------------------
-        case waflz_limit_pb::condition_target_t::REQUEST_URI:
+        case waflz_pb::condition_target_t::REQUEST_URI:
         {
                 _SET_W_CTX(m_uri);
                 break;
@@ -661,7 +661,7 @@ int32_t rl_obj::extract(const char **ao_data,
         // -------------------------------------------------
         // REQUEST_METHOD
         // -------------------------------------------------
-        case waflz_limit_pb::condition_target_t::REQUEST_METHOD:
+        case waflz_pb::condition_target_t::REQUEST_METHOD:
         {
                 _SET_W_CTX(m_method);
                 break;
@@ -669,7 +669,7 @@ int32_t rl_obj::extract(const char **ao_data,
         // -------------------------------------------------
         // REQUEST_HEADERS
         // -------------------------------------------------
-        case waflz_limit_pb::condition_target_t::REQUEST_HEADERS:
+        case waflz_pb::condition_target_t::REQUEST_HEADERS:
         {
                 if(!a_tgt.has_value())
                 {
@@ -696,7 +696,7 @@ int32_t rl_obj::extract(const char **ao_data,
         // -------------------------------------------------
         // QUERY_STRING
         // -------------------------------------------------
-        case waflz_limit_pb::condition_target_t::QUERY_STRING:
+        case waflz_pb::condition_target_t::QUERY_STRING:
         {
                 _SET_W_CTX(m_query_str);
                 break;
@@ -704,7 +704,7 @@ int32_t rl_obj::extract(const char **ao_data,
         // -------------------------------------------------
         // ARGS_GET
         // -------------------------------------------------
-        case waflz_limit_pb::condition_target_t::ARGS_GET:
+        case waflz_pb::condition_target_t::ARGS_GET:
         {
                 if(!a_tgt.has_value())
                 {
@@ -735,7 +735,7 @@ int32_t rl_obj::extract(const char **ao_data,
         // -------------------------------------------------
         // FILE_EXT
         // -------------------------------------------------
-        case waflz_limit_pb::condition_target_t::FILE_EXT:
+        case waflz_pb::condition_target_t::FILE_EXT:
         {
                 _SET_W_CTX(m_uri);
                 if(!(*ao_data) ||
@@ -785,7 +785,7 @@ int32_t rl_obj::extract(const char **ao_data,
 //: \param   a_ctx   TODO
 //: ----------------------------------------------------------------------------
 int32_t rl_obj::in_scope(bool &ao_match,
-                         const waflz_limit_pb::scope &a_scope,
+                         const waflz_pb::scope &a_scope,
                          rqst_ctx *a_ctx)
 {
         ao_match = false;
@@ -864,8 +864,8 @@ int32_t rl_obj::in_scope(bool &ao_match,
 //!          -1 on error
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t rl_obj::convertv1(waflz_limit_pb::config& ao_cfg,
-                          const waflz_limit_pb::enforcer& a_enfcr)
+int32_t rl_obj::convertv1(waflz_pb::config& ao_cfg,
+                          const waflz_pb::enforcer& a_enfcr)
 {
 #define _SET_IF(_from, _to, _field) do { \
         if(_from.has_##_field()) { \
@@ -880,20 +880,20 @@ int32_t rl_obj::convertv1(waflz_limit_pb::config& ao_cfg,
                 const std::string &l_t = a_enfcr.type();
                 if(strncasecmp(l_t.c_str(), "ddos-coordinator", l_t.length()) == 0)
                 {
-                        ao_cfg.set_type(waflz_limit_pb::config_type_t_CONFIG);
+                        ao_cfg.set_type(waflz_pb::config_type_t_CONFIG);
                 }
                 else if(strncasecmp(l_t.c_str(), "ddos-enforcement", l_t.length()) == 0)
                 {
-                        ao_cfg.set_type(waflz_limit_pb::config_type_t_ENFORCER);
+                        ao_cfg.set_type(waflz_pb::config_type_t_ENFORCER);
                 }
                 else
                 {
-                        ao_cfg.set_type(waflz_limit_pb::config_type_t_CONFIG);
+                        ao_cfg.set_type(waflz_pb::config_type_t_CONFIG);
                 }
         }
         else
         {
-                ao_cfg.set_type(waflz_limit_pb::config_type_t_CONFIG);
+                ao_cfg.set_type(waflz_pb::config_type_t_CONFIG);
         }
         // -------------------------------------------------
         // properties
@@ -910,8 +910,8 @@ int32_t rl_obj::convertv1(waflz_limit_pb::config& ao_cfg,
         // -------------------------------------------------
         for(int i_t = 0; i_t < a_enfcr.tuples_size(); ++i_t)
         {
-                const waflz_limit_pb::tuple& l_t = a_enfcr.tuples(i_t);
-                ::waflz_limit_pb::limit& l_limit = *ao_cfg.add_limits();
+                const waflz_pb::tuple& l_t = a_enfcr.tuples(i_t);
+                ::waflz_pb::limit& l_limit = *ao_cfg.add_limits();
                 // -----------------------------------------
                 // properties
                 // -----------------------------------------
@@ -934,17 +934,17 @@ int32_t rl_obj::convertv1(waflz_limit_pb::config& ao_cfg,
                 // -----------------------------------------
                 for(int i_d = 0; i_d < l_t.dimensions_size(); ++i_d)
                 {
-                        ::waflz_limit_pb::tuple_dimension_t l_d = l_t.dimensions(i_d);
+                        ::waflz_pb::tuple_dimension_t l_d = l_t.dimensions(i_d);
                         switch(l_d)
                         {
-                        case ::waflz_limit_pb::tuple_dimension_t_IP:
+                        case ::waflz_pb::tuple_dimension_t_IP:
                         {
-                                l_limit.add_keys(::waflz_limit_pb::limit_key_t_IP);
+                                l_limit.add_keys(::waflz_pb::limit_key_t_IP);
                                 break;
                         }
-                        case ::waflz_limit_pb::tuple_dimension_t_USER_AGENT:
+                        case ::waflz_pb::tuple_dimension_t_USER_AGENT:
                         {
-                                l_limit.add_keys(::waflz_limit_pb::limit_key_t_USER_AGENT);
+                                l_limit.add_keys(::waflz_pb::limit_key_t_USER_AGENT);
                                 break;
                         }
                         default:
@@ -972,9 +972,9 @@ int32_t rl_obj::convertv1(waflz_limit_pb::config& ao_cfg,
                 // -----------------------------------------
                 for(int i_r = 0; i_r < l_t.rules_size(); ++i_r)
                 {
-                        ::waflz_limit_pb::condition_group* l_cg = l_limit.add_condition_groups();
-                        const ::waflz_limit_pb::rule& l_rs = l_t.rules(i_r);
-                        const waflz_limit_pb::rule* l_rule = NULL;
+                        ::waflz_pb::condition_group* l_cg = l_limit.add_condition_groups();
+                        const ::waflz_pb::rule& l_rs = l_t.rules(i_r);
+                        const waflz_pb::rule* l_rule = NULL;
                         int32_t l_chained_rule_idx = -1;
                         do {
                                 if(l_chained_rule_idx == -1)
@@ -989,8 +989,8 @@ int32_t rl_obj::convertv1(waflz_limit_pb::config& ao_cfg,
                                 // -------------------------
                                 // add condition
                                 // -------------------------
-                                ::waflz_limit_pb::condition& l_m = *(l_cg->add_conditions());
-                                const waflz_limit_pb::rule& l_r = *l_rule;
+                                ::waflz_pb::condition& l_m = *(l_cg->add_conditions());
+                                const waflz_pb::rule& l_r = *l_rule;
                                 // -------------------------
                                 // operator
                                 // -------------------------
@@ -1004,16 +1004,16 @@ int32_t rl_obj::convertv1(waflz_limit_pb::config& ao_cfg,
                                 if(l_r.variable_size() &&
                                    l_r.variable(0).has_type())
                                 {
-                                        ::waflz_limit_pb::condition_target_t* l_tgt = l_m.mutable_target();
-                                        const ::waflz_limit_pb::rule_variable_t& l_v = l_r.variable(0);
+                                        ::waflz_pb::condition_target_t* l_tgt = l_m.mutable_target();
+                                        const ::waflz_pb::rule_variable_t& l_v = l_r.variable(0);
                                         // -----------------
                                         // type
                                         // -----------------
                                         switch(l_v.type())
                                         {
 #define _CASE_TYPE(_field) \
-        case ::waflz_limit_pb::rule_variable_t_type_t_##_field: { \
-                l_tgt->set_type(::waflz_limit_pb::condition_target_t_type_t_##_field); \
+        case ::waflz_pb::rule_variable_t_type_t_##_field: { \
+                l_tgt->set_type(::waflz_pb::condition_target_t_type_t_##_field); \
                 break; \
         }
                                         _CASE_TYPE(REMOTE_ADDR)
@@ -1034,7 +1034,7 @@ int32_t rl_obj::convertv1(waflz_limit_pb::config& ao_cfg,
                                         // -----------------
                                         if(l_v.match_size())
                                         {
-                                                const ::waflz_limit_pb::rule_variable_t_match_t& l_mx = l_v.match(0);
+                                                const ::waflz_pb::rule_variable_t_match_t& l_mx = l_v.match(0);
                                                 if(l_mx.has_value())
                                                 {
                                                         l_tgt->set_value(l_mx.value());
@@ -1055,7 +1055,7 @@ int32_t rl_obj::convertv1(waflz_limit_pb::config& ao_cfg,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t limit_remove(waflz_limit_pb::config &ao_cfg, uint32_t a_off)
+int32_t limit_remove(waflz_pb::config &ao_cfg, uint32_t a_off)
 {
         int l_size = ao_cfg.limits_size();
         if((!l_size) ||
@@ -1063,7 +1063,7 @@ int32_t limit_remove(waflz_limit_pb::config &ao_cfg, uint32_t a_off)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        typedef google::protobuf::RepeatedPtrField<waflz_limit_pb::limit> limit_ptr_t;
+        typedef google::protobuf::RepeatedPtrField<waflz_pb::limit> limit_ptr_t;
         limit_ptr_t *l_r_ptr = ao_cfg.mutable_limits();
         if(!l_r_ptr)
         {
@@ -1077,8 +1077,8 @@ int32_t limit_remove(waflz_limit_pb::config &ao_cfg, uint32_t a_off)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-typedef google::protobuf::RepeatedPtrField<waflz_limit_pb::limit> limit_ptr_t;
-int32_t limit_sweep(waflz_limit_pb::config &ao_cfg)
+typedef google::protobuf::RepeatedPtrField<waflz_pb::limit> limit_ptr_t;
+int32_t limit_sweep(waflz_pb::config &ao_cfg)
 {
         // -------------------------------------------------
         // find disabled and expired
@@ -1086,13 +1086,13 @@ int32_t limit_sweep(waflz_limit_pb::config &ao_cfg)
         for(int i_t = 0; i_t < ao_cfg.limits_size();)
         {
                 //NDBG_PRINT("i_t[%d]: check for nop'd limit\n", i_t);
-                waflz_limit_pb::limit *i_r_ptr = ao_cfg.mutable_limits(i_t);
+                waflz_pb::limit *i_r_ptr = ao_cfg.mutable_limits(i_t);
                 if(!i_r_ptr)
                 {
                         // TODO log error reason
                         return WAFLZ_STATUS_ERROR;
                 }
-                waflz_limit_pb::limit &i_limit = *i_r_ptr;
+                waflz_pb::limit &i_limit = *i_r_ptr;
                 // -----------------------------------------
                 // disabled???
                 // -----------------------------------------

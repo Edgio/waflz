@@ -38,7 +38,7 @@
 namespace waflz_pb {
 class event;
 }
-namespace waflz_limit_pb {
+namespace waflz_pb {
 class limit;
 class condition_group;
 }
@@ -152,8 +152,8 @@ public:
         uint32_t m_bytes_in;
         mutable_data_t m_token;
         uint32_t m_resp_status;
-        const waflz_limit_pb::limit* m_limit;
-        const waflz_limit_pb::condition_group* m_condition_group;
+        const waflz_pb::limit* m_limit;
+        const waflz_pb::condition_group* m_condition_group;
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------

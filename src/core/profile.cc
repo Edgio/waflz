@@ -24,7 +24,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "config.pb.h"
-#include "enforcement.pb.h"
+#include "action.pb.h"
 #include "request_info.pb.h"
 #include "acl.pb.h"
 #include "event.pb.h"

@@ -32,7 +32,7 @@
 //: ----------------------------------------------------------------------------
 //: fwd Decl's
 //: ----------------------------------------------------------------------------
-namespace waflz_limit_pb {
+namespace waflz_pb {
         class limit;
         class alert;
         class enforcement;
@@ -62,16 +62,16 @@ public:
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t load(void *a_js);
         const std::string& get_last_modified_date();
-        int32_t process(const waflz_limit_pb::enforcement** ao_enfcmnt,
-                        const waflz_limit_pb::limit** ao_limit,
+        int32_t process(const waflz_pb::enforcement** ao_enfcmnt,
+                        const waflz_pb::limit** ao_limit,
                         rqst_ctx* a_ctx);
-        int32_t generate_alert(waflz_limit_pb::alert** ao_alert,
+        int32_t generate_alert(waflz_pb::alert** ao_alert,
                                rqst_ctx* a_ctx);
         int32_t render_resp(char **ao_resp,
                             uint32_t &ao_resp_len,
-                            const waflz_limit_pb::enforcement &a_enfcmnt,
+                            const waflz_pb::enforcement &a_enfcmnt,
                             rqst_ctx* a_ctx);
-        int32_t merge(waflz_limit_pb::config &ao_cfg);
+        int32_t merge(waflz_pb::config &ao_cfg);
         int32_t merge(void *a_js);
         const char *get_err_msg(void) { return m_err_msg; }
 private:
@@ -87,27 +87,27 @@ private:
         config& operator=(const config &);
         int32_t validate(void);
         int32_t load();
-        int32_t process_config(waflz_limit_pb::config **ao_cfg,
+        int32_t process_config(waflz_pb::config **ao_cfg,
                                rqst_ctx *a_ctx);
-        int32_t process_enfx(const waflz_limit_pb::enforcement** ao_enfcmnt,
+        int32_t process_enfx(const waflz_pb::enforcement** ao_enfcmnt,
                              bool& ao_pass,
                              rqst_ctx* a_ctx);
-        int32_t add_limit_with_key(waflz_limit_pb::limit &ao_limit,
+        int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
                                   uint16_t a_key,
                                   rqst_ctx *a_ctx);
-        int32_t add_exceed_limit(waflz_limit_pb::config **ao_cfg,
+        int32_t add_exceed_limit(waflz_pb::config **ao_cfg,
                                 const std::string &a_cust_id,
-                                const waflz_limit_pb::limit& a_limit,
-                                const waflz_limit_pb::condition_group *a_condition_group,
+                                const waflz_pb::limit& a_limit,
+                                const waflz_pb::condition_group *a_condition_group,
                                 rqst_ctx *a_ctx);
-        int32_t handle_match(waflz_limit_pb::config** ao_cfg,
+        int32_t handle_match(waflz_pb::config** ao_cfg,
                              const std::string& a_cust_id,
-                             const waflz_limit_pb::limit& a_limit,
-                             const waflz_limit_pb::condition_group* a_condition_group,
+                             const waflz_pb::limit& a_limit,
+                             const waflz_pb::condition_group* a_condition_group,
                              rqst_ctx* a_ctx);
         int32_t get_limit_key_value(char* ao_key,
                                    const std::string& a_cust_id,
-                                   const waflz_limit_pb::limit& a_limit,
+                                   const waflz_pb::limit& a_limit,
                                    rqst_ctx *a_ctx);
         // -------------------------------------------------
         // Private members

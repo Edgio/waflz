@@ -51,7 +51,7 @@ enforcer::enforcer(bool a_case_insensitive_headers):
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: ----------------------------------------------------------------------------
-enforcer::enforcer(waflz_limit_pb::config *a_pb,
+enforcer::enforcer(waflz_pb::config *a_pb,
                    bool a_case_insensitive_headers):
                    rl_obj(a_case_insensitive_headers)
 {
@@ -95,7 +95,7 @@ int32_t enforcer::validate(void)
                 WAFLZ_PERROR(m_err_msg, "missing type field");
                 return WAFLZ_STATUS_ERROR;
         }
-        if(m_pb->type() != ::waflz_limit_pb::config_type_t_ENFORCER)
+        if(m_pb->type() != ::waflz_pb::config_type_t_ENFORCER)
         {
                 WAFLZ_PERROR(m_err_msg, "type: %d != ENFORCER", m_pb->type());
                 return WAFLZ_STATUS_ERROR;
@@ -123,7 +123,7 @@ int32_t enforcer::validate(void)
         // -------------------------------------------------
         for(int i_r = 0; i_r < m_pb->limits_size(); ++i_r)
         {
-                const waflz_limit_pb::limit &l_r = m_pb->limits(i_r);
+                const waflz_pb::limit &l_r = m_pb->limits(i_r);
                 if(!l_r.has_id() ||
                    l_r.id().empty())
                 {
@@ -156,8 +156,8 @@ int32_t enforcer::load(void *a_js)
                 // -----------------------------------------
                 // create v1 pbuf...
                 // -----------------------------------------
-                waflz_limit_pb::enforcer *l_v1_pb = NULL;
-                l_v1_pb = new waflz_limit_pb::enforcer();
+                waflz_pb::enforcer *l_v1_pb = NULL;
+                l_v1_pb = new waflz_pb::enforcer();
                 l_s = update_from_json(*l_v1_pb, l_js);
                 if(l_s != JSPB_OK)
                 {
@@ -169,7 +169,7 @@ int32_t enforcer::load(void *a_js)
                 // convert types...
                 // -----------------------------------------
                 if(m_pb) { delete m_pb; m_pb = NULL; }
-                m_pb = new waflz_limit_pb::config();
+                m_pb = new waflz_pb::config();
                 l_s = convertv1(*m_pb, *l_v1_pb);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -218,7 +218,7 @@ int32_t enforcer::load(void *a_js)
         // -------------------------------------------------
         for(int i_r = 0; i_r < m_pb->limits_size(); ++i_r)
         {
-                waflz_limit_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
+                waflz_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
                 if(i_r_ptr->has_end_epoch_msec() &&
                    i_r_ptr->end_epoch_msec())
                 {
@@ -290,7 +290,7 @@ int32_t enforcer::load(const char *a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t enforcer::process(const waflz_limit_pb::enforcement** ao_axn, rqst_ctx *a_ctx)
+int32_t enforcer::process(const waflz_pb::enforcement** ao_axn, rqst_ctx *a_ctx)
 {
         if(!m_pb)
         {
@@ -309,7 +309,7 @@ int32_t enforcer::process(const waflz_limit_pb::enforcement** ao_axn, rqst_ctx *
         }
         // init to null
         *ao_axn = NULL;
-        waflz_limit_pb::config &l_pb = *(m_pb);
+        waflz_pb::config &l_pb = *(m_pb);
         int32_t l_s;
         // -------------------------------------------------
         // cleanup disabled or expired
@@ -325,13 +325,13 @@ int32_t enforcer::process(const waflz_limit_pb::enforcement** ao_axn, rqst_ctx *
         // -------------------------------------------------
         for(int i_r = 0; i_r < m_pb->limits_size(); ++i_r)
         {
-                waflz_limit_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
+                waflz_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
                 if(!i_r_ptr)
                 {
                         // TODO log error reason
                         return WAFLZ_STATUS_ERROR;
                 }
-                waflz_limit_pb::limit &i_limit = *i_r_ptr;
+                waflz_pb::limit &i_limit = *i_r_ptr;
                 // -----------------------------------------
                 // disabled???
                 // -----------------------------------------
@@ -386,7 +386,7 @@ int32_t enforcer::process(const waflz_limit_pb::enforcement** ao_axn, rqst_ctx *
                 // -----------------------------------------
                 for(int i_cg = 0; i_cg < i_limit.condition_groups_size(); ++i_cg)
                 {
-                        const waflz_limit_pb::condition_group &l_cg = i_limit.condition_groups(i_cg);
+                        const waflz_pb::condition_group &l_cg = i_limit.condition_groups(i_cg);
                         bool l_matched = false,
                         l_s = process_condition_group(l_matched,
                                                       l_cg,
@@ -426,7 +426,7 @@ done:
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t enforcer::merge(waflz_limit_pb::config &ao_cfg)
+int32_t enforcer::merge(waflz_pb::config &ao_cfg)
 {
         if(!m_pb)
         {
@@ -448,7 +448,7 @@ int32_t enforcer::merge(waflz_limit_pb::config &ao_cfg)
         for(int i_r = 0; i_r < ao_cfg.limits_size(); ++i_r)
         {
                 m_pb->add_limits()->CopyFrom(ao_cfg.limits(i_r));
-                ::waflz_limit_pb::limit* l_r = m_pb->mutable_limits(m_pb->limits_size()-1);
+                ::waflz_pb::limit* l_r = m_pb->mutable_limits(m_pb->limits_size()-1);
                 if(!l_r)
                 {
                         WAFLZ_PERROR(m_err_msg, "l_tpl == NULL");
@@ -478,7 +478,7 @@ void enforcer::update_start_time(void)
         }
         for(int i_r = 0; i_r < m_pb->limits_size(); ++i_r)
         {
-                waflz_limit_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
+                waflz_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
                 i_r_ptr->set_start_epoch_msec(get_time_ms());
         }
 }

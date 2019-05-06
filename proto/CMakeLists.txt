@@ -9,9 +9,9 @@ project (waflz)
 # Generate python bindings
 # ------------------------------------------------------------------------------
 add_custom_command(
-    OUTPUT enforcement_pb2.py
-    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/enforcement.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/enforcement.proto
+    OUTPUT action_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/action.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/action.proto
 )
 add_custom_command(
     OUTPUT rule_pb2.py
@@ -34,33 +34,39 @@ add_custom_command(
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/request_info.proto
 )
 add_custom_command(
-    OUTPUT acl.py
+    OUTPUT acl_pb2.py
     COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/acl.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/acl.proto
 )
 add_custom_command(
-    OUTPUT limit.py
+    OUTPUT scope_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto
+)
+add_custom_command(
+    OUTPUT limit_pb2.py
     COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/acl.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/limit.proto
 )
 
 # custom target for protobuf output
 add_custom_target(protodata_py_out ALL DEPENDS
-    ${CMAKE_BINARY_DIR}/proto/enforcement_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/action_pb2.py
     ${CMAKE_BINARY_DIR}/proto/rule_pb2.py
     ${CMAKE_BINARY_DIR}/proto/config_pb2.py
     ${CMAKE_BINARY_DIR}/proto/event_pb2.py
     ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/acl.py
-    ${CMAKE_BINARY_DIR}/proto/limit.py
+    ${CMAKE_BINARY_DIR}/proto/acl_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/scope_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/limit_pb2.py
 )
 # ------------------------------------------------------------------------------
 # protoc generation
 # ------------------------------------------------------------------------------
 add_custom_command(
-    OUTPUT enforcement.pb.cc enforcement.pb.h
-    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/enforcement.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/enforcement.proto
+    OUTPUT action.pb.cc action.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/action.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/action.proto
     )
 add_custom_command(
     OUTPUT rule.pb.cc rule.pb.h
@@ -88,16 +94,21 @@ add_custom_command(
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/acl.proto
     )
 add_custom_command(
+    OUTPUT scope.pb.cc scope.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/limit.proto
+    )
+add_custom_command(
     OUTPUT limit.pb.cc limit.pb.h
     COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/limit.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/limit.proto
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto
     )
 # ------------------------------------------------------------------------------
 # custom target for protobuf output
 # ------------------------------------------------------------------------------
 add_custom_target(protobuf_cpp_out ALL DEPENDS
-    ${CMAKE_BINARY_DIR}/proto/enforcement.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/enforcement.pb.h
+    ${CMAKE_BINARY_DIR}/proto/action.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/action.pb.h
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
     ${CMAKE_BINARY_DIR}/proto/rule.pb.h
     ${CMAKE_BINARY_DIR}/proto/config.pb.cc
@@ -108,6 +119,8 @@ add_custom_target(protobuf_cpp_out ALL DEPENDS
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.h
     ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
     ${CMAKE_BINARY_DIR}/proto/acl.pb.h
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.h
     ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
     ${CMAKE_BINARY_DIR}/proto/limit.pb.h
 )
@@ -115,24 +128,26 @@ add_custom_target(protobuf_cpp_out ALL DEPENDS
 # Source files
 # ------------------------------------------------------------------------------
 set(SRCS
-    enforcement.pb.cc
+    action.pb.cc
     rule.pb.cc
     config.pb.cc
     event.pb.cc
     request_info.pb.cc
     acl.pb.cc
+    scope.pb.cc
     limit.pb.cc
 )
 # ------------------------------------------------------------------------------
 # Header files
 # ------------------------------------------------------------------------------
 set(HDRS
-    enforcement.pb.h
+    action.pb.h
     rule.pb.h
     config.pb.h
     event.pb.h
     request_info.pb.h
     acl.pb.h
+    scope.pb.h
     limit.pb.h
 )
 # ------------------------------------------------------------------------------

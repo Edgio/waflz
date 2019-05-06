@@ -32,7 +32,7 @@
 //! ----------------------------------------------------------------------------
 //! fwd Decl's
 //! ----------------------------------------------------------------------------
-namespace waflz_limit_pb {
+namespace waflz_pb {
         class challenge;
         class problem;
 }
@@ -46,7 +46,7 @@ public:
         //--------------------------------------------------
         // public types
         //--------------------------------------------------
-        typedef std::map <int32_t, const waflz_limit_pb::problem*> prob_map_t;
+        typedef std::map <int32_t, const waflz_pb::problem*> prob_map_t;
         typedef std::vector <int32_t> prob_vector_t;
         //--------------------------------------------------
         // public methods
@@ -77,7 +77,7 @@ private:
         // private methods
         //--------------------------------------------------
         char m_err_msg[WAFLZ_ERR_LEN];
-        waflz_limit_pb::challenge* m_pb;
+        waflz_pb::challenge* m_pb;
         prob_map_t m_prob_map;
         prob_vector_t m_prob_vector;
 };

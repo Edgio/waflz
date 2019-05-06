@@ -36,12 +36,12 @@
 //: ----------------------------------------------------------------------------
 //: fwd Decl's
 //: ----------------------------------------------------------------------------
-namespace waflz_limit_pb
+namespace waflz_pb
 {
 class enforcer;
 class condition_group;
 class match;
-class operator_t;
+class op_t;
 class limit;
 class config;
 class condition_target_t;
@@ -100,15 +100,15 @@ public:
         {
                 return m_err_msg;
         }
-        const waflz_limit_pb::config* get_pb(void) { return m_pb; }
-        waflz_limit_pb::config* get_mutable_pb(void) { return m_pb; }
+        const waflz_pb::config* get_pb(void) { return m_pb; }
+        waflz_pb::config* get_mutable_pb(void) { return m_pb; }
         const std::string &get_customer_id(void);
 protected:
         // -------------------------------------------------
         // Protected members
         // -------------------------------------------------
         bool m_init;
-        waflz_limit_pb::config *m_pb;
+        waflz_pb::config *m_pb;
         char m_err_msg[WAFLZ_ERR_LEN];
         // -------------------------------------------------
         // TODO TEMPORARY HACK to support case insensitive
@@ -120,15 +120,15 @@ protected:
         // protected methods
         // -------------------------------------------------
         int32_t compile(void);
-        int32_t compile_limit(waflz_limit_pb::limit &ao_limit);
+        int32_t compile_limit(waflz_pb::limit &ao_limit);
         int32_t process_condition_group(bool &ao_matched,
-                                        const waflz_limit_pb::condition_group &a_cg,
+                                        const waflz_pb::condition_group &a_cg,
                                         rqst_ctx *a_ctx);
         int32_t in_scope(bool &ao_match,
-                         const waflz_limit_pb::scope &a_scope,
+                         const waflz_pb::scope &a_scope,
                          rqst_ctx *a_ctx);
-        int32_t convertv1(waflz_limit_pb::config& ao_config,
-                          const waflz_limit_pb::enforcer& a_enfcr);
+        int32_t convertv1(waflz_pb::config& ao_config,
+                          const waflz_pb::enforcer& a_enfcr);
         // -------------------------------------------------
         // protected members
         // -------------------------------------------------
@@ -146,14 +146,14 @@ private:
         int32_t extract(const char **ao_data,
                         uint32_t &ao_data_len,
                         std::string &ao_buf,
-                        const waflz_limit_pb::condition_target_t &a_tgt,
+                        const waflz_pb::condition_target_t &a_tgt,
                         rqst_ctx *a_ctx);
-        int32_t compile_op(::waflz_limit_pb::operator_t& ao_op);
+        int32_t compile_op(::waflz_pb::op_t& ao_op);
 };
 //: ----------------------------------------------------------------------------
 //: utils
 //: ----------------------------------------------------------------------------
-int32_t limit_remove(waflz_limit_pb::config &ao_cfg, uint32_t a_off);
-int32_t limit_sweep(waflz_limit_pb::config &ao_cfg);
+int32_t limit_remove(waflz_pb::config &ao_cfg, uint32_t a_off);
+int32_t limit_sweep(waflz_pb::config &ao_cfg);
 }
 #endif

@@ -134,23 +134,23 @@ int32_t config::load()
         int32_t i_r = 0;
         while(i_r < m_pb->limits_size())
         {
-                waflz_limit_pb::limit* i_r_ptr = m_pb->mutable_limits(i_r);
+                waflz_pb::limit* i_r_ptr = m_pb->mutable_limits(i_r);
                 if(!i_r_ptr->has_always_on() ||
                    !i_r_ptr->always_on())
                 {
                         ++i_r;
                         continue;
                 }
-                waflz_limit_pb::config *l_cfg = new waflz_limit_pb::config();
+                waflz_pb::config *l_cfg = new waflz_pb::config();
                 l_cfg->set_id("NA");
                 l_cfg->set_name("NA");
-                l_cfg->set_type(waflz_limit_pb::config_type_t_ENFORCER);
+                l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
                 l_cfg->set_customer_id(m_pb->customer_id());
                 //l_cfg->set_enabled_date(get_date_short_str());
                 // ----------------------------------------
                 // copy limit info
                 // ----------------------------------------
-                waflz_limit_pb::limit* l_limit = l_cfg->add_limits();
+                waflz_pb::limit* l_limit = l_cfg->add_limits();
                 l_limit->CopyFrom(*i_r_ptr);
                 l_limit->clear_keys();
                 //-----------------------------------------
@@ -158,7 +158,7 @@ int32_t config::load()
                 //-----------------------------------------
                 if(l_limit->has_action())
                 {
-                        waflz_limit_pb::enforcement* l_e = l_limit->mutable_action();
+                        waflz_pb::enforcement* l_e = l_limit->mutable_action();
                         l_e->set_duration_sec(3600);
                         l_e->clear_start_time_ms();
                 }
@@ -220,7 +220,7 @@ int32_t config::validate(void)
                 WAFLZ_PERROR(m_err_msg, "missing type field");
                 return WAFLZ_STATUS_ERROR;
         }
-        if(m_pb->type() != waflz_limit_pb::config_type_t_CONFIG)
+        if(m_pb->type() != waflz_pb::config_type_t_CONFIG)
         {
                 WAFLZ_PERROR(m_err_msg, "type: %d != config_type_t_CONFIG", m_pb->type());
                 return WAFLZ_STATUS_ERROR;
@@ -248,7 +248,7 @@ int32_t config::validate(void)
         // -------------------------------------------------
         for(int i_r = 0; i_r < m_pb->limits_size(); ++i_r)
         {
-                waflz_limit_pb::limit *i_l_ptr = m_pb->mutable_limits(i_r);
+                waflz_pb::limit *i_l_ptr = m_pb->mutable_limits(i_r);
                 if(!i_l_ptr->has_id() ||
                     i_l_ptr->id().empty())
                 {
@@ -297,8 +297,8 @@ int32_t config::load(void *a_js)
                 // -----------------------------------------
                 // create v1 pbuf...
                 // -----------------------------------------
-                waflz_limit_pb::enforcer *l_v1_pb = NULL;
-                l_v1_pb = new waflz_limit_pb::enforcer();
+                waflz_pb::enforcer *l_v1_pb = NULL;
+                l_v1_pb = new waflz_pb::enforcer();
                 l_s = update_from_json(*l_v1_pb, l_js);
                 if(l_s != JSPB_OK)
                 {
@@ -310,7 +310,7 @@ int32_t config::load(void *a_js)
                 // convert types...
                 // -----------------------------------------
                 if(m_pb) { delete m_pb; m_pb = NULL; }
-                m_pb = new waflz_limit_pb::config();
+                m_pb = new waflz_pb::config();
                 l_s = convertv1(*m_pb, *l_v1_pb);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -404,7 +404,7 @@ const std::string& config::get_last_modified_date()
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t config::process_enfx(const waflz_limit_pb::enforcement** ao_enfcmnt,
+int32_t config::process_enfx(const waflz_pb::enforcement** ao_enfcmnt,
                                   bool& ao_pass,
                                   rqst_ctx* a_ctx)
 {
@@ -417,7 +417,7 @@ int32_t config::process_enfx(const waflz_limit_pb::enforcement** ao_enfcmnt,
                 return WAFLZ_STATUS_OK;
         }
         int32_t l_s;
-        const waflz_limit_pb::enforcement *l_enfcmnt = NULL;
+        const waflz_pb::enforcement *l_enfcmnt = NULL;
         l_s = m_enfx->process(&l_enfcmnt, a_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -432,7 +432,7 @@ int32_t config::process_enfx(const waflz_limit_pb::enforcement** ao_enfcmnt,
         {
                 return WAFLZ_STATUS_OK;
         }
-        ::waflz_limit_pb::enforcement_type_t l_type = l_enfcmnt->enf_type();
+        ::waflz_pb::enforcement_type_t l_type = l_enfcmnt->enf_type();
         // -------------------------------------------------
         // *************************************************
         //                   C H E C K
@@ -443,7 +443,7 @@ int32_t config::process_enfx(const waflz_limit_pb::enforcement** ao_enfcmnt,
         // -------------------------------------------------
         // BROWSER_CHALLENGE
         // -------------------------------------------------
-        case waflz_limit_pb::enforcement_type_t_BROWSER_CHALLENGE:
+        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
         {
                 //NDBG_PRINT("check valid for...\n%s\n", l_enfcmnt->DebugString().c_str());
                 // -----------------------------------------
@@ -497,7 +497,7 @@ int32_t config::process_enfx(const waflz_limit_pb::enforcement** ao_enfcmnt,
 //! ----------------------------------------------------------------------------
 int32_t config::render_resp(char **ao_resp,
                                  uint32_t &ao_resp_len,
-                                 const waflz_limit_pb::enforcement &a_enfcmnt,
+                                 const waflz_pb::enforcement &a_enfcmnt,
                                  rqst_ctx* a_ctx)
 {
         // -------------------------------------------------
@@ -507,13 +507,13 @@ int32_t config::render_resp(char **ao_resp,
         {
                 return WAFLZ_STATUS_OK;
         }
-        ::waflz_limit_pb::enforcement_type_t l_type = a_enfcmnt.enf_type();
+        ::waflz_pb::enforcement_type_t l_type = a_enfcmnt.enf_type();
         switch(l_type)
         {
         // -------------------------------------------------
         // CUSTOM RESPONSE
         // -------------------------------------------------
-        case waflz_limit_pb::enforcement_type_t_CUSTOM_RESPONSE:
+        case waflz_pb::enforcement_type_t_CUSTOM_RESPONSE:
         {
                 if(!a_enfcmnt.has_response_body_base64())
                 {
@@ -562,7 +562,7 @@ int32_t config::render_resp(char **ao_resp,
         // -------------------------------------------------
         // BROWSER_CHALLENGE
         // -------------------------------------------------
-        case waflz_limit_pb::enforcement_type_t_BROWSER_CHALLENGE:
+        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
         {
                 const std::string *l_b64 = NULL;
                 int32_t l_s;
@@ -625,8 +625,8 @@ int32_t config::render_resp(char **ao_resp,
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t config::process(const waflz_limit_pb::enforcement** ao_enfcmnt,
-                        const waflz_limit_pb::limit** ao_limit,
+int32_t config::process(const waflz_pb::enforcement** ao_enfcmnt,
+                        const waflz_pb::limit** ao_limit,
                         rqst_ctx* a_ctx)
 
 {
@@ -663,7 +663,7 @@ int32_t config::process(const waflz_limit_pb::enforcement** ao_enfcmnt,
         // -------------------------------------------------
         // process config
         // -------------------------------------------------
-        waflz_limit_pb::config *l_cfg = NULL;
+        waflz_pb::config *l_cfg = NULL;
         l_s = process_config(&l_cfg, a_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -691,7 +691,7 @@ int32_t config::process(const waflz_limit_pb::enforcement** ao_enfcmnt,
         // -------------------------------------------------
         if(ao_limit)
         {
-                const waflz_limit_pb::config* l_enfx = m_enfx->get_pb();
+                const waflz_pb::config* l_enfx = m_enfx->get_pb();
                 if(l_enfx &&
                    l_enfx->limits_size())
                 {
@@ -722,16 +722,16 @@ int32_t config::process(const waflz_limit_pb::enforcement** ao_enfcmnt,
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t config::generate_alert(waflz_limit_pb::alert** ao_alert,
+int32_t config::generate_alert(waflz_pb::alert** ao_alert,
                                rqst_ctx* a_ctx)
 {
-        waflz_limit_pb::alert* l_at = new waflz_limit_pb::alert();
+        waflz_pb::alert* l_at = new waflz_pb::alert();
         // -------------------------------------------------
         // Get the matched limit
         // -------------------------------------------------
         if(a_ctx->m_limit)
         {
-                waflz_limit_pb::limit *l_ev_limit = l_at->mutable_limit();
+                waflz_pb::limit *l_ev_limit = l_at->mutable_limit();
                 // TODO -only copy in meta -ie exclude enforcement body info...
                 l_ev_limit->CopyFrom(*(a_ctx->m_limit));
                 // -----------------------------------------
@@ -747,7 +747,7 @@ int32_t config::generate_alert(waflz_limit_pb::alert** ao_alert,
         // -------------------------------------------------
         if(a_ctx->m_limit)
         {
-                waflz_limit_pb::limit *l_ev_limit = l_at->mutable_limit();
+                waflz_pb::limit *l_ev_limit = l_at->mutable_limit();
                 l_ev_limit->CopyFrom(*(a_ctx->m_limit));
         }
         // -------------------------------------------------
@@ -757,13 +757,13 @@ int32_t config::generate_alert(waflz_limit_pb::alert** ao_alert,
         {
                 return WAFLZ_STATUS_OK;
         }
-        waflz_limit_pb::request_info *l_request_info = l_at->mutable_req_info();
+        waflz_pb::request_info *l_request_info = l_at->mutable_req_info();
         // -------------------------------------------------
         // Epoch time
         // -------------------------------------------------
         uint32_t l_now_s = get_time_s();
         uint32_t l_now_ms = get_time_ms();
-        waflz_limit_pb::request_info_timespec_t *l_epoch = l_request_info->mutable_epoch_time();
+        waflz_pb::request_info_timespec_t *l_epoch = l_request_info->mutable_epoch_time();
         l_epoch->set_sec(l_now_s);
         l_epoch->set_nsec(l_now_ms);
         // -------------------------------------------------
@@ -790,7 +790,7 @@ int32_t config::generate_alert(waflz_limit_pb::alert** ao_alert,
         // -------------------------------------------------
         // headers...
         // -------------------------------------------------
-        waflz_limit_pb::request_info::common_header_t* l_headers = l_request_info->mutable_common_header();
+        waflz_pb::request_info::common_header_t* l_headers = l_request_info->mutable_common_header();
         const data_map_t &l_hm = a_ctx->m_header_map;
         data_t l_d;
         _SET_HEADER("Referer", referer);
@@ -813,7 +813,7 @@ int32_t config::generate_alert(waflz_limit_pb::alert** ao_alert,
         // -------------------------------------------------
         // TODO -apologies for enum casting...
         // -------------------------------------------------
-        l_request_info->set_apparent_cache_log_status(static_cast <waflz_limit_pb::request_info::log_status_t>(a_ctx->m_apparent_cache_status));
+        l_request_info->set_apparent_cache_log_status(static_cast <waflz_pb::request_info::log_status_t>(a_ctx->m_apparent_cache_status));
         // -------------------------------------------------
         // set customer id...
         // -------------------------------------------------
@@ -829,7 +829,7 @@ int32_t config::generate_alert(waflz_limit_pb::alert** ao_alert,
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t config::merge(waflz_limit_pb::config &ao_cfg)
+int32_t config::merge(waflz_pb::config &ao_cfg)
 {
         int32_t l_s;
         //NDBG_OUTPUT("l_enfx: %s\n", l_enfx->ShortDebugString().c_str());
@@ -864,7 +864,7 @@ int32_t config::merge(void *a_js)
         // -------------------------------------------------
         // merge
         // -------------------------------------------------
-        l_s = merge(*(const_cast<waflz_limit_pb::config *>(l_e->get_pb())));
+        l_s = merge(*(const_cast<waflz_pb::config *>(l_e->get_pb())));
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_e) { delete l_e; l_e = NULL; }
@@ -878,7 +878,7 @@ int32_t config::merge(void *a_js)
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t config::add_limit_with_key(waflz_limit_pb::limit &ao_limit,
+int32_t config::add_limit_with_key(waflz_pb::limit &ao_limit,
                                   uint16_t a_key,
                                   rqst_ctx *a_ctx)
 {
@@ -896,7 +896,7 @@ int32_t config::add_limit_with_key(waflz_limit_pb::limit &ao_limit,
         // -------------------------------------------------
         // ip
         // -------------------------------------------------
-        case waflz_limit_pb::limit_key_t_IP:
+        case waflz_pb::limit_key_t_IP:
         {
                 l_data = a_ctx->m_src_addr.m_data;
                 l_len = a_ctx->m_src_addr.m_len;
@@ -905,7 +905,7 @@ int32_t config::add_limit_with_key(waflz_limit_pb::limit &ao_limit,
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        case waflz_limit_pb::limit_key_t_USER_AGENT:
+        case waflz_pb::limit_key_t_USER_AGENT:
         {
                 if(!a_ctx)
                 {
@@ -934,7 +934,7 @@ int32_t config::add_limit_with_key(waflz_limit_pb::limit &ao_limit,
                 return WAFLZ_STATUS_OK;
         }
         // Add limit for any data
-        waflz_limit_pb::condition *l_c = NULL;
+        waflz_pb::condition *l_c = NULL;
         if(ao_limit.condition_groups_size() > 0)
         {
                 l_c = ao_limit.mutable_condition_groups(0)->add_conditions();
@@ -947,29 +947,29 @@ int32_t config::add_limit_with_key(waflz_limit_pb::limit &ao_limit,
         // set operator
         // -------------------------------------------------
         // always STREQ
-        waflz_limit_pb::operator_t* l_operator = l_c->mutable_op();
-        l_operator->set_type(waflz_limit_pb::operator_t_type_t_STREQ);
+        waflz_pb::op_t* l_operator = l_c->mutable_op();
+        l_operator->set_type(waflz_pb::op_t_type_t_STREQ);
         l_operator->set_value(l_data, l_len);
         // -------------------------------------------------
         // set var
         // -------------------------------------------------
-        waflz_limit_pb::condition_target_t* l_var = l_c->mutable_target();
+        waflz_pb::condition_target_t* l_var = l_c->mutable_target();
         switch(a_key)
         {
         // -------------------------------------------------
         // ip
         // -------------------------------------------------
-        case waflz_limit_pb::limit_key_t_IP:
+        case waflz_pb::limit_key_t_IP:
         {
-                l_var->set_type(waflz_limit_pb::condition_target_t_type_t_REMOTE_ADDR);
+                l_var->set_type(waflz_pb::condition_target_t_type_t_REMOTE_ADDR);
                 break;
         }
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        case waflz_limit_pb::limit_key_t_USER_AGENT:
+        case waflz_pb::limit_key_t_USER_AGENT:
         {
-                l_var->set_type(waflz_limit_pb::condition_target_t_type_t_REQUEST_HEADERS);
+                l_var->set_type(waflz_pb::condition_target_t_type_t_REQUEST_HEADERS);
                 l_var->mutable_value()->assign("User-Agent");
                 break;
         }
@@ -988,10 +988,10 @@ int32_t config::add_limit_with_key(waflz_limit_pb::limit &ao_limit,
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t config::add_exceed_limit(waflz_limit_pb::config **ao_cfg,
+int32_t config::add_exceed_limit(waflz_pb::config **ao_cfg,
                                 const std::string &a_cust_id,
-                                const waflz_limit_pb::limit& a_limit,
-                                const waflz_limit_pb::condition_group *a_condition_group,
+                                const waflz_pb::limit& a_limit,
+                                const waflz_pb::condition_group *a_condition_group,
                                 rqst_ctx *a_ctx)
 {
         if(!ao_cfg)
@@ -1004,10 +1004,10 @@ int32_t config::add_exceed_limit(waflz_limit_pb::config **ao_cfg,
         // -------------------------------------------------
         if(*ao_cfg == NULL)
         {
-                waflz_limit_pb::config *l_cfg = new waflz_limit_pb::config();
+                waflz_pb::config *l_cfg = new waflz_pb::config();
                 l_cfg->set_id("NA");
                 l_cfg->set_name("NA");
-                l_cfg->set_type(waflz_limit_pb::config_type_t_ENFORCER);
+                l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
                 l_cfg->set_customer_id(a_cust_id);
                 l_cfg->set_enabled_date(get_date_short_str());
                 *ao_cfg = l_cfg;
@@ -1015,7 +1015,7 @@ int32_t config::add_exceed_limit(waflz_limit_pb::config **ao_cfg,
         // -------------------------------------------------
         // populate limit info
         // -------------------------------------------------
-        waflz_limit_pb::limit* l_limit = (*ao_cfg)->add_limits();
+        waflz_pb::limit* l_limit = (*ao_cfg)->add_limits();
         l_limit->set_id(a_limit.id());
         if(a_limit.has_name())
         { l_limit->set_name(a_limit.name()); }
@@ -1036,7 +1036,7 @@ int32_t config::add_exceed_limit(waflz_limit_pb::config **ao_cfg,
         // -------------------------------------------------
         if(a_condition_group)
         {
-                waflz_limit_pb::condition_group *l_cg = l_limit->add_condition_groups();
+                waflz_pb::condition_group *l_cg = l_limit->add_condition_groups();
                 l_cg->CopyFrom(*a_condition_group);
         }
         // -------------------------------------------------
@@ -1063,7 +1063,7 @@ int32_t config::add_exceed_limit(waflz_limit_pb::config **ao_cfg,
         }
         uint64_t l_cur_time_ms = get_time_ms();
         uint32_t l_e_duration_s = 0;
-        waflz_limit_pb::enforcement *l_e = l_limit->mutable_action();
+        waflz_pb::enforcement *l_e = l_limit->mutable_action();
         l_e->CopyFrom(a_limit.action());
         // only id/name/type might be set
         l_e->set_start_time_ms(l_cur_time_ms);
@@ -1090,10 +1090,10 @@ int32_t config::add_exceed_limit(waflz_limit_pb::config **ao_cfg,
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t config::handle_match(waflz_limit_pb::config **ao_cfg,
+int32_t config::handle_match(waflz_pb::config **ao_cfg,
                              const std::string &a_cust_id,
-                             const waflz_limit_pb::limit& a_limit,
-                             const waflz_limit_pb::condition_group *a_condition_group,
+                             const waflz_pb::limit& a_limit,
+                             const waflz_pb::condition_group *a_condition_group,
                              rqst_ctx *a_ctx)
 {
         // -------------------------------------------------
@@ -1201,7 +1201,7 @@ int32_t config::handle_match(waflz_limit_pb::config **ao_cfg,
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t config::process_config(waflz_limit_pb::config **ao_cfg,
+int32_t config::process_config(waflz_pb::config **ao_cfg,
                               rqst_ctx *a_ctx)
 {
         // init to null
@@ -1245,13 +1245,13 @@ int32_t config::process_config(waflz_limit_pb::config **ao_cfg,
         for(int i_r = 0; i_r < m_pb->limits_size(); ++i_r)
         {
                 //NDBG_PRINT("limit[%d]: process\n", i_r);
-                waflz_limit_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
+                waflz_pb::limit *i_r_ptr = m_pb->mutable_limits(i_r);
                 if(!i_r_ptr)
                 {
                         // TODO log error reason
                         return WAFLZ_STATUS_ERROR;
                 }
-                waflz_limit_pb::limit &i_limit = *i_r_ptr;
+                waflz_pb::limit &i_limit = *i_r_ptr;
                 // -----------------------------------------
                 // disabled???
                 // -----------------------------------------
@@ -1313,7 +1313,7 @@ int32_t config::process_config(waflz_limit_pb::config **ao_cfg,
                 for(int i_ms = 0; i_ms < i_limit.condition_groups_size(); ++i_ms)
                 {
                         //NDBG_PRINT("limit[%d]: limit[%d] process\n", i_t, i_r);
-                        const waflz_limit_pb::condition_group &l_cg = i_limit.condition_groups(i_ms);
+                        const waflz_pb::condition_group &l_cg = i_limit.condition_groups(i_ms);
                         bool l_matched = false;
                         int32_t l_s;
                         l_s = process_condition_group(l_matched,
@@ -1361,7 +1361,7 @@ int32_t config::process_config(waflz_limit_pb::config **ao_cfg,
 //! ----------------------------------------------------------------------------
 int32_t config::get_limit_key_value(char *ao_key,
                                    const std::string &a_cust_id,
-                                   const waflz_limit_pb::limit& a_limit,
+                                   const waflz_pb::limit& a_limit,
                                    rqst_ctx *a_ctx)
 {
         if(!a_ctx)
@@ -1374,13 +1374,13 @@ int32_t config::get_limit_key_value(char *ao_key,
         // -------------------------------------------------
         for(int i_k = 0; i_k < a_limit.keys_size(); ++i_k)
         {
-                waflz_limit_pb::limit_key_t l_k = a_limit.keys(i_k);
+                waflz_pb::limit_key_t l_k = a_limit.keys(i_k);
                 switch(l_k)
                 {
                 // -----------------------------------------
                 // IP
                 // -----------------------------------------
-                case waflz_limit_pb::limit_key_t_IP:
+                case waflz_pb::limit_key_t_IP:
                 {
                         const data_t &l_d = a_ctx->m_src_addr;
                         if(l_d.m_data &&
@@ -1393,7 +1393,7 @@ int32_t config::get_limit_key_value(char *ao_key,
                 // -----------------------------------------
                 // USER_AGENT
                 // -----------------------------------------
-                case waflz_limit_pb::limit_key_t_USER_AGENT:
+                case waflz_pb::limit_key_t_USER_AGENT:
                 {
                         data_t l_d;
                         data_t l_v;

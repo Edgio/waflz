@@ -1,30 +1,13 @@
 syntax = "proto2";
-package waflz_limit_pb;
-//: ----------------------------------------------------------------------------
-//: operator
-//: ----------------------------------------------------------------------------
-message operator_t {
-        enum type_t {
-                STREQ = 1;
-                RX = 2;
-                PM = 3;
-                GLOB = 4;
-                EM = 5;
-                IPMATCH = 6;
-        }
-        optional type_t type = 1;
-        optional string value = 2;
-        optional bool is_regex = 3;
-        repeated string values = 4;
-        optional bool is_negated = 10;
-        optional bool is_case_insensitive = 11;
-        // -------------------------------------------------
-        // reserved for internal use
-        // -------------------------------------------------
-        optional uint64 _reserved_1 = 1000;
-}
+package waflz_pb;
+import "scope.proto";
+import "action.proto";
+import "request_info.proto";
 //: ----------------------------------------------------------------------------
 //: rule
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: *************************** D E P R E C A T E D ****************************
 //: ----------------------------------------------------------------------------
 message rule {
         // -------------------------------------------------
@@ -54,65 +37,14 @@ message rule {
         optional string id = 1;
         optional string name = 2;
         repeated variable_t variable = 3;
-        optional operator_t operator = 4;
+        optional waflz_pb.op_t operator = 4;
         repeated rule chained_rule = 5;
 }
 //: ----------------------------------------------------------------------------
-//: scope
-//: ----------------------------------------------------------------------------
-message scope {
-        optional operator_t host = 1;
-        optional operator_t path = 2;
-}
-//: ----------------------------------------------------------------------------
-//: enforcement
-//: ----------------------------------------------------------------------------
-message enforcement {
-        // -------------------------------------------------
-        // TODO make enf types in json line up
-        //      prefer all caps + underscores in
-        //      naming
-        // -------------------------------------------------
-        enum type_t {
-                REDIRECT_302 = 0;
-                REDIRECT_JS =1;
-                HASHCASH = 2;
-                CUSTOM_RESPONSE = 3;
-                DROP_REQUEST = 4;
-                DROP_CONNECTION = 5;
-                NOP = 6;
-                ALERT = 7;
-                BLOCK_REQUEST = 8;
-                BROWSER_CHALLENGE = 9;
-        }
-        message header_t {
-                optional string key = 1;
-                optional string value = 2;
-        }
-        optional string id = 1;
-        optional string name = 2;
-        // -------------------------------------------------
-        // type is coerced into enf_type enum in code
-        // TODO -deprecate type field
-        // -------------------------------------------------
-        optional string type = 3;
-        optional float percentage = 4;
-        optional uint32 duration_sec = 5;
-        optional uint64 start_time_ms = 6;
-        optional string url = 7;
-        optional uint32 retry_after = 8;
-        optional bool display_default_error_page = 9;
-        optional type_t enf_type = 10;
-        // Custom response
-        optional uint32 status = 100;
-        optional string response_body_base64 = 101;
-        repeated header_t response_headers = 102;
-        optional string response_body = 103;
-        // cookie expiry
-        optional uint32 valid_for_sec = 200;
-}
-//: ----------------------------------------------------------------------------
 //: tuple
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: *************************** D E P R E C A T E D ****************************
 //: ----------------------------------------------------------------------------
 message tuple {
         enum dimension_t {
@@ -131,7 +63,7 @@ message tuple {
         optional bool always_on = 9;
         repeated rule rules = 100;
         repeated enforcement enforcements = 200;
-        optional scope scope = 1000;
+        optional waflz_pb.scope scope = 1000;
         // -------------------------------------------------
         // reserved for internal use
         // -------------------------------------------------
@@ -139,6 +71,9 @@ message tuple {
 }
 //: ----------------------------------------------------------------------------
 //: enforcer
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: *************************** D E P R E C A T E D ****************************
 //: ----------------------------------------------------------------------------
 message enforcer {
         optional string id = 1;
@@ -156,63 +91,6 @@ message enforcer {
         // reserved for internal use
         // -------------------------------------------------
         optional uint64 _customer_id_int = 1000;       
-}
-//: ----------------------------------------------------------------------------
-//: request_info
-//: ----------------------------------------------------------------------------
-message request_info {
-        message timespec_t {
-                optional uint32 sec  = 1;
-                optional uint32 nsec = 2;
-        }
-        enum log_status_t {
-                LOG_STATUS_NONE                    = 0;
-                LOG_STATUS_CONFIG_NOCACHE          = 1;
-                LOG_STATUS_UNCACHEABLE             = 2;
-                LOG_STATUS_TCP_MISS                = 3;
-                LOG_STATUS_TCP_HIT                 = 4;
-                LOG_STATUS_TCP_PARTIAL_HIT         = 5;
-                LOG_STATUS_TCP_EXPIRED_HIT         = 6;
-                LOG_STATUS_TCP_EXPIRED_MISS        = 7;
-                LOG_STATUS_TCP_MEM_HIT             = 8;
-                LOG_STATUS_TCP_CLIENT_REFRESH_MISS = 9;
-        }
-        message common_header_t {
-                optional bytes host            = 1;
-                optional bytes user_agent      = 2;
-                optional bytes x_forwarded_for = 3;
-                optional bytes x_ec_tag        = 4;
-                optional bytes referer         = 5;
-                optional bytes via             = 6;
-                optional bytes x_midgress      = 7;
-                optional bytes x_ec_psa_fetch  = 8;
-                optional bytes cache_control   = 9;
-                optional bytes content_type    = 10;
-                optional bytes range           = 11;
-        }
-        // -------------------------------------------------
-        // accesslog specific
-        // -------------------------------------------------
-        optional timespec_t epoch_time = 1;
-        optional timespec_t write_time_used = 2;
-        optional bytes virt_remote_host = 3;
-        optional bytes country_code = 4;
-        optional uint64 file_size = 5;
-        optional bytes local_addr = 6;
-        optional uint32 server_canonical_port  = 7;
-        optional log_status_t apparent_cache_log_status = 8;
-        optional bytes status = 9;
-        optional uint64 bytes_out = 10;
-        optional bytes request_method = 11;
-        optional bytes orig_url = 12;
-        optional bytes url = 13;
-        optional bytes query_string = 14;
-        optional common_header_t common_header = 15;
-        optional uint64 customer_id = 16;
-        optional uint64 bytes_in = 17;
-        optional timespec_t total_conn_time = 18;
-        optional bytes req_uuid = 19;
-        optional bytes hostname = 20;
 }
 //: ----------------------------------------------------------------------------
 //: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -238,7 +116,7 @@ message condition {
 		optional string value = 2;
         }
         optional target_t target = 1;
-        optional operator_t op = 2;
+        optional waflz_pb.op_t op = 2;
 }
 //: ----------------------------------------------------------------------------
 //: matches
@@ -266,7 +144,7 @@ message limit {
         optional bool always_on = 9;
         repeated condition_group condition_groups = 100;
         optional enforcement action = 200;
-        optional scope scope = 1000;
+        optional waflz_pb.scope scope = 1000;
         // -------------------------------------------------
         // reserved for internal use
         // -------------------------------------------------

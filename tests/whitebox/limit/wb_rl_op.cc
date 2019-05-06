@@ -49,9 +49,9 @@ TEST_CASE( "op test", "[op]" ) {
         SECTION("rl_run_op streq test") {
                 bool l_matched = false;
                 int32_t l_s;
-                waflz_limit_pb::operator_t* l_op = NULL;
-                l_op = new waflz_limit_pb::operator_t();
-                l_op->set_type(waflz_limit_pb::operator_t_type_t_STREQ);
+                waflz_pb::op_t* l_op = NULL;
+                l_op = new waflz_pb::op_t();
+                l_op->set_type(waflz_pb::op_t_type_t_STREQ);
                 l_op->set_value("monkeys");
                 l_s = ns_waflz::rl_run_op(l_matched, *l_op, "monkeys", strlen("monkeys"), false);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -67,8 +67,8 @@ TEST_CASE( "op test", "[op]" ) {
         SECTION("rl_run_op glob test") {
                 bool l_matched = false;
                 int32_t l_s;
-                waflz_limit_pb::operator_t* l_op = new waflz_limit_pb::operator_t();
-                l_op->set_type(waflz_limit_pb::operator_t_type_t_GLOB);
+                waflz_pb::op_t* l_op = new waflz_pb::op_t();
+                l_op->set_type(waflz_pb::op_t_type_t_GLOB);
                 l_op->set_value("*");
                 l_s = ns_waflz::rl_run_op(l_matched, *l_op, "cat", strlen("cat"), false);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -121,8 +121,8 @@ TEST_CASE( "op test", "[op]" ) {
         SECTION("rl_run_op pm test") {
                 bool l_matched = false;
                 int32_t l_s;
-                waflz_limit_pb::operator_t* l_op = new waflz_limit_pb::operator_t();
-                l_op->set_type(waflz_limit_pb::operator_t_type_t_PM);
+                waflz_pb::op_t* l_op = new waflz_pb::op_t();
+                l_op->set_type(waflz_pb::op_t_type_t_PM);
                 l_op->add_values("cat");
                 l_op->add_values("dog");
                 l_op->add_values("monkey");
@@ -143,14 +143,14 @@ TEST_CASE( "op test", "[op]" ) {
         SECTION("rl_run_op regex test") {
                 bool l_matched = false;
                 int32_t l_s;
-                waflz_limit_pb::operator_t* l_op = NULL;
+                waflz_pb::op_t* l_op = NULL;
                 ns_waflz::regex* l_rx = NULL;
                 std::string l_val;
                 // -----------------------------------------
                 // basic regex
                 // -----------------------------------------
-                l_op = new waflz_limit_pb::operator_t();
-                l_op->set_type(waflz_limit_pb::operator_t_type_t_RX);
+                l_op = new waflz_pb::op_t();
+                l_op->set_type(waflz_pb::op_t_type_t_RX);
                 l_op->set_value("ca.*");
                 l_rx = new ns_waflz::regex();
                 l_val = l_op->value();
@@ -168,8 +168,8 @@ TEST_CASE( "op test", "[op]" ) {
                 // -----------------------------------------
                 // range regex
                 // -----------------------------------------
-                l_op = new waflz_limit_pb::operator_t();
-                l_op->set_type(waflz_limit_pb::operator_t_type_t_RX);
+                l_op = new waflz_pb::op_t();
+                l_op->set_type(waflz_pb::op_t_type_t_RX);
                 l_op->set_value("t[ao]p");
                 l_rx = new ns_waflz::regex();
                 l_val = l_op->value();
@@ -197,15 +197,15 @@ TEST_CASE( "op test", "[op]" ) {
         SECTION("rl_run_op ipmatch test") {
                 bool l_matched = false;
                 int32_t l_s;
-                waflz_limit_pb::operator_t* l_op = NULL;
+                waflz_pb::op_t* l_op = NULL;
                 ns_waflz::nms* l_nms = NULL;
                 std::string l_val;
                 // -----------------------------------------
                 // init nms
                 // -----------------------------------------
                 l_nms = new ns_waflz::nms();
-                l_op = new waflz_limit_pb::operator_t();
-                l_op->set_type(waflz_limit_pb::operator_t_type_t_IPMATCH);
+                l_op = new waflz_pb::op_t();
+                l_op->set_type(waflz_pb::op_t_type_t_IPMATCH);
                 // ipv4
                 l_s = l_nms->add("127.0.0.1", sizeof("127.0.0.1"));
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -243,7 +243,7 @@ TEST_CASE( "op test", "[op]" ) {
         SECTION("rl_run_op em test case sensitive") {
                 bool l_matched = false;
                 int32_t l_s;
-                waflz_limit_pb::operator_t* l_op = NULL;
+                waflz_pb::op_t* l_op = NULL;
                 ns_waflz::data_set_t* l_ds = NULL;
                 std::string l_val;
                 const char l_str_list[][32] = {
@@ -262,8 +262,8 @@ TEST_CASE( "op test", "[op]" ) {
                         l_d.m_len = strlen(l_str_list[i]);
                         l_ds->insert(l_d);
                 }
-                l_op = new waflz_limit_pb::operator_t();
-                l_op->set_type(waflz_limit_pb::operator_t_type_t_EM);
+                l_op = new waflz_pb::op_t();
+                l_op->set_type(waflz_pb::op_t_type_t_EM);
                 l_op->set__reserved_1((uint64_t)l_ds);
                 // -----------------------------------------
                 // match
@@ -298,7 +298,7 @@ TEST_CASE( "op test", "[op]" ) {
         SECTION("rl_run_op em test case insensitive") {
                 bool l_matched = false;
                 int32_t l_s;
-                waflz_limit_pb::operator_t* l_op = NULL;
+                waflz_pb::op_t* l_op = NULL;
                 ns_waflz::data_case_i_set_t* l_ds = NULL;
                 std::string l_val;
                 const char l_str_list[][32] = {
@@ -317,8 +317,8 @@ TEST_CASE( "op test", "[op]" ) {
                         l_d.m_len = strlen(l_str_list[i]);
                         l_ds->insert(l_d);
                 }
-                l_op = new waflz_limit_pb::operator_t();
-                l_op->set_type(waflz_limit_pb::operator_t_type_t_EM);
+                l_op = new waflz_pb::op_t();
+                l_op->set_type(waflz_pb::op_t_type_t_EM);
                 l_op->set__reserved_1((uint64_t)l_ds);
                 l_op->set_is_case_insensitive(true);
                 // -----------------------------------------

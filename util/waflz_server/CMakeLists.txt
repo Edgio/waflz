@@ -55,6 +55,7 @@ add_dependencies(waflz_server waflzcore)
 add_dependencies(waflz_server submodule_is2)
 SET_TARGET_PROPERTIES(waflz_server PROPERTIES OUTPUT_NAME "waflz_server")
 target_link_libraries(waflz_server
+  asan
   ${CMAKE_BINARY_DIR}/src/libwaflzcore.a
   ${CMAKE_BINARY_DIR}/submodule_is2-prefix/src/submodule_is2-build/src/libis2.a
   pthread

@@ -30,6 +30,8 @@
 #include "cb.h"
 #include "sx.h"
 #include "sx_profile.h"
+#include "sx_instance.h"
+#include "sx_modsecurity.h"
 #include "waflz/rqst_ctx.h"
 #include "support/ndebug.h"
 // TODO FIX!!!
@@ -128,7 +130,6 @@ typedef enum {
         CONFIG_MODE_INSTANCES,
         CONFIG_MODE_PROFILE,
         CONFIG_MODE_MODSECURITY,
-        CONFIG_MODE_CONF,
 #ifdef WAFLZ_RATE_LIMITING
         CONFIG_MODE_LIMIT,
 #endif
@@ -797,7 +798,7 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                waflz_pb::enforcement *l_enf = NULL;
+                const waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
@@ -845,7 +846,7 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                waflz_pb::enforcement *l_enf = NULL;
+                const waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
@@ -885,7 +886,7 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                waflz_pb::enforcement *l_enf = NULL;
+                const waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
@@ -908,67 +909,6 @@ public:
                 return ns_is2::proxy_h::do_default(a_session, a_rqst, a_url_pmap);
         }
 };
-//: ----------------------------------------------------------------------------
-//: \details: sighandler
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-// TODO FIX!!!
-#if 0
-static int32_t guess_owasp_version(uint32_t &ao_owasp_version,
-                                   const std::string &a_file)
-{
-        // -------------------------------------------------
-        // Check is a file
-        // -------------------------------------------------
-        struct stat l_stat;
-        int32_t l_s = STATUS_OK;
-        l_s = stat(a_file.c_str(), &l_stat);
-        if(l_s != 0)
-        {
-                NDBG_PRINT("Error performing stat on file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
-                return WAFLZ_STATUS_ERROR;
-        }
-        // check if is regular file
-        if(!(l_stat.st_mode & S_IFREG))
-        {
-                NDBG_PRINT("Error opening file: %s.  Reason: is NOT a regular file\n", a_file.c_str());
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // Open file...
-        // -------------------------------------------------
-        FILE * l_file;
-        l_file = fopen(a_file.c_str(),"r");
-        if (NULL == l_file)
-        {
-                NDBG_PRINT("Error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
-                return WAFLZ_STATUS_ERROR;
-        }
-        ssize_t l_len = 0;
-        char *l_line = NULL;
-        size_t l_unused;
-        while((l_len = getline(&l_line,&l_unused,l_file)) != -1)
-        {
-                // TODO strnlen -with max line length???
-                if(l_len <= 0)
-                {
-                        if(l_line) { free(l_line); l_line = NULL; }
-                        continue;
-                }
-                if((ns_waflz::strnstr(l_line, "ECRS", l_len) != NULL) ||
-                   (ns_waflz::strnstr(l_line, "3.0.", l_len) != NULL))
-                {
-                        ao_owasp_version = 300;
-                        if(l_line) { free(l_line); l_line = NULL; }
-                        return STATUS_OK;
-                }
-                if(l_line) { free(l_line); l_line = NULL; }
-        }
-        ao_owasp_version = 229;
-        return STATUS_OK;
-}
-#endif
 //: ----------------------------------------------------------------------------
 //: \details: sighandler
 //: \return:  TODO
@@ -1016,7 +956,6 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -d, --instance-dir  waf instance directory\n");
         fprintf(a_stream, "  -f, --profile       waf profile\n");
         fprintf(a_stream, "  -m, --modsecurity   modsecurity rules file (experimental)\n");
-        fprintf(a_stream, "  -c, --conf-file     conf file (experimental)\n");
 #ifdef WAFLZ_RATE_LIMITING
         fprintf(a_stream, "  -l, --limit         limit config file.\n");
 #endif
@@ -1028,7 +967,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -x, --random-ips    randomly generate ips\n");
 #ifdef WAFLZ_RATE_LIMITING
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
-        fprintf(a_stream, "  -b, --bot-challenge json containing browser challenges\n");
+        fprintf(a_stream, "  -c, --challenge json containing browser challenges\n");
 #endif
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Configuration:\n");
@@ -1076,6 +1015,7 @@ int main(int argc, char** argv)
         std::string l_ruleset_dir;
         std::string l_config_file;
         std::string l_server_spec;
+        bool l_bg_load = false;
         // server settings
         uint16_t l_port = 12345;
 // TODO FIX!!!
@@ -1100,7 +1040,6 @@ int main(int argc, char** argv)
                 { "instance-dir", 1, 0, 'd' },
                 { "profile",      1, 0, 'f' },
                 { "modsecurity",  1, 0, 'm' },
-                { "conf-file",    1, 0, 'c' },
                 { "port",         1, 0, 'p' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 's' },
@@ -1112,7 +1051,7 @@ int main(int argc, char** argv)
                 { "output",       1, 0, 'o' },
 #ifdef WAFLZ_RATE_LIMITING
                 { "limit",        1, 0, 'l' },
-                { "bot-challenge",1, 0, 'b' },
+                { "challenge",    1, 0, 'c' },
                 { "redis-host",   1, 0, 'e' },
 #endif
 #ifdef ENABLE_PROFILER
@@ -1143,9 +1082,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvr:i:d:f:m:w:e:p:g:s:xzt:w:y:o:l:b:e:H:C:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:H:C:";
 #else
-        char l_short_arg_list[] = "hvr:i:d:f:m:c:e:p:g:s:xzt:w:y:o:l:b:e:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -1214,14 +1153,6 @@ int main(int argc, char** argv)
                 case 'm':
                 {
                         _TEST_SET_CONFIG_MODE(MODSECURITY);
-                        break;
-                }
-                // -----------------------------------------
-                // conf file
-                // -----------------------------------------
-                case 'c':
-                {
-                        _TEST_SET_CONFIG_MODE(CONF);
                         break;
                 }
 #ifdef WAFLZ_RATE_LIMITING
@@ -1297,17 +1228,14 @@ int main(int argc, char** argv)
                         ns_waflz_server::g_random_ips = true;
                         break;
                 }
-// TODO FIX!!!
-#if 0
                 // -----------------------------------------
                 // background loading
                 // -----------------------------------------
                 case 'z':
                 {
-                        g_bg_load = true;
+                        l_bg_load = true;
                         break;
                 }
-#endif
                 // -----------------------------------------
                 // static
                 // -----------------------------------------
@@ -1336,9 +1264,9 @@ int main(int argc, char** argv)
                 }
 #ifdef WAFLZ_RATE_LIMITING
                 // -----------------------------------------
-                //  bot challenges
+                //  challenges
                 // -----------------------------------------
-                case 'b':
+                case 'c':
                 {
                         l_challenge_file = l_arg;
                         break;
@@ -1394,33 +1322,6 @@ int main(int argc, char** argv)
                 }
                 }
         }
-// TODO FIX!!!
-#if 0
-        // -------------------------------------------------
-        // Check for ruleset dir
-        // -------------------------------------------------
-        if(l_ruleset_dir.empty() &&
-           l_modsecurity_file.empty() &&
-           l_conf_file.empty() &&
-           l_limit_file.empty())
-        {
-                NDBG_PRINT("Error ruleset directory is required.\n");
-                print_usage(stdout, STATUS_ERROR);
-        }
-        // -------------------------------------------------
-        // Check for config file...
-        // -------------------------------------------------
-        if(l_instance_file.empty() &&
-           l_profile_file.empty() &&
-           l_instance_dir.empty() &&
-           l_modsecurity_file.empty() &&
-           l_conf_file.empty() &&
-           l_limit_file.empty())
-        {
-                NDBG_PRINT("error instance or profile or instance dir required.\n");
-                print_usage(stdout, STATUS_ERROR);
-        }
-#endif
         // -------------------------------------------------
         // callbacks request context
         // -------------------------------------------------
@@ -1581,7 +1482,7 @@ int main(int argc, char** argv)
         switch(l_config_mode)
         {
         // -------------------------------------------------
-        // proxy
+        // profile
         // -------------------------------------------------
         case(CONFIG_MODE_PROFILE):
         {
@@ -1589,6 +1490,45 @@ int main(int argc, char** argv)
                 l_sx_profile->m_lsnr = l_lsnr;
                 l_sx_profile->m_config = l_config_file;
                 g_sx = l_sx_profile;
+                break;
+        }
+        // -------------------------------------------------
+        // instances
+        // -------------------------------------------------
+        case(CONFIG_MODE_INSTANCES):
+        {
+                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
+                l_sx_instance->m_lsnr = l_lsnr;
+                l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_is_dir_flag = true;
+                l_sx_instance->m_bg_load = l_bg_load;
+                g_sx = l_sx_instance;
+                break;
+        }
+        // -------------------------------------------------
+        // instance
+        // -------------------------------------------------
+        case(CONFIG_MODE_INSTANCE):
+        {
+                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
+                l_sx_instance->m_lsnr = l_lsnr;
+                l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_is_dir_flag = false;
+                l_sx_instance->m_bg_load = l_bg_load;
+                g_sx = l_sx_instance;
+                break;
+        }
+        // -------------------------------------------------
+        // instance
+        // -------------------------------------------------
+        case(CONFIG_MODE_MODSECURITY):
+        {
+                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
+                l_sx_instance->m_lsnr = l_lsnr;
+                l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_is_dir_flag = false;
+                l_sx_instance->m_bg_load = l_bg_load;
+                g_sx = l_sx_instance;
                 break;
         }
         // -------------------------------------------------

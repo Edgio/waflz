@@ -20,56 +20,45 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _WAFLZ_SERVER_SX_H_
-#define _WAFLZ_SERVER_SX_H_
+#ifndef _WAFLZ_SERVER_SX_MODSECURITY_H_
+#define _WAFLZ_SERVER_SX_MODSECURITY_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
 #include <stdint.h>
-#include "is2/srvr/session.h"
-#include "is2/srvr/rqst.h"
-#include "is2/srvr/lsnr.h"
+#include "sx.h"
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
-namespace waflz_pb {
+namespace ns_waflz {
+class engine;
+class waf;
+class geoip2_mmdb;
 class enforcement;
 }
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
-//: callbacks
+//: sx_modsecurity
 //: ----------------------------------------------------------------------------
-class sx {
+class sx_modsecurity: public sx {
 public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        sx(void):
-                m_lsnr(NULL),
-                m_config(),
-                m_resp()
-        {};
-        virtual ~sx(void) {};
-        virtual int32_t init(void) = 0;
-        virtual ns_is2::h_resp_t handle_rqst(const waflz_pb::enforcement **ao_enf,
-                                             ns_is2::session &a_session,
-                                             ns_is2::rqst &a_rqst,
-                                             const ns_is2::url_pmap_t &a_url_pmap) = 0;
-        static ns_is2::h_resp_t s_handle_rqst(sx &a_sx,
-                                              const waflz_pb::enforcement **ao_enf,
-                                              ns_is2::session &a_session,
-                                              ns_is2::rqst &a_rqst,
-                                              const ns_is2::url_pmap_t &a_url_pmap)
-        {
-                return a_sx.handle_rqst(ao_enf, a_session, a_rqst, a_url_pmap);
-        }
+        sx_modsecurity(void);
+        ~sx_modsecurity(void);
+        int32_t init(void);
+        ns_is2::h_resp_t handle_rqst(const waflz_pb::enforcement **ao_enf,
+                                     ns_is2::session &a_session,
+                                     ns_is2::rqst &a_rqst,
+                                     const ns_is2::url_pmap_t &a_url_pmap);
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
-        ns_is2::lsnr *m_lsnr;
-        std::string m_config;
-        std::string m_resp;
-private:
+        ns_waflz::engine *m_engine;
+        ns_waflz::waf *m_waf;
+        ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
+        waflz_pb::enforcement *m_action;
 };
 }
 #endif

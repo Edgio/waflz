@@ -26,32 +26,34 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include <stdint.h>
+#include "waflz/instances.h"
 #include "sx.h"
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 namespace ns_waflz {
 class engine;
-class instances;
 class geoip2_mmdb;
 }
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
-//: waflz_update_profile_h
+//: update_instances_h
 //: ----------------------------------------------------------------------------
 class update_instances_h: public ns_is2::default_rqst_h
 {
 public:
         update_instances_h():
-                update_instances_h(),
-                m_profile(NULL)
+                default_rqst_h(),
+                m_instances(NULL),
+                m_bg_load(false)
         {}
-        ~update_profile_h()
+        ~update_instances_h()
         {}
         ns_is2::h_resp_t do_post(ns_is2::session &a_session,
                                  ns_is2::rqst &a_rqst,
                                  const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::profile *m_profile = NULL;
+        ns_waflz::instances *m_instances;
+        bool m_bg_load;
 };
 //: ----------------------------------------------------------------------------
 //: sx_instance
@@ -64,7 +66,7 @@ public:
         sx_instance(void);
         ~sx_instance(void);
         int32_t init(void);
-        ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
+        ns_is2::h_resp_t handle_rqst(const waflz_pb::enforcement **ao_enf,
                                      ns_is2::session &a_session,
                                      ns_is2::rqst &a_rqst,
                                      const ns_is2::url_pmap_t &a_url_pmap);
@@ -77,6 +79,7 @@ public:
         ns_waflz::instances *m_instances;
         update_instances_h *m_update_instances_h;
         ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
+        ns_waflz::instances::id_vector_t m_id_vector;
 };
 }
 #endif

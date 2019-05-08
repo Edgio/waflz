@@ -23,8 +23,8 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#include "sx_profile.h"
-#include "waflz/profile.h"
+#include "sx_modsecurity.h"
+#include "waflz/waf.h"
 #include "waflz/engine.h"
 #include "waflz/rqst_ctx.h"
 #include "is2/support/trace.h"
@@ -35,7 +35,10 @@
 #include "jspb/jspb.h"
 #include "support/geoip2_mmdb.h"
 #include "support/file_util.h"
+#include "support/string_util.h"
 #include "event.pb.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
@@ -48,57 +51,71 @@
 #define _DEFAULT_RESP_BODY_B64 "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+IDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4gPHRpdGxlPjwvdGl0bGU+PC9oZWFkPjxib2R5PiA8c3R5bGU+Knstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9ZGl2e2Rpc3BsYXk6IGJsb2NrO31ib2R5e2ZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXNpemU6IDE0cHg7IGxpbmUtaGVpZ2h0OiAxLjQyODU3MTQzOyBjb2xvcjogIzMzMzsgYmFja2dyb3VuZC1jb2xvcjogI2ZmZjt9aHRtbHtmb250LXNpemU6IDEwcHg7IC13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7IC13ZWJraXQtdGV4dC1zaXplLWFkanVzdDogMTAwJTsgLW1zLXRleHQtc2l6ZS1hZGp1c3Q6IDEwMCU7fTpiZWZvcmUsIDphZnRlcnstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9LmNvbnRhaW5lcntwYWRkaW5nLXJpZ2h0OiAxNXB4OyBwYWRkaW5nLWxlZnQ6IDE1cHg7IG1hcmdpbi1yaWdodDogYXV0bzsgbWFyZ2luLWxlZnQ6IGF1dG87fUBtZWRpYSAobWluLXdpZHRoOiA3NjhweCl7LmNvbnRhaW5lcnt3aWR0aDogNzUwcHg7fX0uY2FsbG91dCsuY2FsbG91dHttYXJnaW4tdG9wOiAtNXB4O30uY2FsbG91dHtwYWRkaW5nOiAyMHB4OyBtYXJnaW46IDIwcHggMDsgYm9yZGVyOiAxcHggc29saWQgI2VlZTsgYm9yZGVyLWxlZnQtd2lkdGg6IDVweDsgYm9yZGVyLXJhZGl1czogM3B4O30uY2FsbG91dC1kYW5nZXJ7Ym9yZGVyLWxlZnQtY29sb3I6ICNmYTBlMWM7fS5jYWxsb3V0LWRhbmdlciBoNHtjb2xvcjogI2ZhMGUxYzt9LmNhbGxvdXQgaDR7bWFyZ2luLXRvcDogMDsgbWFyZ2luLWJvdHRvbTogNXB4O31oNCwgLmg0e2ZvbnQtc2l6ZTogMThweDt9aDQsIC5oNCwgaDUsIC5oNSwgaDYsIC5oNnttYXJnaW4tdG9wOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxMHB4O31oMSwgaDIsIGgzLCBoNCwgaDUsIGg2LCAuaDEsIC5oMiwgLmgzLCAuaDQsIC5oNSwgLmg2e2ZvbnQtZmFtaWx5OiBBcGV4LCAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNDAwOyBsaW5lLWhlaWdodDogMS4xOyBjb2xvcjogaW5oZXJpdDt9aDR7ZGlzcGxheTogYmxvY2s7IC13ZWJraXQtbWFyZ2luLWJlZm9yZTogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1hZnRlcjogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1zdGFydDogMHB4OyAtd2Via2l0LW1hcmdpbi1lbmQ6IDBweDsgZm9udC13ZWlnaHQ6IGJvbGQ7fWxhYmVse2Rpc3BsYXk6IGlubGluZS1ibG9jazsgbWF4LXdpZHRoOiAxMDAlOyBtYXJnaW4tYm90dG9tOiA1cHg7IGZvbnQtd2VpZ2h0OiA3MDA7fWRse21hcmdpbi10b3A6IDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGRpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1iZWZvcmU6IDFlbTsgLXdlYmtpdC1tYXJnaW4tYWZ0ZXI6IDFlbTsgLXdlYmtpdC1tYXJnaW4tc3RhcnQ6IDBweDsgLXdlYmtpdC1tYXJnaW4tZW5kOiAwcHg7fWRke2Rpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1zdGFydDogNDBweDsgbWFyZ2luLWxlZnQ6IDA7IHdvcmQtd3JhcDogYnJlYWstd29yZDt9ZHR7Zm9udC13ZWlnaHQ6IDcwMDsgZGlzcGxheTogYmxvY2s7fWR0LCBkZHtsaW5lLWhlaWdodDogMS40Mjg1NzE0Mzt9LmRsLWhvcml6b250YWwgZHR7ZmxvYXQ6IGxlZnQ7IHdpZHRoOiAxNjBweDsgb3ZlcmZsb3c6IGhpZGRlbjsgY2xlYXI6IGxlZnQ7IHRleHQtYWxpZ246IHJpZ2h0OyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDt9LmRsLWhvcml6b250YWwgZGR7bWFyZ2luLWxlZnQ6IDE4MHB4O308L3N0eWxlPiA8ZGl2IGNsYXNzPSJjb250YWluZXIiPiA8ZGl2IGNsYXNzPSJjYWxsb3V0IGNhbGxvdXQtZGFuZ2VyIj4gPGg0IGNsYXNzPSJsYWJlbCI+Rm9yYmlkZGVuPC9oND4gPGRsIGNsYXNzPSJkbC1ob3Jpem9udGFsIj4gPGR0PkNsaWVudCBJUDwvZHQ+IDxkZD57e0NMSUVOVF9JUH19PC9kZD4gPGR0PlVzZXItQWdlbnQ8L2R0PiA8ZGQ+e3tVU0VSX0FHRU5UfX08L2RkPiA8ZHQ+UmVxdWVzdCBVUkw8L2R0PiA8ZGQ+e3tSRVFVRVNUX1VSTH19PC9kZD4gPGR0PlJlYXNvbjwvZHQ+IDxkZD57e1JVTEVfTVNHfX08L2RkPiA8ZHQ+RGF0ZTwvZHQ+IDxkZD57e1RJTUVTVEFNUH19PC9kZD4gPC9kbD4gPC9kaXY+PC9kaXY+PC9ib2R5PjwvaHRtbD4="
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
-//: \details: TODO
+//: \details: guess_owasp_version
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
-                                           ns_is2::rqst &a_rqst,
-                                           const ns_is2::url_pmap_t &a_url_pmap)
+static int32_t guess_owasp_version(uint32_t &ao_owasp_version,
+                                   const std::string &a_file)
 {
-        if(!m_profile)
+        // -------------------------------------------------
+        // Check is a file
+        // -------------------------------------------------
+        struct stat l_stat;
+        int32_t l_s = STATUS_OK;
+        l_s = stat(a_file.c_str(), &l_stat);
+        if(l_s != 0)
         {
-                TRC_ERROR("g_profile == NULL\n");
-                return ns_is2::H_RESP_SERVER_ERROR;
+                NDBG_PRINT("Error performing stat on file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
+                return WAFLZ_STATUS_ERROR;
         }
-        uint64_t l_buf_len = a_rqst.get_body_len();
-        ns_is2::nbq *l_q = a_rqst.get_body_q();
-        // copy to buffer
-        char *l_buf;
-        l_buf = (char *)malloc(l_buf_len);
-        l_q->read(l_buf, l_buf_len);
-        // TODO get status
-        //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
-        int32_t l_s;
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
-        if(l_s != WAFLZ_STATUS_OK)
+        // check if is regular file
+        if(!(l_stat.st_mode & S_IFREG))
         {
-                TRC_ERROR("performing g_profile->load_config: reason: %s\n", m_profile->get_err_msg());
-                if(l_buf) { free(l_buf); l_buf = NULL;}
-                return ns_is2::H_RESP_SERVER_ERROR;
+                NDBG_PRINT("Error opening file: %s.  Reason: is NOT a regular file\n", a_file.c_str());
+                return WAFLZ_STATUS_ERROR;
         }
-        if(l_buf) { free(l_buf); l_buf = NULL;}
-        std::string l_resp_str = "{\"status\": \"success\"}";
-        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
-                                   "application/json",
-                                   l_resp_str.length(),
-                                   a_rqst.m_supports_keep_alives,
-                                   a_session.get_server_name());
-        l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
-        l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
-        ns_is2::queue_api_resp(a_session, l_api_resp);
-        return ns_is2::H_RESP_DONE;
+        // -------------------------------------------------
+        // Open file...
+        // -------------------------------------------------
+        FILE * l_file;
+        l_file = fopen(a_file.c_str(),"r");
+        if (NULL == l_file)
+        {
+                NDBG_PRINT("Error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
+                return WAFLZ_STATUS_ERROR;
+        }
+        ssize_t l_len = 0;
+        char *l_line = NULL;
+        size_t l_unused;
+        while((l_len = getline(&l_line,&l_unused,l_file)) != -1)
+        {
+                // TODO strnlen -with max line length???
+                if(l_len <= 0)
+                {
+                        if(l_line) { free(l_line); l_line = NULL; }
+                        continue;
+                }
+                if((ns_waflz::strnstr(l_line, "ECRS", l_len) != NULL) ||
+                   (ns_waflz::strnstr(l_line, "3.0.", l_len) != NULL))
+                {
+                        ao_owasp_version = 300;
+                        if(l_line) { free(l_line); l_line = NULL; }
+                        return STATUS_OK;
+                }
+                if(l_line) { free(l_line); l_line = NULL; }
+        }
+        ao_owasp_version = 229;
+        return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-sx_profile::sx_profile(void):
+sx_modsecurity::sx_modsecurity(void):
         m_engine(NULL),
-        m_profile(NULL),
-        m_update_profile_h(NULL),
+        m_waf(NULL),
         m_geoip2_mmdb(NULL),
         m_action(NULL)
 {
@@ -116,11 +133,10 @@ sx_profile::sx_profile(void):
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-sx_profile::~sx_profile(void)
+sx_modsecurity::~sx_modsecurity(void)
 {
         if(m_engine) { delete m_engine; m_engine = NULL; }
-        if(m_profile) { delete m_profile; m_profile = NULL; }
-        if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
+        if(m_waf) { delete m_waf; m_waf = NULL; }
         if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL; }
         if(m_action) { delete m_action; m_action = NULL; }
 }
@@ -129,7 +145,7 @@ sx_profile::~sx_profile(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t sx_profile::init(void)
+int32_t sx_modsecurity::init(void)
 {
         int32_t l_s;
         // -------------------------------------------------
@@ -156,54 +172,55 @@ int32_t sx_profile::init(void)
                            m_geoip2_mmdb->get_err_msg());
                 return STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // read file
-        // -------------------------------------------------
-        char *l_buf;
-        uint32_t l_buf_len;
-        //NDBG_PRINT("reading file: %s\n", l_profile_file.c_str());
-        l_s = ns_waflz::read_file(m_config.c_str(), &l_buf, l_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+        // -----------------------------------------
+        // guess format from ext...
+        // -----------------------------------------
+        ns_waflz::config_parser::format_t l_fmt = ns_waflz::config_parser::MODSECURITY;
+        std::string l_ext;
+        l_ext = ns_waflz::get_file_ext(m_config);
+        if(l_ext == "json")
         {
-                NDBG_PRINT("error read_file: %s\n", m_config.c_str());
-                return STATUS_ERROR;
+                l_fmt = ns_waflz::config_parser::JSON;
         }
         // -------------------------------------------------
-        // load profile
+        // guess owasp version
         // -------------------------------------------------
-        m_profile = new ns_waflz::profile(*m_engine, *m_geoip2_mmdb);
-        //NDBG_PRINT("load profile: %s\n", l_profile_file.c_str());
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
-        if(l_s != WAFLZ_STATUS_OK)
+        uint32_t l_owasp_version = 229;
+        if(l_fmt == ns_waflz::config_parser::MODSECURITY)
         {
-                NDBG_PRINT("error loading config: %s. reason: %s\n",
-                           m_config.c_str(),
-                           m_profile->get_err_msg());
-                if(l_buf)
+                l_s = guess_owasp_version(l_owasp_version, m_config);
+                if(l_s != WAFLZ_STATUS_OK)
                 {
-                        free(l_buf);
-                        l_buf = NULL;
+                        NDBG_PRINT("error performing guess_owasp_version\n");
+                        return STATUS_ERROR;
                 }
+        }
+        // -------------------------------------------------
+        // make waf obj
+        // -------------------------------------------------
+        m_waf = new ns_waflz::waf(*m_engine);
+        l_s = m_waf->init(l_fmt, m_config, true);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                NDBG_PRINT("error loading conf file: %s. reason: %s\n",
+                           m_config.c_str(),
+                           "__na__");
+                           // TODO -get reason...
+                           //l_wafl->get_err_msg());
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // update profile
+        // hook geoip db ???
         // -------------------------------------------------
-        m_update_profile_h = new update_profile_h();
-        m_lsnr->add_route("/update_profile", m_update_profile_h);
-        if(l_buf)
-        {
-                free(l_buf);
-                l_buf = NULL;
-                l_buf_len = 0;
-        }
+        // TODO
+        return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_modsecurity::handle_rqst(const waflz_pb::enforcement **ao_enf,
                                          ns_is2::session &a_session,
                                          ns_is2::rqst &a_rqst,
                                          const ns_is2::url_pmap_t &a_url_pmap)
@@ -211,7 +228,7 @@ ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
         ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
         if(ao_enf) { *ao_enf = NULL;}
         m_resp = "{\"status\": \"ok\"}";
-        if(!m_profile)
+        if(!m_waf)
         {
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -219,13 +236,12 @@ ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
         ns_waflz::rqst_ctx *l_ctx = NULL;
         waflz_pb::event *l_event = NULL;
         // -------------------------------------------------
-        // process profile
+        // process
         // -------------------------------------------------
-        l_s = m_profile->process(&l_event, &a_session, &l_ctx);
+        l_s = m_waf->process(&l_event, &a_session, &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("error processing config. reason: %s\n",
-                           m_profile->get_err_msg());
+                NDBG_PRINT("error processing config. reason. TBD\n");
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_SERVER_ERROR;

@@ -25,6 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "sx_instance.h"
 #include "waflz/instances.h"
+#include "waflz/instance.h"
 #include "waflz/engine.h"
 #include "waflz/rqst_ctx.h"
 #include "is2/support/trace.h"
@@ -36,6 +37,10 @@
 #include "support/geoip2_mmdb.h"
 #include "support/file_util.h"
 #include "event.pb.h"
+#include "config.pb.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/prettywriter.h"
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
@@ -45,24 +50,8 @@
 #ifndef STATUS_ERROR
   #define STATUS_ERROR -1
 #endif
+#define _WAFLZ_SERVER_HEADER_INSTANCE_ID "waf-instance-id"
 namespace ns_waflz_server {
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
-class update_instances_h: public ns_is2::default_rqst_h
-{
-public:
-        update_instances_h():
-                default_rqst_h(),
-                m_instances(NULL)
-        {}
-        ~update_instances_h()
-        {}
-        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
-                                 ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::instances *m_instances;
-};
 //: ----------------------------------------------------------------------------
 //: type
 //: ----------------------------------------------------------------------------
@@ -117,7 +106,7 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
         m_instances->set_locking(true);
-        if(!g_bg_load)
+        if(!m_bg_load)
         {
                 // TODO get status
                 //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
@@ -173,7 +162,8 @@ sx_instance::sx_instance(void):
         m_engine(NULL),
         m_instances(NULL),
         m_update_instances_h(NULL),
-        m_geoip2_mmdb(NULL)
+        m_geoip2_mmdb(NULL),
+        m_id_vector()
 {
 
 }
@@ -281,6 +271,8 @@ int32_t sx_instance::init(void)
         // update instances
         // -------------------------------------------------
         m_update_instances_h = new update_instances_h();
+        m_update_instances_h->m_instances = m_instances;
+        m_update_instances_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_instance", m_update_instances_h);
 }
 //: ----------------------------------------------------------------------------
@@ -288,10 +280,10 @@ int32_t sx_instance::init(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
-                                         ns_is2::session &a_session,
-                                         ns_is2::rqst &a_rqst,
-                                         const ns_is2::url_pmap_t &a_url_pmap)
+ns_is2::h_resp_t sx_instance::handle_rqst(const waflz_pb::enforcement **ao_enf,
+                                          ns_is2::session &a_session,
+                                          ns_is2::rqst &a_rqst,
+                                          const ns_is2::url_pmap_t &a_url_pmap)
 {
         ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
         if(ao_enf) { *ao_enf = NULL;}
@@ -299,91 +291,52 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         {
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
-        // TODO FIX!!!
-#if 0
-        int32_t l_s;
-        ns_waflz::rqst_ctx *l_ctx = NULL;
-        waflz_pb::event *l_event = NULL;
-        // -------------------------------------------------
-        // process profile
-        // -------------------------------------------------
-        l_s = m_profile->process(&l_event, &a_session, &l_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error processing config. reason: %s\n",
-                           m_profile->get_err_msg());
-                if(l_event) { delete l_event; l_event = NULL; }
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                return ns_is2::H_RESP_SERVER_ERROR;
-        }
-        m_resp = "{\"status\": \"ok\"}";
-        if(!l_event)
-        {
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                return l_resp_code;
-        }
-        // -------------------------------------------------
-        // serialize event...
-        // -------------------------------------------------
-        l_s = ns_waflz::convert_to_json(m_resp, *l_event);
-        if(l_s != JSPB_OK)
-        {
-                NDBG_PRINT("error performing convert_to_json.\n");
-                if(l_event) { delete l_event; l_event = NULL; }
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                return ns_is2::H_RESP_SERVER_ERROR;
-        }
-        // -------------------------------------------------
-        // cleanup
-        // -------------------------------------------------
-        if(l_event) { delete l_event; l_event = NULL; }
-        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-#endif
-
-#if 0
         // -------------------------------------------------
         // events
         // -------------------------------------------------
         int32_t l_s;
-        waflz_pb::event *l_event = NULL;
+        waflz_pb::event *l_event_prod = NULL;
         waflz_pb::event *l_event_audit = NULL;
         ns_waflz::rqst_ctx *l_ctx  = NULL;
         // -------------------------------------------------
         // instances
         // -------------------------------------------------
-        g_instances->set_locking(true);
+        m_instances->set_locking(true);
         std::string l_id;
-        // -----------------------------------------
+        // -------------------------------------------------
         // pick rand from id set if not empty
-        // -----------------------------------------
-        if(!g_id_vector.empty())
+        // -------------------------------------------------
+        if(!m_id_vector.empty())
         {
-                uint32_t l_len = (uint32_t)g_id_vector.size();
+                uint32_t l_len = (uint32_t)m_id_vector.size();
                 uint32_t l_idx = 0;
                 l_idx = ((uint32_t)rand()) % (l_len + 1);
-                l_id = g_id_vector[l_idx];
+                l_id = m_id_vector[l_idx];
         }
-        // -----------------------------------------
+        // -------------------------------------------------
         // get id from header if exists
-        // -----------------------------------------
+        // -------------------------------------------------
         else
         {
                 const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
                 ns_is2::mutable_data_t i_hdr;
-                if(ns_is2::find_first(i_hdr, l_headers, WAFLZ_SERVER_HEADER_INSTANCE_ID, sizeof(WAFLZ_SERVER_HEADER_INSTANCE_ID)))
+                if(ns_is2::find_first(i_hdr, l_headers, _WAFLZ_SERVER_HEADER_INSTANCE_ID, sizeof(_WAFLZ_SERVER_HEADER_INSTANCE_ID)))
                 {
                         l_id.assign(i_hdr.m_data, i_hdr.m_len);
                 }
         }
+        // -------------------------------------------------
+        // get first
+        // -------------------------------------------------
         //NDBG_PRINT("instance: id:   %s\n", l_id.c_str());
         if(l_id.empty())
         {
                 ns_waflz::instance *l_instance = NULL;
-                l_instance = g_instances->get_first_instance();
+                l_instance = m_instances->get_first_instance();
                 if(!l_instance)
                 {
                         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
@@ -392,28 +345,21 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         if(l_id.empty())
         {
                 if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
-        // -----------------------------------------
-        // reset body read
-        // -----------------------------------------
-        if(a_session.m_rqst &&
-           a_session.m_rqst->get_body_q())
-        {
-                a_session.m_rqst->get_body_q()->reset_read();
-        }
-        // -----------------------------------------
-        // process audit
-        // -----------------------------------------
-        l_s = g_instances->process(&l_event_audit, &l_event, &a_session, l_id, &l_ctx);
+        m_resp = "{\"status\": \"ok\"}";
+        // -------------------------------------------------
+        // process
+        // -------------------------------------------------
+        l_s = m_instances->process(&l_event_audit, &l_event_prod, &a_session, l_id, &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error processing config. reason: %s\n",
-                           g_instances->get_err_msg());
+                           m_instances->get_err_msg());
                 if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -426,7 +372,7 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // for instances create string with both...
         // -------------------------------------------------
-        rapidjson::Document l_event_json;
+        rapidjson::Document l_event_prod_json;
         rapidjson::Document l_event_audit_json;
         if(l_event_audit)
         {
@@ -435,20 +381,20 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
                 {
                         NDBG_PRINT("error performing convert_to_json.\n");
                         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
                 if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
         }
-        if(l_event)
+        if(l_event_prod)
         {
-                l_s = ns_waflz::convert_to_json(l_event_json, *l_event);
+                l_s = ns_waflz::convert_to_json(l_event_prod_json, *l_event_prod);
                 if(l_s != JSPB_OK)
                 {
                         NDBG_PRINT("error performing convert_to_json.\n");
                         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
@@ -457,59 +403,28 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         l_js_doc.SetObject();
         rapidjson::Document::AllocatorType& l_js_allocator = l_js_doc.GetAllocator();
         l_js_doc.AddMember("audit_profile", l_event_audit_json, l_js_allocator);
-        l_js_doc.AddMember("prod_profile",  l_event_json,       l_js_allocator);
+        l_js_doc.AddMember("prod_profile",  l_event_prod_json, l_js_allocator);
         rapidjson::StringBuffer l_strbuf;
         rapidjson::Writer<rapidjson::StringBuffer> l_js_writer(l_strbuf);
         l_js_doc.Accept(l_js_writer);
-        l_event_str.assign(l_strbuf.GetString(), l_strbuf.GetSize());
-        goto write_out;
+        m_resp.assign(l_strbuf.GetString(), l_strbuf.GetSize());
         // -------------------------------------------------
-        // serialize event...
+        // append action
         // -------------------------------------------------
-        if(l_event)
+        ns_waflz::instance *l_instance = NULL;
+        l_instance = m_instances->get_instance(l_id);
+        if(ao_enf &&
+           l_instance &&
+           l_instance->get_pb() &&
+           l_instance->get_pb()->prod_profile_enforcements_size())
         {
-                l_s = ns_waflz::convert_to_json(l_event_str, *l_event);
-                if(l_s != JSPB_OK)
-                {
-                        NDBG_PRINT("error performing convert_to_json.\n");
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-write_out:
-        // -------------------------------------------------
-        // write out if output...
-        // -------------------------------------------------
-        if(g_out_file_ptr)
-        {
-                size_t l_fw_s;
-                l_fw_s = fwrite(l_event_str.c_str(), 1, l_event_str.length(), g_out_file_ptr);
-                if(l_fw_s != l_event_str.length())
-                {
-                        NDBG_PRINT("error performing fwrite.\n");
-                }
-                fwrite("\n", 1, 1, g_out_file_ptr);
+                *ao_enf = &(l_instance->get_pb()->prod_profile_enforcements(0));
         }
         // -------------------------------------------------
-        // response...
+        // cleanup
         // -------------------------------------------------
-        if(g_ups_host.empty())
-        {
-                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
-                                           "application/json",
-                                           l_event_str.length(),
-                                           a_rqst.m_supports_keep_alives,
-                                           a_session.get_server_name());
-                l_api_resp.set_body_data(l_event_str.c_str(), l_event_str.length());
-                l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
-                ns_is2::queue_api_resp(a_session, l_api_resp);
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                if(l_event) { delete l_event; l_event = NULL; }
-                return ns_is2::H_RESP_DONE;
-        }
+        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
+        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
         return l_resp_code;
 }

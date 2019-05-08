@@ -45,6 +45,8 @@ include_directories(
 SET(SRCS
   cb.cc
   sx_profile.cc
+  sx_instance.cc
+  sx_modsecurity.cc
   waflz_server.cc
 )
 # ------------------------------------------------------------------------------

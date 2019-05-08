@@ -2,7 +2,7 @@
 //: Copyright (C) 2019 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    sx.h
+//: \file:    sx_modsecurity.h
 //: \details: TODO
 //: \author:  Reed P. Morrison
 //: \date:    05/07/2019

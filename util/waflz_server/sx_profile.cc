@@ -2,7 +2,7 @@
 //: Copyright (C) 2019 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    cb.cc
+//: \file:    sx_profile.cc
 //: \details: TODO
 //: \author:  Reed P. Morrison
 //: \date:    09/30/2019

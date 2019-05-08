@@ -32,6 +32,9 @@
 #include "sx_profile.h"
 #include "sx_instance.h"
 #include "sx_modsecurity.h"
+#ifdef WAFLZ_RATE_LIMITING
+#include "sx_limit.h"
+#endif
 #include "waflz/rqst_ctx.h"
 #include "support/ndebug.h"
 // TODO FIX!!!
@@ -91,6 +94,7 @@
 #include "is2/srvr/default_rqst_h.h"
 #include "is2/handler/proxy_h.h"
 #include "is2/handler/file_h.h"
+#include "action.pb.h"
 #include <string>
 #include <getopt.h>
 #include <stdio.h>
@@ -105,10 +109,10 @@
 //: constants
 //: ----------------------------------------------------------------------------
 #define BOGUS_GEO_DATABASE "/tmp/BOGUS_GEO_DATABASE.db"
+#define _DEFAULT_RESP_BODY_B64 "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+IDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4gPHRpdGxlPjwvdGl0bGU+PC9oZWFkPjxib2R5PiA8c3R5bGU+Knstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9ZGl2e2Rpc3BsYXk6IGJsb2NrO31ib2R5e2ZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXNpemU6IDE0cHg7IGxpbmUtaGVpZ2h0OiAxLjQyODU3MTQzOyBjb2xvcjogIzMzMzsgYmFja2dyb3VuZC1jb2xvcjogI2ZmZjt9aHRtbHtmb250LXNpemU6IDEwcHg7IC13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7IC13ZWJraXQtdGV4dC1zaXplLWFkanVzdDogMTAwJTsgLW1zLXRleHQtc2l6ZS1hZGp1c3Q6IDEwMCU7fTpiZWZvcmUsIDphZnRlcnstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9LmNvbnRhaW5lcntwYWRkaW5nLXJpZ2h0OiAxNXB4OyBwYWRkaW5nLWxlZnQ6IDE1cHg7IG1hcmdpbi1yaWdodDogYXV0bzsgbWFyZ2luLWxlZnQ6IGF1dG87fUBtZWRpYSAobWluLXdpZHRoOiA3NjhweCl7LmNvbnRhaW5lcnt3aWR0aDogNzUwcHg7fX0uY2FsbG91dCsuY2FsbG91dHttYXJnaW4tdG9wOiAtNXB4O30uY2FsbG91dHtwYWRkaW5nOiAyMHB4OyBtYXJnaW46IDIwcHggMDsgYm9yZGVyOiAxcHggc29saWQgI2VlZTsgYm9yZGVyLWxlZnQtd2lkdGg6IDVweDsgYm9yZGVyLXJhZGl1czogM3B4O30uY2FsbG91dC1kYW5nZXJ7Ym9yZGVyLWxlZnQtY29sb3I6ICNmYTBlMWM7fS5jYWxsb3V0LWRhbmdlciBoNHtjb2xvcjogI2ZhMGUxYzt9LmNhbGxvdXQgaDR7bWFyZ2luLXRvcDogMDsgbWFyZ2luLWJvdHRvbTogNXB4O31oNCwgLmg0e2ZvbnQtc2l6ZTogMThweDt9aDQsIC5oNCwgaDUsIC5oNSwgaDYsIC5oNnttYXJnaW4tdG9wOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxMHB4O31oMSwgaDIsIGgzLCBoNCwgaDUsIGg2LCAuaDEsIC5oMiwgLmgzLCAuaDQsIC5oNSwgLmg2e2ZvbnQtZmFtaWx5OiBBcGV4LCAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNDAwOyBsaW5lLWhlaWdodDogMS4xOyBjb2xvcjogaW5oZXJpdDt9aDR7ZGlzcGxheTogYmxvY2s7IC13ZWJraXQtbWFyZ2luLWJlZm9yZTogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1hZnRlcjogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1zdGFydDogMHB4OyAtd2Via2l0LW1hcmdpbi1lbmQ6IDBweDsgZm9udC13ZWlnaHQ6IGJvbGQ7fWxhYmVse2Rpc3BsYXk6IGlubGluZS1ibG9jazsgbWF4LXdpZHRoOiAxMDAlOyBtYXJnaW4tYm90dG9tOiA1cHg7IGZvbnQtd2VpZ2h0OiA3MDA7fWRse21hcmdpbi10b3A6IDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGRpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1iZWZvcmU6IDFlbTsgLXdlYmtpdC1tYXJnaW4tYWZ0ZXI6IDFlbTsgLXdlYmtpdC1tYXJnaW4tc3RhcnQ6IDBweDsgLXdlYmtpdC1tYXJnaW4tZW5kOiAwcHg7fWRke2Rpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1zdGFydDogNDBweDsgbWFyZ2luLWxlZnQ6IDA7IHdvcmQtd3JhcDogYnJlYWstd29yZDt9ZHR7Zm9udC13ZWlnaHQ6IDcwMDsgZGlzcGxheTogYmxvY2s7fWR0LCBkZHtsaW5lLWhlaWdodDogMS40Mjg1NzE0Mzt9LmRsLWhvcml6b250YWwgZHR7ZmxvYXQ6IGxlZnQ7IHdpZHRoOiAxNjBweDsgb3ZlcmZsb3c6IGhpZGRlbjsgY2xlYXI6IGxlZnQ7IHRleHQtYWxpZ246IHJpZ2h0OyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDt9LmRsLWhvcml6b250YWwgZGR7bWFyZ2luLWxlZnQ6IDE4MHB4O308L3N0eWxlPiA8ZGl2IGNsYXNzPSJjb250YWluZXIiPiA8ZGl2IGNsYXNzPSJjYWxsb3V0IGNhbGxvdXQtZGFuZ2VyIj4gPGg0IGNsYXNzPSJsYWJlbCI+Rm9yYmlkZGVuPC9oND4gPGRsIGNsYXNzPSJkbC1ob3Jpem9udGFsIj4gPGR0PkNsaWVudCBJUDwvZHQ+IDxkZD57e0NMSUVOVF9JUH19PC9kZD4gPGR0PlVzZXItQWdlbnQ8L2R0PiA8ZGQ+e3tVU0VSX0FHRU5UfX08L2RkPiA8ZHQ+UmVxdWVzdCBVUkw8L2R0PiA8ZGQ+e3tSRVFVRVNUX1VSTH19PC9kZD4gPGR0PlJlYXNvbjwvZHQ+IDxkZD57e1JVTEVfTVNHfX08L2RkPiA8ZHQ+RGF0ZTwvZHQ+IDxkZD57e1RJTUVTVEFNUH19PC9kZD4gPC9kbD4gPC9kaXY+PC9kaXY+PC9ib2R5PjwvaHRtbD4="
 // TODO FIX!!!
 #if 0
 #define WAFLZ_SERVER_HEADER_INSTANCE_ID "waf-instance-id"
-#define DEFAULT_RESP_BODY_B64 "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+IDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4gPHRpdGxlPjwvdGl0bGU+PC9oZWFkPjxib2R5PiA8c3R5bGU+Knstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9ZGl2e2Rpc3BsYXk6IGJsb2NrO31ib2R5e2ZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXNpemU6IDE0cHg7IGxpbmUtaGVpZ2h0OiAxLjQyODU3MTQzOyBjb2xvcjogIzMzMzsgYmFja2dyb3VuZC1jb2xvcjogI2ZmZjt9aHRtbHtmb250LXNpemU6IDEwcHg7IC13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7IC13ZWJraXQtdGV4dC1zaXplLWFkanVzdDogMTAwJTsgLW1zLXRleHQtc2l6ZS1hZGp1c3Q6IDEwMCU7fTpiZWZvcmUsIDphZnRlcnstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9LmNvbnRhaW5lcntwYWRkaW5nLXJpZ2h0OiAxNXB4OyBwYWRkaW5nLWxlZnQ6IDE1cHg7IG1hcmdpbi1yaWdodDogYXV0bzsgbWFyZ2luLWxlZnQ6IGF1dG87fUBtZWRpYSAobWluLXdpZHRoOiA3NjhweCl7LmNvbnRhaW5lcnt3aWR0aDogNzUwcHg7fX0uY2FsbG91dCsuY2FsbG91dHttYXJnaW4tdG9wOiAtNXB4O30uY2FsbG91dHtwYWRkaW5nOiAyMHB4OyBtYXJnaW46IDIwcHggMDsgYm9yZGVyOiAxcHggc29saWQgI2VlZTsgYm9yZGVyLWxlZnQtd2lkdGg6IDVweDsgYm9yZGVyLXJhZGl1czogM3B4O30uY2FsbG91dC1kYW5nZXJ7Ym9yZGVyLWxlZnQtY29sb3I6ICNmYTBlMWM7fS5jYWxsb3V0LWRhbmdlciBoNHtjb2xvcjogI2ZhMGUxYzt9LmNhbGxvdXQgaDR7bWFyZ2luLXRvcDogMDsgbWFyZ2luLWJvdHRvbTogNXB4O31oNCwgLmg0e2ZvbnQtc2l6ZTogMThweDt9aDQsIC5oNCwgaDUsIC5oNSwgaDYsIC5oNnttYXJnaW4tdG9wOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxMHB4O31oMSwgaDIsIGgzLCBoNCwgaDUsIGg2LCAuaDEsIC5oMiwgLmgzLCAuaDQsIC5oNSwgLmg2e2ZvbnQtZmFtaWx5OiBBcGV4LCAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNDAwOyBsaW5lLWhlaWdodDogMS4xOyBjb2xvcjogaW5oZXJpdDt9aDR7ZGlzcGxheTogYmxvY2s7IC13ZWJraXQtbWFyZ2luLWJlZm9yZTogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1hZnRlcjogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1zdGFydDogMHB4OyAtd2Via2l0LW1hcmdpbi1lbmQ6IDBweDsgZm9udC13ZWlnaHQ6IGJvbGQ7fWxhYmVse2Rpc3BsYXk6IGlubGluZS1ibG9jazsgbWF4LXdpZHRoOiAxMDAlOyBtYXJnaW4tYm90dG9tOiA1cHg7IGZvbnQtd2VpZ2h0OiA3MDA7fWRse21hcmdpbi10b3A6IDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGRpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1iZWZvcmU6IDFlbTsgLXdlYmtpdC1tYXJnaW4tYWZ0ZXI6IDFlbTsgLXdlYmtpdC1tYXJnaW4tc3RhcnQ6IDBweDsgLXdlYmtpdC1tYXJnaW4tZW5kOiAwcHg7fWRke2Rpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1zdGFydDogNDBweDsgbWFyZ2luLWxlZnQ6IDA7IHdvcmQtd3JhcDogYnJlYWstd29yZDt9ZHR7Zm9udC13ZWlnaHQ6IDcwMDsgZGlzcGxheTogYmxvY2s7fWR0LCBkZHtsaW5lLWhlaWdodDogMS40Mjg1NzE0Mzt9LmRsLWhvcml6b250YWwgZHR7ZmxvYXQ6IGxlZnQ7IHdpZHRoOiAxNjBweDsgb3ZlcmZsb3c6IGhpZGRlbjsgY2xlYXI6IGxlZnQ7IHRleHQtYWxpZ246IHJpZ2h0OyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDt9LmRsLWhvcml6b250YWwgZGR7bWFyZ2luLWxlZnQ6IDE4MHB4O308L3N0eWxlPiA8ZGl2IGNsYXNzPSJjb250YWluZXIiPiA8ZGl2IGNsYXNzPSJjYWxsb3V0IGNhbGxvdXQtZGFuZ2VyIj4gPGg0IGNsYXNzPSJsYWJlbCI+Rm9yYmlkZGVuPC9oND4gPGRsIGNsYXNzPSJkbC1ob3Jpem9udGFsIj4gPGR0PkNsaWVudCBJUDwvZHQ+IDxkZD57e0NMSUVOVF9JUH19PC9kZD4gPGR0PlVzZXItQWdlbnQ8L2R0PiA8ZGQ+e3tVU0VSX0FHRU5UfX08L2RkPiA8ZHQ+UmVxdWVzdCBVUkw8L2R0PiA8ZGQ+e3tSRVFVRVNUX1VSTH19PC9kZD4gPGR0PlJlYXNvbjwvZHQ+IDxkZD57e1JVTEVfTVNHfX08L2RkPiA8ZHQ+RGF0ZTwvZHQ+IDxkZD57e1RJTUVTVEFNUH19PC9kZD4gPC9kbD4gPC9kaXY+PC9kaXY+PC9ib2R5PjwvaHRtbD4="
 #endif
 #ifndef STATUS_OK
   #define STATUS_OK 0
@@ -145,624 +149,140 @@ typedef enum {
 //: ----------------------------------------------------------------------------
 ns_is2::srvr *g_srvr = NULL;
 ns_waflz_server::sx *g_sx = NULL;
-// TODO FIX!!!
-#if 0
-bool g_bg_load = false;
-waflz_pb::enforcement *g_enfx = NULL;
-std::string g_ups_host;
-ns_waflz::instances *g_instances = NULL;
-ns_waflz::profile *g_profile = NULL;
-ns_waflz::waf *g_wafl = NULL;
-#ifdef WAFLZ_RATE_LIMITING
-ns_waflz::configs* g_configs = NULL;
-uint64_t g_cust_id;
-#endif
-ns_waflz::instances::id_vector_t g_id_vector;
 FILE *g_out_file_ptr = NULL;
-#endif
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-// TODO FIX!!!
-#if 0
-static ns_is2::h_resp_t handle_rqst(ns_is2::session &a_session,
-                                    ns_is2::rqst &a_rqst,
-                                    const ns_is2::url_pmap_t &a_url_pmap)
+static ns_is2::h_resp_t handle_enf(ns_is2::session &a_session,
+                                   ns_is2::rqst &a_rqst,
+                                   const waflz_pb::enforcement &a_enf)
 {
         ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
-        if(!g_profile &&
-           !g_instances &&
-           !g_wafl &&
-           !g_configs)
+        // -------------------------------------------------
+        // no enf
+        // -------------------------------------------------
+        if(!a_enf.has_type())
         {
-                return ns_is2::H_RESP_SERVER_ERROR;
+                return ns_is2::H_RESP_NONE;
         }
-        // -------------------------------------------------
-        // events
-        // -------------------------------------------------
-        int32_t l_s;
-        waflz_pb::event *l_event = NULL;
-        waflz_pb::event *l_event_audit = NULL;
-        // -------------------------------------------------
-        // get rqst ctx
-        // -------------------------------------------------
-        ns_waflz::rqst_ctx *l_ctx  = new ns_waflz::rqst_ctx(&a_session, 1024*1024);
-        l_s = l_ctx->init_phase_1();
-        if(l_s != STATUS_OK)
-        {
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                return ns_is2::H_RESP_SERVER_ERROR;
-        }
-        // -------------------------------------------------
-        // wafl
-        // -------------------------------------------------
-        if(g_wafl)
-        {
-                l_s = g_wafl->process(&l_event, &a_session, &l_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error processing config. reason. TBD\n");
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // profile
-        // -------------------------------------------------
-        else if(g_profile)
-        {
-                l_s = g_profile->process(&l_event, &a_session, &l_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error processing config. reason: %s\n",
-                                   g_profile->get_err_msg());
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                //ns_waflz::waf *l_waf = g_profile->get_waf();
-                //NDBG_OUTPUT("*****************************************\n");
-                //NDBG_OUTPUT("*             S T A T U S               *\n");
-                //NDBG_OUTPUT("*****************************************\n");
-                //l_waf->show_status();
-                //NDBG_OUTPUT("*****************************************\n");
-                //NDBG_OUTPUT("*               D E B U G               *\n");
-                //NDBG_OUTPUT("*****************************************\n");
-                //l_waf->show_debug();
-        }
-        // -------------------------------------------------
-        // instances
-        // -------------------------------------------------
-        else if(g_instances)
-        {
-                g_instances->set_locking(true);
-                std::string l_id;
-                // -----------------------------------------
-                // pick rand from id set if not empty
-                // -----------------------------------------
-                if(!g_id_vector.empty())
-                {
-                        uint32_t l_len = (uint32_t)g_id_vector.size();
-                        uint32_t l_idx = 0;
-                        l_idx = ((uint32_t)rand()) % (l_len + 1);
-                        l_id = g_id_vector[l_idx];
-                }
-                // -----------------------------------------
-                // get id from header if exists
-                // -----------------------------------------
-                else
-                {
-                        const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
-                        ns_is2::mutable_data_t i_hdr;
-                        if(ns_is2::find_first(i_hdr, l_headers, WAFLZ_SERVER_HEADER_INSTANCE_ID, sizeof(WAFLZ_SERVER_HEADER_INSTANCE_ID)))
-                        {
-                                l_id.assign(i_hdr.m_data, i_hdr.m_len);
-                        }
-                }
-                //NDBG_PRINT("instance: id:   %s\n", l_id.c_str());
-                if(l_id.empty())
-                {
-                        ns_waflz::instance *l_instance = NULL;
-                        l_instance = g_instances->get_first_instance();
-                        if(!l_instance)
-                        {
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                        l_id = l_instance->get_id();
-                }
-                if(l_id.empty())
-                {
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                // -----------------------------------------
-                // reset body read
-                // -----------------------------------------
-                if(a_session.m_rqst &&
-                   a_session.m_rqst->get_body_q())
-                {
-                        a_session.m_rqst->get_body_q()->reset_read();
-                }
-                // -----------------------------------------
-                // process audit
-                // -----------------------------------------
-                l_s = g_instances->process(&l_event_audit, &l_event, &a_session, l_id, &l_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error processing config. reason: %s\n",
-                                   g_instances->get_err_msg());
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-#ifdef WAFLZ_RATE_LIMITING
-        // -------------------------------------------------
-        // configs
-        // -------------------------------------------------
-        else if(g_configs)
-        {
-                // -----------------------------------------
-                // get coord
-                // -----------------------------------------
-                int32_t l_s;
-                ns_waflz::config* l_config = NULL;
-                l_s = g_configs->get_config(&l_config, g_cust_id);
-                if((l_s != STATUS_OK) ||
-                   (!l_config))
-                {
-                        NDBG_PRINT("error performing get_coordinator_config.  Reason: %s\n", g_configs->get_err_msg());
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                // -----------------------------------------
-                // process
-                // -----------------------------------------
-                const waflz_pb::enforcement *l_enfcmnt = NULL;
-                const waflz_pb::limit *l_limit = NULL;
-                l_s = l_config->process(&l_enfcmnt,
-                                        &l_limit,
-                                        l_ctx);
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing config process.  Reason: %s\n", l_config->get_err_msg());
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                // -----------------------------------------
-                // no enf
-                // -----------------------------------------
-                if(!l_enfcmnt ||
-                   !l_enfcmnt->has_type())
-                {
-                        return ns_is2::H_RESP_NONE;
-                }
-                // -----------------------------------------
-                // convert type to enum
-                // -----------------------------------------
-                //NDBG_PRINT("l_enfcmnt: %s\n", l_enfcmnt->ShortDebugString().c_str());
+        //NDBG_PRINT("l_enfcmnt: %s\n", a_enf.ShortDebugString().c_str());
 #define STR_CMP(_a,_b) (strncasecmp(_a,_b,strlen(_b)) == 0)
-                // -----------------------------------------
-                // switch on type
-                // -----------------------------------------
-                switch(l_enfcmnt->enf_type())
-                {
-                // -----------------------------------------
-                // ALERT
-                // -----------------------------------------
-                case waflz_pb::enforcement_type_t_ALERT:
-                {
-                        //NDBG_PRINT("ALERT\n");
-                        std::string l_resp_str;
-                        ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_OK, l_resp_str);
-                        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
-                                                   "application/json",
-                                                   l_resp_str.length(),
-                                                   a_rqst.m_supports_keep_alives,
-                                                   a_session.get_server_name());
-                        if(l_enfcmnt->has_url())
-                        {
-                                l_api_resp.set_header("Location", l_enfcmnt->url().c_str());
-                        }
-                        l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
-                        ns_is2::queue_api_resp(a_session, l_api_resp);
-                        // TODO check status
-                        UNUSED(l_s);
-                        l_resp_code = ns_is2::H_RESP_DONE;
-                        break;
-                }
-                // -----------------------------------------
-                // NOP
-                // -----------------------------------------
-                case waflz_pb::enforcement_type_t_NOP:
-                {
-                        //NDBG_PRINT("NOP\n");
-                        std::string l_resp_str;
-                        ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_OK, l_resp_str);
-                        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
-                                                   "application/json",
-                                                   l_resp_str.length(),
-                                                   a_rqst.m_supports_keep_alives,
-                                                   a_session.get_server_name());
-                        if(l_enfcmnt->has_url())
-                        {
-                                l_api_resp.set_header("Location", l_enfcmnt->url().c_str());
-                        }
-                        l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
-                        ns_is2::queue_api_resp(a_session, l_api_resp);
-                        // TODO check status
-                        UNUSED(l_s);
-                        l_resp_code = ns_is2::H_RESP_DONE;
-                        break;
-                }
-                // -----------------------------------------
-                // REDIRECT_302
-                // -----------------------------------------
-                case waflz_pb::enforcement_type_t_REDIRECT_302:
-                {
-                        //NDBG_PRINT("REDIRECT_302\n");
-                        std::string l_resp_str;
-                        ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_FOUND, l_resp_str);
-                        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FOUND,
-                                                   "application/json",
-                                                   l_resp_str.length(),
-                                                   a_rqst.m_supports_keep_alives,
-                                                   a_session.get_server_name());
-                        if(l_enfcmnt->has_url())
-                        {
-                                l_api_resp.set_header("Location", l_enfcmnt->url().c_str());
-                        }
-                        l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
-                        ns_is2::queue_api_resp(a_session, l_api_resp);
-                        // TODO check status
-                        UNUSED(l_s);
-                        l_resp_code = ns_is2::H_RESP_DONE;
-                        break;
-                }
-                // -----------------------------------------
-                // BLOCK_REQUEST
-                // -----------------------------------------
-                case waflz_pb::enforcement_type_t_BLOCK_REQUEST:
-                {
-                        // ---------------------------------
-                        // decode
-                        // ---------------------------------
-                        char *l_resp_data = NULL;
-                        size_t l_resp_len = 0;
-                        int32_t l_s;
-                        char *l_dcd = NULL;
-                        size_t l_dcd_len = 0;
-                        l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, DEFAULT_RESP_BODY_B64, strlen(DEFAULT_RESP_BODY_B64));
-                        if(l_s != STATUS_OK)
-                        {
-                                // error???
-                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                                l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
-                                break;
-                        }
-                        // ---------------------------------
-                        // render
-                        // ---------------------------------
-                        l_s = ns_waflz::render(&l_resp_data, l_resp_len, l_dcd, l_dcd_len, l_ctx);
-                        if(l_s != STATUS_OK)
-                        {
-                                // error???
-                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                                if(l_resp_data) { free(l_resp_data); l_resp_data = NULL; }
-                                l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
-                                break;
-                        }
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FORBIDDEN,
-                                                   "text/html",
-                                                   l_resp_len,
-                                                   a_rqst.m_supports_keep_alives,
-                                                   a_session.get_server_name());
-                        l_api_resp.set_body_data(l_resp_data, l_resp_len);
-                        ns_is2::queue_api_resp(a_session, l_api_resp);
-                        if(l_resp_data) { free(l_resp_data); l_resp_data = NULL; }
-                        l_resp_code = ns_is2::H_RESP_DONE;
-                        break;
-                }
-                // -----------------------------------------
-                // REDIRECT_JS
-                // -----------------------------------------
-                // TODO
-                // -----------------------------------------
-                // HASHCASH
-                // -----------------------------------------
-                // TODO
-                // -----------------------------------------
-                // CUSTOM_RESPONSE
-                // -----------------------------------------
-                case waflz_pb::enforcement_type_t_CUSTOM_RESPONSE:
-                {
-                        uint32_t l_status = ns_is2::HTTP_STATUS_OK;
-                        if(l_enfcmnt->has_status())
-                        {
-                                l_status = l_enfcmnt->status();
-                        }
-                        // ---------------------------------
-                        // render
-                        // ---------------------------------
-                        char *l_body = NULL;
-                        uint32_t l_body_len = 0;
-                        int32_t l_s;
-                        l_s = l_config->render_resp(&l_body, l_body_len, *l_enfcmnt, l_ctx);
-                        if(l_s != STATUS_OK)
-                        {
-                                l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
-                                break;
-                        }
-                        // ---------------------------------
-                        // response
-                        // ---------------------------------
-                        // TODO -fix content type if resp header...
-                        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                        l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
-                                                   "text/html",
-                                                   (uint64_t)l_body_len,
-                                                   a_rqst.m_supports_keep_alives,
-                                                   a_session.get_server_name());
-                        l_api_resp.set_body_data(l_body, l_body_len);
-                        l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
-                        // TODO check status
-                        UNUSED(l_s);
-                        if(l_body) { free(l_body); l_body = NULL; }
-                        l_resp_code = ns_is2::H_RESP_DONE;
-                        break;
-                }
-                // -----------------------------------------
-                // DROP_REQUEST
-                // -----------------------------------------
-                case waflz_pb::enforcement_type_t_DROP_REQUEST:
-                {
-                        l_resp_code = ns_is2::H_RESP_DONE;
-                        break;
-                }
-                // -----------------------------------------
-                // DROP_CONNECTION
-                // -----------------------------------------
-                case waflz_pb::enforcement_type_t_DROP_CONNECTION:
-                {
-                        // ---------------------------------
-                        // TODO -yank connection -by signalling no
-                        // keep-alive support???
-                        // ---------------------------------
-                        l_resp_code = ns_is2::H_RESP_DONE;
-                        break;
-                }
-                // -----------------------------------------
-                // BROWSER CHALLENGE
-                // -----------------------------------------
-                case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
-                {
-                        uint32_t l_status = ns_is2::HTTP_STATUS_OK;
-                        if(l_enfcmnt->has_status())
-                        {
-                                l_status = l_enfcmnt->status();
-                        }
-                        // ---------------------------------
-                        // render
-                        // ---------------------------------
-                        char *l_body = NULL;
-                        uint32_t l_body_len = 0;
-                        int32_t l_s;
-                        l_s = l_config->render_resp(&l_body, l_body_len, *l_enfcmnt, l_ctx);
-                        if(l_s != STATUS_OK)
-                        {
-                                l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
-                                break;
-                        }
-                        // ---------------------------------
-                        // response
-                        // ---------------------------------
-                        // TODO -fix content type if resp header...
-                        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                        l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
-                                                   "text/html",
-                                                   (uint64_t)l_body_len,
-                                                   a_rqst.m_supports_keep_alives,
-                                                   a_session.get_server_name());
-                        l_api_resp.set_body_data(l_body, l_body_len);
-                        l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
-                        // TODO check status
-                        UNUSED(l_s);
-                        if(l_body) { free(l_body); l_body = NULL; }
-                        l_resp_code = ns_is2::H_RESP_DONE;
-                        break;
-                }
-                // -----------------------------------------
-                // default
-                // -----------------------------------------
-                default:
-                {
-                        break;
-                }
-                }
-        }
-        if(l_resp_code != ns_is2::H_RESP_NONE)
+        // -------------------------------------------------
+        // switch on type
+        // -------------------------------------------------
+        switch(a_enf.enf_type())
         {
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                return l_resp_code;
-        }
-#endif
         // -------------------------------------------------
-        // *************************************************
-        //                R E S P O N S E
-        // *************************************************
+        // ALERT
         // -------------------------------------------------
-        std::string l_event_str = "{}";
-        // -------------------------------------------------
-        // for instances create string with both...
-        // -------------------------------------------------
-        if(g_instances)
+        case waflz_pb::enforcement_type_t_ALERT:
         {
-                rapidjson::Document l_event_json;
-                rapidjson::Document l_event_audit_json;
-                if(l_event_audit)
-                {
-                        l_s = ns_waflz::convert_to_json(l_event_audit_json, *l_event_audit);
-                        if(l_s != JSPB_OK)
-                        {
-                                NDBG_PRINT("error performing convert_to_json.\n");
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                }
-                if(l_event)
-                {
-                        l_s = ns_waflz::convert_to_json(l_event_json, *l_event);
-                        if(l_s != JSPB_OK)
-                        {
-                                NDBG_PRINT("error performing convert_to_json.\n");
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                }
-                rapidjson::Document l_js_doc;
-                l_js_doc.SetObject();
-                rapidjson::Document::AllocatorType& l_js_allocator = l_js_doc.GetAllocator();
-                l_js_doc.AddMember("audit_profile", l_event_audit_json, l_js_allocator);
-                l_js_doc.AddMember("prod_profile",  l_event_json,       l_js_allocator);
-                rapidjson::StringBuffer l_strbuf;
-                rapidjson::Writer<rapidjson::StringBuffer> l_js_writer(l_strbuf);
-                l_js_doc.Accept(l_js_writer);
-                l_event_str.assign(l_strbuf.GetString(), l_strbuf.GetSize());
-                goto write_out;
-        }
-        // -------------------------------------------------
-        // serialize event...
-        // -------------------------------------------------
-        if(l_event)
-        {
-                l_s = ns_waflz::convert_to_json(l_event_str, *l_event);
-                if(l_s != JSPB_OK)
-                {
-                        NDBG_PRINT("error performing convert_to_json.\n");
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-write_out:
-        // -------------------------------------------------
-        // write out if output...
-        // -------------------------------------------------
-        if(g_out_file_ptr)
-        {
-                size_t l_fw_s;
-                l_fw_s = fwrite(l_event_str.c_str(), 1, l_event_str.length(), g_out_file_ptr);
-                if(l_fw_s != l_event_str.length())
-                {
-                        NDBG_PRINT("error performing fwrite.\n");
-                }
-                fwrite("\n", 1, 1, g_out_file_ptr);
-        }
-        // -------------------------------------------------
-        // response...
-        // -------------------------------------------------
-        if(g_ups_host.empty())
-        {
+                //NDBG_PRINT("ALERT\n");
+                std::string l_resp_str;
+                ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_OK, l_resp_str);
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                 l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
                                            "application/json",
-                                           l_event_str.length(),
+                                           l_resp_str.length(),
                                            a_rqst.m_supports_keep_alives,
                                            a_session.get_server_name());
-                l_api_resp.set_body_data(l_event_str.c_str(), l_event_str.length());
-                l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
+                if(a_enf.has_url())
+                {
+                        l_api_resp.set_header("Location", a_enf.url().c_str());
+                }
+                l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
                 ns_is2::queue_api_resp(a_session, l_api_resp);
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                if(l_event) { delete l_event; l_event = NULL; }
-                return ns_is2::H_RESP_DONE;
+                // TODO check status
+                UNUSED(l_s);
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
         }
         // -------------------------------------------------
-        // handle event in proxy mode
+        // NOP
         // -------------------------------------------------
-        if(l_event)
+        case waflz_pb::enforcement_type_t_NOP:
         {
+                //NDBG_PRINT("NOP\n");
+                std::string l_resp_str;
+                ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_OK, l_resp_str);
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                           "application/json",
+                                           l_resp_str.length(),
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                if(a_enf.has_url())
+                {
+                        l_api_resp.set_header("Location", a_enf.url().c_str());
+                }
+                l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
+                ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
+        // REDIRECT_302
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_REDIRECT_302:
+        {
+                //NDBG_PRINT("REDIRECT_302\n");
+                std::string l_resp_str;
+                ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_FOUND, l_resp_str);
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FOUND,
+                                           "application/json",
+                                           l_resp_str.length(),
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                if(a_enf.has_url())
+                {
+                        l_api_resp.set_header("Location", a_enf.url().c_str());
+                }
+                l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
+                ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
+        // BLOCK_REQUEST
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_BLOCK_REQUEST:
+        {
+                // -----------------------------------------
+                // decode
+                // -----------------------------------------
                 char *l_resp_data = NULL;
                 size_t l_resp_len = 0;
-                // -----------------------------------------
-                // create custom resp...
-                // -----------------------------------------
-                if(l_ctx &&
-                   g_enfx &&
-                   g_enfx->has_response_body_base64())
+                int32_t l_s;
+                char *l_dcd = NULL;
+                size_t l_dcd_len = 0;
+                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, _DEFAULT_RESP_BODY_B64, strlen(_DEFAULT_RESP_BODY_B64));
+                if(l_s != STATUS_OK)
                 {
-                        const std::string *l_b64 = &(g_enfx->response_body_base64());
-                        if(l_b64->empty())
-                        {
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                        // ---------------------------------
-                        // decode
-                        // ---------------------------------
-                        int32_t l_s;
-                        char *l_dcd = NULL;
-                        size_t l_dcd_len = 0;
-                        l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
-                        if(l_s != STATUS_OK)
-                        {
-                                // error???
-                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                        // ---------------------------------
-                        // assign event to ctx for rendering
-                        // ---------------------------------
-                        l_ctx->m_event = l_event;
-                        // ---------------------------------
-                        // render
-                        // ---------------------------------
-                        l_s = ns_waflz::render(&l_resp_data, l_resp_len, l_dcd, l_dcd_len, l_ctx);
-                        if(l_s != STATUS_OK)
-                        {
-                                // error???
-                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                                if(l_resp_data) { free(l_resp_data); l_resp_data = NULL; }
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
+                        // error???
                         if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                        break;
                 }
-                else
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                l_s = ns_waflz::render(&l_resp_data, l_resp_len, l_dcd, l_dcd_len, l_ctx);
+                if(l_s != STATUS_OK)
                 {
-                        std::string l_resp_str;
-                        ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_FORBIDDEN, l_resp_str);
-                        l_resp_data = (char *)malloc(l_resp_str.length()+1);
-                        strncpy(l_resp_data, l_resp_str.c_str(), l_resp_str.length());
-                        l_resp_len = l_resp_str.length();
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_resp_data) { free(l_resp_data); l_resp_data = NULL; }
+                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                        break;
                 }
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                 l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FORBIDDEN,
                                            "text/html",
@@ -772,17 +292,127 @@ write_out:
                 l_api_resp.set_body_data(l_resp_data, l_resp_len);
                 ns_is2::queue_api_resp(a_session, l_api_resp);
                 if(l_resp_data) { free(l_resp_data); l_resp_data = NULL; }
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                if(l_event) { delete l_event; l_event = NULL; }
-                return ns_is2::H_RESP_DONE;
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
         }
         // -------------------------------------------------
-        // proxy
+        // REDIRECT_JS
         // -------------------------------------------------
-        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+        // TODO
+        // -------------------------------------------------
+        // HASHCASH
+        // -------------------------------------------------
+        // TODO
+        // -------------------------------------------------
+        // CUSTOM_RESPONSE
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_CUSTOM_RESPONSE:
+        {
+                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
+                if(a_enf.has_status())
+                {
+                        l_status = a_enf.status();
+                }
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                char *l_body = NULL;
+                uint32_t l_body_len = 0;
+                int32_t l_s;
+                l_s = l_config->render_resp(&l_body, l_body_len, a_enf, l_ctx);
+                if(l_s != STATUS_OK)
+                {
+                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                        break;
+                }
+                // -----------------------------------------
+                // response
+                // -----------------------------------------
+                // TODO -fix content type if resp header...
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
+                                           "text/html",
+                                           (uint64_t)l_body_len,
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                l_api_resp.set_body_data(l_body, l_body_len);
+                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                if(l_body) { free(l_body); l_body = NULL; }
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
+        // DROP_REQUEST
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_DROP_REQUEST:
+        {
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
+        // DROP_CONNECTION
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_DROP_CONNECTION:
+        {
+                // ---------------------------------
+                // TODO -yank connection -by signalling no
+                // keep-alive support???
+                // ---------------------------------
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
+        // BROWSER CHALLENGE
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
+        {
+                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
+                if(a_enf.has_status())
+                {
+                        l_status = a_enf.status();
+                }
+                // ---------------------------------
+                // render
+                // ---------------------------------
+                char *l_body = NULL;
+                uint32_t l_body_len = 0;
+                int32_t l_s;
+                l_s = l_config->render_resp(&l_body, l_body_len, a_enf, l_ctx);
+                if(l_s != STATUS_OK)
+                {
+                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                        break;
+                }
+                // ---------------------------------
+                // response
+                // ---------------------------------
+                // TODO -fix content type if resp header...
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
+                                           "text/html",
+                                           (uint64_t)l_body_len,
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                l_api_resp.set_body_data(l_body, l_body_len);
+                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                if(l_body) { free(l_body); l_body = NULL; }
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
+        // default
+        // -------------------------------------------------
+        default:
+        {
+                break;
+        }
+        }
         return l_resp_code;
 }
-#endif
 //: ----------------------------------------------------------------------------
 //: default
 //: ----------------------------------------------------------------------------
@@ -814,6 +444,19 @@ public:
                 if(l_enf)
                 {
                         // TODO
+                        // ---------------------------------
+                        // write out if output...
+                        // ---------------------------------
+                        if(g_out_file_ptr)
+                        {
+                                size_t l_fw_s;
+                                l_fw_s = fwrite(g_sx->m_resp.c_str(), 1, g_sx->m_resp.length(), g_out_file_ptr);
+                                if(l_fw_s != g_sx->m_resp.length())
+                                {
+                                        NDBG_PRINT("error performing fwrite.\n");
+                                }
+                                fwrite("\n", 1, 1, g_out_file_ptr);
+                        }
                 }
                 // -----------------------------------------
                 // return response
@@ -862,6 +505,19 @@ public:
                 if(l_enf)
                 {
                         // TODO
+                        // ---------------------------------
+                        // write out if output...
+                        // ---------------------------------
+                        if(g_out_file_ptr)
+                        {
+                                size_t l_fw_s;
+                                l_fw_s = fwrite(g_sx->m_resp.c_str(), 1, g_sx->m_resp.length(), g_out_file_ptr);
+                                if(l_fw_s != g_sx->m_resp.length())
+                                {
+                                        NDBG_PRINT("error performing fwrite.\n");
+                                }
+                                fwrite("\n", 1, 1, g_out_file_ptr);
+                        }
                 }
                 // -----------------------------------------
                 // return path
@@ -902,6 +558,19 @@ public:
                 if(l_enf)
                 {
                         // TODO
+                        // ---------------------------------
+                        // write out if output...
+                        // ---------------------------------
+                        if(g_out_file_ptr)
+                        {
+                                size_t l_fw_s;
+                                l_fw_s = fwrite(g_sx->m_resp.c_str(), 1, g_sx->m_resp.length(), g_out_file_ptr);
+                                if(l_fw_s != g_sx->m_resp.length())
+                                {
+                                        NDBG_PRINT("error performing fwrite.\n");
+                                }
+                                fwrite("\n", 1, 1, g_out_file_ptr);
+                        }
                 }
                 // -----------------------------------------
                 // default
@@ -1017,15 +686,11 @@ int main(int argc, char** argv)
         std::string l_server_spec;
         bool l_bg_load = false;
         // server settings
+        std::string l_out_file;
         uint16_t l_port = 12345;
-// TODO FIX!!!
-#if 0
 #ifdef WAFLZ_RATE_LIMITING
         std::string l_redis_host;
-        std::string l_static_path;
-#endif
         std::string l_challenge_file;
-        std::string l_out_file;
 #endif
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
@@ -1252,8 +917,6 @@ int main(int argc, char** argv)
                         _TEST_SET_SERVER_MODE(PROXY);
                         break;
                 }
-// TODO FIX!!!
-#if 0
                 // -----------------------------------------
                 // output
                 // -----------------------------------------
@@ -1279,7 +942,6 @@ int main(int argc, char** argv)
                         l_redis_host = l_arg;
                         break;
                 }
-#endif
 #endif
 #ifdef ENABLE_PROFILER
                 // -----------------------------------------
@@ -1353,8 +1015,6 @@ int main(int argc, char** argv)
                 ProfilerStart(l_cprof_file.c_str());
         }
 #endif
-// TODO FIX!!!
-#if 0
         // -------------------------------------------------
         // open out
         // -------------------------------------------------
@@ -1369,7 +1029,6 @@ int main(int argc, char** argv)
                         return STATUS_ERROR;
                 }
         }
-#endif
         // -------------------------------------------------
         // server
         // -------------------------------------------------
@@ -1519,7 +1178,7 @@ int main(int argc, char** argv)
                 break;
         }
         // -------------------------------------------------
-        // instance
+        // modsecurity
         // -------------------------------------------------
         case(CONFIG_MODE_MODSECURITY):
         {
@@ -1529,6 +1188,18 @@ int main(int argc, char** argv)
                 l_sx_instance->m_is_dir_flag = false;
                 l_sx_instance->m_bg_load = l_bg_load;
                 g_sx = l_sx_instance;
+                break;
+        }
+        // -------------------------------------------------
+        // modsecurity
+        // -------------------------------------------------
+        case(CONFIG_MODE_LIMIT):
+        {
+                ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit();
+                l_sx_limit->m_lsnr = l_lsnr;
+                l_sx_limit->m_config = l_config_file;
+                // TODO ...
+                g_sx = l_sx_limit;
                 break;
         }
         // -------------------------------------------------
@@ -1549,238 +1220,6 @@ int main(int argc, char** argv)
                 fprintf(stdout, "performing initialization\n");
                 return STATUS_ERROR;
         }
-// TODO FIX!!!
-#if 0
-        // -------------------------------------------------
-        // setup
-        // -------------------------------------------------
-        waflz_update_instances_h *l_waflz_update_instances_h = NULL;
-        waflz_update_profile_h *l_waflz_update_profile_h = NULL;
-        // -------------------------------------------------
-        // engine
-        // -------------------------------------------------
-        ns_waflz::engine *l_engine = new ns_waflz::engine();
-        l_engine->init();
-        // -------------------------------------------------
-        // conf
-        // -------------------------------------------------
-        if(!l_conf_file.empty())
-        {
-                // -----------------------------------------
-                // guess owasp version
-                // -----------------------------------------
-                uint32_t l_owasp_version = 229;
-                g_wafl = new ns_waflz::waf(*l_engine);
-                g_wafl->set_owasp_ruleset_version(l_owasp_version);
-                // -----------------------------------------
-                // guess format from ext...
-                // -----------------------------------------
-                ns_waflz::config_parser::format_t l_fmt = ns_waflz::config_parser::MODSECURITY;
-                std::string l_ext;
-                l_ext = ns_waflz::get_file_ext(l_conf_file);
-                if(l_ext == "json")
-                {
-                        l_fmt = ns_waflz::config_parser::JSON;
-                }
-                l_s = g_wafl->init(l_fmt, l_conf_file, true);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error loading conf file: %s. reason: %s\n",
-                                   l_conf_file.c_str(),
-                                   "__na__");
-                                   // TODO -get reason...
-                                   //l_wafl->get_err_msg());
-                        return STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // modsecurity file
-        // -------------------------------------------------
-        else if(!l_modsecurity_file.empty())
-        {
-                // -----------------------------------------
-                // guess owasp version
-                // -----------------------------------------
-                uint32_t l_owasp_version = 229;
-                l_s = guess_owasp_version(l_owasp_version, l_modsecurity_file);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error performing guess_owasp_version\n");
-                        return STATUS_ERROR;
-                }
-                g_wafl = new ns_waflz::waf(*l_engine);
-                g_wafl->set_owasp_ruleset_version(l_owasp_version);
-                l_s = g_wafl->init(ns_waflz::config_parser::MODSECURITY, l_modsecurity_file);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error loading modsecurity file: %s. reason: %s\n",
-                                   l_modsecurity_file.c_str(),
-                                   "__na__");
-                                   // TODO -get reason...
-                                   //l_wafl->get_err_msg());
-                        return STATUS_ERROR;
-                }
-        }
-#ifdef WAFLZ_RATE_LIMITING
-        // -------------------------------------------------
-        // limit file...
-        // -------------------------------------------------
-        else if(!l_limit_file.empty())
-        {
-                ns_waflz::kv_db *l_db = NULL;
-                ns_waflz::challenge* l_challenge = NULL;
-                char *l_buf;
-                uint32_t l_buf_len;
-                // -----------------------------------------
-                // seed random
-                // -----------------------------------------
-                srand(time(NULL));
-                // -----------------------------------------
-                // redis db
-                // -----------------------------------------
-                if(!l_redis_host.empty())
-                {
-                        l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::redis_db());
-                        // ---------------------------------
-                        // parse host
-                        // ---------------------------------
-                        std::string l_host;
-                        uint16_t l_port;
-                        size_t l_last = 0;
-                        size_t l_next = 0;
-                        while((l_next = l_redis_host.find(":", l_last)) != std::string::npos)
-                        {
-                                l_host = l_redis_host.substr(l_last, l_next-l_last);
-                                l_last = l_next + 1;
-                                break;
-                        }
-                        std::string l_port_str;
-                        l_port_str = l_redis_host.substr(l_last);
-                        if(l_port_str.empty() ||
-                           l_host.empty())
-                        {
-                                NDBG_OUTPUT("error parsing redis host: %s -expected <host>:<port>\n", l_redis_host.c_str());
-                                return STATUS_ERROR;
-                        }
-                        // TODO -error checking
-                        l_port = (uint16_t)strtoul(l_port_str.c_str(), NULL, 10);
-                        // TODO -check status
-                        l_db->set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_host.c_str(), l_host.length());
-                        l_db->set_opt(ns_waflz::redis_db::OPT_REDIS_PORT, NULL, l_port);
-                        // ---------------------------------
-                        // init db
-                        // ---------------------------------
-                        l_s = l_db->init();
-                        if(l_s != STATUS_OK)
-                        {
-                                NDBG_PRINT("error performing db init: Reason: %s\n", l_db->get_err_msg());
-                                return STATUS_ERROR;
-                        }
-                        NDBG_PRINT("USING REDIS\n");
-                }
-                // -----------------------------------------
-                // kyoto
-                // -----------------------------------------
-                else
-                {
-                        char l_db_file[] = "/tmp/waflz-XXXXXX.kyoto.db";
-                        //uint32_t l_db_buckets = 0;
-                        //uint32_t l_db_map = 0;
-                        //int l_db_options = 0;
-                        //l_db_options |= kyotocabinet::HashDB::TSMALL;
-                        //l_db_options |= kyotocabinet::HashDB::TLINEAR;
-                        //l_db_options |= kyotocabinet::HashDB::TCOMPRESS;
-                        l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::kycb_db());
-                        errno = 0;
-                        l_s = mkstemps(l_db_file,9);
-                        if(l_s == -1)
-                        {
-                                NDBG_PRINT("error(%d) performing mkstemp(%s) reason[%d]: %s\n",
-                                                l_s,
-                                                l_db_file,
-                                                errno,
-                                                strerror(errno));
-                                return STATUS_ERROR;
-                        }
-                        unlink(l_db_file);
-                        l_db->set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
-                        //NDBG_PRINT("l_db_file: %s\n", l_db_file);
-                        l_s = l_db->init();
-                        if(l_s != STATUS_OK)
-                        {
-                                NDBG_PRINT("error performing initialize_cb: Reason: %s\n", l_db->get_err_msg());
-                                return STATUS_ERROR;
-                        }
-                }
-                // -----------------------------------------
-                // init browser challenges if provided
-                // -----------------------------------------
-                l_challenge = new ns_waflz::challenge();
-                if(!l_challenge_file.empty())
-                {
-                        l_s = l_challenge->load_file(l_challenge_file.c_str(), l_challenge_file.length());
-                        if(l_s != STATUS_OK)
-                        {
-                                NDBG_PRINT("Error:%s", l_challenge->get_err_msg());
-                        }
-                }
-                // -----------------------------------------
-                // load file
-                // -----------------------------------------
-                int32_t l_s;
-                //NDBG_PRINT("reading file: %s\n", l_profile_file.c_str());
-                l_s = ns_waflz::read_file(l_limit_file.c_str(), &l_buf, l_buf_len);
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error read_file: %s\n", l_limit_file.c_str());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        return STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // load config
-                // -----------------------------------------
-                g_configs = new ns_waflz::configs(*l_db, *l_challenge);
-                l_s = g_configs->load(l_buf, l_buf_len);
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing load: Reason: %s\n", g_configs->get_err_msg());
-                        if(g_configs) { delete g_configs; g_configs = NULL;}
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        return STATUS_ERROR;
-                }
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                // -----------------------------------------
-                // get first id
-                // -----------------------------------------
-                uint64_t l_first_id;
-                l_s = g_configs->get_first_id(l_first_id);
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing get_first_id: Reason: %s\n", g_configs->get_err_msg());
-                        if(g_configs) { delete g_configs; g_configs = NULL;}
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        if(l_db) { delete l_db; l_db = NULL;}
-                        return STATUS_ERROR;
-                }
-                g_cust_id = l_first_id;
-        }
-#endif
-        // -------------------------------------------------
-        // error -nothing running
-        // -------------------------------------------------
-        else
-        {
-                NDBG_PRINT("error no configs specified\n");
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // set up default enforcement
-        // -------------------------------------------------
-        g_enfx = new waflz_pb::enforcement();
-        g_enfx->set_type("CUSTOM_RESPONSE");
-        g_enfx->set_status(403);
-        g_enfx->set_response_body_base64(DEFAULT_RESP_BODY_B64);
-#endif
         // -------------------------------------------------
         // Sigint handler
         // -------------------------------------------------
@@ -1814,14 +1253,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-// TODO FIX!!!
-#if 0
-        if(g_out_file_ptr)
-        {
-                fclose(g_out_file_ptr);
-                g_out_file_ptr = NULL;
-        }
-#endif
+        if(g_out_file_ptr) { fclose(g_out_file_ptr); g_out_file_ptr = NULL; }
         if(g_srvr) { delete g_srvr; g_srvr = NULL; }
         if(l_h) { delete l_h; l_h = NULL; }
         if(g_sx) { delete g_sx; g_sx = NULL; }

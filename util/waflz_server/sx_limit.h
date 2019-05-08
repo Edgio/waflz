@@ -2,7 +2,7 @@
 //: Copyright (C) 2019 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    sx_instance.h
+//: \file:    sx_limit.h
 //: \details: TODO
 //: \author:  Reed P. Morrison
 //: \date:    05/07/2019
@@ -20,51 +20,31 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _WAFLZ_SERVER_SX_INSTANCE_H_
-#define _WAFLZ_SERVER_SX_INSTANCE_H_
+#ifndef _WAFLZ_SERVER_SX_LIMIT_H_
+#define _WAFLZ_SERVER_SX_LIMIT_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
 #include <stdint.h>
-#include "waflz/instances.h"
 #include "sx.h"
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 namespace ns_waflz {
-class engine;
-class geoip2_mmdb;
+class configs;
+class enforcement;
 }
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
-//: update_instances_h
+//: sx_limit
 //: ----------------------------------------------------------------------------
-class update_instances_h: public ns_is2::default_rqst_h
-{
-public:
-        update_instances_h():
-                default_rqst_h(),
-                m_instances(NULL),
-                m_bg_load(false)
-        {}
-        ~update_instances_h()
-        {}
-        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
-                                 ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::instances *m_instances;
-        bool m_bg_load;
-};
-//: ----------------------------------------------------------------------------
-//: sx_instance
-//: ----------------------------------------------------------------------------
-class sx_instance: public sx {
+class sx_limit: public sx {
 public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        sx_instance(void);
-        ~sx_instance(void);
+        sx_limit(void);
+        ~sx_limit(void);
         int32_t init(void);
         ns_is2::h_resp_t handle_rqst(const waflz_pb::enforcement **ao_enf,
                                      ns_is2::session &a_session,
@@ -73,13 +53,11 @@ public:
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
-        bool m_is_dir_flag;
-        bool m_bg_load;
-        ns_waflz::engine *m_engine;
-        ns_waflz::instances *m_instances;
-        update_instances_h *m_update_instances_h;
-        ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
-        ns_waflz::instances::id_vector_t m_id_vector;
+        std::string m_redis_host;
+        std::string m_challenge_file;
+        ns_waflz::configs* m_configs;
+        uint64_t m_cust_id;
+
 };
 }
 #endif

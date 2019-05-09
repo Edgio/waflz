@@ -191,7 +191,7 @@ int32_t sx_instance::init(void)
         // engine
         // -------------------------------------------------
         m_engine = new ns_waflz::engine();
-        m_engine->init();
+        l_s = m_engine->init();
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error initializing engine\n");
@@ -274,6 +274,7 @@ int32_t sx_instance::init(void)
         m_update_instances_h->m_instances = m_instances;
         m_update_instances_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_instance", m_update_instances_h);
+        return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -281,6 +282,7 @@ int32_t sx_instance::init(void)
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 ns_is2::h_resp_t sx_instance::handle_rqst(const waflz_pb::enforcement **ao_enf,
+                                          ns_waflz::rqst_ctx **ao_ctx,
                                           ns_is2::session &a_session,
                                           ns_is2::rqst &a_rqst,
                                           const ns_is2::url_pmap_t &a_url_pmap)
@@ -425,7 +427,14 @@ ns_is2::h_resp_t sx_instance::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
         if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
-        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+        if(ao_ctx)
+        {
+                *ao_ctx = l_ctx;
+        }
+        else if(l_ctx)
+        {
+                delete l_ctx; l_ctx = NULL;
+        }
         return l_resp_code;
 }
 }

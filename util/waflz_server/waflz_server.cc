@@ -36,51 +36,9 @@
 #include "sx_limit.h"
 #endif
 #include "waflz/rqst_ctx.h"
-#include "support/ndebug.h"
-// TODO FIX!!!
-#if 0
-#include "waflz/instances.h"
-#include "waflz/profile.h"
-#include "waflz/instances.h"
-#include "waflz/instance.h"
-#include "waflz/waf.h"
 #include "waflz/render.h"
-#ifdef WAFLZ_RATE_LIMITING
-#include "waflz/limit/configs.h"
-#include "waflz/limit/config.h"
-#include "waflz/limit/challenge.h"
-#include "waflz/limit/enforcer.h"
-#include "waflz/db/kycb_db.h"
-#include "waflz/db/redis_db.h"
-#endif
-#include "support/string_util.h"
-#include "support/file_util.h"
-#include "support/geoip2_mmdb.h"
+#include "support/ndebug.h"
 #include "support/base64.h"
-#include "waflz/engine.h"
-#include "jspb/jspb.h"
-#include "config.pb.h"
-#include "event.pb.h"
-#include "is2/status.h"
-#include "is2/nconn/host_info.h"
-#include "is2/support/nbq.h"
-#include "is2/srvr/api_resp.h"
-#include "is2/srvr/rqst.h"
-#include "is2/srvr/lsnr.h"
-#include "is2/srvr/resp.h"
-#include "is2/handler/proxy_h.h"
-#include "is2/handler/file_h.h"
-#include "is2/srvr/session.h"
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/prettywriter.h"
-#include <stdlib.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <arpa/inet.h>
-#endif
 #include "is2/support/trace.h"
 #include "is2/nconn/scheme.h"
 // why need this???
@@ -150,16 +108,36 @@ typedef enum {
 ns_is2::srvr *g_srvr = NULL;
 ns_waflz_server::sx *g_sx = NULL;
 FILE *g_out_file_ptr = NULL;
+config_mode_t g_config_mode = CONFIG_MODE_NONE;
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-static ns_is2::h_resp_t handle_enf(ns_is2::session &a_session,
+static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
+                                   ns_is2::session &a_session,
                                    ns_is2::rqst &a_rqst,
                                    const waflz_pb::enforcement &a_enf)
 {
+        if(!a_ctx)
+        {
+                return ns_is2::H_RESP_NONE;
+        }
+        // -------------------------------------------------
+        // write out if output...
+        // -------------------------------------------------
+        if(g_out_file_ptr)
+        {
+                size_t l_fw_s;
+                l_fw_s = fwrite(g_sx->m_resp.c_str(), 1, g_sx->m_resp.length(), g_out_file_ptr);
+                if(l_fw_s != g_sx->m_resp.length())
+                {
+                        NDBG_PRINT("error performing fwrite.\n");
+                }
+                fwrite("\n", 1, 1, g_out_file_ptr);
+        }
         ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
+        int32_t l_s;
         // -------------------------------------------------
         // no enf
         // -------------------------------------------------
@@ -273,7 +251,7 @@ static ns_is2::h_resp_t handle_enf(ns_is2::session &a_session,
                 // -----------------------------------------
                 // render
                 // -----------------------------------------
-                l_s = ns_waflz::render(&l_resp_data, l_resp_len, l_dcd, l_dcd_len, l_ctx);
+                l_s = ns_waflz::render(&l_resp_data, l_resp_len, l_dcd, l_dcd_len, a_ctx);
                 if(l_s != STATUS_OK)
                 {
                         // error???
@@ -304,7 +282,7 @@ static ns_is2::h_resp_t handle_enf(ns_is2::session &a_session,
         // -------------------------------------------------
         // TODO
         // -------------------------------------------------
-        // CUSTOM_RESPONSE
+        // CUSTOM RESPONSE
         // -------------------------------------------------
         case waflz_pb::enforcement_type_t_CUSTOM_RESPONSE:
         {
@@ -313,18 +291,46 @@ static ns_is2::h_resp_t handle_enf(ns_is2::session &a_session,
                 {
                         l_status = a_enf.status();
                 }
+                if(!a_enf.has_response_body_base64())
+                {
+                        // Custom response can have empty response body
+                        break;
+                }
+                const std::string *l_b64 = &(a_enf.response_body_base64());
+                if(l_b64->empty())
+                {
+                        break;
+                }
+                // -----------------------------------------
+                // decode
+                // -----------------------------------------
+                int32_t l_s;
+                char *l_dcd = NULL;
+                size_t l_dcd_len = 0;
+                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        break;
+                }
                 // -----------------------------------------
                 // render
                 // -----------------------------------------
-                char *l_body = NULL;
-                uint32_t l_body_len = 0;
-                int32_t l_s;
-                l_s = l_config->render_resp(&l_body, l_body_len, a_enf, l_ctx);
-                if(l_s != STATUS_OK)
+                char *l_rndr = NULL;
+                size_t l_rndr_len = 0;
+                l_s = ns_waflz::render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
                 {
-                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
                         break;
                 }
+                // -----------------------------------------
+                // set/cleanup
+                // -----------------------------------------
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
                 // -----------------------------------------
                 // response
                 // -----------------------------------------
@@ -332,14 +338,14 @@ static ns_is2::h_resp_t handle_enf(ns_is2::session &a_session,
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                 l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
                                            "text/html",
-                                           (uint64_t)l_body_len,
+                                           (uint64_t)l_rndr_len,
                                            a_rqst.m_supports_keep_alives,
                                            a_session.get_server_name());
-                l_api_resp.set_body_data(l_body, l_body_len);
+                l_api_resp.set_body_data(l_rndr, l_rndr_len);
                 l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
                 // TODO check status
                 UNUSED(l_s);
-                if(l_body) { free(l_body); l_body = NULL; }
+                if(l_rndr) { free(l_rndr); l_rndr = NULL; }
                 l_resp_code = ns_is2::H_RESP_DONE;
                 break;
         }
@@ -356,10 +362,10 @@ static ns_is2::h_resp_t handle_enf(ns_is2::session &a_session,
         // -------------------------------------------------
         case waflz_pb::enforcement_type_t_DROP_CONNECTION:
         {
-                // ---------------------------------
+                // -----------------------------------------
                 // TODO -yank connection -by signalling no
                 // keep-alive support???
-                // ---------------------------------
+                // -----------------------------------------
                 l_resp_code = ns_is2::H_RESP_DONE;
                 break;
         }
@@ -373,21 +379,23 @@ static ns_is2::h_resp_t handle_enf(ns_is2::session &a_session,
                 {
                         l_status = a_enf.status();
                 }
-                // ---------------------------------
+                // -----------------------------------------
                 // render
-                // ---------------------------------
+                // -----------------------------------------
                 char *l_body = NULL;
                 uint32_t l_body_len = 0;
-                int32_t l_s;
-                l_s = l_config->render_resp(&l_body, l_body_len, a_enf, l_ctx);
+                // TODO FIX!!!
+#if 0
+                l_s = l_config->render_resp(&l_body, l_body_len, a_enf, a_ctx);
                 if(l_s != STATUS_OK)
                 {
                         l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
                         break;
                 }
-                // ---------------------------------
+#endif
+                // -----------------------------------------
                 // response
-                // ---------------------------------
+                // -----------------------------------------
                 // TODO -fix content type if resp header...
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                 l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
@@ -403,6 +411,59 @@ static ns_is2::h_resp_t handle_enf(ns_is2::session &a_session,
                 l_resp_code = ns_is2::H_RESP_DONE;
                 break;
         }
+#if 0
+        // -------------------------------------------------
+        // BROWSER_CHALLENGE
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
+        {
+                const std::string *l_b64 = NULL;
+                int32_t l_s;
+                l_s = m_challenge.get_challenge(&l_b64, a_ctx);
+                if((l_s != WAFLZ_STATUS_OK) ||
+                    !l_b64)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(l_b64->empty())
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // decode
+                // -----------------------------------------
+                char *l_dcd = NULL;
+                size_t l_dcd_len = 0;
+                l_s = b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                char *l_rndr = NULL;
+                size_t l_rndr_len = 0;
+                l_s = render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // set/cleanup
+                // -----------------------------------------
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                *ao_resp = l_rndr;
+                ao_resp_len = l_rndr_len;
+                break;
+        }
+#endif
         // -------------------------------------------------
         // default
         // -------------------------------------------------
@@ -433,7 +494,8 @@ public:
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
-                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, a_session, a_rqst, a_url_pmap);
+                ns_waflz::rqst_ctx *l_ctx = NULL;
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
                         return l_resp_t;
@@ -441,37 +503,30 @@ public:
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
-                if(l_enf)
+                if(l_enf &&
+                   // only enforcements for limit mode
+                   (!g_config_mode == CONFIG_MODE_LIMIT))
                 {
-                        // TODO
-                        // ---------------------------------
-                        // write out if output...
-                        // ---------------------------------
-                        if(g_out_file_ptr)
-                        {
-                                size_t l_fw_s;
-                                l_fw_s = fwrite(g_sx->m_resp.c_str(), 1, g_sx->m_resp.length(), g_out_file_ptr);
-                                if(l_fw_s != g_sx->m_resp.length())
-                                {
-                                        NDBG_PRINT("error performing fwrite.\n");
-                                }
-                                fwrite("\n", 1, 1, g_out_file_ptr);
-                        }
+                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response
                 // -----------------------------------------
-                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
-                                           "application/json",
-                                           g_sx->m_resp.length(),
-                                           a_rqst.m_supports_keep_alives,
-                                           a_session.get_server_name());
-                l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
-                l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
-                ns_is2::queue_api_resp(a_session, l_api_resp);
-                // TODO check status
-                return ns_is2::H_RESP_DONE;
+                if(l_resp_t == ns_is2::H_RESP_NONE)
+                {
+                        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                                   "application/json",
+                                                   g_sx->m_resp.length(),
+                                                   a_rqst.m_supports_keep_alives,
+                                                   a_session.get_server_name());
+                        l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
+                        l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
+                        ns_is2::queue_api_resp(a_session, l_api_resp);
+                        return ns_is2::H_RESP_DONE;
+                }
+                return l_resp_t;
         }
 };
 //: ----------------------------------------------------------------------------
@@ -494,7 +549,8 @@ public:
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
-                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, a_session, a_rqst, a_url_pmap);
+                ns_waflz::rqst_ctx *l_ctx = NULL;
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
                         return l_resp_t;
@@ -504,26 +560,17 @@ public:
                 // -----------------------------------------
                 if(l_enf)
                 {
-                        // TODO
-                        // ---------------------------------
-                        // write out if output...
-                        // ---------------------------------
-                        if(g_out_file_ptr)
-                        {
-                                size_t l_fw_s;
-                                l_fw_s = fwrite(g_sx->m_resp.c_str(), 1, g_sx->m_resp.length(), g_out_file_ptr);
-                                if(l_fw_s != g_sx->m_resp.length())
-                                {
-                                        NDBG_PRINT("error performing fwrite.\n");
-                                }
-                                fwrite("\n", 1, 1, g_out_file_ptr);
-                        }
+                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
-                // return path
+                // default
                 // -----------------------------------------
-                //NDBG_PRINT("path: %.*s\n", a_rqst.get_url_path().m_len, a_rqst.get_url_path().m_data);
-                return file_h::do_get(a_session, a_rqst, a_url_pmap);
+                if(l_resp_t == ns_is2::H_RESP_NONE)
+                {
+                        l_resp_t = file_h::do_get(a_session, a_rqst, a_url_pmap);
+                }
+                return l_resp_t;
         }
 };
 //: ----------------------------------------------------------------------------
@@ -547,7 +594,8 @@ public:
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
-                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, a_session, a_rqst, a_url_pmap);
+                ns_waflz::rqst_ctx *l_ctx = NULL;
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
                         return l_resp_t;
@@ -557,25 +605,17 @@ public:
                 // -----------------------------------------
                 if(l_enf)
                 {
-                        // TODO
-                        // ---------------------------------
-                        // write out if output...
-                        // ---------------------------------
-                        if(g_out_file_ptr)
-                        {
-                                size_t l_fw_s;
-                                l_fw_s = fwrite(g_sx->m_resp.c_str(), 1, g_sx->m_resp.length(), g_out_file_ptr);
-                                if(l_fw_s != g_sx->m_resp.length())
-                                {
-                                        NDBG_PRINT("error performing fwrite.\n");
-                                }
-                                fwrite("\n", 1, 1, g_out_file_ptr);
-                        }
+                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // default
                 // -----------------------------------------
-                return ns_is2::proxy_h::do_default(a_session, a_rqst, a_url_pmap);
+                if(l_resp_t == ns_is2::H_RESP_NONE)
+                {
+                        l_resp_t = ns_is2::proxy_h::do_default(a_session, a_rqst, a_url_pmap);
+                }
+                return l_resp_t;
         }
 };
 //: ----------------------------------------------------------------------------
@@ -678,7 +718,6 @@ int main(int argc, char** argv)
         //ns_is2::trc_log_file_open("/dev/stdout");
         // modes
         server_mode_t l_server_mode = SERVER_MODE_NONE;
-        config_mode_t l_config_mode = CONFIG_MODE_NONE;
         std::string l_geoip_db;
         std::string l_geoip_isp_db;
         std::string l_ruleset_dir;
@@ -727,11 +766,11 @@ int main(int argc, char** argv)
                 { 0, 0, 0, 0 }
         };
 #define _TEST_SET_CONFIG_MODE(_type) do { \
-                if(l_config_mode != CONFIG_MODE_NONE) { \
+                if(g_config_mode != CONFIG_MODE_NONE) { \
                         fprintf(stdout, "error multiple config modes specified.\n"); \
                         return STATUS_ERROR; \
                 } \
-                l_config_mode = CONFIG_MODE_##_type; \
+                g_config_mode = CONFIG_MODE_##_type; \
                 l_config_file = l_arg; \
 } while(0)
 #define _TEST_SET_SERVER_MODE(_type) do { \
@@ -1138,7 +1177,7 @@ int main(int argc, char** argv)
         // mode setup
         // *************************************************
         // -------------------------------------------------
-        switch(l_config_mode)
+        switch(g_config_mode)
         {
         // -------------------------------------------------
         // profile

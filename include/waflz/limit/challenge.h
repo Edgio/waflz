@@ -63,6 +63,7 @@ public:
         int32_t get_challenge(const std::string **ao_html, rqst_ctx* a_ctx);
         int32_t get_challenge(const std::string **ao_html, int32_t a_prob_id, rqst_ctx* a_ctx);
         int32_t set_ectoken(int32_t a_prob_id, rqst_ctx* a_ctx);
+        int32_t render_challenge(char** ao_buf, uint32_t &ao_buf_len, rqst_ctx* a_ctx);
         const char* get_err_msg(void)
         {
                 return m_err_msg;
@@ -81,5 +82,6 @@ private:
         prob_map_t m_prob_map;
         prob_vector_t m_prob_vector;
 };
+
 }
 #endif

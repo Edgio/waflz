@@ -275,7 +275,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 char *l_resp = NULL;
                 uint32_t l_resp_len = 0;
-                l_s = l_c->render_resp(&l_resp, l_resp_len, *l_enf, l_ctx);
+                l_s = l_c->get_challenge().render_challenge(&l_resp, l_resp_len, l_ctx);
                 REQUIRE((l_resp != NULL));
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
@@ -368,7 +368,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 // render resp
                 // -----------------------------------------
-                l_s = l_c->render_resp(&l_resp, l_resp_len, *l_enf, l_ctx);
+                l_s = l_c->get_challenge().render_challenge(&l_resp, l_resp_len, l_ctx);
                 REQUIRE((l_resp != NULL));
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
@@ -483,7 +483,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 char *l_resp = NULL;
                 uint32_t l_resp_len = 0;
-                l_s = l_c->render_resp(&l_resp, l_resp_len, *l_enf, l_ctx);
+                l_s = l_c->get_challenge().render_challenge(&l_resp, l_resp_len, l_ctx);
                 REQUIRE((l_resp != NULL));
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------

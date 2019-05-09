@@ -119,7 +119,8 @@ def test_bb_without_rule_target_update_fail(setup_func):
     #-------------------------------------------------------
     # check no event is returned
     # ------------------------------------------------------
-    assert len(l_r_json) == 0
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
 # ------------------------------------------------------------------------------
 # test_bb_without_rule_target_update_fail
 # ------------------------------------------------------------------------------
@@ -186,5 +187,6 @@ def test_bb_rule_target_update_xml_var():
     #-------------------------------------------------------
     # check no event is returned
     # ------------------------------------------------------
-    assert len(l_r_json) == 0
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
     teardown_func()

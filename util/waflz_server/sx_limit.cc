@@ -209,9 +209,10 @@ int32_t sx_limit::init(void)
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 ns_is2::h_resp_t sx_limit::handle_rqst(const waflz_pb::enforcement **ao_enf,
-                                         ns_is2::session &a_session,
-                                         ns_is2::rqst &a_rqst,
-                                         const ns_is2::url_pmap_t &a_url_pmap)
+                                       ns_waflz::rqst_ctx **ao_ctx,
+                                       ns_is2::session &a_session,
+                                       ns_is2::rqst &a_rqst,
+                                       const ns_is2::url_pmap_t &a_url_pmap)
 {
         ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
         if(ao_enf) { *ao_enf = NULL;}
@@ -257,7 +258,14 @@ ns_is2::h_resp_t sx_limit::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+        if(ao_ctx)
+        {
+                *ao_ctx = l_ctx;
+        }
+        else if(l_ctx)
+        {
+                delete l_ctx; l_ctx = NULL;
+        }
         return l_resp_code;
 }
 }

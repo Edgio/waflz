@@ -136,7 +136,6 @@ engine::~engine()
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-// TODO -add init for call after fork
 int32_t engine::init(void)
 {
         int32_t l_s;

@@ -21,6 +21,7 @@
 ///
 //! ----------------------------------------------------------------------------
 #include "waflz/limit/challenge.h"
+#include "waflz/render.h"
 #include "jspb/jspb.h"
 #include "limit.pb.h"
 #include "rapidjson/document.h"
@@ -32,6 +33,7 @@
 #include "support/trace_internal.h"
 #include "support/time_util.h"
 #include "support/string_util.h"
+#include "support/base64.h"
 #include "core/decode.h"
 //! ----------------------------------------------------------------------------
 //! constants
@@ -404,6 +406,58 @@ int32_t challenge::set_ectoken(int32_t a_prob_id,
         a_ctx->m_token.m_len = l_token_len;
         //NDBG_PRINT("TOKEN: %.*s\n", (int)l_token_len, l_token);
         if(l_token_clr) { free(l_token_clr); l_token_clr = NULL; }
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! @brief   TODO
+//! @param   TODO
+//! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure
+//! ----------------------------------------------------------------------------
+int32_t challenge::render_challenge(char** ao_buf, uint32_t &ao_buf_len, rqst_ctx* a_ctx)
+{
+        const std::string *l_b64 = NULL;
+        int32_t l_s;
+        l_s = get_challenge(&l_b64, a_ctx);
+        if((l_s != WAFLZ_STATUS_OK) ||
+            !l_b64)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_b64->empty())
+        {
+               return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // decode
+        // -------------------------------------------------
+        char *l_dcd = NULL;
+        size_t l_dcd_len = 0;
+        l_s = b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // error???
+
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // render
+        // -------------------------------------------------
+        char *l_rndr = NULL;
+        size_t l_rndr_len = 0;
+        l_s = render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // error???
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // set/cleanup
+        // -------------------------------------------------
+        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+        *ao_buf = l_rndr;
+        ao_buf_len = l_rndr_len;
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------

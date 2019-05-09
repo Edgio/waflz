@@ -67,12 +67,9 @@ public:
                         rqst_ctx* a_ctx);
         int32_t generate_alert(waflz_pb::alert** ao_alert,
                                rqst_ctx* a_ctx);
-        int32_t render_resp(char **ao_resp,
-                            uint32_t &ao_resp_len,
-                            const waflz_pb::enforcement &a_enfcmnt,
-                            rqst_ctx* a_ctx);
         int32_t merge(waflz_pb::config &ao_cfg);
         int32_t merge(void *a_js);
+        challenge &get_challenge(void) { return m_challenge;}
         const char *get_err_msg(void) { return m_err_msg; }
 private:
         // -------------------------------------------------
@@ -96,19 +93,19 @@ private:
                                   uint16_t a_key,
                                   rqst_ctx *a_ctx);
         int32_t add_exceed_limit(waflz_pb::config **ao_cfg,
-                                const std::string &a_cust_id,
-                                const waflz_pb::limit& a_limit,
-                                const waflz_pb::condition_group *a_condition_group,
-                                rqst_ctx *a_ctx);
+                                 const std::string &a_cust_id,
+                                 const waflz_pb::limit& a_limit,
+                                 const waflz_pb::condition_group *a_condition_group,
+                                 rqst_ctx *a_ctx);
         int32_t handle_match(waflz_pb::config** ao_cfg,
                              const std::string& a_cust_id,
                              const waflz_pb::limit& a_limit,
                              const waflz_pb::condition_group* a_condition_group,
                              rqst_ctx* a_ctx);
         int32_t get_limit_key_value(char* ao_key,
-                                   const std::string& a_cust_id,
-                                   const waflz_pb::limit& a_limit,
-                                   rqst_ctx *a_ctx);
+                                    const std::string& a_cust_id,
+                                    const waflz_pb::limit& a_limit,
+                                    rqst_ctx *a_ctx);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------

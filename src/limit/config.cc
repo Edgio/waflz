@@ -405,8 +405,8 @@ const std::string& config::get_last_modified_date()
 //! @param   TODO
 //! ----------------------------------------------------------------------------
 int32_t config::process_enfx(const waflz_pb::enforcement** ao_enfcmnt,
-                                  bool& ao_pass,
-                                  rqst_ctx* a_ctx)
+                             bool& ao_pass,
+                             rqst_ctx* a_ctx)
 {
         if(!ao_enfcmnt)
         {
@@ -488,136 +488,6 @@ int32_t config::process_enfx(const waflz_pb::enforcement** ao_enfcmnt,
         }
         // done...
         *ao_enfcmnt = l_enfcmnt;
-        return WAFLZ_STATUS_OK;
-}
-//! ----------------------------------------------------------------------------
-//! @details TODO
-//! @return  TODO
-//! @param   TODO
-//! ----------------------------------------------------------------------------
-int32_t config::render_resp(char **ao_resp,
-                                 uint32_t &ao_resp_len,
-                                 const waflz_pb::enforcement &a_enfcmnt,
-                                 rqst_ctx* a_ctx)
-{
-        // -------------------------------------------------
-        // process enforcement
-        // -------------------------------------------------
-        if(!a_enfcmnt.has_enf_type())
-        {
-                return WAFLZ_STATUS_OK;
-        }
-        ::waflz_pb::enforcement_type_t l_type = a_enfcmnt.enf_type();
-        switch(l_type)
-        {
-        // -------------------------------------------------
-        // CUSTOM RESPONSE
-        // -------------------------------------------------
-        case waflz_pb::enforcement_type_t_CUSTOM_RESPONSE:
-        {
-                if(!a_enfcmnt.has_response_body_base64())
-                {
-                        // Custom response can have empty response body
-                        return WAFLZ_STATUS_OK;
-                }
-                const std::string *l_b64 = &(a_enfcmnt.response_body_base64());
-                if(l_b64->empty())
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // decode
-                // -----------------------------------------
-                int32_t l_s;
-                char *l_dcd = NULL;
-                size_t l_dcd_len = 0;
-                l_s = b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // render
-                // -----------------------------------------
-                char *l_rndr = NULL;
-                size_t l_rndr_len = 0;
-                l_s = render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // set/cleanup
-                // -----------------------------------------
-                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                *ao_resp = l_rndr;
-                ao_resp_len = l_rndr_len;
-                break;
-        }
-        // -------------------------------------------------
-        // BROWSER_CHALLENGE
-        // -------------------------------------------------
-        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
-        {
-                const std::string *l_b64 = NULL;
-                int32_t l_s;
-                l_s = m_challenge.get_challenge(&l_b64, a_ctx);
-                if((l_s != WAFLZ_STATUS_OK) ||
-                    !l_b64)
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(l_b64->empty())
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // decode
-                // -----------------------------------------
-                char *l_dcd = NULL;
-                size_t l_dcd_len = 0;
-                l_s = b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
-                // -----------------------------------------
-                // render
-                // -----------------------------------------
-                char *l_rndr = NULL;
-                size_t l_rndr_len = 0;
-                l_s = render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // set/cleanup
-                // -----------------------------------------
-                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                *ao_resp = l_rndr;
-                ao_resp_len = l_rndr_len;
-                break;
-        }
-        // -------------------------------------------------
-        // ???
-        // -------------------------------------------------
-        default:
-        {
-                break;
-        }
-        }
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------

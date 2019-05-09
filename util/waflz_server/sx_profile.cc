@@ -56,8 +56,10 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
                                            ns_is2::rqst &a_rqst,
                                            const ns_is2::url_pmap_t &a_url_pmap)
 {
+        NDBG_PRINT("...\n");
         if(!m_profile)
         {
+                NDBG_PRINT("...\n");
                 TRC_ERROR("g_profile == NULL\n");
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -73,6 +75,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         l_s = m_profile->load_config(l_buf, l_buf_len, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                NDBG_PRINT("...\n");
                 TRC_ERROR("performing g_profile->load_config: reason: %s\n", m_profile->get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
                 return ns_is2::H_RESP_SERVER_ERROR;
@@ -88,6 +91,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
         l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
         ns_is2::queue_api_resp(a_session, l_api_resp);
+        NDBG_PRINT("...\n");
         return ns_is2::H_RESP_DONE;
 }
 //: ----------------------------------------------------------------------------
@@ -136,10 +140,10 @@ int32_t sx_profile::init(void)
         // engine
         // -------------------------------------------------
         m_engine = new ns_waflz::engine();
-        m_engine->init();
+        l_s = m_engine->init();
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("error initializing engine\n");
+                NDBG_PRINT("error initializing engine. reason: %s\n", m_engine->get_err_msg());
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -190,6 +194,7 @@ int32_t sx_profile::init(void)
         // update profile
         // -------------------------------------------------
         m_update_profile_h = new update_profile_h();
+        m_update_profile_h->m_profile = m_profile;
         m_lsnr->add_route("/update_profile", m_update_profile_h);
         if(l_buf)
         {
@@ -197,6 +202,7 @@ int32_t sx_profile::init(void)
                 l_buf = NULL;
                 l_buf_len = 0;
         }
+        return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -204,6 +210,7 @@ int32_t sx_profile::init(void)
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
+                                         ns_waflz::rqst_ctx **ao_ctx,
                                          ns_is2::session &a_session,
                                          ns_is2::rqst &a_rqst,
                                          const ns_is2::url_pmap_t &a_url_pmap)
@@ -257,7 +264,14 @@ ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // cleanup
         // -------------------------------------------------
         if(l_event) { delete l_event; l_event = NULL; }
-        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+        if(ao_ctx)
+        {
+                *ao_ctx = l_ctx;
+        }
+        else if(l_ctx)
+        {
+                delete l_ctx; l_ctx = NULL;
+        }
         return l_resp_code;
 }
 }

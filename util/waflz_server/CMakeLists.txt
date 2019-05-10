@@ -47,6 +47,7 @@ SET(SRCS
   sx_profile.cc
   sx_instance.cc
   sx_modsecurity.cc
+  sx_limit.cc
   waflz_server.cc
 )
 if(BUILD_RATE_LIMITING)
@@ -69,15 +70,7 @@ target_link_libraries(waflz_server
   ${DEBUG_LIBRARIES}
   ${CMAKE_BINARY_DIR}/src/libwaflzcore.a
   ${CMAKE_BINARY_DIR}/submodule_is2-prefix/src/submodule_is2-build/src/libis2.a
-  pthread
-  ssl
-  crypto
-  xml2
-  protobuf
-  pcre
-  # rate-limiting only...
-  hiredis
-  kyotocabinet
+  ${LIBRARIES}
 )
 install(TARGETS waflz_server
         DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/

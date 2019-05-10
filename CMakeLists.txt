@@ -65,16 +65,6 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
   #message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++0x support. Please use a different C++ compiler.")
 endif()
-if(BUILD_UBUNTU AND BUILD_CUSTOM_OPENSSL)
-  INCLUDE_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/include")
-  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libssl.so")
-  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libcrypto.so")
-  add_definitions(-DBUILD_CUSTOM_OPENSSL=1)
-elseif(BUILD_UBUNTU)
-  set(LIBRARIES ${LIBRARIES} pthread ssl crypto)
-else()
-  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
-endif()
 # ------------------------------------------------------------------------------
 # Display the current settings
 # ------------------------------------------------------------------------------
@@ -163,6 +153,19 @@ macro(find_ubuntu_package output_var_prefix
   endif()
 endmacro(find_ubuntu_package)
 # ------------------------------------------------------------------------------
+# special build case for UBUNTU + OPENSSL
+# ------------------------------------------------------------------------------
+if(BUILD_UBUNTU AND BUILD_CUSTOM_OPENSSL)
+  INCLUDE_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/include")
+  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libssl.so")
+  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libcrypto.so")
+  add_definitions(-DBUILD_CUSTOM_OPENSSL=1)
+elseif(BUILD_UBUNTU)
+  #set(LIBRARIES ${LIBRARIES} pthread ssl crypto)
+else()
+  #set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
+endif()
+# ------------------------------------------------------------------------------
 # Mac OS X
 # ------------------------------------------------------------------------------
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -241,14 +244,11 @@ endif()
 # Build UBUNTU
 # ------------------------------------------------------------------------------
 if(BUILD_UBUNTU)
+  if(BUILD_APPS)
+    find_ubuntu_package(LIBSSL openssl/ssl.h libssl.a libssl1.0.0 libssl-dev)
+  endif()
   find_ubuntu_package(LIBCRYPTO openssl/crypto.h libcrypto.a libssl1.0.0 libssl-dev)
   find_ubuntu_package(LIBPCRE pcre.h libpcre.a libpcre.so libpcre3-dev)
-  find_ubuntu_package(LIBXML2 libxml2/libxml/xmlversion.h libxml2.a libxml2 libxml2-dev)
-  find_ubuntu_package(LIBZ zlib.h libz.a zlib1g zlib1g-dev)
-  find_ubuntu_package(LIBZMA "" liblzma.a "" liblzma-dev)
-  find_ubuntu_package(LIBICUIL8N unicode/uversion.h libicui18n.a libicu libicu-dev)
-  find_ubuntu_package(LIBICU unicode/uversion.h libicuuc.a libicu libicu-dev)
-  find_ubuntu_package(LIBICUDATA unicode/uversion.h libicudata.a libicu libicu-dev)
   find_ubuntu_package(LIBPROTOBUF google/protobuf/message.h libprotobuf.a libprotobuf libprotobuf-dev)
   # --------------------------------------------------------
   # if rate-limiting check for kv db libs
@@ -256,8 +256,24 @@ if(BUILD_UBUNTU)
   if(BUILD_RATE_LIMITING)
     find_ubuntu_package(LIBHIREDIS "" libhiredis.a "" libhiredis-dev)
     find_ubuntu_package(LIBKYOTOCABINET "" libkyotocabinet.a "" libkyotocabinet-dev)
-    find_ubuntu_package(LIBLZO2 "" liblzo2.a "" liblzo2-dev)
+    # ------------------------------------------------------
+    # linking issue with lzo2
+    # liblzo2.a(lzo_crc.o): relocation R_X86_64_32 against `.rodata'
+    # apparently lib wasn't built with -fPIC??? :( in ubuntu
+    # distros
+    # ------------------------------------------------------
+    #find_ubuntu_package(LIBLZO2 "" liblzo2.so liblzo2-2 "")
+    LIST(APPEND LIBRARIES lzo2)
   endif()
+  # --------------------------------------------------------
+  # xml2 -brings in a lot...
+  # --------------------------------------------------------
+  find_ubuntu_package(LIBXML2 libxml2/libxml/xmlversion.h libxml2.a libxml2 libxml2-dev)
+  find_ubuntu_package(LIBZ zlib.h libz.a zlib1g zlib1g-dev)
+  find_ubuntu_package(LIBZMA "" liblzma.a "" liblzma-dev)
+  find_ubuntu_package(LIBICU unicode/uversion.h libicuuc.a libicu libicu-dev)
+  find_ubuntu_package(LIBICUDATA unicode/uversion.h libicudata.a libicu libicu-dev)
+  find_ubuntu_package(LIBICUIL8N unicode/uversion.h libicui18n.a libicu libicu-dev)
 endif()
 # ------------------------------------------------------------------------------
 #
@@ -276,7 +292,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LIBRARIES ${LIBRARIES} rt)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(LIBRARIES ${LIBRARIES} m)
-set(LIBRARIES ${LIBRARIES} crypto)
 message(STATUS "Libraries: ${LIBARIES}")
 # ------------------------------------------------------------------------------
 # Optional flags

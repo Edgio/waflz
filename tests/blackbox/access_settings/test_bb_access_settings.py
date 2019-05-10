@@ -87,7 +87,8 @@ def test_bb_modsec_ec_access_settings_02_bypass_in_ignore_args():
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    assert len(l_r_json) == 0
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_03_block_headers_not_in_ignore_header_list
 # ------------------------------------------------------------------------------
@@ -120,7 +121,8 @@ def test_bb_modsec_ec_access_settings_04_bypass_headers_in_ignore_header_list():
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    assert len(l_r_json) == 0
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
 # -------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_05_bypass_headers_in_ignore_header_list_regex
 # -------------------------------------------------------------------------------
@@ -137,7 +139,8 @@ def test_bb_modsec_ec_access_settings_05_bypass_headers_in_ignore_header_list_re
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    assert len(l_r_json) == 0
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_06_block_cookie_not_in_ignore_cookie_list
 # ------------------------------------------------------------------------------
@@ -167,7 +170,8 @@ def test_bb_modsec_ec_access_settings_07_bypass_cookie_in_ignore_cookie_list():
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     #We get no event
-    assert len(l_r_json) == 0
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
     l_uri = G_TEST_HOST
     l_headers = {"host" : "myhost.com",
                  "Cookie" : "SkeTchy_Origin=function () { asdf asdf asdf"
@@ -175,7 +179,8 @@ def test_bb_modsec_ec_access_settings_07_bypass_cookie_in_ignore_cookie_list():
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    assert len(l_r_json) == 0
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_08_ignore_cookie_in_ignore_cookie_list
 # ------------------------------------------------------------------------------
@@ -190,7 +195,8 @@ def test_bb_modsec_ec_access_settings_08_bypass_cookie_in_ignore_cookie_list_reg
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    assert len(l_r_json) == 0
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_09_block_disallowed_http_method
 # ------------------------------------------------------------------------------
@@ -230,8 +236,8 @@ def test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings():
     print l_url
     l_headers = {"Content-Type": "application/json"}
     l_r = requests.post(l_url,
-                            headers=l_headers,
-                            data=json.dumps(l_conf))
+                        headers=l_headers,
+                        data=json.dumps(l_conf))
     # ------------------------------------------------------
     # test empty method and content type list is allowed
     # ------------------------------------------------------
@@ -245,5 +251,6 @@ def test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings():
     l_r = requests.put(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    assert len(l_r_json) == 0
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
     teardown_func()

@@ -26,6 +26,7 @@
 //: ----------------------------------------------------------------------------
 #include <map>
 #include <set>
+#include <list>
 #include <netinet/in.h>
 #include <string.h>
 #include <string>
@@ -98,11 +99,16 @@ private:
         ipv6_mask_map_t *m_ipv6_mask_map;
 };
 //: ----------------------------------------------------------------------------
+//: types
+//: ----------------------------------------------------------------------------
+typedef std::list <const std::string *> ip_str_list_t;
+//: ----------------------------------------------------------------------------
 //: ****************************************************************************
 //:                            U T I L I T I E S
 //: ****************************************************************************
 //: ----------------------------------------------------------------------------
 int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str);
 int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file);
+int32_t create_nms_from_ip_str_list(nms **ao_nms, const ip_str_list_t &a_ip_str_list);
 }
 #endif

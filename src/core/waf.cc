@@ -35,7 +35,7 @@
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
-#include "support/md5_hasher.h"
+#include "support/md5.h"
 #include "core/op.h"
 #include "core/var.h"
 #include "core/tx.h"
@@ -899,16 +899,15 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         {
                 // for each allowed http method
                 l_dis_hdr.append("/");
-                // ---------------------------------------
-                // Due to our customizations to this rule,
+                // -----------------------------------------
+                // due to customizations to rule,
                 // to get it to actually work properly
-                // (See [SECC-115])
-                // we need to md5 the headers
-                // ---------------------------------------
+                // need to md5 the headers
+                // -----------------------------------------
                 std::string l_dh = l_gs.disallowed_headers(i_dh);
-                md5_hasher md5_header;
+                md5 md5_header;
                 md5_header.update(l_dh.c_str(), l_dh.length());
-                l_dis_hdr.append(md5_header.hash_str());
+                l_dis_hdr.append(md5_header.get_hash_hex());
                 // append space if not last
                 if((i_dh + 1) < l_gs.disallowed_headers_size())
                 {

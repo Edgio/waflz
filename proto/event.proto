@@ -1,6 +1,6 @@
 syntax = "proto2";
 package waflz_pb;
-import "enforcement.proto";
+import "action.proto";
 import "request_info.proto";
 //: ----------------------------------------------------------------------------
 //: event
@@ -111,10 +111,10 @@ message event {
         // child events
         // -------------------------------------------------
         repeated event sub_event = 100;
-        //waf instance specific
+        // waf instance specific
         optional string waf_instance_id = 200;
         optional string waf_instance_name = 201;
-        //waf profile specific
+        // waf profile specific
         optional string waf_profile_id = 220;
         optional string waf_profile_name = 221;
         // Using enums defined in enforcement.proto

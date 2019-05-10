@@ -30,6 +30,13 @@
 #include "support/time_util.h"
 #include "support/geoip2_mmdb.h"
 #include "waflz/engine.h"
+#include "jspb/jspb.h"
+#ifdef WAFLZ_RATE_LIMITING
+#include "waflz/limit/config.h"
+#include "waflz/limit/rl_obj.h"
+#include "waflz/db/kycb_db.h"
+#include "limit.pb.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -57,31 +64,270 @@
 #ifndef UNUSED
 #define UNUSED(x) ( (void)(x) )
 #endif
-
 #ifndef STATUS_OK
 #define STATUS_OK 0
 #endif
-
 #ifndef STATUS_ERROR
 #define STATUS_ERROR -1
 #endif
+// TODO REMOVE!!!
+#ifndef WAFLZ_RATE_LIMITING
+#define WAFLZ_RATE_LIMITING 1
+#endif
 //: ----------------------------------------------------------------------------
-//: Profile Types...
+//: types
 //: ----------------------------------------------------------------------------
-typedef enum
+typedef enum {
+        SERVER_MODE_DEFAULT = 0,
+        SERVER_MODE_PROXY,
+        SERVER_MODE_FILE,
+        SERVER_MODE_NONE
+} server_mode_t;
+typedef enum {
+        CONFIG_MODE_INSTANCE = 0,
+        CONFIG_MODE_INSTANCES,
+        CONFIG_MODE_PROFILE,
+        CONFIG_MODE_MODSECURITY,
+#ifdef WAFLZ_RATE_LIMITING
+        CONFIG_MODE_LIMIT,
+#endif
+        CONFIG_MODE_NONE
+} config_mode_t;
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t validate_ruleset_dir(std::string &a_ruleset_dir)
 {
-        PROFILE_TYPE_PRODUCTION = 0,
-        PROFILE_TYPE_AUDIT,
-        PROFILE_TYPE_MAX,
-
-} profile_types_t;
-typedef std::map <profile_types_t, std::string> profile_type_str_map_t;
+        // -------------------------------------------------
+        // Check for ruleset dir
+        // -------------------------------------------------
+        if(a_ruleset_dir.empty())
+        {
+                NDBG_OUTPUT("error ruleset directory is required.\n");
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // Force directory string to end with '/'
+        // -------------------------------------------------
+        if('/' != a_ruleset_dir[a_ruleset_dir.length() - 1])
+        {
+                // append
+                a_ruleset_dir += "/";
+        }
+        // -------------------------------------------------
+        // Validate is directory
+        // Stat file to see if is directory or file
+        // -------------------------------------------------
+        struct stat l_stat;
+        int32_t l_s = 0;
+        l_s = stat(a_ruleset_dir.c_str(), &l_stat);
+        if(l_s != 0)
+        {
+                NDBG_OUTPUT("error performing stat on directory: %s.  Reason: %s\n", a_ruleset_dir.c_str(), strerror(errno));
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // Check if is directory
+        // -------------------------------------------------
+        if((l_stat.st_mode & S_IFDIR) == 0)
+        {
+                NDBG_OUTPUT("error %s does not appear to be a directory\n", a_ruleset_dir.c_str());
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // Set the directory
+        // -------------------------------------------------
+        ns_waflz::profile::s_ruleset_dir = a_ruleset_dir.c_str();
+        return STATUS_OK;
+}
 //: ----------------------------------------------------------------------------
-//: Globals
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
 //: ----------------------------------------------------------------------------
-int g_verbose = 0;
-int g_cleanup_tmp_files = 1;
-
+static int32_t validate_profile(const std::string &a_file, std::string &a_ruleset_dir, bool a_cleanup_tmp)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // ruleset_dir
+        // -------------------------------------------------
+        l_s = validate_ruleset_dir(a_ruleset_dir);
+        if(l_s != STATUS_OK)
+        {
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // geoip db
+        // -------------------------------------------------
+        ns_waflz::geoip2_mmdb *l_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
+        // -------------------------------------------------
+        // engine
+        // -------------------------------------------------
+        ns_waflz::engine *l_engine = new ns_waflz::engine();
+        l_engine->init();
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_config_buf = NULL;
+        uint32_t l_config_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
+                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // profile
+        // -------------------------------------------------
+        ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
+        l_s = l_profile->load_config(l_config_buf,
+                                     l_config_buf_len,
+                                     !a_cleanup_tmp);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // instance is invalid
+                NDBG_OUTPUT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
+                           a_file.c_str(),
+                           l_profile->get_err_msg());
+                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                if(l_profile) { delete l_profile; l_profile = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_profile) { delete l_profile; l_profile = NULL; }
+        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+        if(l_engine) { delete l_engine; l_engine = NULL; }
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t validate_instance(const std::string &a_file, std::string &a_ruleset_dir, bool a_cleanup_tmp)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // ruleset_dir
+        // -------------------------------------------------
+        l_s = validate_ruleset_dir(a_ruleset_dir);
+        if(l_s != STATUS_OK)
+        {
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // geoip db
+        // -------------------------------------------------
+        ns_waflz::geoip2_mmdb *l_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
+        // -------------------------------------------------
+        // engine
+        // -------------------------------------------------
+        ns_waflz::engine *l_engine = new ns_waflz::engine();
+        l_engine->init();
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_config_buf = NULL;
+        uint32_t l_config_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
+                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // instantiate the compiler and validate it
+        // -------------------------------------------------
+        ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine, *l_geoip2_mmdb);
+        l_s = l_instance->load_config(l_config_buf, l_config_buf_len, !a_cleanup_tmp);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // instance is invalid
+                NDBG_OUTPUT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
+                            a_file.c_str(),
+                            l_instance->get_err_msg());
+                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_instance) { delete l_instance; l_instance = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
+        if(l_engine) { delete l_engine; l_engine = NULL; }
+        if(l_instance) { delete l_instance; l_instance = NULL; }
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+#ifdef WAFLZ_RATE_LIMITING
+static int32_t validate_limit(const std::string &a_file, bool a_display_json)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
+        if(l_s != STATUS_OK)
+        {
+                NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // config
+        // -------------------------------------------------
+        ns_waflz::kycb_db l_kycb_db;
+        ns_waflz::challenge l_challenge;
+        ns_waflz::config *l_config = new ns_waflz::config(l_kycb_db, l_challenge);
+        l_s = l_config->load(l_buf, l_buf_len);
+        if(l_s != STATUS_OK)
+        {
+                NDBG_OUTPUT("failed to load config config: %s. Reason: %s\n",
+                                a_file.c_str(),
+                           l_config->get_err_msg());
+                if(l_config) {delete l_config; l_config = NULL;}
+                if(l_buf) {free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // display?
+        // -------------------------------------------------
+        if(a_display_json &&
+           l_config->get_pb())
+        {
+                std::string l_js;
+                ns_waflz::convert_to_json(l_js, *(l_config->get_pb()));
+                NDBG_OUTPUT("%s\n", l_js.c_str());
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_buf) { free(l_buf); l_buf = NULL;}
+        if(l_config) { delete l_config; l_config = NULL;}
+        return STATUS_OK;
+}
+#endif
 //: ----------------------------------------------------------------------------
 //: \details Print Version info to a_stream with exit code
 //: \return  NA
@@ -91,7 +337,7 @@ int g_cleanup_tmp_files = 1;
 void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
-        fprintf(a_stream, "WAF JSON Compiler.\n");
+        fprintf(a_stream, "waflz JSON Compiler.\n");
         fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
         fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
@@ -115,6 +361,10 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  -r, --ruleset-dir  WAF Ruleset directory [REQUIRED]\n");
         fprintf(a_stream, "  -i, --instance     WAF instance\n");
         fprintf(a_stream, "  -p, --profile      WAF profile\n");
+#ifdef WAFLZ_RATE_LIMITING
+        fprintf(a_stream, "  -l  --limit        Rate Limiting JSON Configuration File [REQUIRED]\n");
+#endif
+        fprintf(a_stream, "  -j, --json         Display config [Default: OFF]\n");
         fprintf(a_stream, "\n");
         fprintf(a_stream, "example:\n");
         fprintf(a_stream, "         wjc --instance=waf_instance.waf.json\n");
@@ -131,10 +381,13 @@ int main(int argc, char** argv)
 {
         char l_opt;
         std::string l_argument;
-        std::string l_instance_file;
-        std::string l_profile_file;
+        std::string l_file;
         std::string l_ruleset_dir;
+        bool l_display_json = false;
         int l_option_index = 0;
+        bool l_cleanup_tmp_files = true;
+        bool l_verbose = false;
+        config_mode_t l_config_mode = CONFIG_MODE_NONE;
         struct option l_long_options[] =
         {
                 { "help",        0, 0, 'h' },
@@ -144,10 +397,14 @@ int main(int argc, char** argv)
                 { "ruleset-dir", 1, 0, 'r' },
                 { "instance",    1, 0, 'i' },
                 { "profile",     1, 0, 'p' },
+#ifdef WAFLZ_RATE_LIMITING
+                { "limit",       1, 0, 'l' },
+#endif
+                { "json",        0, 0, 'j' },
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-        while ((l_opt = getopt_long_only(argc, argv, "hvdnr:i:p:", l_long_options, &l_option_index)) != -1)
+        while ((l_opt = getopt_long_only(argc, argv, "hvdnr:i:p:l:j", l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)
                 {
@@ -159,68 +416,89 @@ int main(int argc, char** argv)
                 }
                 switch (l_opt)
                 {
-                // -------------------------------
+                // -----------------------------------------
                 // help
-                // -------------------------------
+                // -----------------------------------------
                 case 'h':
                 {
                         print_usage(stdout, 0);
                         break;
                 }
-                // -------------------------------
+                // -----------------------------------------
                 // verion
-                // -------------------------------
+                // -----------------------------------------
                 case 'v':
                 {
                         print_version(stdout, 0);
                         break;
                 }
-                // -------------------------------
+                // -----------------------------------------
                 //
-                // -------------------------------
+                // -----------------------------------------
                 case 'd':
                 {
-                        g_verbose = 1;
+                        l_verbose = 1;
                         break;
                 }
-                // -------------------------------
+                // -----------------------------------------
                 //
-                // -------------------------------
+                // -----------------------------------------
                 case 'n':
                 {
-                        g_cleanup_tmp_files = 0;
+                        l_cleanup_tmp_files = 0;
                         break;
                 }
-                // -------------------------------
+                // -----------------------------------------
                 // ruleset dir
-                // -------------------------------
+                // -----------------------------------------
                 case 'r':
                 {
                         l_ruleset_dir = optarg;
                         break;
                 }
-                // -------------------------------
+                // -----------------------------------------
                 //
-                // -------------------------------
+                // -----------------------------------------
                 case 'i':
                 {
-                        l_instance_file = optarg;
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_INSTANCE;
                         break;
                 }
-                // -------------------------------
+                // -----------------------------------------
                 // profile
-                // -------------------------------
+                // -----------------------------------------
                 case 'p':
                 {
-                        l_profile_file = optarg;
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_PROFILE;
                         break;
                 }
-                // -------------------------------
+#ifdef WAFLZ_RATE_LIMITING
+                // -----------------------------------------
+                // limit
+                // -----------------------------------------
+                case 'l':
+                {
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_LIMIT;
+                        break;
+                }
+#endif
+                // -----------------------------------------
+                //
+                // -----------------------------------------
+                case 'j':
+                {
+                        l_display_json = true;
+                        break;
+                }
+                // -----------------------------------------
                 // what?
-                // -------------------------------
+                // -----------------------------------------
                 case '?':
                 {
-                        NDBG_PRINT("  Exiting.\n");
+                        NDBG_OUTPUT("  Exiting.\n");
                         print_usage(stdout, -1);
                         break;
                 }
@@ -229,145 +507,67 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 default:
                 {
-                        NDBG_PRINT("Unrecognized option.\n");
+                        NDBG_OUTPUT("Unrecognized option.\n");
                         print_usage(stdout, -1);
                         break;
                 }
                 }
         }
+        int32_t l_s;
         // -------------------------------------------------
-        // Check for ruleset dir
+        // *************************************************
+        // validate per mode
+        // *************************************************
         // -------------------------------------------------
-        if(l_ruleset_dir.empty())
+        switch(l_config_mode)
         {
-                NDBG_PRINT("Error ruleset directory is required.\n");
-                print_usage(stdout, -1);
-        }
         // -------------------------------------------------
-        // Force directory string to end with '/'
+        // profile
         // -------------------------------------------------
-        if('/' != l_ruleset_dir[l_ruleset_dir.length() - 1])
+        case(CONFIG_MODE_PROFILE):
         {
-                // Append
-                l_ruleset_dir += "/";
-        }
-        // -------------------------------------------------
-        // Validate is directory
-        // Stat file to see if is directory or file
-        // -------------------------------------------------
-        struct stat l_stat;
-        int32_t l_s = 0;
-        l_s = stat(l_ruleset_dir.c_str(), &l_stat);
-        if(l_s != 0)
-        {
-                NDBG_PRINT("Error performing stat on directory: %s.  Reason: %s\n", l_ruleset_dir.c_str(), strerror(errno));
-                exit(-1);
-        }
-        // -------------------------------------------------
-        // Check if is directory
-        // -------------------------------------------------
-        if((l_stat.st_mode & S_IFDIR) == 0)
-        {
-                NDBG_PRINT("Error %s does not appear to be a directory\n", l_ruleset_dir.c_str());
-                exit(-1);
-        }
-        // -------------------------------------------------
-        // Check for config file...
-        // -------------------------------------------------
-        if(!l_instance_file.length() &&
-           !l_profile_file.length())
-        {
-                NDBG_PRINT("Error conf required.\n");
-                print_usage(stdout, -1);
-        }
-        // -------------------------------------------------
-        // Set the directory
-        // -------------------------------------------------
-        ns_waflz::profile::s_ruleset_dir = l_ruleset_dir.c_str();
-        // -------------------------------------------------
-        // geoip db
-        // -------------------------------------------------
-        ns_waflz::geoip2_mmdb *l_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        // -------------------------------------------------
-        // engine
-        // -------------------------------------------------
-        ns_waflz::engine *l_engine = new ns_waflz::engine();
-        l_engine->init();
-        // -------------------------------------------------
-        // read file
-        // -------------------------------------------------
-        std::string l_file;
-        if(l_profile_file.length())
-        {
-                l_file = l_profile_file;
-        }
-        else
-        {
-                l_file = l_instance_file;
-        }
-        char *l_config_buf = NULL;
-        uint32_t l_config_buf_len = 0;
-        l_s = ns_waflz::read_file(l_file.c_str(), &l_config_buf, l_config_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("failed to read file at %s\n", l_file.c_str());
-                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
-                if(l_engine) { delete l_engine; l_engine = NULL; }
-                return STATUS_ERROR;
+                l_s = validate_profile(l_file, l_ruleset_dir, l_cleanup_tmp_files);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
         }
         // -------------------------------------------------
         // profile
         // -------------------------------------------------
-        if(l_profile_file.length())
+        case(CONFIG_MODE_INSTANCE):
         {
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
-                //NDBG_PRINT("Validate\n");
-                l_s = l_profile->load_config(l_config_buf,
-                                             l_config_buf_len,
-                                             (g_cleanup_tmp_files == 0));
-                if(l_s != WAFLZ_STATUS_OK)
+                l_s = validate_instance(l_file, l_ruleset_dir, l_cleanup_tmp_files);
+                if(l_s != STATUS_OK)
                 {
-                        // instance is invalid
-                        NDBG_PRINT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
-                                   l_file.c_str(),
-                                   l_profile->get_err_msg());
-                        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
-                        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
-                        if(l_engine) { delete l_engine; l_engine = NULL; }
-                        if(l_profile) { delete l_profile; l_profile = NULL; }
                         return STATUS_ERROR;
                 }
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                break;
         }
+#ifdef WAFLZ_RATE_LIMITING
         // -------------------------------------------------
-        // instance
+        // limit
         // -------------------------------------------------
-        else
+        case(CONFIG_MODE_LIMIT):
         {
-                // instantiate the compiler and validate it
-                ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine, *l_geoip2_mmdb);
-                //NDBG_PRINT("Validate\n");
-                l_s = l_instance->load_config(l_config_buf, l_config_buf_len, (g_cleanup_tmp_files == 0));
-                if(l_s != WAFLZ_STATUS_OK)
+                l_s = validate_limit(l_file, l_display_json);
+                if(l_s != STATUS_OK)
                 {
-                        // instance is invalid
-                        NDBG_PRINT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
-                                   l_file.c_str(),
-                                  l_instance->get_err_msg());
-                        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
-                        if(l_engine) { delete l_engine; l_engine = NULL; }
-                        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
-                        if(l_instance) { delete l_instance; l_instance = NULL; }
                         return STATUS_ERROR;
                 }
-                if(l_instance) { delete l_instance; l_instance = NULL; }
+                break;
         }
+#endif
         // -------------------------------------------------
-        // cleanup
+        // default
         // -------------------------------------------------
-        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
-        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
-        if(l_engine) { delete l_engine; l_engine = NULL; }
-        return 0;
+        case(CONFIG_MODE_NONE):
+        default:
+        {
+                NDBG_OUTPUT("error conf required.\n");
+                return STATUS_ERROR;
+        }
+        }
+        return STATUS_OK;
 }

@@ -107,18 +107,18 @@ target_link_libraries(wb_regex ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_
 SET_TARGET_PROPERTIES(wb_regex PROPERTIES OUTPUT_NAME "wb_regex")
 add_test(regex wb_regex)
 # ----------------------------------------------------------
-# wb_md5_hasher
+# wb_md5
 # ----------------------------------------------------------
 SET(SRCS
-  wb_md5_hasher.cc
+  wb_md5.cc
 )
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/src
 )
-add_executable(wb_md5_hasher ${HDRS} ${SRCS})
-add_dependencies(wb_md5_hasher waflzcore)
-target_link_libraries(wb_md5_hasher ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
-SET_TARGET_PROPERTIES(wb_md5_hasher PROPERTIES OUTPUT_NAME "wb_md5_hasher")
-add_test(md5_hasher wb_md5_hasher)
+add_executable(wb_md5 ${HDRS} ${SRCS})
+add_dependencies(wb_md5 waflzcore)
+target_link_libraries(wb_md5 ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
+SET_TARGET_PROPERTIES(wb_md5 PROPERTIES OUTPUT_NAME "wb_md5")
+add_test(md5 wb_md5)

@@ -169,7 +169,6 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                l_engine->shutdown();
                 if(l_profile)
                 {
                         delete l_profile;

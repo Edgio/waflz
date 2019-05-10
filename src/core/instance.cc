@@ -25,7 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "event.pb.h"
 #include "config.pb.h"
-#include "enforcement.pb.h"
+#include "action.pb.h"
 #include "jspb/jspb.h"
 #include "support/ndebug.h"
 #include "support/trace_internal.h"

@@ -95,8 +95,8 @@ endif()
 # ------------------------------------------------------------------------------
 # rate_limiting def
 # ------------------------------------------------------------------------------
-if ()
-  add_defintion(-DWAFLZ_RATE_LIMITING)
+if (BUILD_RATE_LIMITING)
+  add_definitions(-DWAFLZ_RATE_LIMITING)
 endif()
 # ------------------------------------------------------------------------------
 # \brief   Find ubuntu packages based on their (optional) include and (required) library test files

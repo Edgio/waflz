@@ -20,10 +20,6 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-// TODO REMOVE
-#ifndef WAFLZ_RATE_LIMITING
-#define WAFLZ_RATE_LIMITING 1
-#endif
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
@@ -503,9 +499,12 @@ public:
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
-                if(l_enf &&
+                if(l_enf
+#ifdef WAFLZ_RATE_LIMITING
                    // only enforcements for limit mode
-                   (!g_config_mode == CONFIG_MODE_LIMIT))
+                   && (!g_config_mode == CONFIG_MODE_LIMIT)
+#endif
+                   )
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
@@ -1229,6 +1228,7 @@ int main(int argc, char** argv)
                 g_sx = l_sx_instance;
                 break;
         }
+#ifdef WAFLZ_RATE_LIMITING
         // -------------------------------------------------
         // modsecurity
         // -------------------------------------------------
@@ -1241,6 +1241,7 @@ int main(int argc, char** argv)
                 g_sx = l_sx_limit;
                 break;
         }
+#endif
         // -------------------------------------------------
         // default
         // -------------------------------------------------

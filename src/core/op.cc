@@ -51,7 +51,8 @@
 #define EXPAND_MACRO(_val) \
         const std::string *l_val_ref = &l_val; \
         std::string l_sv_var; \
-        if(a_macro->has(l_val)) { \
+        if(a_macro && \
+           a_macro->has(l_val)) { \
                 int32_t l_s = (*a_macro)(l_sv_var, l_val, a_ctx); \
                 if(l_s != WAFLZ_STATUS_OK) { return WAFLZ_STATUS_ERROR; } \
                 l_val_ref = &l_sv_var; \
@@ -67,7 +68,7 @@
         static int32_t _op_cb_##_type(bool& ao_match, \
                                       const waflz_pb::sec_rule_t_operator_t& a_op, \
                                       const char* a_buf, \
-                                      const uint32_t& a_len, \
+                                      const uint32_t a_len, \
                                       macro* a_macro, \
                                       rqst_ctx *a_ctx)
 namespace ns_waflz {

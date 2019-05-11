@@ -23,49 +23,39 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#include "waflz/waflz.h"
-#include "waflz/instances.h"
-#include "waflz/profile.h"
-#include "waflz/instances.h"
-#include "waflz/instance.h"
-#include "waflz/waf.h"
+#include "cb.h"
+#include "sx.h"
+#include "sx_profile.h"
+#include "sx_instance.h"
+#include "sx_modsecurity.h"
+#ifdef WAFLZ_RATE_LIMITING
+#include "sx_limit.h"
+#endif
 #include "waflz/rqst_ctx.h"
+#include "waflz/profile.h"
 #include "waflz/render.h"
 #include "support/ndebug.h"
-#include "support/file_util.h"
-#include "support/geoip2_mmdb.h"
 #include "support/base64.h"
-#include "waflz/engine.h"
-#include "jspb/jspb.h"
-#include "config.pb.h"
-#include "event.pb.h"
-#include "is2/status.h"
-#include "is2/nconn/host_info.h"
 #include "is2/support/trace.h"
-#include "is2/support/nbq.h"
-#include "is2/srvr/api_resp.h"
-#include "is2/srvr/rqst.h"
+#include "is2/nconn/scheme.h"
+// why need this???
+#include "is2/nconn/nconn.h"
 #include "is2/srvr/srvr.h"
 #include "is2/srvr/lsnr.h"
-#include "is2/srvr/default_rqst_h.h"
-#include "is2/srvr/resp.h"
-#include "is2/handler/proxy_h.h"
 #include "is2/srvr/session.h"
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/prettywriter.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "is2/srvr/rqst.h"
+#include "is2/srvr/resp.h"
+#include "is2/srvr/api_resp.h"
+#include "is2/srvr/default_rqst_h.h"
+#include "is2/handler/proxy_h.h"
+#include "is2/handler/file_h.h"
+#include "action.pb.h"
+#include <string>
 #include <getopt.h>
-#include <stdint.h>
+#include <stdio.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <arpa/inet.h>
-#include <string>
-#include <signal.h>
 #ifdef ENABLE_PROFILER
 #include <gperftools/profiler.h>
 #include <gperftools/heap-profiler.h>
@@ -74,559 +64,200 @@
 //: constants
 //: ----------------------------------------------------------------------------
 #define BOGUS_GEO_DATABASE "/tmp/BOGUS_GEO_DATABASE.db"
+#define _DEFAULT_RESP_BODY_B64 "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+IDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4gPHRpdGxlPjwvdGl0bGU+PC9oZWFkPjxib2R5PiA8c3R5bGU+Knstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9ZGl2e2Rpc3BsYXk6IGJsb2NrO31ib2R5e2ZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXNpemU6IDE0cHg7IGxpbmUtaGVpZ2h0OiAxLjQyODU3MTQzOyBjb2xvcjogIzMzMzsgYmFja2dyb3VuZC1jb2xvcjogI2ZmZjt9aHRtbHtmb250LXNpemU6IDEwcHg7IC13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7IC13ZWJraXQtdGV4dC1zaXplLWFkanVzdDogMTAwJTsgLW1zLXRleHQtc2l6ZS1hZGp1c3Q6IDEwMCU7fTpiZWZvcmUsIDphZnRlcnstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9LmNvbnRhaW5lcntwYWRkaW5nLXJpZ2h0OiAxNXB4OyBwYWRkaW5nLWxlZnQ6IDE1cHg7IG1hcmdpbi1yaWdodDogYXV0bzsgbWFyZ2luLWxlZnQ6IGF1dG87fUBtZWRpYSAobWluLXdpZHRoOiA3NjhweCl7LmNvbnRhaW5lcnt3aWR0aDogNzUwcHg7fX0uY2FsbG91dCsuY2FsbG91dHttYXJnaW4tdG9wOiAtNXB4O30uY2FsbG91dHtwYWRkaW5nOiAyMHB4OyBtYXJnaW46IDIwcHggMDsgYm9yZGVyOiAxcHggc29saWQgI2VlZTsgYm9yZGVyLWxlZnQtd2lkdGg6IDVweDsgYm9yZGVyLXJhZGl1czogM3B4O30uY2FsbG91dC1kYW5nZXJ7Ym9yZGVyLWxlZnQtY29sb3I6ICNmYTBlMWM7fS5jYWxsb3V0LWRhbmdlciBoNHtjb2xvcjogI2ZhMGUxYzt9LmNhbGxvdXQgaDR7bWFyZ2luLXRvcDogMDsgbWFyZ2luLWJvdHRvbTogNXB4O31oNCwgLmg0e2ZvbnQtc2l6ZTogMThweDt9aDQsIC5oNCwgaDUsIC5oNSwgaDYsIC5oNnttYXJnaW4tdG9wOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxMHB4O31oMSwgaDIsIGgzLCBoNCwgaDUsIGg2LCAuaDEsIC5oMiwgLmgzLCAuaDQsIC5oNSwgLmg2e2ZvbnQtZmFtaWx5OiBBcGV4LCAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNDAwOyBsaW5lLWhlaWdodDogMS4xOyBjb2xvcjogaW5oZXJpdDt9aDR7ZGlzcGxheTogYmxvY2s7IC13ZWJraXQtbWFyZ2luLWJlZm9yZTogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1hZnRlcjogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1zdGFydDogMHB4OyAtd2Via2l0LW1hcmdpbi1lbmQ6IDBweDsgZm9udC13ZWlnaHQ6IGJvbGQ7fWxhYmVse2Rpc3BsYXk6IGlubGluZS1ibG9jazsgbWF4LXdpZHRoOiAxMDAlOyBtYXJnaW4tYm90dG9tOiA1cHg7IGZvbnQtd2VpZ2h0OiA3MDA7fWRse21hcmdpbi10b3A6IDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGRpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1iZWZvcmU6IDFlbTsgLXdlYmtpdC1tYXJnaW4tYWZ0ZXI6IDFlbTsgLXdlYmtpdC1tYXJnaW4tc3RhcnQ6IDBweDsgLXdlYmtpdC1tYXJnaW4tZW5kOiAwcHg7fWRke2Rpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1zdGFydDogNDBweDsgbWFyZ2luLWxlZnQ6IDA7IHdvcmQtd3JhcDogYnJlYWstd29yZDt9ZHR7Zm9udC13ZWlnaHQ6IDcwMDsgZGlzcGxheTogYmxvY2s7fWR0LCBkZHtsaW5lLWhlaWdodDogMS40Mjg1NzE0Mzt9LmRsLWhvcml6b250YWwgZHR7ZmxvYXQ6IGxlZnQ7IHdpZHRoOiAxNjBweDsgb3ZlcmZsb3c6IGhpZGRlbjsgY2xlYXI6IGxlZnQ7IHRleHQtYWxpZ246IHJpZ2h0OyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDt9LmRsLWhvcml6b250YWwgZGR7bWFyZ2luLWxlZnQ6IDE4MHB4O308L3N0eWxlPiA8ZGl2IGNsYXNzPSJjb250YWluZXIiPiA8ZGl2IGNsYXNzPSJjYWxsb3V0IGNhbGxvdXQtZGFuZ2VyIj4gPGg0IGNsYXNzPSJsYWJlbCI+Rm9yYmlkZGVuPC9oND4gPGRsIGNsYXNzPSJkbC1ob3Jpem9udGFsIj4gPGR0PkNsaWVudCBJUDwvZHQ+IDxkZD57e0NMSUVOVF9JUH19PC9kZD4gPGR0PlVzZXItQWdlbnQ8L2R0PiA8ZGQ+e3tVU0VSX0FHRU5UfX08L2RkPiA8ZHQ+UmVxdWVzdCBVUkw8L2R0PiA8ZGQ+e3tSRVFVRVNUX1VSTH19PC9kZD4gPGR0PlJlYXNvbjwvZHQ+IDxkZD57e1JVTEVfTVNHfX08L2RkPiA8ZHQ+RGF0ZTwvZHQ+IDxkZD57e1RJTUVTVEFNUH19PC9kZD4gPC9kbD4gPC9kaXY+PC9kaXY+PC9ib2R5PjwvaHRtbD4="
+// TODO FIX!!!
+#if 0
 #define WAFLZ_SERVER_HEADER_INSTANCE_ID "waf-instance-id"
-#define DEFAULT_RESP_BODY_B64 "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+IDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4gPHRpdGxlPjwvdGl0bGU+PC9oZWFkPjxib2R5PiA8c3R5bGU+Knstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9ZGl2e2Rpc3BsYXk6IGJsb2NrO31ib2R5e2ZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXNpemU6IDE0cHg7IGxpbmUtaGVpZ2h0OiAxLjQyODU3MTQzOyBjb2xvcjogIzMzMzsgYmFja2dyb3VuZC1jb2xvcjogI2ZmZjt9aHRtbHtmb250LXNpemU6IDEwcHg7IC13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7IC13ZWJraXQtdGV4dC1zaXplLWFkanVzdDogMTAwJTsgLW1zLXRleHQtc2l6ZS1hZGp1c3Q6IDEwMCU7fTpiZWZvcmUsIDphZnRlcnstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9LmNvbnRhaW5lcntwYWRkaW5nLXJpZ2h0OiAxNXB4OyBwYWRkaW5nLWxlZnQ6IDE1cHg7IG1hcmdpbi1yaWdodDogYXV0bzsgbWFyZ2luLWxlZnQ6IGF1dG87fUBtZWRpYSAobWluLXdpZHRoOiA3NjhweCl7LmNvbnRhaW5lcnt3aWR0aDogNzUwcHg7fX0uY2FsbG91dCsuY2FsbG91dHttYXJnaW4tdG9wOiAtNXB4O30uY2FsbG91dHtwYWRkaW5nOiAyMHB4OyBtYXJnaW46IDIwcHggMDsgYm9yZGVyOiAxcHggc29saWQgI2VlZTsgYm9yZGVyLWxlZnQtd2lkdGg6IDVweDsgYm9yZGVyLXJhZGl1czogM3B4O30uY2FsbG91dC1kYW5nZXJ7Ym9yZGVyLWxlZnQtY29sb3I6ICNmYTBlMWM7fS5jYWxsb3V0LWRhbmdlciBoNHtjb2xvcjogI2ZhMGUxYzt9LmNhbGxvdXQgaDR7bWFyZ2luLXRvcDogMDsgbWFyZ2luLWJvdHRvbTogNXB4O31oNCwgLmg0e2ZvbnQtc2l6ZTogMThweDt9aDQsIC5oNCwgaDUsIC5oNSwgaDYsIC5oNnttYXJnaW4tdG9wOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxMHB4O31oMSwgaDIsIGgzLCBoNCwgaDUsIGg2LCAuaDEsIC5oMiwgLmgzLCAuaDQsIC5oNSwgLmg2e2ZvbnQtZmFtaWx5OiBBcGV4LCAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNDAwOyBsaW5lLWhlaWdodDogMS4xOyBjb2xvcjogaW5oZXJpdDt9aDR7ZGlzcGxheTogYmxvY2s7IC13ZWJraXQtbWFyZ2luLWJlZm9yZTogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1hZnRlcjogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1zdGFydDogMHB4OyAtd2Via2l0LW1hcmdpbi1lbmQ6IDBweDsgZm9udC13ZWlnaHQ6IGJvbGQ7fWxhYmVse2Rpc3BsYXk6IGlubGluZS1ibG9jazsgbWF4LXdpZHRoOiAxMDAlOyBtYXJnaW4tYm90dG9tOiA1cHg7IGZvbnQtd2VpZ2h0OiA3MDA7fWRse21hcmdpbi10b3A6IDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGRpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1iZWZvcmU6IDFlbTsgLXdlYmtpdC1tYXJnaW4tYWZ0ZXI6IDFlbTsgLXdlYmtpdC1tYXJnaW4tc3RhcnQ6IDBweDsgLXdlYmtpdC1tYXJnaW4tZW5kOiAwcHg7fWRke2Rpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1zdGFydDogNDBweDsgbWFyZ2luLWxlZnQ6IDA7IHdvcmQtd3JhcDogYnJlYWstd29yZDt9ZHR7Zm9udC13ZWlnaHQ6IDcwMDsgZGlzcGxheTogYmxvY2s7fWR0LCBkZHtsaW5lLWhlaWdodDogMS40Mjg1NzE0Mzt9LmRsLWhvcml6b250YWwgZHR7ZmxvYXQ6IGxlZnQ7IHdpZHRoOiAxNjBweDsgb3ZlcmZsb3c6IGhpZGRlbjsgY2xlYXI6IGxlZnQ7IHRleHQtYWxpZ246IHJpZ2h0OyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDt9LmRsLWhvcml6b250YWwgZGR7bWFyZ2luLWxlZnQ6IDE4MHB4O308L3N0eWxlPiA8ZGl2IGNsYXNzPSJjb250YWluZXIiPiA8ZGl2IGNsYXNzPSJjYWxsb3V0IGNhbGxvdXQtZGFuZ2VyIj4gPGg0IGNsYXNzPSJsYWJlbCI+Rm9yYmlkZGVuPC9oND4gPGRsIGNsYXNzPSJkbC1ob3Jpem9udGFsIj4gPGR0PkNsaWVudCBJUDwvZHQ+IDxkZD57e0NMSUVOVF9JUH19PC9kZD4gPGR0PlVzZXItQWdlbnQ8L2R0PiA8ZGQ+e3tVU0VSX0FHRU5UfX08L2RkPiA8ZHQ+UmVxdWVzdCBVUkw8L2R0PiA8ZGQ+e3tSRVFVRVNUX1VSTH19PC9kZD4gPGR0PlJlYXNvbjwvZHQ+IDxkZD57e1JVTEVfTVNHfX08L2RkPiA8ZHQ+RGF0ZTwvZHQ+IDxkZD57e1RJTUVTVEFNUH19PC9kZD4gPC9kbD4gPC9kaXY+PC9kaXY+PC9ib2R5PjwvaHRtbD4="
+#endif
+#ifndef STATUS_OK
+  #define STATUS_OK 0
+#endif
+#ifndef STATUS_ERROR
+  #define STATUS_ERROR -1
+#endif
 //: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
+//: types
 //: ----------------------------------------------------------------------------
-static std::string get_file_ext(const std::string &a_filename)
-{
-        std::string fName(a_filename);
-        size_t pos = fName.rfind(".");
-        if(pos == std::string::npos)  //No extension.
-                return NULL;
-        if(pos == 0)    //. is at the front. Not an extension.
-                return NULL;
-        return fName.substr(pos + 1, fName.length());
-}
+typedef enum {
+        SERVER_MODE_DEFAULT = 0,
+        SERVER_MODE_PROXY,
+        SERVER_MODE_FILE,
+        SERVER_MODE_NONE
+} server_mode_t;
+typedef enum {
+        CONFIG_MODE_INSTANCE = 0,
+        CONFIG_MODE_INSTANCES,
+        CONFIG_MODE_PROFILE,
+        CONFIG_MODE_MODSECURITY,
+#ifdef WAFLZ_RATE_LIMITING
+        CONFIG_MODE_LIMIT,
+#endif
+        CONFIG_MODE_NONE
+} config_mode_t;
 //: ****************************************************************************
 //: ----------------------------------------------------------------------------
 //:                           request handler
 //: ----------------------------------------------------------------------------
 //: ****************************************************************************
 //: ----------------------------------------------------------------------------
-//:
+//: globals
 //: ----------------------------------------------------------------------------
 ns_is2::srvr *g_srvr = NULL;
-bool g_random_ips = false;
-bool g_bg_load = false;
-waflz_pb::enforcement *g_enfx = NULL;
-std::string g_ups_host;
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
-class waflz_update_profile_h: public ns_is2::default_rqst_h
-{
-public:
-        waflz_update_profile_h():
-                default_rqst_h(),
-                m_profile(NULL)
-        {}
-        ~waflz_update_profile_h()
-        {}
-        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
-                                 ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::profile *m_profile;
-        ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
-};
+ns_waflz_server::sx *g_sx = NULL;
+FILE *g_out_file_ptr = NULL;
+config_mode_t g_config_mode = CONFIG_MODE_NONE;
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t waflz_update_profile_h::do_post(ns_is2::session &a_session,
-                                                 ns_is2::rqst &a_rqst,
-                                                 const ns_is2::url_pmap_t &a_url_pmap)
+static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
+                                   ns_is2::session &a_session,
+                                   ns_is2::rqst &a_rqst,
+                                   const waflz_pb::enforcement &a_enf)
 {
-        if(!m_profile)
+        if(!a_ctx)
         {
-                TRC_ERROR("m_profile == NULL\n");
-                return ns_is2::H_RESP_SERVER_ERROR;
+                return ns_is2::H_RESP_NONE;
         }
-        uint64_t l_buf_len = a_rqst.get_body_len();
-        ns_is2::nbq *l_q = a_rqst.get_body_q();
-        // copy to buffer
-        char *l_buf;
-        l_buf = (char *)malloc(l_buf_len);
-        l_q->read(l_buf, l_buf_len);
-        // TODO get status
-        //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
-        int32_t l_s;
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                TRC_ERROR("performing m_profile->load_config\n");
-                if(l_buf) { free(l_buf); l_buf = NULL;}
-                return ns_is2::H_RESP_SERVER_ERROR;
-        }
-        if(l_buf) { free(l_buf); l_buf = NULL;}
-        std::string l_resp_str = "{\"status\": \"success\"}";
-        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
-                                   "application/json",
-                                   l_resp_str.length(),
-                                   a_rqst.m_supports_keep_alives,
-                                   a_session.get_server_name());
-        l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
-        l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
-        ns_is2::queue_api_resp(a_session, l_api_resp);
-        return ns_is2::H_RESP_DONE;
-}
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
-class waflz_update_instances_h: public ns_is2::default_rqst_h
-{
-public:
-        waflz_update_instances_h():
-                default_rqst_h(),
-                m_instances(NULL)
-        {}
-        ~waflz_update_instances_h()
-        {}
-        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
-                                 ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::instances *m_instances;
-};
-//: ----------------------------------------------------------------------------
-//: type
-//: ----------------------------------------------------------------------------
-typedef struct _waf_instance_update {
-        char *m_buf;
-        uint32_t m_buf_len;
-        ns_waflz::instances *m_instances;
-} waf_instance_update_t;
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-static void *t_load_instance(void *a_context)
-{
-        waf_instance_update_t *l_i = reinterpret_cast<waf_instance_update_t *>(a_context);
-        if(!l_i)
-        {
-                return NULL;
-        }
-        int32_t l_s;
-        ns_waflz::instance *l_instance = NULL;
-        l_s = l_i->m_instances->load_config(&l_instance, l_i->m_buf, l_i->m_buf_len, true);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                TRC_ERROR("performing m_profile->load_config\n");
-                if(l_i->m_buf) { free(l_i->m_buf); l_i->m_buf = NULL;}
-                return NULL;
-        }
-        if(l_i->m_buf) { free(l_i->m_buf); l_i->m_buf = NULL;}
-        delete l_i;
-        return NULL;
-}
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-ns_is2::h_resp_t waflz_update_instances_h::do_post(ns_is2::session &a_session,
-                                                  ns_is2::rqst &a_rqst,
-                                                  const ns_is2::url_pmap_t &a_url_pmap)
-{
-        if(!m_instances)
-        {
-                TRC_ERROR("m_profile == NULL\n");
-                return ns_is2::H_RESP_SERVER_ERROR;
-        }
-        uint64_t l_buf_len = a_rqst.get_body_len();
-        ns_is2::nbq *l_q = a_rqst.get_body_q();
-        // copy to buffer
-        char *l_buf;
-        l_buf = (char *)malloc(l_buf_len);
-        l_q->read(l_buf, l_buf_len);
-        m_instances->set_locking(true);
-        if(!g_bg_load)
-        {
-                // TODO get status
-                //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
-                int32_t l_s;
-                ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len, true);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        TRC_ERROR("performing m_profile->load_config\n");
-                        if(l_buf) { free(l_buf); l_buf = NULL;}
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                if(l_buf) { free(l_buf); l_buf = NULL;}
-        }
-        else
-        {
-                waf_instance_update_t *l_instance_update = NULL;
-                l_instance_update = new waf_instance_update_t();
-                l_instance_update->m_buf = l_buf;
-                l_instance_update->m_buf_len = l_buf_len;
-                l_instance_update->m_instances = m_instances;
-                pthread_t l_t_thread;
-                int32_t l_pthread_error = 0;
-                l_pthread_error = pthread_create(&l_t_thread,
-                                                 NULL,
-                                                 t_load_instance,
-                                                 l_instance_update);
-                if (l_pthread_error != 0)
-                {
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-        std::string l_resp_str = "{\"status\": \"success\"}";
-        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
-                                   "application/json",
-                                   l_resp_str.length(),
-                                   a_rqst.m_supports_keep_alives,
-                                   a_session.get_server_name());
-        l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
-        l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
-        ns_is2::queue_api_resp(a_session, l_api_resp);
-        return ns_is2::H_RESP_DONE;
-}
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
-class waflz_h: public ns_is2::proxy_h
-{
-public:
-        waflz_h(const std::string &a_out_file, const std::string &a_proxy_host):
-                proxy_h(a_proxy_host, ""),
-                m_instances(NULL),
-                m_profile(NULL),
-                m_wafl(NULL),
-                m_id_vector(),
-                m_out_file(a_out_file),
-                m_out_file_ptr(NULL)
-        {}
-        int32_t init(void)
-        {
-                if(!m_out_file.empty())
-                {
-                        m_out_file_ptr = fopen(m_out_file.c_str(), "a");
-                        if(!m_out_file_ptr)
-                        {
-                                NDBG_PRINT("error opening output file: %s. Reason: %s\n",
-                                           m_out_file.c_str(),
-                                           strerror(errno));
-                                return STATUS_ERROR;
-                        }
-                }
-                return STATUS_OK;
-        }
-        ~waflz_h()
-        {
-                if(m_out_file_ptr)
-                {
-                        fclose(m_out_file_ptr);
-                        m_out_file_ptr = NULL;
-                }
-        }
-        ns_is2::h_resp_t do_default(ns_is2::session &a_session,
-                                    ns_is2::rqst &a_rqst,
-                                    const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::instances *m_instances;
-        ns_waflz::profile *m_profile;
-        ns_waflz::waf *m_wafl;
-        ns_waflz::instances::id_vector_t m_id_vector;
-        const ns_waflz::rqst_ctx_callbacks *m_callbacks; 
-        std::string m_out_file;
-        FILE *m_out_file_ptr;
-};
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-ns_is2::h_resp_t waflz_h::do_default(ns_is2::session &a_session,
-                                     ns_is2::rqst &a_rqst,
-                                     const ns_is2::url_pmap_t &a_url_pmap)
-{
-        if(!m_profile &&
-           !m_instances &&
-           !m_wafl)
-        {
-                return ns_is2::H_RESP_SERVER_ERROR;
-        }
-        // -------------------------------------------------
-        // events
-        // -------------------------------------------------
-        int32_t l_s;
-        waflz_pb::event *l_event = NULL;
-        waflz_pb::event *l_event_audit = NULL;
-        waflz_pb::enforcement *l_enfx = g_enfx;
-        ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
-        // -------------------------------------------------
-        // conf
-        // -------------------------------------------------
-        if(m_wafl)
-        {
-                l_s = m_wafl->process(&l_event, &a_session, m_callbacks, &l_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error processing config. reason. TBD\n");
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // profile
-        // -------------------------------------------------
-        else if(m_profile)
-        {
-                l_s = m_profile->process(&l_event, &a_session, m_callbacks, &l_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error processing config. reason: %s\n",
-                                   m_profile->get_err_msg());
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                //ns_waflz::waf *l_waf = m_profile->get_waf();
-                //NDBG_OUTPUT("*****************************************\n");
-                //NDBG_OUTPUT("*             S T A T U S               *\n");
-                //NDBG_OUTPUT("*****************************************\n");
-                //l_waf->show_status();
-                //NDBG_OUTPUT("*****************************************\n");
-                //NDBG_OUTPUT("*               D E B U G               *\n");
-                //NDBG_OUTPUT("*****************************************\n");
-                //l_waf->show_debug();
-        }
-        // -------------------------------------------------
-        // instances
-        // -------------------------------------------------
-        else if(m_instances)
-        {
-                m_instances->set_locking(true);
-                std::string l_id;
-                // -----------------------------------------
-                // pick rand from id set if not empty
-                // -----------------------------------------
-                if(!m_id_vector.empty())
-                {
-                        uint32_t l_len = (uint32_t)m_id_vector.size();
-                        uint32_t l_idx = 0;
-                        l_idx = ((uint32_t)rand()) % (l_len + 1);
-                        l_id = m_id_vector[l_idx];
-                }
-                // -----------------------------------------
-                // get id from header if exists
-                // -----------------------------------------
-                else
-                {
-                        const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
-                        ns_is2::mutable_data_t i_hdr;
-                        if(ns_is2::find_first(i_hdr, l_headers, WAFLZ_SERVER_HEADER_INSTANCE_ID, sizeof(WAFLZ_SERVER_HEADER_INSTANCE_ID)))
-                        {
-                                l_id.assign(i_hdr.m_data, i_hdr.m_len);
-                        }
-                }
-                //NDBG_PRINT("instance: id:   %s\n", l_id.c_str());
-                if(l_id.empty())
-                {
-                        ns_waflz::instance *l_instance = NULL;
-                        l_instance = m_instances->get_first_instance();
-                        if(!l_instance)
-                        {
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                        l_id = l_instance->get_id();
-                }
-                if(l_id.empty())
-                {
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                // -----------------------------------------
-                // reset body read
-                // -----------------------------------------
-                if(a_session.m_rqst &&
-                   a_session.m_rqst->get_body_q())
-                {
-                        a_session.m_rqst->get_body_q()->reset_read();
-                }
-                // -----------------------------------------
-                // process audit
-                // -----------------------------------------
-                l_s = m_instances->process(&l_event_audit, &l_event, &a_session, l_id, m_callbacks, &l_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error processing config. reason: %s\n",
-                                   m_instances->get_err_msg());
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // *************************************************
-        //                R E S P O N S E
-        // *************************************************
-        // -------------------------------------------------
-        std::string l_event_str = "{}";
-        // -------------------------------------------------
-        // for instances create string with both...
-        // -------------------------------------------------
-        if(m_instances)
-        {
-                rapidjson::Document l_event_json;
-                rapidjson::Document l_event_audit_json;
-                if(l_event_audit)
-                {
-                        l_s = ns_waflz::convert_to_json(l_event_audit_json, *l_event_audit);
-                        if(l_s != JSPB_OK)
-                        {
-                                NDBG_PRINT("error performing convert_to_json.\n");
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                }
-                if(l_event)
-                {
-                        l_s = ns_waflz::convert_to_json(l_event_json, *l_event);
-                        if(l_s != JSPB_OK)
-                        {
-                                NDBG_PRINT("error performing convert_to_json.\n");
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                }
-                rapidjson::Document l_js_doc;
-                l_js_doc.SetObject();
-                rapidjson::Document::AllocatorType& l_js_allocator = l_js_doc.GetAllocator();
-                l_js_doc.AddMember("audit_profile", l_event_audit_json, l_js_allocator);
-                l_js_doc.AddMember("prod_profile",  l_event_json,       l_js_allocator);
-                rapidjson::StringBuffer l_strbuf;
-                rapidjson::Writer<rapidjson::StringBuffer> l_js_writer(l_strbuf);
-                l_js_doc.Accept(l_js_writer);
-                l_event_str.assign(l_strbuf.GetString(), l_strbuf.GetSize());
-                goto write_out;
-        }
-        // -------------------------------------------------
-        // serialize event...
-        // -------------------------------------------------
-        if(l_event)
-        {
-                l_s = ns_waflz::convert_to_json(l_event_str, *l_event);
-                if(l_s != JSPB_OK)
-                {
-                        NDBG_PRINT("error performing convert_to_json.\n");
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-write_out:
         // -------------------------------------------------
         // write out if output...
         // -------------------------------------------------
-        if(m_out_file_ptr)
+        if(g_out_file_ptr)
         {
                 size_t l_fw_s;
-                l_fw_s = fwrite(l_event_str.c_str(), 1, l_event_str.length(), m_out_file_ptr);
-                if(l_fw_s != l_event_str.length())
+                l_fw_s = fwrite(g_sx->m_resp.c_str(), 1, g_sx->m_resp.length(), g_out_file_ptr);
+                if(l_fw_s != g_sx->m_resp.length())
                 {
                         NDBG_PRINT("error performing fwrite.\n");
                 }
-                fwrite("\n", 1, 1, m_out_file_ptr);
+                fwrite("\n", 1, 1, g_out_file_ptr);
         }
+        ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
+        int32_t l_s;
         // -------------------------------------------------
-        // response...
+        // no enf
         // -------------------------------------------------
-        if(g_ups_host.empty())
+        if(!a_enf.has_type())
         {
+                return ns_is2::H_RESP_NONE;
+        }
+        //NDBG_PRINT("l_enfcmnt: %s\n", a_enf.ShortDebugString().c_str());
+#define STR_CMP(_a,_b) (strncasecmp(_a,_b,strlen(_b)) == 0)
+        // -------------------------------------------------
+        // switch on type
+        // -------------------------------------------------
+        switch(a_enf.enf_type())
+        {
+        // -------------------------------------------------
+        // ALERT
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_ALERT:
+        {
+                //NDBG_PRINT("ALERT\n");
+                std::string l_resp_str;
+                ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_OK, l_resp_str);
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                 l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
                                            "application/json",
-                                           l_event_str.length(),
+                                           l_resp_str.length(),
                                            a_rqst.m_supports_keep_alives,
                                            a_session.get_server_name());
-                l_api_resp.set_body_data(l_event_str.c_str(), l_event_str.length());
-                l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
+                if(a_enf.has_url())
+                {
+                        l_api_resp.set_header("Location", a_enf.url().c_str());
+                }
+                l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
                 ns_is2::queue_api_resp(a_session, l_api_resp);
-                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                if(l_event) { delete l_event; l_event = NULL; }
-                return ns_is2::H_RESP_DONE;
+                // TODO check status
+                UNUSED(l_s);
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
         }
         // -------------------------------------------------
-        // handle event in proxy mode
+        // NOP
         // -------------------------------------------------
-        if(l_event)
+        case waflz_pb::enforcement_type_t_NOP:
         {
+                //NDBG_PRINT("NOP\n");
+                std::string l_resp_str;
+                ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_OK, l_resp_str);
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                           "application/json",
+                                           l_resp_str.length(),
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                if(a_enf.has_url())
+                {
+                        l_api_resp.set_header("Location", a_enf.url().c_str());
+                }
+                l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
+                ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
+        // REDIRECT_302
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_REDIRECT_302:
+        {
+                //NDBG_PRINT("REDIRECT_302\n");
+                std::string l_resp_str;
+                ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_FOUND, l_resp_str);
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FOUND,
+                                           "application/json",
+                                           l_resp_str.length(),
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                if(a_enf.has_url())
+                {
+                        l_api_resp.set_header("Location", a_enf.url().c_str());
+                }
+                l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
+                ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
+        // BLOCK_REQUEST
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_BLOCK_REQUEST:
+        {
+                // -----------------------------------------
+                // decode
+                // -----------------------------------------
                 char *l_resp_data = NULL;
                 size_t l_resp_len = 0;
-                // -----------------------------------------
-                // create custom resp...
-                // -----------------------------------------
-                if(l_rqst_ctx &&
-                   g_enfx &&
-                   g_enfx->has_response_body_base64())
+                int32_t l_s;
+                char *l_dcd = NULL;
+                size_t l_dcd_len = 0;
+                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, _DEFAULT_RESP_BODY_B64, strlen(_DEFAULT_RESP_BODY_B64));
+                if(l_s != STATUS_OK)
                 {
-                        const std::string *l_b64 = &(g_enfx->response_body_base64());
-                        if(l_b64->empty())
-                        {
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                        // ---------------------------------
-                        // decode
-                        // ---------------------------------
-                        int32_t l_s;
-                        char *l_dcd = NULL;
-                        size_t l_dcd_len = 0;
-                        l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
-                        if(l_s != STATUS_OK)
-                        {
-                                // error???
-                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
-                        // ---------------------------------
-                        // assign event to ctx for rendering
-                        // ---------------------------------
-                        l_rqst_ctx->m_event = l_event;
-                        // ---------------------------------
-                        // render
-                        // ---------------------------------
-                        l_s = ns_waflz::render(&l_resp_data, l_resp_len, l_dcd, l_dcd_len, l_rqst_ctx);
-                        if(l_s != STATUS_OK)
-                        {
-                                // error???
-                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                                if(l_resp_data) { free(l_resp_data); l_resp_data = NULL; }
-                                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                                if(l_event) { delete l_event; l_event = NULL; }
-                                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                                return ns_is2::H_RESP_SERVER_ERROR;
-                        }
+                        // error???
                         if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                        break;
                 }
-                else
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                l_s = ns_waflz::render(&l_resp_data, l_resp_len, l_dcd, l_dcd_len, a_ctx);
+                if(l_s != STATUS_OK)
                 {
-                        std::string l_resp_str;
-                        ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_FORBIDDEN, l_resp_str);
-                        l_resp_data = (char *)malloc(l_resp_str.length()+1);
-                        strncpy(l_resp_data, l_resp_str.c_str(), l_resp_str.length());
-                        l_resp_len = l_resp_str.length();
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_resp_data) { free(l_resp_data); l_resp_data = NULL; }
+                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                        break;
                 }
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                 l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FORBIDDEN,
                                            "text/html",
@@ -636,541 +267,357 @@ write_out:
                 l_api_resp.set_body_data(l_resp_data, l_resp_len);
                 ns_is2::queue_api_resp(a_session, l_api_resp);
                 if(l_resp_data) { free(l_resp_data); l_resp_data = NULL; }
-                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                if(l_event) { delete l_event; l_event = NULL; }
-                return ns_is2::H_RESP_DONE;
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
         }
         // -------------------------------------------------
-        // proxy
+        // REDIRECT_JS
         // -------------------------------------------------
-        if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-        return ns_is2::proxy_h::do_default(a_session, a_rqst, a_url_pmap);
-}
-//: ----------------------------------------------------------------------------
-//: get ip callback
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_ip_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        static __thread char s_clnt_addr_str[INET6_ADDRSTRLEN];
+        // TODO
         // -------------------------------------------------
-        // random ips
+        // HASHCASH
         // -------------------------------------------------
-        if(g_random_ips)
+        // TODO
+        // -------------------------------------------------
+        // CUSTOM RESPONSE
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_CUSTOM_RESPONSE:
         {
-                uint32_t l_addr;
+                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
+                if(a_enf.has_status())
+                {
+                        l_status = a_enf.status();
+                }
+                if(!a_enf.has_response_body_base64())
+                {
+                        // Custom response can have empty response body
+                        break;
+                }
+                const std::string *l_b64 = &(a_enf.response_body_base64());
+                if(l_b64->empty())
+                {
+                        break;
+                }
                 // -----------------------------------------
-                //   16843009 == 1.1.1.1
-                // 4294967295 == 255.255.255.255
+                // decode
                 // -----------------------------------------
-                l_addr = ((uint32_t)rand()) % (4294967295 + 1 - 16843009) + 16843009;
-                snprintf(s_clnt_addr_str, INET6_ADDRSTRLEN, "%d.%d.%d.%d",
-                         ((l_addr & 0xFF000000) >> 24),
-                         ((l_addr & 0x00FF0000) >> 16),
-                         ((l_addr & 0x0000FF00) >> 8),
-                         ((l_addr & 0x000000FF)));
-                //NDBG_PRINT("addr: %s\n", s_clnt_addr_str);
-                *a_data = s_clnt_addr_str;
-                *a_len = strnlen(s_clnt_addr_str, INET6_ADDRSTRLEN);
-                return 0;
-        }
-        // -------------------------------------------------
-        // request object
-        // -------------------------------------------------
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        // -------------------------------------------------
-        // check for header override
-        // -------------------------------------------------
-#define _HEADER_SRC_IP "x-waflz-ip"
-        const ns_is2::mutable_data_map_list_t& l_headers(l_ctx->m_rqst->get_header_map());
-        ns_is2::mutable_data_t i_hdr;
-        if(ns_is2::find_first(i_hdr, l_headers, _HEADER_SRC_IP, sizeof(_HEADER_SRC_IP)))
-        {
-                *a_data = i_hdr.m_data;
-                *a_len = i_hdr.m_len;
-                return 0;
-        }
-        // -------------------------------------------------
-        // get ip from request
-        // -------------------------------------------------
-        ns_is2::host_info l_host_info = l_ctx->get_host_info();
-        s_clnt_addr_str[0] = '\0';
-        if(l_host_info.m_sa_len == sizeof(sockaddr_in))
-        {
-                // a thousand apologies for this monstrosity :(
-                errno = 0;
-                const char *l_s;
-                l_s = inet_ntop(AF_INET,
-                                &(((sockaddr_in *)(&(l_host_info.m_sa)))->sin_addr),
-                                s_clnt_addr_str,
-                                INET_ADDRSTRLEN);
-                if(!l_s)
+                int32_t l_s;
+                char *l_dcd = NULL;
+                size_t l_dcd_len = 0;
+                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+                if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("Error performing inet_ntop. Reason: %s\n", strerror(errno));
-                        return -1;
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        break;
                 }
-        }
-        else if(l_host_info.m_sa_len == sizeof(sockaddr_in6))
-        {
-                // a thousand apologies for this monstrosity :(
-                errno = 0;
-                const char *l_s;
-                l_s = inet_ntop(AF_INET6,
-                                &(((sockaddr_in6 *)(&(l_host_info.m_sa)))->sin6_addr),
-                                s_clnt_addr_str,
-                                INET6_ADDRSTRLEN);
-                if(!l_s)
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                char *l_rndr = NULL;
+                size_t l_rndr_len = 0;
+                l_s = ns_waflz::render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("Error performing inet_ntop. Reason: %s\n", strerror(errno));
-                        return -1;
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                        break;
                 }
-        }
-        if(strnlen(s_clnt_addr_str, INET6_ADDRSTRLEN) <= 4)
-        {
-                snprintf(s_clnt_addr_str, INET6_ADDRSTRLEN, "127.0.0.1");
-                return -1;
-        }
-        *a_data = s_clnt_addr_str;
-        *a_len = strnlen(s_clnt_addr_str, INET6_ADDRSTRLEN);
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get rqst line callback
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        static __thread char s_rqst_line[4096];
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        snprintf(s_rqst_line, 4096, "%s %.*s HTTP/%d.%d",
-                 l_rqst->get_method_str(),
-                 l_rqst->get_url().m_len, l_rqst->get_url().m_data,
-                 l_rqst->m_http_major,
-                 l_rqst->m_http_minor);
-        *a_data = s_rqst_line;
-        *a_len = strnlen(s_rqst_line, 4096);
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get rqst method callback
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        *a_data = l_rqst->get_method_str();
-        *a_len = strlen(l_rqst->get_method_str());
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_protocol_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        static char s_protocol[32];
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        snprintf(s_protocol, 32, "HTTP/%d.%d",
-                 l_rqst->m_http_major,
-                 l_rqst->m_http_minor);
-        *a_data = s_protocol;
-        *a_len = strlen(s_protocol);
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_scheme_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        static char s_scheme[32];
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::scheme_t l_scheme = l_ctx->get_scheme();
-        if(l_scheme == ns_is2::SCHEME_TCP)
-        {
-                snprintf(s_scheme,32,"http");
-        }
-        else if(l_scheme == ns_is2::SCHEME_TLS)
-        {
-                snprintf(s_scheme,32,"https");
-        }
-        *a_data = s_scheme;
-        *a_len = strlen(s_scheme);
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_port_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_port_cb(uint32_t *a_val, void *a_ctx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        *a_val = l_ctx->m_lsnr->get_port();
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_port_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_host_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        *a_data = "localhost";
-        *a_len = strlen("localhost");
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_url_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_url_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        *a_data = l_rqst->get_url().m_data;
-        *a_len = l_rqst->get_url().m_len;
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_uri_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        *a_data = l_rqst->get_url().m_data;
-        *a_len = l_rqst->get_url().m_len;
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_uri_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_path_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        *a_data = l_rqst->get_url_path().m_data;
-        *a_len = l_rqst->get_url_path().m_len;
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_query_str_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        *a_data = l_rqst->get_url_query().m_data;
-        *a_len = l_rqst->get_url_query().m_len;
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_id_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_id_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        static const char s_line[] = "aabbccddeeff";
-        *a_data = s_line;
-        *a_len = strlen(s_line);
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_size_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        *a_val = l_rqst->get_header_list().size();
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_w_idx_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
-                                        uint32_t *ao_key_len,
-                                        const char **ao_val,
-                                        uint32_t *ao_val_len,
-                                        void *a_ctx,
-                                        uint32_t a_idx)
-{
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                return -1;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                return -1;
-        }
-        *ao_key = NULL;
-        *ao_key_len = 0;
-        *ao_val = NULL;
-        *ao_val_len = 0;
-        const ns_is2::mutable_arg_list_t &l_h_list = l_rqst->get_header_list();
-        ns_is2::mutable_arg_list_t::const_iterator i_h = l_h_list.begin();
-        std::advance(i_h, a_idx);
-        if(i_h == l_h_list.end())
-        {
-                return -1;
-        }
-        *ao_key = i_h->m_key;
-        *ao_key_len = i_h->m_key_len;
-        *ao_val = i_h->m_val;
-        *ao_val_len = i_h->m_val_len;
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get_rqst_body_str_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_body_str_cb(char *ao_data,
-                                    uint32_t *ao_data_len,
-                                    bool ao_is_eos,
-                                    void *a_ctx,
-                                    uint32_t *a_to_read)
-{
-        //NDBG_PRINT(": ======================== \n");
-        //NDBG_PRINT(": ao_data:     %p\n", ao_data);
-        //NDBG_PRINT(": ao_data_len: %u\n", ao_data_len);
-        //NDBG_PRINT(": ao_is_eos:   %d\n", ao_is_eos);
-        //NDBG_PRINT(": a_ctx:       %p\n", a_ctx);
-        //NDBG_PRINT(": a_to_read:   %u\n", a_to_read);
-        if (NULL == a_ctx)
-        {
-                ao_is_eos = true;
-                *ao_data_len = 0;
-                return 0;
-        }
-        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
-        if(!l_ctx)
-        {
-                ao_is_eos = true;
-                *ao_data_len = 0;
-                return 0;
-        }
-        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
-        if(!l_rqst)
-        {
-                ao_is_eos = true;
-                *ao_data_len = 0;
-                return 0;
-        }
-        ns_is2::nbq *l_q = l_rqst->get_body_q();
-        if(!l_q)
-        {
-                ao_is_eos = true;
-                *ao_data_len = 0;
-                return 0;
+                // -----------------------------------------
+                // set/cleanup
+                // -----------------------------------------
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                // -----------------------------------------
+                // response
+                // -----------------------------------------
+                // TODO -fix content type if resp header...
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
+                                           "text/html",
+                                           (uint64_t)l_rndr_len,
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                l_api_resp.set_body_data(l_rndr, l_rndr_len);
+                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
         }
         // -------------------------------------------------
-        // set not done
+        // DROP_REQUEST
         // -------------------------------------------------
-        ao_is_eos = false;
-        *ao_data_len = 0;
-        // -------------------------------------------------
-        // cal how much to read
-        // -------------------------------------------------
-        uint32_t l_left = *a_to_read;
-        if(*a_to_read > l_q->read_avail())
+        case waflz_pb::enforcement_type_t_DROP_REQUEST:
         {
-                l_left = l_q->read_avail();
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
         }
         // -------------------------------------------------
-        // read until not avail or ao_data_len
+        // DROP_CONNECTION
         // -------------------------------------------------
-        char *l_cur_ptr = ao_data;
-        while(l_left)
+        case waflz_pb::enforcement_type_t_DROP_CONNECTION:
         {
-                int64_t l_read = 0;
-                l_read = l_q->read(l_cur_ptr, l_left);
-                if(l_read < 0)
+                // -----------------------------------------
+                // TODO -yank connection -by signalling no
+                // keep-alive support???
+                // -----------------------------------------
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
+        // BROWSER CHALLENGE
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
+        {
+                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
+                if(a_enf.has_status())
                 {
-                        // TODO error
-                        ao_is_eos = true;
-                        *ao_data_len = 0;
-                        return 0;
+                        l_status = a_enf.status();
                 }
-                l_cur_ptr += (uint32_t)l_read;
-                *ao_data_len += (uint32_t)l_read;
-                l_left -= (uint32_t)l_read;
-        }
-        if(!l_q->read_avail())
-        {
-                ao_is_eos = true;
-        }
-        //ns_is2::mem_display((const uint8_t *)ao_data, ao_data_len);
-        //NDBG_PRINT(": ************************ \n");
-        //NDBG_PRINT(": ao_data:     %p\n", ao_data);
-        //NDBG_PRINT(": ao_data_len: %u\n", ao_data_len);
-        //NDBG_PRINT(": ao_is_eos:   %d\n", ao_is_eos);
-        //NDBG_PRINT(": a_ctx:       %p\n", a_ctx);
-        //NDBG_PRINT(": a_to_read:   %u\n", a_to_read);
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: \details Find the first occurrence of find in s, where the search is limited
-//:          to the first slen characters of s.
-//: \return  TODO
-//: \param   TODO
-//: \notes   strnstr from freebsd
-//: ----------------------------------------------------------------------------
-#if defined(__APPLE__) || defined(__darwin__)
-    // no definition needed
-#else
-static char* strnstr(const char *s, const char *find, size_t slen)
-{
-        char c;
-        char sc;
-        size_t len;
-        if ((c = *find++) != '\0')
-        {
-                len = strlen(find);
-                do {
-                        do {
-                                if (slen-- < 1 || (sc = *s++) == '\0')
-                                {
-                                        return (NULL);
-                                }
-                        } while (sc != c);
-                        if (len > slen)
-                        {
-                                return (NULL);
-                        }
-                } while (strncmp(s, find, len) != 0);
-                s--;
-        }
-        return ((char *)s);
-}
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                char *l_body = NULL;
+                uint32_t l_body_len = 0;
+                // TODO FIX!!!
+#if 0
+                l_s = l_config->render_resp(&l_body, l_body_len, a_enf, a_ctx);
+                if(l_s != STATUS_OK)
+                {
+                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                        break;
+                }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: sighandler
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-static int32_t guess_owasp_version(uint32_t &ao_owasp_version,
-                                   const std::string &a_file)
-{
-        // -------------------------------------------------
-        // Check is a file
-        // -------------------------------------------------
-        struct stat l_stat;
-        int32_t l_s = STATUS_OK;
-        l_s = stat(a_file.c_str(), &l_stat);
-        if(l_s != 0)
-        {
-                NDBG_PRINT("Error performing stat on file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
-                return WAFLZ_STATUS_ERROR;
+                // -----------------------------------------
+                // response
+                // -----------------------------------------
+                // TODO -fix content type if resp header...
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
+                                           "text/html",
+                                           (uint64_t)l_body_len,
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                l_api_resp.set_body_data(l_body, l_body_len);
+                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                if(l_body) { free(l_body); l_body = NULL; }
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
         }
-        // check if is regular file
-        if(!(l_stat.st_mode & S_IFREG))
-        {
-                NDBG_PRINT("Error opening file: %s.  Reason: is NOT a regular file\n", a_file.c_str());
-                return WAFLZ_STATUS_ERROR;
-        }
+#if 0
         // -------------------------------------------------
-        // Open file...
+        // BROWSER_CHALLENGE
         // -------------------------------------------------
-        FILE * l_file;
-        l_file = fopen(a_file.c_str(),"r");
-        if (NULL == l_file)
+        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
         {
-                NDBG_PRINT("Error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
-                return WAFLZ_STATUS_ERROR;
-        }
-        ssize_t l_len = 0;
-        char *l_line = NULL;
-        size_t l_unused;
-        while((l_len = getline(&l_line,&l_unused,l_file)) != -1)
-        {
-                // TODO strnlen -with max line length???
-                if(l_len <= 0)
+                const std::string *l_b64 = NULL;
+                int32_t l_s;
+                l_s = m_challenge.get_challenge(&l_b64, a_ctx);
+                if((l_s != WAFLZ_STATUS_OK) ||
+                    !l_b64)
                 {
-                        if(l_line) { free(l_line); l_line = NULL; }
-                        continue;
+                        return WAFLZ_STATUS_ERROR;
                 }
-                if((strnstr(l_line, "ECRS", l_len) != NULL) ||
-                   (strnstr(l_line, "3.0.", l_len) != NULL))
+                if(l_b64->empty())
                 {
-                        ao_owasp_version = 300;
-                        if(l_line) { free(l_line); l_line = NULL; }
-                        return STATUS_OK;
+                        return WAFLZ_STATUS_ERROR;
                 }
-                if(l_line) { free(l_line); l_line = NULL; }
+                // -----------------------------------------
+                // decode
+                // -----------------------------------------
+                char *l_dcd = NULL;
+                size_t l_dcd_len = 0;
+                l_s = b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                char *l_rndr = NULL;
+                size_t l_rndr_len = 0;
+                l_s = render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // set/cleanup
+                // -----------------------------------------
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                *ao_resp = l_rndr;
+                ao_resp_len = l_rndr_len;
+                break;
         }
-        ao_owasp_version = 229;
-        return STATUS_OK;
+#endif
+        // -------------------------------------------------
+        // default
+        // -------------------------------------------------
+        default:
+        {
+                break;
+        }
+        }
+        return l_resp_code;
 }
+//: ----------------------------------------------------------------------------
+//: default
+//: ----------------------------------------------------------------------------
+class waflz_h: public ns_is2::default_rqst_h
+{
+public:
+        waflz_h(): default_rqst_h() {}
+        ~waflz_h() {}
+        // -------------------------------------------------
+        // default rqst handler...
+        // -------------------------------------------------
+        ns_is2::h_resp_t do_default(ns_is2::session &a_session,
+                                    ns_is2::rqst &a_rqst,
+                                    const ns_is2::url_pmap_t &a_url_pmap)
+        {
+                const waflz_pb::enforcement *l_enf = NULL;
+                ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
+                // -----------------------------------------
+                // handle request
+                // -----------------------------------------
+                ns_waflz::rqst_ctx *l_ctx = NULL;
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
+                if(l_resp_t != ns_is2::H_RESP_NONE)
+                {
+                        return l_resp_t;
+                }
+                // -----------------------------------------
+                // handle action
+                // -----------------------------------------
+                if(l_enf
+#ifdef WAFLZ_RATE_LIMITING
+                   // only enforcements for limit mode
+                   && (!g_config_mode == CONFIG_MODE_LIMIT)
+#endif
+                   )
+                {
+                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
+                }
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+                // -----------------------------------------
+                // return response
+                // -----------------------------------------
+                if(l_resp_t == ns_is2::H_RESP_NONE)
+                {
+                        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                                   "application/json",
+                                                   g_sx->m_resp.length(),
+                                                   a_rqst.m_supports_keep_alives,
+                                                   a_session.get_server_name());
+                        l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
+                        l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
+                        ns_is2::queue_api_resp(a_session, l_api_resp);
+                        return ns_is2::H_RESP_DONE;
+                }
+                return l_resp_t;
+        }
+};
+//: ----------------------------------------------------------------------------
+//: file
+//: ----------------------------------------------------------------------------
+class waflz_file_h: public ns_is2::file_h
+{
+public:
+        waflz_file_h(): file_h() {}
+        ~waflz_file_h() {}
+        // -------------------------------------------------
+        // default rqst handler...
+        // -------------------------------------------------
+        ns_is2::h_resp_t do_default(ns_is2::session &a_session,
+                                    ns_is2::rqst &a_rqst,
+                                    const ns_is2::url_pmap_t &a_url_pmap)
+        {
+                const waflz_pb::enforcement *l_enf = NULL;
+                ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
+                // -----------------------------------------
+                // handle request
+                // -----------------------------------------
+                ns_waflz::rqst_ctx *l_ctx = NULL;
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
+                if(l_resp_t != ns_is2::H_RESP_NONE)
+                {
+                        return l_resp_t;
+                }
+                // -----------------------------------------
+                // handle action
+                // -----------------------------------------
+                if(l_enf)
+                {
+                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
+                }
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+                // -----------------------------------------
+                // default
+                // -----------------------------------------
+                if(l_resp_t == ns_is2::H_RESP_NONE)
+                {
+                        l_resp_t = file_h::do_get(a_session, a_rqst, a_url_pmap);
+                }
+                return l_resp_t;
+        }
+};
+//: ----------------------------------------------------------------------------
+//: proxy
+//: ----------------------------------------------------------------------------
+class waflz_proxy_h: public ns_is2::proxy_h
+{
+public:
+        waflz_proxy_h(const std::string &a_proxy_host):
+                proxy_h(a_proxy_host, ""){}
+        ~waflz_proxy_h() {}
+        // -------------------------------------------------
+        // default rqst handler...
+        // -------------------------------------------------
+        ns_is2::h_resp_t do_default(ns_is2::session &a_session,
+                                    ns_is2::rqst &a_rqst,
+                                    const ns_is2::url_pmap_t &a_url_pmap)
+        {
+                const waflz_pb::enforcement *l_enf = NULL;
+                ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
+                // -----------------------------------------
+                // handle request
+                // -----------------------------------------
+                ns_waflz::rqst_ctx *l_ctx = NULL;
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
+                if(l_resp_t != ns_is2::H_RESP_NONE)
+                {
+                        return l_resp_t;
+                }
+                // -----------------------------------------
+                // handle action
+                // -----------------------------------------
+                if(l_enf)
+                {
+                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
+                }
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+                // -----------------------------------------
+                // default
+                // -----------------------------------------
+                if(l_resp_t == ns_is2::H_RESP_NONE)
+                {
+                        l_resp_t = ns_is2::proxy_h::do_default(a_session, a_rqst, a_url_pmap);
+                }
+                return l_resp_t;
+        }
+};
 //: ----------------------------------------------------------------------------
 //: \details: sighandler
 //: \return:  TODO
@@ -1178,7 +625,11 @@ static int32_t guess_owasp_version(uint32_t &ao_owasp_version,
 //: ----------------------------------------------------------------------------
 void sig_handler(int signo)
 {
-        if (signo == SIGINT)
+        if(!g_srvr)
+        {
+                return;
+        }
+        if(signo == SIGINT)
         {
                 // Kill program
                 g_srvr->stop();
@@ -1206,29 +657,44 @@ void print_usage(FILE* a_stream, int a_exit_code)
 {
         fprintf(a_stream, "Usage: waflz_server [options]\n");
         fprintf(a_stream, "Options:\n");
-        fprintf(a_stream, "  -h, --help         display this help and exit.\n");
-        fprintf(a_stream, "  -v, --version      display the version number and exit.\n");
-        fprintf(a_stream, "  -r, --ruleset-dir  waf ruleset directory\n");
-        fprintf(a_stream, "  -i, --instance     waf instance\n");
-        fprintf(a_stream, "  -d, --instance-dir waf instance directory\n");
-        fprintf(a_stream, "  -f, --profile      waf profile\n");
-        fprintf(a_stream, "  -m, --modsecurity  modsecurity rules file (experimental)\n");
-        fprintf(a_stream, "  -w, --conf-file    conf file (experimental)\n");
-        fprintf(a_stream, "  -p, --port         port (default: 12345)\n");
-        fprintf(a_stream, "  -g, --geoip-db     geoip-db\n");
-        fprintf(a_stream, "  -s, --geoip-isp-db geoip-isp-db\n");
-        fprintf(a_stream, "  -x, --random-ips   randomly generate ips\n");
-        fprintf(a_stream, "  -b, --bg           load configs in background thread\n");
-        fprintf(a_stream, "  -y, --proxy        run server in proxy mode\n");
-        fprintf(a_stream, "  -o, --output       write json alerts to file\n");
+        fprintf(a_stream, "  -h, --help          display this help and exit.\n");
+        fprintf(a_stream, "  -v, --version       display the version number and exit.\n");
+        fprintf(a_stream, "  \n");
+        fprintf(a_stream, "Config Modes: -specify one only\n");
+        fprintf(a_stream, "  -i, --instance      waf instance\n");
+        fprintf(a_stream, "  -d, --instance-dir  waf instance directory\n");
+        fprintf(a_stream, "  -f, --profile       waf profile\n");
+        fprintf(a_stream, "  -m, --modsecurity   modsecurity rules file (experimental)\n");
+#ifdef WAFLZ_RATE_LIMITING
+        fprintf(a_stream, "  -l, --limit         limit config file.\n");
+#endif
+        fprintf(a_stream, "  \n");
+        fprintf(a_stream, "Engine Configuration:\n");
+        fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
+        fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
+        fprintf(a_stream, "  -s, --geoip-isp-db  geoip-isp-db\n");
+        fprintf(a_stream, "  -x, --random-ips    randomly generate ips\n");
+#ifdef WAFLZ_RATE_LIMITING
+        fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
+        fprintf(a_stream, "  -c, --challenge json containing browser challenges\n");
+#endif
+        fprintf(a_stream, "  \n");
+        fprintf(a_stream, "Server Configuration:\n");
+        fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
+        fprintf(a_stream, "  -z, --bg            load configs in background thread\n");
+        fprintf(a_stream, "  -o, --output        write json alerts to file\n");
+        fprintf(a_stream, "  \n");
+        fprintf(a_stream, "Server Mode: choose one or none\n");
+        fprintf(a_stream, "  -w, --static        static file path (for serving)\n");
+        fprintf(a_stream, "  -y, --proxy         run server in proxy mode\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Debug Options:\n");
-        fprintf(a_stream, "  -t, --trace       turn on tracing (error/warn/debug/verbose/all)\n");
+        fprintf(a_stream, "  -t, --trace         turn on tracing (error/warn/debug/verbose/all)\n");
         fprintf(a_stream, "  \n");
 #ifdef ENABLE_PROFILER
         fprintf(a_stream, "Profile Options:\n");
-        fprintf(a_stream, "  -H, --hprofile   Google heap profiler output file\n");
-        fprintf(a_stream, "  -C, --cprofile   Google cpu profiler output file\n");
+        fprintf(a_stream, "  -H, --hprofile      Google heap profiler output file\n");
+        fprintf(a_stream, "  -C, --cprofile      Google cpu profiler output file\n");
         fprintf(a_stream, "  \n");
 #endif
         fprintf(a_stream, "NOTE: to run in w/o geoip db's:\n");
@@ -1243,23 +709,28 @@ void print_usage(FILE* a_stream, int a_exit_code)
 //: ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
-        ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_NONE);
-        //ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_ALL);
-        //ns_is2::trc_log_file_open("/dev/stdout");
+        // options..
         char l_opt;
         std::string l_arg;
         int l_option_index = 0;
-        std::string l_ruleset_dir;
-        std::string l_profile_file;
-        std::string l_instance_file;
-        std::string l_modsecurity_file;
-        std::string l_conf_file;
-        std::string l_instance_dir;
+        ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_NONE);
+        //ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_ALL);
+        //ns_is2::trc_log_file_open("/dev/stdout");
+        // modes
+        server_mode_t l_server_mode = SERVER_MODE_NONE;
         std::string l_geoip_db;
         std::string l_geoip_isp_db;
-        std::string l_proxy_host;
+        std::string l_ruleset_dir;
+        std::string l_config_file;
+        std::string l_server_spec;
+        bool l_bg_load = false;
+        // server settings
         std::string l_out_file;
         uint16_t l_port = 12345;
+#ifdef WAFLZ_RATE_LIMITING
+        std::string l_redis_host;
+        std::string l_challenge_file;
+#endif
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -1273,15 +744,20 @@ int main(int argc, char** argv)
                 { "instance-dir", 1, 0, 'd' },
                 { "profile",      1, 0, 'f' },
                 { "modsecurity",  1, 0, 'm' },
-                { "conf-file",    1, 0, 'w' },
                 { "port",         1, 0, 'p' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 's' },
                 { "random-ips",   0, 0, 'x' },
-                { "bg",           0, 0, 'b' },
+                { "bg",           0, 0, 'z' },
                 { "trace",        1, 0, 't' },
+                { "static",       1, 0, 'w' },
                 { "proxy",        1, 0, 'y' },
                 { "output",       1, 0, 'o' },
+#ifdef WAFLZ_RATE_LIMITING
+                { "limit",        1, 0, 'l' },
+                { "challenge",    1, 0, 'c' },
+                { "redis-host",   1, 0, 'e' },
+#endif
 #ifdef ENABLE_PROFILER
                 { "cprofile",     1, 0, 'H' },
                 { "hprofile",     1, 0, 'C' },
@@ -1289,13 +765,30 @@ int main(int argc, char** argv)
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
+#define _TEST_SET_CONFIG_MODE(_type) do { \
+                if(g_config_mode != CONFIG_MODE_NONE) { \
+                        fprintf(stdout, "error multiple config modes specified.\n"); \
+                        return STATUS_ERROR; \
+                } \
+                g_config_mode = CONFIG_MODE_##_type; \
+                l_config_file = l_arg; \
+} while(0)
+#define _TEST_SET_SERVER_MODE(_type) do { \
+                if(l_server_mode != SERVER_MODE_NONE) { \
+                        fprintf(stdout, "error multiple server modes specified.\n"); \
+                        return STATUS_ERROR; \
+                } \
+                l_server_mode = SERVER_MODE_##_type; \
+                l_server_spec = l_arg; \
+} while(0)
+
         // -------------------------------------------------
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvr:i:d:f:m:w:e:p:g:s:xbt:y:o:H:C:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:H:C:";
 #else
-        char l_short_arg_list[] = "hvr:i:d:f:m:w:e:p:g:s:xbt:y:o:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -1339,7 +832,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'i':
                 {
-                        l_instance_file = l_arg;
+                        _TEST_SET_CONFIG_MODE(INSTANCE);
                         break;
                 }
                 // -----------------------------------------
@@ -1347,7 +840,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'd':
                 {
-                        l_instance_dir = l_arg;
+                        _TEST_SET_CONFIG_MODE(INSTANCES);
                         break;
                 }
                 // -----------------------------------------
@@ -1355,7 +848,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'f':
                 {
-                        l_profile_file = l_arg;
+                        _TEST_SET_CONFIG_MODE(PROFILE);
                         break;
                 }
                 // -----------------------------------------
@@ -1363,17 +856,19 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'm':
                 {
-                        l_modsecurity_file = l_arg;
+                        _TEST_SET_CONFIG_MODE(MODSECURITY);
                         break;
                 }
+#ifdef WAFLZ_RATE_LIMITING
                 // -----------------------------------------
-                // conf file
+                //  limit config
                 // -----------------------------------------
-                case 'w':
+                case 'l':
                 {
-                        l_conf_file = l_arg;
+                        _TEST_SET_CONFIG_MODE(LIMIT);
                         break;
                 }
+#endif
                 // -----------------------------------------
                 // port
                 // -----------------------------------------
@@ -1434,15 +929,23 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'x':
                 {
-                        g_random_ips = true;
+                        ns_waflz_server::g_random_ips = true;
                         break;
                 }
                 // -----------------------------------------
                 // background loading
                 // -----------------------------------------
-                case 'b':
+                case 'z':
                 {
-                        g_bg_load = true;
+                        l_bg_load = true;
+                        break;
+                }
+                // -----------------------------------------
+                // static
+                // -----------------------------------------
+                case 'w':
+                {
+                        _TEST_SET_SERVER_MODE(FILE);
                         break;
                 }
                 // -----------------------------------------
@@ -1450,8 +953,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'y':
                 {
-                        l_proxy_host = l_arg;
-                        g_ups_host = l_proxy_host;
+                        _TEST_SET_SERVER_MODE(PROXY);
                         break;
                 }
                 // -----------------------------------------
@@ -1462,6 +964,24 @@ int main(int argc, char** argv)
                         l_out_file = l_arg;
                         break;
                 }
+#ifdef WAFLZ_RATE_LIMITING
+                // -----------------------------------------
+                //  challenges
+                // -----------------------------------------
+                case 'c':
+                {
+                        l_challenge_file = l_arg;
+                        break;
+                }
+                // -----------------------------------------
+                // redis host
+                // -----------------------------------------
+                case 'e':
+                {
+                        l_redis_host = l_arg;
+                        break;
+                }
+#endif
 #ifdef ENABLE_PROFILER
                 // -----------------------------------------
                 // profiler file
@@ -1504,88 +1024,25 @@ int main(int argc, char** argv)
                 }
         }
         // -------------------------------------------------
-        // Check for ruleset dir
-        // -------------------------------------------------
-        if(l_ruleset_dir.empty() &&
-           l_modsecurity_file.empty() &&
-           l_conf_file.empty())
-        {
-                NDBG_PRINT("Error ruleset directory is required.\n");
-                print_usage(stdout, STATUS_ERROR);
-        }
-        // -------------------------------------------------
-        // Force directory string to end with '/'
-        // -------------------------------------------------
-        if('/' != l_ruleset_dir[l_ruleset_dir.length() - 1])
-        {
-                // Append
-                l_ruleset_dir += "/";
-        }
-        if(l_geoip_db.empty())
-        {
-                NDBG_PRINT("No geoip db provide, using BOGUS_GEO_DATABASE.\n");
-                l_geoip_db = BOGUS_GEO_DATABASE;
-        }
-        if(l_geoip_isp_db.empty())
-        {
-                NDBG_PRINT("No geoip isp db provide, using BOGUS_GEO_DATABASE.\n");
-                l_geoip_isp_db = BOGUS_GEO_DATABASE;
-        }
-        // -------------------------------------------------
-        // Validate is directory
-        // Stat file to see if is directory or file
-        // -------------------------------------------------
-        int32_t l_s = 0;
-        if(!l_ruleset_dir.empty())
-        {
-                struct stat l_stat;
-                l_s = stat(l_ruleset_dir.c_str(), &l_stat);
-                if(l_s != 0)
-                {
-                        NDBG_PRINT("error performing stat on directory: %s.  Reason: %s\n", l_ruleset_dir.c_str(), strerror(errno));
-                        exit(STATUS_ERROR);
-                }
-                // -----------------------------------------
-                // Check if is directory
-                // -----------------------------------------
-                if((l_stat.st_mode & S_IFDIR) == 0)
-                {
-                        NDBG_PRINT("error %s does not appear to be a directory\n", l_ruleset_dir.c_str());
-                        exit(STATUS_ERROR);
-                }
-        }
-        // -------------------------------------------------
-        // Check for config file...
-        // -------------------------------------------------
-        if(l_instance_file.empty() &&
-           l_profile_file.empty() &&
-           l_instance_dir.empty() &&
-           l_modsecurity_file.empty() &&
-           l_conf_file.empty())
-        {
-                NDBG_PRINT("error instance or profile or instance dir required.\n");
-                print_usage(stdout, STATUS_ERROR);
-        }
-        // -------------------------------------------------
         // callbacks request context
         // -------------------------------------------------
         static ns_waflz::rqst_ctx_callbacks s_callbacks = {
-                get_rqst_ip_cb,
-                get_rqst_host_cb,
-                get_rqst_port_cb,
-                get_rqst_scheme_cb,
-                get_rqst_protocol_cb,
-                get_rqst_line_cb,
-                get_rqst_method_cb,
-                get_rqst_url_cb,
-                get_rqst_uri_cb,
-                get_rqst_path_cb,
-                get_rqst_query_str_cb,
-                get_rqst_header_size_cb,
+                ns_waflz_server::get_rqst_ip_cb,
+                ns_waflz_server::get_rqst_host_cb,
+                ns_waflz_server::get_rqst_port_cb,
+                ns_waflz_server::get_rqst_scheme_cb,
+                ns_waflz_server::get_rqst_protocol_cb,
+                ns_waflz_server::get_rqst_line_cb,
+                ns_waflz_server::get_rqst_method_cb,
+                ns_waflz_server::get_rqst_url_cb,
+                ns_waflz_server::get_rqst_uri_cb,
+                ns_waflz_server::get_rqst_path_cb,
+                ns_waflz_server::get_rqst_query_str_cb,
+                ns_waflz_server::get_rqst_header_size_cb,
                 NULL, //get_rqst_header_w_key_cb,
-                get_rqst_header_w_idx_cb,
-                get_rqst_id_cb,
-                get_rqst_body_str_cb,
+                ns_waflz_server::get_rqst_header_w_idx_cb,
+                ns_waflz_server::get_rqst_id_cb,
+                ns_waflz_server::get_rqst_body_str_cb,
                 NULL, //get_rqst_local_addr_cb,
                 NULL, //get_rqst_canonical_port_cb,
                 NULL, //get_rqst_apparent_cache_status_cb,
@@ -1594,7 +1051,6 @@ int main(int argc, char** argv)
                 NULL, //get_rqst_req_id_cb,
                 NULL //get_cust_id_cb
         };
-        
 #ifdef ENABLE_PROFILER
         // -------------------------------------------------
         // start profiler(s)
@@ -1609,9 +1065,19 @@ int main(int argc, char** argv)
         }
 #endif
         // -------------------------------------------------
-        // seed random
+        // open out
         // -------------------------------------------------
-        srand(time(NULL));
+        if(!l_out_file.empty())
+        {
+                g_out_file_ptr = fopen(l_out_file.c_str(), "a");
+                if(!g_out_file_ptr)
+                {
+                        NDBG_PRINT("error opening output file: %s. Reason: %s\n",
+                                        l_out_file.c_str(),
+                                   strerror(errno));
+                        return STATUS_ERROR;
+                }
+        }
         // -------------------------------------------------
         // server
         // -------------------------------------------------
@@ -1620,273 +1086,196 @@ int main(int argc, char** argv)
         g_srvr->register_lsnr(l_lsnr);
         g_srvr->set_num_threads(0);
         // -------------------------------------------------
+        // seed random
+        // -------------------------------------------------
+        srand(time(NULL));
+        // -------------------------------------------------
+        // geoip db checks...
+        // -------------------------------------------------
+        if(l_geoip_db.empty())
+        {
+                fprintf(stdout, "No geoip db provide, using BOGUS_GEO_DATABASE.\n");
+                l_geoip_db = BOGUS_GEO_DATABASE;
+        }
+        if(l_geoip_isp_db.empty())
+        {
+                fprintf(stdout, "No geoip isp db provide, using BOGUS_GEO_DATABASE.\n");
+                l_geoip_isp_db = BOGUS_GEO_DATABASE;
+        }
+        // -------------------------------------------------
+        // Force directory string to end with '/'
+        // -------------------------------------------------
+        if(!l_ruleset_dir.empty() &&
+           ('/' != l_ruleset_dir[l_ruleset_dir.length() - 1]))
+        {
+                // Append
+                l_ruleset_dir += "/";
+        }
+        // -------------------------------------------------
+        // Validate is directory
+        // Stat file to see if is directory or file
+        // -------------------------------------------------
+        int32_t l_s = 0;
+        if(!l_ruleset_dir.empty())
+        {
+                struct stat l_stat;
+                l_s = stat(l_ruleset_dir.c_str(), &l_stat);
+                if(l_s != 0)
+                {
+                        fprintf(stdout, "error performing stat on directory: %s.  Reason: %s\n", l_ruleset_dir.c_str(), strerror(errno));
+                        exit(STATUS_ERROR);
+                }
+                // -----------------------------------------
+                // Check if is directory
+                // -----------------------------------------
+                if((l_stat.st_mode & S_IFDIR) == 0)
+                {
+                        fprintf(stdout, "error %s does not appear to be a directory\n", l_ruleset_dir.c_str());
+                        exit(STATUS_ERROR);
+                }
+        }
+        // -------------------------------------------------
         // setup
         // -------------------------------------------------
         ns_waflz::geoip2_mmdb *l_geoip2_mmdb = NULL;
-        ns_waflz::profile::s_ruleset_dir = l_ruleset_dir.c_str();
-        ns_waflz::profile::s_geoip2_db = l_geoip_db.c_str();
-        ns_waflz::profile::s_geoip2_isp_db = l_geoip_isp_db.c_str();
+        ns_waflz::profile::s_ruleset_dir = l_ruleset_dir;
+        ns_waflz::profile::s_geoip2_db = l_geoip_db;
+        ns_waflz::profile::s_geoip2_isp_db = l_geoip_isp_db;
         // -------------------------------------------------
-        // geoip db
+        // *************************************************
+        // server setup
+        // *************************************************
         // -------------------------------------------------
-        l_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        l_s = l_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                  ns_waflz::profile::s_geoip2_isp_db);
-        if(l_s != WAFLZ_STATUS_OK)
+        ns_is2::default_rqst_h *l_h = NULL;
+        switch(l_server_mode)
         {
-                NDBG_PRINT("error initializing geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           l_geoip2_mmdb->get_err_msg());
-                return STATUS_ERROR;
+        // -------------------------------------------------
+        // proxy
+        // -------------------------------------------------
+        case(SERVER_MODE_PROXY):
+        {
+                waflz_proxy_h *l_waflz_proxy_h = new waflz_proxy_h(l_server_spec);
+                l_h = l_waflz_proxy_h;
+                break;
         }
         // -------------------------------------------------
-        // waflz handler
+        // proxy
         // -------------------------------------------------
-        waflz_h *l_waflz_h = new waflz_h(l_out_file, l_proxy_host);
-        l_s = l_waflz_h->init();
-        if(l_s != STATUS_OK)
+        case(SERVER_MODE_FILE):
         {
-                NDBG_PRINT("error initializing waflz handler\n");
-                return STATUS_ERROR;
+                waflz_file_h *l_waflz_file_h = new waflz_file_h();
+                l_waflz_file_h->set_root(l_server_spec);
+                l_h = l_waflz_file_h;
+                break;
         }
-        l_lsnr->set_default_route(l_waflz_h);
-        l_waflz_h->m_callbacks = &s_callbacks;
         // -------------------------------------------------
-        // setup
+        // default
         // -------------------------------------------------
-        ns_waflz::waf *l_wafl = NULL;
-        ns_waflz::instances *l_instances = NULL;
-        waflz_update_instances_h *l_waflz_update_instances_h = NULL;
-        ns_waflz::profile *l_profile = NULL;
-        waflz_update_profile_h *l_waflz_update_profile_h = NULL;
+        default:
+        {
+                waflz_h *l_waflz = new waflz_h();
+                l_h = l_waflz;
+                break;
+        }
+        }
         // -------------------------------------------------
-        // engine
+        // default route...
         // -------------------------------------------------
-        ns_waflz::engine *l_engine = new ns_waflz::engine();
-        l_engine->init();
+        l_lsnr->set_default_route(l_h);
+        // -------------------------------------------------
+        // *************************************************
+        // mode setup
+        // *************************************************
+        // -------------------------------------------------
+        switch(g_config_mode)
+        {
         // -------------------------------------------------
         // profile
         // -------------------------------------------------
-        if(!l_conf_file.empty())
+        case(CONFIG_MODE_PROFILE):
         {
-                // -----------------------------------------
-                // guess owasp version
-                // -----------------------------------------
-                uint32_t l_owasp_version = 229;
-                l_wafl = new ns_waflz::waf(*l_engine);
-                l_wafl->set_owasp_ruleset_version(l_owasp_version);
-                l_waflz_h->m_wafl = l_wafl;
-                // -----------------------------------------
-                // guess format from ext...
-                // -----------------------------------------
-                ns_waflz::config_parser::format_t l_fmt = ns_waflz::config_parser::MODSECURITY;
-                std::string l_ext;
-                l_ext = get_file_ext(l_conf_file);
-                if(l_ext == "json")
-                {
-                        l_fmt = ns_waflz::config_parser::JSON;
-                }
-                l_s = l_wafl->init(l_fmt, l_conf_file, true);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error loading conf file: %s. reason: %s\n",
-                                   l_conf_file.c_str(),
-                                   "__na__");
-                                   // TODO -get reason...
-                                   //l_wafl->get_err_msg());
-                        return STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // profile
-        // -------------------------------------------------
-        else if(!l_modsecurity_file.empty())
-        {
-                // -----------------------------------------
-                // guess owasp version
-                // -----------------------------------------
-                uint32_t l_owasp_version = 229;
-                l_s = guess_owasp_version(l_owasp_version, l_modsecurity_file);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error performing guess_owasp_version\n");
-                        return STATUS_ERROR;
-                }
-                l_wafl = new ns_waflz::waf(*l_engine);
-                l_wafl->set_owasp_ruleset_version(l_owasp_version);
-                l_waflz_h->m_wafl = l_wafl;
-                l_s = l_wafl->init(ns_waflz::config_parser::MODSECURITY, l_modsecurity_file);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error loading modsecurity file: %s. reason: %s\n",
-                                   l_modsecurity_file.c_str(),
-                                   "__na__");
-                                   // TODO -get reason...
-                                   //l_wafl->get_err_msg());
-                        return STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // instance-dir
-        // -------------------------------------------------
-        else if(!l_instance_dir.empty())
-        {
-                l_instances = new ns_waflz::instances(*l_engine, g_bg_load);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error initializing instances, reason:%s",
-                                   l_instances->get_err_msg());
-                        return STATUS_ERROR;
-                }
-                l_s = l_instances->init_dbs();
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
-                                   ns_waflz::profile::s_geoip2_db.c_str(),
-                                   ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                                   l_instances->get_err_msg());
-                        return STATUS_ERROR;
-                }
-                l_waflz_h->m_instances = l_instances;
-                l_waflz_update_instances_h = new waflz_update_instances_h();
-                l_waflz_update_instances_h->m_instances = l_instances;
-                //NDBG_PRINT("l_instance_dir: %s\n", l_instance_dir.c_str());
-                l_s = l_instances->load_config_dir(l_instance_dir.c_str(),
-                                                   l_instance_dir.length(),
-                                                   true,
-                                                   true);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error loading config dir: %s. reason: %s\n",
-                                     l_instance_dir.c_str(),
-                                     l_instances->get_err_msg());
-                        l_engine->shutdown();
-                        return STATUS_ERROR;
-                }
-                l_instances->get_instance_id_vector(l_waflz_h->m_id_vector);
-                //NDBG_PRINT("m_id_vector size: %u\n", (uint32_t)l_waflz_h->m_id_vector.size());
-                l_lsnr->add_route("/update_instance", l_waflz_update_instances_h);
+                ns_waflz_server::sx_profile *l_sx_profile = new ns_waflz_server::sx_profile();
+                l_sx_profile->m_lsnr = l_lsnr;
+                l_sx_profile->m_config = l_config_file;
+                l_sx_profile->m_callbacks = &s_callbacks;
+                g_sx = l_sx_profile;
+                break;
         }
         // -------------------------------------------------
         // instances
         // -------------------------------------------------
-        else if(!l_instance_file.empty())
+        case(CONFIG_MODE_INSTANCES):
         {
-                char *l_buf;
-                uint32_t l_buf_len;
-                //NDBG_PRINT("reading file: %s\n", l_instance_file.c_str());
-                l_s = ns_waflz::read_file(l_instance_file.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error read_file: %s\n", l_instance_file.c_str());
-                        return STATUS_ERROR;
-                }
-                l_instances = new ns_waflz::instances(*l_engine, g_bg_load);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
-                                   ns_waflz::profile::s_geoip2_db.c_str(),
-                                   ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                                   l_instances->get_err_msg());
-                        return STATUS_ERROR;
-                }
-                l_s = l_instances->init_dbs();
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
-                                   ns_waflz::profile::s_geoip2_db.c_str(),
-                                   ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                                   l_instances->get_err_msg());
-                        return STATUS_ERROR;
-                }
-                l_waflz_h->m_instances = l_instances;
-                l_waflz_update_instances_h = new waflz_update_instances_h();
-                l_waflz_update_instances_h->m_instances = l_instances;
-                ns_waflz::instance *l_instance = NULL;
-                l_s = l_instances->load_config(&l_instance, l_buf, l_buf_len, true);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        if(l_instances)
-                        {
-                                NDBG_PRINT("error loading config: %s. reason: %s\n",
-                                                l_instance_file.c_str(),
-                                                l_instances->get_err_msg());
-                        }
-                        else
-                        {
-                                NDBG_PRINT("error loading config: %s.\n",
-                                                l_instance_file.c_str());
-                        }
-                        if(l_buf)
-                        {
-                                free(l_buf);
-                                l_buf = NULL;
-                        }
-                        l_engine->shutdown();
-                        return STATUS_ERROR;
-                }
-                l_lsnr->add_route("/update_instance", l_waflz_update_instances_h);
-                if(l_buf)
-                {
-                        free(l_buf);
-                        l_buf = NULL;
-                        l_buf_len = 0;
-                }
+                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
+                l_sx_instance->m_lsnr = l_lsnr;
+                l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_is_dir_flag = true;
+                l_sx_instance->m_bg_load = l_bg_load;
+                l_sx_instance->m_callbacks = &s_callbacks;
+                g_sx = l_sx_instance;
+                break;
         }
         // -------------------------------------------------
-        // profile
+        // instance
         // -------------------------------------------------
-        else if(!l_profile_file.empty())
+        case(CONFIG_MODE_INSTANCE):
         {
-                char *l_buf;
-                uint32_t l_buf_len;
-                //NDBG_PRINT("reading file: %s\n", l_profile_file.c_str());
-                l_s = ns_waflz::read_file(l_profile_file.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error read_file: %s\n", l_profile_file.c_str());
-                        return STATUS_ERROR;
-                }
-                l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
-                l_waflz_h->m_profile = l_profile;
-                l_waflz_update_profile_h = new waflz_update_profile_h();
-                l_waflz_update_profile_h->m_profile = l_profile;
-                //NDBG_PRINT("load profile: %s\n", l_profile_file.c_str());
-                l_s = l_profile->load_config(l_buf, l_buf_len, true);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error loading config: %s. reason: %s\n",
-                                        l_profile_file.c_str(),
-                                        l_profile->get_err_msg());
-                        if(l_buf)
-                        {
-                                free(l_buf);
-                                l_buf = NULL;
-                        }
-                        l_engine->shutdown();
-                        return STATUS_ERROR;
-                }
-                l_lsnr->add_route("/update_profile", l_waflz_update_profile_h);
-                if(l_buf)
-                {
-                        free(l_buf);
-                        l_buf = NULL;
-                        l_buf_len = 0;
-                }
+                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
+                l_sx_instance->m_lsnr = l_lsnr;
+                l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_is_dir_flag = false;
+                l_sx_instance->m_bg_load = l_bg_load;
+                l_sx_instance->m_callbacks = &s_callbacks;
+                g_sx = l_sx_instance;
+                break;
         }
-        else
+        // -------------------------------------------------
+        // modsecurity
+        // -------------------------------------------------
+        case(CONFIG_MODE_MODSECURITY):
         {
-                NDBG_PRINT("error no configs specified\n");
+                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
+                l_sx_instance->m_lsnr = l_lsnr;
+                l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_is_dir_flag = false;
+                l_sx_instance->m_bg_load = l_bg_load;
+                l_sx_instance->m_callbacks = &s_callbacks;
+                g_sx = l_sx_instance;
+                break;
+        }
+#ifdef WAFLZ_RATE_LIMITING
+        // -------------------------------------------------
+        // modsecurity
+        // -------------------------------------------------
+        case(CONFIG_MODE_LIMIT):
+        {
+                ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit();
+                l_sx_limit->m_lsnr = l_lsnr;
+                l_sx_limit->m_config = l_config_file;
+                l_sx_limit->m_callbacks = &s_callbacks;
+                // TODO ...
+                g_sx = l_sx_limit;
+                break;
+        }
+#endif
+        // -------------------------------------------------
+        // default
+        // -------------------------------------------------
+        default:
+        {
+                fprintf(stdout, "error no mode specified.\n");
                 return STATUS_ERROR;
         }
+        }
         // -------------------------------------------------
-        // set up default enforcement
+        // init
         // -------------------------------------------------
-        g_enfx = new waflz_pb::enforcement();
-        g_enfx->set_type("CUSTOM_RESPONSE");
-        g_enfx->set_status(403);
-        g_enfx->set_response_body_base64(DEFAULT_RESP_BODY_B64);
+        l_s = g_sx->init();
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stdout, "performing initialization\n");
+                return STATUS_ERROR;
+        }
         // -------------------------------------------------
         // Sigint handler
         // -------------------------------------------------
@@ -1899,10 +1288,11 @@ int main(int argc, char** argv)
         // run
         // -------------------------------------------------
         //NDBG_PRINT("running...\n");
-        g_srvr->run();
-        //l_hlx->wait_till_stopped();
-        if(g_srvr) {delete g_srvr; g_srvr = NULL;}
-        if(l_waflz_h) {delete l_waflz_h; l_waflz_h = NULL;}
+        if(g_srvr)
+        {
+                g_srvr->run();
+        }
+        //g_srvr->wait_till_stopped();
 #ifdef ENABLE_PROFILER
         // -------------------------------------------------
         // stop profiler(s)
@@ -1919,55 +1309,9 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        //NDBG_PRINT("l_server_ctx: %p\n", l_server_ctx);
-        // -------------------------------------------------
-        // waf shutdown
-        // -------------------------------------------------
-        if(g_srvr)
-        {
-                delete g_srvr;
-                g_srvr = NULL;
-        }
-        if(l_waflz_h)
-        {
-                delete l_waflz_h;
-                l_waflz_h = NULL;
-        }
-        if(l_wafl)
-        {
-                delete l_wafl;
-                l_wafl = NULL;
-        }
-        if(l_engine)
-        {
-                l_engine->shutdown();
-                delete l_engine;
-                l_engine = NULL;
-        }
-        if(l_instances)
-        {
-                delete l_instances;
-                l_instances = NULL;
-        }
-        else if(l_profile)
-        {
-                delete l_profile;
-                l_profile = NULL;
-        }
-        if(l_waflz_update_instances_h)
-        {
-                delete l_waflz_update_instances_h;
-                l_waflz_update_instances_h = NULL;
-        }
-        if(l_waflz_update_profile_h)
-        {
-                delete l_waflz_update_profile_h;
-                l_waflz_update_profile_h = NULL;
-        }
-        if(l_geoip2_mmdb)
-        {
-                delete l_geoip2_mmdb;
-                l_geoip2_mmdb = NULL;
-        }
+        if(g_out_file_ptr) { fclose(g_out_file_ptr); g_out_file_ptr = NULL; }
+        if(g_srvr) { delete g_srvr; g_srvr = NULL; }
+        if(l_h) { delete l_h; l_h = NULL; }
+        if(g_sx) { delete g_sx; g_sx = NULL; }
         return STATUS_OK;
 }

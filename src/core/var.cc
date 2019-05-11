@@ -1067,7 +1067,7 @@ GET_VAR(TX)
         //NDBG_PRINT("a_var: %s\n", a_var.ShortDebugString().c_str());
         if(!a_var.match_size())
         {
-                NDBG_PRINT("no tx variable specified\n");
+                //NDBG_PRINT("no tx variable specified\n");
                 return WAFLZ_STATUS_OK;
         }
         for(int32_t i_m = 0; i_m < a_var.match_size(); ++i_m)

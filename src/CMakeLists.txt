@@ -30,7 +30,6 @@ endif()
 # Can't add for now...
 # ------------------------------------------------------------------------------
 #add_definitions(-Weffc++)
-add_definitions(-fPIC)
 add_definitions(-DHAVE_CONFIG_H)
 # ------------------------------------------------------------------------------
 # header files to install
@@ -55,10 +54,6 @@ include_directories(
     # --------------------------------------------
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src
-    # --------------------------------------------
-    # kyotocabinet
-    # --------------------------------------------
-    ${CMAKE_SOURCE_DIR}/ext/kyotocabinet
     # --------------------------------------------
     # cityhash libs
     # --------------------------------------------
@@ -104,7 +99,7 @@ SET(SRCS
     # --------------------------------------------
     ${CMAKE_BINARY_DIR}/proto/config.pb.cc
     ${CMAKE_BINARY_DIR}/proto/event.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/enforcement.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/action.pb.cc
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
     ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
@@ -171,6 +166,37 @@ SET(SRCS
     parser/parser_json.cc
 )
 # ------------------------------------------------------------------------------
+# if rate-limiting...
+# ------------------------------------------------------------------------------
+if(BUILD_RATE_LIMITING)
+list(APPEND SRCS
+    # --------------------------------------------
+    # pb
+    # --------------------------------------------
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
+    #---------------------------------------------
+    # ectoken
+    #---------------------------------------------
+    ${CMAKE_SOURCE_DIR}/ext/ectoken/ectoken_v3.cc
+    ${CMAKE_SOURCE_DIR}/ext/ectoken/base64.cc
+    # --------------------------------------------
+    # db
+    # --------------------------------------------
+    db/kycb_db.cc
+    db/redis_db.cc
+    # --------------------------------------------
+    # limit
+    # --------------------------------------------
+    limit/challenge.cc
+    limit/rl_obj.cc
+    limit/rl_op.cc
+    limit/enforcer.cc
+    limit/config.cc
+    limit/configs.cc
+)
+endif()
+# ------------------------------------------------------------------------------
 # c source
 # ------------------------------------------------------------------------------
 SET_SOURCE_FILES_PROPERTIES(
@@ -197,7 +223,9 @@ SET_SOURCE_FILES_PROPERTIES(
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_html5.c
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_sqli.c
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_xss.c
-
+    # --------------------------------------------
+    # properties
+    # --------------------------------------------
     PROPERTIES LANGUAGE C
 )
 set(CMAKE_C_FLAGS "-std=c99")
@@ -215,8 +243,8 @@ set_source_files_properties(
     # ------------------------------------------------------
     ${CMAKE_BINARY_DIR}/proto/config.pb.h
     ${CMAKE_BINARY_DIR}/proto/config.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/enforcement.pb.h
-    ${CMAKE_BINARY_DIR}/proto/enforcement.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/action.pb.h
+    ${CMAKE_BINARY_DIR}/proto/action.pb.cc
     ${CMAKE_BINARY_DIR}/proto/event.pb.h
     ${CMAKE_BINARY_DIR}/proto/event.pb.cc
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.h
@@ -225,6 +253,15 @@ set_source_files_properties(
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
     ${CMAKE_BINARY_DIR}/proto/acl.pb.h
     ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
+    # ------------------------------------------------------
+    # rate-limiting proto
+    # ------------------------------------------------------
+    if(BUILD_RATE_LIMITING)
+        ${CMAKE_BINARY_DIR}/proto/scope.pb.h
+        ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
+        ${CMAKE_BINARY_DIR}/proto/limit.pb.h
+        ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
+    endif()
     PROPERTIES GENERATED TRUE
 )
 # ------------------------------------------------------------------------------
@@ -232,11 +269,18 @@ set_source_files_properties(
 # ------------------------------------------------------------------------------
 SET(PY_INST
     ${CMAKE_BINARY_DIR}/proto/config_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/enforcement_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/action_pb2.py
     ${CMAKE_BINARY_DIR}/proto/event_pb2.py
     ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
     ${CMAKE_BINARY_DIR}/proto/rule_pb2.py
     ${CMAKE_BINARY_DIR}/proto/acl_pb2.py
+    # ------------------------------------------------------
+    # rate-limiting proto
+    # ------------------------------------------------------
+    if(BUILD_RATE_LIMITING)
+        ${CMAKE_BINARY_DIR}/proto/scope_pb2.py
+        ${CMAKE_BINARY_DIR}/proto/limit_pb2.py
+    endif()
 )
 install(FILES ${PY_INST}
     DESTINATION include/waflz-py

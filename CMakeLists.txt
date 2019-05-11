@@ -26,18 +26,19 @@ cmake_minimum_required(VERSION 2.8.0)
 # ------------------------------------------------------------------------------
 # Build options
 # ------------------------------------------------------------------------------
-option(GCC_OPTIONS       "Command line options passed to gcc or 'native' to compile for this hardware" OFF)
-option(DEBUG_MODE        "Compile in debug mode." OFF)
-option(FORTIFY           "Fortify source." OFF)
-option(BUILD_SYMBOLS     "Build with Symbols" OFF)
-option(BUILD_TCMALLOC    "Build with tcmalloc" OFF)
-option(BUILD_PROFILER    "Enable google cpu and heap profiler support" OFF)
-option(BUILD_ASAN        "Build with Address Sanitizer" OFF)
-option(BUILD_UBSAN       "Build with Undefined Behavior Sanitizer" OFF)
-option(BUILD_TESTS       "Build the unit tests." ON)
-option(BUILD_APPS        "Build the apps." OFF)
-option(BUILD_UBUNTU      "Build for Ubuntu" OFF)
+option(GCC_OPTIONS          "Command line options passed to gcc or 'native' to compile for this hardware" OFF)
+option(DEBUG_MODE           "Compile in debug mode." OFF)
+option(FORTIFY              "Fortify source." OFF)
+option(BUILD_SYMBOLS        "Build with Symbols" OFF)
+option(BUILD_TCMALLOC       "Build with tcmalloc" OFF)
+option(BUILD_PROFILER       "Enable google cpu and heap profiler support" OFF)
+option(BUILD_ASAN           "Build with Address Sanitizer" OFF)
+option(BUILD_UBSAN          "Build with Undefined Behavior Sanitizer" OFF)
+option(BUILD_TESTS          "Build the unit tests." ON)
+option(BUILD_APPS           "Build the apps." OFF)
+option(BUILD_UBUNTU         "Build for Ubuntu" OFF)
 option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
+option(BUILD_RATE_LIMITING  "Build support for rate-limiting" OFF)
 # ------------------------------------------------------------------------------
 # Compiler options
 # ------------------------------------------------------------------------------
@@ -64,16 +65,6 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
   #message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++0x support. Please use a different C++ compiler.")
 endif()
-if(BUILD_UBUNTU AND BUILD_CUSTOM_OPENSSL)
-  INCLUDE_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/include")
-  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libssl.so")
-  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libcrypto.so")
-  add_definitions(-DBUILD_CUSTOM_OPENSSL=1)
-elseif(BUILD_UBUNTU)
-  set(LIBRARIES ${LIBRARIES} pthread ssl crypto)
-else()
-  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
-endif()
 # ------------------------------------------------------------------------------
 # Display the current settings
 # ------------------------------------------------------------------------------
@@ -93,12 +84,19 @@ message("    Build unit tests:                          " "BUILD_TESTS          
 message("    Build applications:                        " "BUILD_APPS              " ${BUILD_APPS})
 message("    Build for Ubuntu (adds package help):      " "BUILD_UBUNTU            " ${BUILD_UBUNTU})
 message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
+message("    Build rate-limiting support:               " "BUILD_RATE_LIMITING     " ${BUILD_RATE_LIMITING})
 message("")
 # ------------------------------------------------------------------------------
 # Fortify Options
 # ------------------------------------------------------------------------------
 if (FORTIFY)
   add_definitions(-D_FORTIFY_SOURCE=2 -O1 -Wl,-z,relro,-z,now)
+endif()
+# ------------------------------------------------------------------------------
+# rate_limiting def
+# ------------------------------------------------------------------------------
+if (BUILD_RATE_LIMITING)
+  add_definitions(-DWAFLZ_RATE_LIMITING)
 endif()
 # ------------------------------------------------------------------------------
 # \brief   Find ubuntu packages based on their (optional) include and (required) library test files
@@ -155,21 +153,50 @@ macro(find_ubuntu_package output_var_prefix
   endif()
 endmacro(find_ubuntu_package)
 # ------------------------------------------------------------------------------
+# special build case for UBUNTU + OPENSSL
+# ------------------------------------------------------------------------------
+if(BUILD_UBUNTU AND BUILD_CUSTOM_OPENSSL)
+  INCLUDE_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/include")
+  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libssl.so")
+  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libcrypto.so")
+  add_definitions(-DBUILD_CUSTOM_OPENSSL=1)
+elseif(BUILD_UBUNTU)
+  #set(LIBRARIES ${LIBRARIES} pthread ssl crypto)
+else()
+  #set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
+endif()
+# ------------------------------------------------------------------------------
 # Mac OS X
 # ------------------------------------------------------------------------------
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-   # Mac OS X specific code
-   SET(OperatingSystem "Mac OS X")
-   # Add MacPorts
-   INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
-   INCLUDE_DIRECTORIES(/usr/local/opt/protobuf/include)
-   INCLUDE_DIRECTORIES(/usr/local/opt/pcre/include)
-   INCLUDE_DIRECTORIES(/usr/local/opt/libxml2/include/libxml2)
-   LINK_DIRECTORIES(/usr/local/opt/openssl/lib)
-   LINK_DIRECTORIES(/usr/local/opt/protobuf/lib)
-   LINK_DIRECTORIES(/usr/local/opt/pcre/lib)
-   LINK_DIRECTORIES(/usr/local/opt/libxml2/lib)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  # --------------------------------------------------------
+  # Mac OS X specific code
+  # --------------------------------------------------------
+  SET(OperatingSystem "Mac OS X")
+  # --------------------------------------------------------
+  # Add MacPorts
+  # --------------------------------------------------------
+  INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
+  INCLUDE_DIRECTORIES(/usr/local/opt/protobuf/include)
+  INCLUDE_DIRECTORIES(/usr/local/opt/pcre/include)
+  INCLUDE_DIRECTORIES(/usr/local/opt/libxml2/include/libxml2)
+  # --------------------------------------------------------
+  # link dirs
+  # --------------------------------------------------------
+  LINK_DIRECTORIES(/usr/local/opt/openssl/lib)
+  LINK_DIRECTORIES(/usr/local/opt/protobuf/lib)
+  LINK_DIRECTORIES(/usr/local/opt/pcre/lib)
+  LINK_DIRECTORIES(/usr/local/opt/libxml2/lib)
+  # --------------------------------------------------------
+  # if rate-limiting check for kv db libs
+  # --------------------------------------------------------  
+  if(BUILD_RATE_LIMITING)
+    # TODO libhiredis/libkyotocabinet
+  endif()
+  # --------------------------------------------------------
+  # cc flags
+  # --------------------------------------------------------
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # ------------------------------------------------------------------------------
 # ASAN
@@ -213,38 +240,40 @@ if (BUILD_TCMALLOC)
     LIST(APPEND LIBRARIES pthread)
   endif()
 endif()
-
+# ------------------------------------------------------------------------------
+# Build UBUNTU
+# ------------------------------------------------------------------------------
 if(BUILD_UBUNTU)
-  # ------------------------------------------------------------------------------
-  # Link OpenSSL (crypto)
-  # ------------------------------------------------------------------------------
+  if(BUILD_APPS)
+    find_ubuntu_package(LIBSSL openssl/ssl.h libssl.a libssl1.0.0 libssl-dev)
+  endif()
   find_ubuntu_package(LIBCRYPTO openssl/crypto.h libcrypto.a libssl1.0.0 libssl-dev)
-  # ------------------------------------------------------------------------------
-  # Link pcre
-  # ------------------------------------------------------------------------------
   find_ubuntu_package(LIBPCRE pcre.h libpcre.a libpcre.so libpcre3-dev)
-  # ------------------------------------------------------------------------------
-  # Link xml2
-  # ------------------------------------------------------------------------------
+  find_ubuntu_package(LIBPROTOBUF google/protobuf/message.h libprotobuf.a libprotobuf libprotobuf-dev)
+  # --------------------------------------------------------
+  # if rate-limiting check for kv db libs
+  # --------------------------------------------------------  
+  if(BUILD_RATE_LIMITING)
+    find_ubuntu_package(LIBHIREDIS "" libhiredis.a "" libhiredis-dev)
+    find_ubuntu_package(LIBKYOTOCABINET "" libkyotocabinet.a "" libkyotocabinet-dev)
+    # ------------------------------------------------------
+    # linking issue with lzo2
+    # liblzo2.a(lzo_crc.o): relocation R_X86_64_32 against `.rodata'
+    # apparently lib wasn't built with -fPIC??? :( in ubuntu
+    # distros
+    # ------------------------------------------------------
+    #find_ubuntu_package(LIBLZO2 "" liblzo2.so liblzo2-2 "")
+    LIST(APPEND LIBRARIES lzo2)
+  endif()
+  # --------------------------------------------------------
+  # xml2 -brings in a lot...
+  # --------------------------------------------------------
   find_ubuntu_package(LIBXML2 libxml2/libxml/xmlversion.h libxml2.a libxml2 libxml2-dev)
-  # ------------------------------------------------------------------------------
-  # Link ZLIB
-  # ------------------------------------------------------------------------------
   find_ubuntu_package(LIBZ zlib.h libz.a zlib1g zlib1g-dev)
-  # ------------------------------------------------------------------------------
-  # Link ZMA
-  # ------------------------------------------------------------------------------
   find_ubuntu_package(LIBZMA "" liblzma.a "" liblzma-dev)
-  # ------------------------------------------------------------------------------
-  # Link icu (unicode lib)
-  # ------------------------------------------------------------------------------
-  find_ubuntu_package(LIBICUIL8N unicode/uversion.h libicui18n.a libicu libicu-dev)
   find_ubuntu_package(LIBICU unicode/uversion.h libicuuc.a libicu libicu-dev)
   find_ubuntu_package(LIBICUDATA unicode/uversion.h libicudata.a libicu libicu-dev)
-  # ------------------------------------------------------------------------------
-  # Link PROTOBUF
-  # ------------------------------------------------------------------------------
-  find_ubuntu_package(LIBPROTOBUF google/protobuf/message.h libprotobuf.a libprotobuf libprotobuf-dev)
+  find_ubuntu_package(LIBICUIL8N unicode/uversion.h libicui18n.a libicu libicu-dev)
 endif()
 # ------------------------------------------------------------------------------
 #
@@ -263,7 +292,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LIBRARIES ${LIBRARIES} rt)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(LIBRARIES ${LIBRARIES} m)
-set(LIBRARIES ${LIBRARIES} crypto)
 message(STATUS "Libraries: ${LIBARIES}")
 # ------------------------------------------------------------------------------
 # Optional flags

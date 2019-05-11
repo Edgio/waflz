@@ -973,7 +973,6 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                l_engine->shutdown();
                 if(l_profile)
                 {
                         delete l_profile;

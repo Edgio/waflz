@@ -265,7 +265,9 @@ def test_bb_instances_acl_first_before_waf():
     # Both profiles should catch with acl
     assert 'File extension is not allowed by policy' in l_r_json['prod_profile']['rule_msg']
     assert 'File extension is not allowed by policy' in l_r_json['audit_profile']['rule_msg']
-
+# ------------------------------------------------------------------------------
+# test_bb_instances_acl_audit_waf_prod
+# ------------------------------------------------------------------------------
 def test_bb_instances_acl_audit_waf_prod():
     # ------------------------------------------------------
     # update template
@@ -311,7 +313,9 @@ def test_bb_instances_acl_audit_waf_prod():
     assert 'File extension is not allowed by policy' in l_r_json['prod_profile']['rule_msg']
     # Audit profile should catch using waf
     assert 'Inbound Anomaly Score Exceeded (Total Score: 20): Last Matched Message: 981247-Detects concatenated basic SQL injection and SQLLFI attempts' in l_r_json['audit_profile']['rule_msg']
-
+# ------------------------------------------------------------------------------
+# test_bb_instances_whitelist_audit_waf_prod
+# ------------------------------------------------------------------------------
 def test_bb_instances_whitelist_audit_waf_prod():
     # ------------------------------------------------------
     # update template
@@ -356,5 +360,4 @@ def test_bb_instances_whitelist_audit_waf_prod():
     # same request but prod prodile should catch with waf
     # Test that whitelist are exlusive between audit and prod
     assert 'Inbound Anomaly Score Exceeded (Total Score: 20): Last Matched Message: 981247-Detects concatenated basic SQL injection and SQLLFI attempts' in l_r_json['prod_profile']['rule_msg']
-
     teardown_func()

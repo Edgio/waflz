@@ -42,7 +42,19 @@ include_directories(
 # ------------------------------------------------------------------------------
 # sources
 # ------------------------------------------------------------------------------
-SET(SRCS waflz_server.cc)
+SET(SRCS
+  cb.cc
+  sx_profile.cc
+  sx_instance.cc
+  sx_modsecurity.cc
+  sx_limit.cc
+  waflz_server.cc
+)
+if(BUILD_RATE_LIMITING)
+list(APPEND SRCS
+  sx_limit.cc
+)
+endif()
 # ------------------------------------------------------------------------------
 # headers
 # ------------------------------------------------------------------------------
@@ -58,8 +70,6 @@ target_link_libraries(waflz_server
   ${DEBUG_LIBRARIES}
   ${CMAKE_BINARY_DIR}/src/libwaflzcore.a
   ${CMAKE_BINARY_DIR}/submodule_is2-prefix/src/submodule_is2-build/src/libis2.a
-  ssl
-  crypto
   ${LIBRARIES}
 )
 install(TARGETS waflz_server

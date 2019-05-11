@@ -74,7 +74,6 @@ public:
         engine();
         ~engine();
         int32_t init(void);
-        void shutdown(void);
         macro &get_macro(void){ return *m_macro;}
         const ctype_parser_map_t &get_ctype_parser_map(void) { return m_ctype_parser_map;}
         int32_t compile(compiled_config_t &ao_cx_cfg, waflz_pb::sec_config_t &a_config);

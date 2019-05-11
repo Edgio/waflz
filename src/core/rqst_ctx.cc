@@ -155,6 +155,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
                    const rqst_ctx_callbacks *a_callbacks,
                    bool a_parse_json):
         m_src_addr(),
+        m_local_addr(),
         m_host(),
         m_port(0),
         m_scheme(),
@@ -171,6 +172,8 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_header_map(),
         m_header_list(),
         m_cookie_list(),
+        m_cookie_map(),
+        m_apparent_cache_status(),
         m_body_len_max(a_body_len_max),
         m_body_data(NULL),
         m_body_len(0),
@@ -178,7 +181,12 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
         m_req_uuid(),
+        m_bytes_out(0),
+        m_bytes_in(0),
+        m_token(),
         m_resp_status(0),
+        m_limit(NULL),
+        m_condition_group(NULL),
         m_body_parser(),
         // -------------------------------------------------
         // collections
@@ -274,6 +282,10 @@ rqst_ctx::~rqst_ctx()
         // delete parser
         // -------------------------------------------------
         if(m_body_parser) { delete m_body_parser; m_body_parser = NULL;}
+        // -------------------------------------------------
+        // delete any tokens
+        // -------------------------------------------------
+        if(m_token.m_data) { free(m_token.m_data); m_token.m_data = NULL; m_token.m_len = 0; }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -350,6 +362,22 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                 l_s = m_callbacks->s_get_rqst_src_addr_cb(&m_src_addr.m_data,
                                              &m_src_addr.m_len,
                                              m_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // local addr
+        // -------------------------------------------------
+        if(m_callbacks && m_callbacks->s_get_rqst_local_addr_cb)
+        {
+                int32_t l_s;
+                // get src address
+                l_s = m_callbacks->s_get_rqst_local_addr_cb(&m_local_addr.m_data,
+                                               &m_local_addr.m_len,
+                                               m_ctx);
                 if(l_s != 0)
                 {
                         // TODO log reason???
@@ -666,6 +694,17 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                                 {
                                         m_cookie_mutated += ";";
                                 }
+                                // -------------------------
+                                // add to map
+                                // -------------------------
+                                data_t l_key;
+                                l_key.m_data = i_c->m_key;
+                                l_key.m_len = i_c->m_key_len;
+                                data_t l_val;
+                                l_val.m_data = i_c->m_val;
+                                l_val.m_len = i_c->m_val_len;
+                                m_cookie_map[l_key] = l_val;
+
                         }
                         const_arg_t l_arg;
                         l_arg.m_key = "Cookie";
@@ -727,6 +766,23 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
                 }
+        }
+        // -------------------------------------------------
+        // APPARENT_CACHE_STATUS
+        // TODO: check again
+        // -------------------------------------------------
+        if(m_callbacks && m_callbacks->s_get_rqst_apparent_cache_status_cb)
+        {
+                int32_t l_s;
+                uint32_t l_v;
+                l_s = m_callbacks->s_get_rqst_apparent_cache_status_cb(&l_v,
+                                                                       m_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                m_apparent_cache_status = l_v;
         }
         m_init_phase_1 = true;
         return WAFLZ_STATUS_OK;
@@ -1030,10 +1086,14 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // Local address
         // -------------------------------------------------
-        GET_RQST_DATA(m_callbacks->s_get_rqst_local_addr_cb);
-        if (l_buf_len > 0)
+        
+        if(m_callbacks && m_callbacks->s_get_rqst_local_addr_cb)
         {
-                l_request_info->set_local_addr(l_buf, l_buf_len);
+                GET_RQST_DATA(m_callbacks->s_get_rqst_local_addr_cb);
+                if (l_buf_len > 0)
+                {
+                        l_request_info->set_local_addr(l_buf, l_buf_len);
+                }
         }
         // -------------------------------------------------
         // apparent cache status

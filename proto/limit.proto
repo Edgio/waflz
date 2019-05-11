@@ -1,0 +1,216 @@
+syntax = "proto2";
+package waflz_pb;
+import "scope.proto";
+import "action.proto";
+import "request_info.proto";
+//: ----------------------------------------------------------------------------
+//: rule
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: *************************** D E P R E C A T E D ****************************
+//: ----------------------------------------------------------------------------
+message rule {
+        // -------------------------------------------------
+        // variable
+        // -------------------------------------------------
+        message variable_t {
+                enum type_t {
+                        REMOTE_ADDR = 1;
+                        REQUEST_HOST = 2;
+                        REQUEST_URI = 3;
+                        REQUEST_METHOD = 4;
+                        REQUEST_HEADERS = 5;
+                        QUERY_STRING = 6;
+                        ARGS_GET = 7;
+                        FILE_EXT = 8;
+                }
+                message match_t {
+                        optional string value = 1;
+                        optional bool is_negated = 10;
+                        optional bool is_regex = 11;
+                }
+                optional type_t type = 1;
+                repeated match_t match = 2;
+                // !!! deprecated field...
+                optional bool _obsolete_1 = 3;
+        }
+        optional string id = 1;
+        optional string name = 2;
+        repeated variable_t variable = 3;
+        optional waflz_pb.op_t operator = 4;
+        repeated rule chained_rule = 5;
+}
+//: ----------------------------------------------------------------------------
+//: tuple
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: *************************** D E P R E C A T E D ****************************
+//: ----------------------------------------------------------------------------
+message tuple {
+        enum dimension_t {
+                _NULL = 0;
+                IP = 1;
+                USER_AGENT = 2;
+        }
+        optional string id = 1;
+        optional string name = 2;
+        optional bool disabled = 3;
+        optional uint64 start_epoch_msec = 4;
+        optional uint64 end_epoch_msec = 5;
+        optional uint32 duration_sec = 6;
+        optional uint32 limit = 7;
+        repeated dimension_t dimensions = 8;
+        optional bool always_on = 9;
+        repeated rule rules = 100;
+        repeated enforcement enforcements = 200;
+        optional waflz_pb.scope scope = 1000;
+        // -------------------------------------------------
+        // reserved for internal use
+        // -------------------------------------------------
+        optional string _reserved_1 = 9000;
+}
+//: ----------------------------------------------------------------------------
+//: enforcer
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: *************************** D E P R E C A T E D ****************************
+//: ----------------------------------------------------------------------------
+message enforcer {
+        optional string id = 1;
+        optional string name = 2;
+        optional string type = 3;
+        optional string customer_id = 4;
+        optional string enabled_date = 5;
+        optional string last_modified_date = 6;
+        repeated tuple tuples = 7;
+        // -------------------------------------------------
+        // pop meta info
+        // -------------------------------------------------
+        optional bytes hostname = 100;
+        // -------------------------------------------------
+        // reserved for internal use
+        // -------------------------------------------------
+        optional uint64 _customer_id_int = 1000;       
+}
+//: ----------------------------------------------------------------------------
+//: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//:                   N E W   C O N F I G   S E C T I O N
+//: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: match
+//: ----------------------------------------------------------------------------
+message condition {
+        message target_t {
+                enum type_t {
+                        REMOTE_ADDR = 1;
+                        REQUEST_HOST = 2;
+                        REQUEST_URI = 3;
+                        REQUEST_METHOD = 4;
+                        REQUEST_HEADERS = 5;
+                        QUERY_STRING = 6;
+                        ARGS_GET = 7;
+                        FILE_EXT = 8;
+                }
+		optional type_t type = 1;
+		optional string value = 2;
+        }
+        optional target_t target = 1;
+        optional waflz_pb.op_t op = 2;
+}
+//: ----------------------------------------------------------------------------
+//: matches
+//: ----------------------------------------------------------------------------
+message condition_group {
+        repeated condition conditions = 100;
+}
+//: ----------------------------------------------------------------------------
+//: limit
+//: ----------------------------------------------------------------------------
+message limit {
+        enum key_t {
+                _NULL = 0;
+                IP = 1;
+                USER_AGENT = 2;
+        }
+        optional string id = 1;
+        optional string name = 2;
+        optional bool disabled = 3;
+        optional uint64 start_epoch_msec = 4;
+        optional uint64 end_epoch_msec = 5;
+        optional uint32 duration_sec = 6;
+        optional uint32 num = 7;
+        repeated key_t keys = 8;
+        optional bool always_on = 9;
+        repeated condition_group condition_groups = 100;
+        optional enforcement action = 200;
+        optional waflz_pb.scope scope = 1000;
+        // -------------------------------------------------
+        // reserved for internal use
+        // -------------------------------------------------
+        optional string _reserved_1 = 9000;
+}
+//: ----------------------------------------------------------------------------
+//: config
+//: ----------------------------------------------------------------------------
+message config {
+        enum type_t {
+                _NULL = 0;
+                CONFIG = 1;
+                ENFORCER = 2;
+        }
+        optional uint32 version = 1;
+        optional string id = 2;
+        optional string name = 3;
+        optional type_t type = 4;
+        optional string customer_id = 5;
+        optional string enabled_date = 6;
+        optional string last_modified_date = 7;
+        repeated limit limits = 8;
+        // -------------------------------------------------
+        // pop meta info
+        // -------------------------------------------------
+        optional bytes hostname = 100;
+        // -------------------------------------------------
+        // reserved for internal use
+        // -------------------------------------------------
+        optional uint64 _customer_id_int = 1000;       
+}
+//: ----------------------------------------------------------------------------
+//: alert
+//: ----------------------------------------------------------------------------
+message alert {
+        optional request_info req_info = 1;
+        optional limit limit = 2;
+        optional enforcement action = 3;
+        optional condition_group condition_group = 4;
+}
+//: ----------------------------------------------------------------------------
+//: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//:                   C H A L L E N G E   S E C T I O N
+//: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: problem
+//: ----------------------------------------------------------------------------
+message problem {
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        optional int32 id = 1;
+        // -------------------------------------------------
+        // challenge body
+        // -------------------------------------------------
+        optional string response_body_base64 = 100;
+        // -------------------------------------------------
+        // answer
+        // -------------------------------------------------
+        optional string answer = 200;
+}
+//: ----------------------------------------------------------------------------
+//: config
+//: ----------------------------------------------------------------------------
+message challenge {
+        repeated problem problems = 1;
+}
+

@@ -19,6 +19,7 @@ message enforcement {
                 NOP = 6;
                 ALERT = 7;
                 BLOCK_REQUEST = 8;
+                BROWSER_CHALLENGE = 9;
         }
         message header_t {
                 optional string key = 1;
@@ -37,8 +38,12 @@ message enforcement {
         optional string url = 7;
         optional uint32 retry_after = 8;
         optional bool display_default_error_page = 9;
+        optional type_t enf_type = 10;
         // Custom response
         optional uint32 status = 100;
         optional string response_body_base64 = 101;
         repeated header_t response_headers = 102;
+        optional string response_body = 103;
+        // cookie expiry
+        optional uint32 valid_for_sec = 200;
 }

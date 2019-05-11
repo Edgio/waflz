@@ -35,7 +35,7 @@
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
-#include "support/md5_hasher.h"
+#include "support/md5.h"
 #include "core/op.h"
 #include "core/var.h"
 #include "core/tx.h"
@@ -899,16 +899,15 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         {
                 // for each allowed http method
                 l_dis_hdr.append("/");
-                // ---------------------------------------
-                // Due to our customizations to this rule,
+                // -----------------------------------------
+                // due to customizations to rule,
                 // to get it to actually work properly
-                // (See [SECC-115])
-                // we need to md5 the headers
-                // ---------------------------------------
+                // need to md5 the headers
+                // -----------------------------------------
                 std::string l_dh = l_gs.disallowed_headers(i_dh);
-                md5_hasher md5_header;
+                md5 md5_header;
                 md5_header.update(l_dh.c_str(), l_dh.length());
-                l_dis_hdr.append(md5_header.hash_str());
+                l_dis_hdr.append(md5_header.get_hash_hex());
                 // append space if not last
                 if((i_dh + 1) < l_gs.disallowed_headers_size())
                 {
@@ -1616,16 +1615,24 @@ run_op:
                                 {
                                         continue;
                                 }
-                                // Reflect Variable name
-                                const google::protobuf::EnumValueDescriptor* l_var_desc =
-                                                waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
-                                a_ctx.m_cx_matched_var.assign(l_x_data, l_x_len);
-                                a_ctx.m_cx_matched_var_name = l_var_desc->name();
-                                if(i_v->m_key_len)
+                                if(l_var.type() ==  waflz_pb::variable_t_type_t_ARGS_COMBINED_SIZE)
                                 {
-                                        std::string l_var_name(i_v->m_key, strnlen(i_v->m_key, i_v->m_key_len));
-                                        a_ctx.m_cx_matched_var_name +=":";
-                                        a_ctx.m_cx_matched_var_name.append(l_var_name);
+                                        a_ctx.m_cx_matched_var_name = "ARGS_COMBINED_SIZE";
+                                        a_ctx.m_cx_matched_var = to_string(l_x_len);
+                                }
+                                else
+                                {
+                                        // Reflect Variable name
+                                        const google::protobuf::EnumValueDescriptor* l_var_desc =
+                                                        waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
+                                        a_ctx.m_cx_matched_var.assign(l_x_data, l_x_len);
+                                        a_ctx.m_cx_matched_var_name = l_var_desc->name();
+                                        if(i_v->m_key_len)
+                                        {
+                                                std::string l_var_name(i_v->m_key, strnlen(i_v->m_key, i_v->m_key_len));
+                                                a_ctx.m_cx_matched_var_name +=":";
+                                                a_ctx.m_cx_matched_var_name.append(l_var_name);
+                                        }
                                 }
                                 //NDBG_PRINT("%sMATCH%s: !!!%s%s%s\n",
                                 //           ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF,

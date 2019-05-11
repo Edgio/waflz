@@ -36,3 +36,11 @@ add_subdirectory(jspb)
 add_subdirectory(core)
 add_subdirectory(op)
 add_subdirectory(parser)
+# ------------------------------------------------------------------------------
+# if rate-limiting -add rate-limiting related tests
+# ------------------------------------------------------------------------------
+if(BUILD_RATE_LIMITING)
+add_subdirectory(db)
+add_subdirectory(limit)
+endif()
+

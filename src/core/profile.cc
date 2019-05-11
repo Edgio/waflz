@@ -24,7 +24,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "config.pb.h"
-#include "enforcement.pb.h"
+#include "action.pb.h"
 #include "request_info.pb.h"
 #include "acl.pb.h"
 #include "event.pb.h"
@@ -66,7 +66,7 @@ namespace ns_waflz {
 // in an unreserved block
 uint_fast32_t profile::s_next_ec_rule_id = 430000;
 const std::string profile::s_default_name("");
-std::string profile::s_ruleset_dir("/home/dsingh/development/gitrepos/waf/ruleset/");
+std::string profile::s_ruleset_dir("/oc/local/waf/ruleset/");
 std::string profile::s_geoip_db;
 std::string profile::s_geoip_isp_db;
 std::string profile::s_geoip2_db;

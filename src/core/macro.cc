@@ -194,7 +194,7 @@ static int32_t expand(std::string &ao_exp,
                 //else if(STRCASECMP(l_var, "UNIQUE_ID")){}
                 else
                 {
-                        NDBG_PRINT("Variable not supported:: %s", l_var.c_str());
+                        //NDBG_PRINT("Variable not supported:: %s", l_var.c_str());
                 }
                 return WAFLZ_STATUS_OK;
         }

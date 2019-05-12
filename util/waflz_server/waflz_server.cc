@@ -497,18 +497,19 @@ public:
                 {
                         return l_resp_t;
                 }
+#ifdef WAFLZ_RATE_LIMITING
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
                 if(l_enf
-#ifdef WAFLZ_RATE_LIMITING
                    // only enforcements for limit mode
                    && (!g_config_mode == CONFIG_MODE_LIMIT)
-#endif
+
                    )
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+#endif
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response

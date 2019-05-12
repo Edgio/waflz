@@ -56,11 +56,10 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
                                            ns_is2::rqst &a_rqst,
                                            const ns_is2::url_pmap_t &a_url_pmap)
 {
-        NDBG_PRINT("...\n");
         if(!m_profile)
         {
-                NDBG_PRINT("...\n");
-                TRC_ERROR("g_profile == NULL\n");
+                //NDBG_PRINT("...\n");
+                //TRC_ERROR("g_profile == NULL\n");
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
         uint64_t l_buf_len = a_rqst.get_body_len();
@@ -75,8 +74,8 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         l_s = m_profile->load_config(l_buf, l_buf_len, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("...\n");
-                TRC_ERROR("performing g_profile->load_config: reason: %s\n", m_profile->get_err_msg());
+                //NDBG_PRINT("...\n");
+                //TRC_ERROR("performing g_profile->load_config: reason: %s\n", m_profile->get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -91,7 +90,6 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
         l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
         ns_is2::queue_api_resp(a_session, l_api_resp);
-        NDBG_PRINT("...\n");
         return ns_is2::H_RESP_DONE;
 }
 //: ----------------------------------------------------------------------------

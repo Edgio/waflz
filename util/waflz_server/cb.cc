@@ -400,28 +400,28 @@ int32_t get_rqst_body_str_cb(char *ao_data,
         if (NULL == a_ctx)
         {
                 ao_is_eos = true;
-                ao_data_len = 0;
+                *ao_data_len = 0;
                 return 0;
         }
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
         {
                 ao_is_eos = true;
-                ao_data_len = 0;
+                *ao_data_len = 0;
                 return 0;
         }
         ns_is2::rqst *l_rqst = l_ctx->m_rqst;
         if(!l_rqst)
         {
                 ao_is_eos = true;
-                ao_data_len = 0;
+                *ao_data_len = 0;
                 return 0;
         }
         ns_is2::nbq *l_q = l_rqst->get_body_q();
         if(!l_q)
         {
                 ao_is_eos = true;
-                ao_data_len = 0;
+                *ao_data_len = 0;
                 return 0;
         }
         // -------------------------------------------------
@@ -453,7 +453,7 @@ int32_t get_rqst_body_str_cb(char *ao_data,
                         return 0;
                 }
                 l_cur_ptr += (uint32_t)l_read;
-                ao_data_len += (uint32_t)l_read;
+                *ao_data_len += (uint32_t)l_read;
                 l_left -= (uint32_t)l_read;
         }
         if(!l_q->read_avail())

@@ -334,7 +334,7 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         case 0:
         {
                 *ao_key = "User-Agent";
-                *ao_key_len = strlen("User-Agent");
+                *ao_key_len = strlen("User-Agent") - 1;
                 *ao_val = s_header_user_agent;
                 *ao_val_len = strlen(s_header_user_agent);
                 break;
@@ -342,7 +342,7 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         case 1:
         {
                 *ao_key = "Referer";
-                *ao_key_len = strlen("Referer");
+                *ao_key_len = strlen("Referer") - 1;
                 *ao_val = s_header_referer;
                 *ao_val_len = strlen(s_header_referer);
                 break;
@@ -796,7 +796,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 // switch callback
                 // -----------------------------------------
-                s_uri = "/8019AE6/ssc-www.autozonepro.com/catalog/parts/index.js";
+                s_uri = "/8019AE6/ssc-www.autozonepro.com/catalog/parts/index.jsp";
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------

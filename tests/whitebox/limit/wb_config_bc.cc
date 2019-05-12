@@ -151,9 +151,7 @@ static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
         *a_val = 2;
         return 0;
 }
-static const char *s_header_user_agent = "my_cool_user_agent";
-static const char *s_header_cookie = "Cookie";
-
+static const char *s_header_user_agent = "monkey";
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                                         uint32_t *ao_key_len,
                                         const char **ao_val,
@@ -179,8 +177,8 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         {
                 *ao_key = "Cookie";
                 *ao_key_len = strlen("Cookie") - 1;
-                *ao_val = s_header_cookie;
-                *ao_val_len = strlen(s_header_cookie);
+                *ao_val = g_ec_cookie_val.c_str();
+                *ao_val_len = g_ec_cookie_val.length();
                 break;
         }
         default:
@@ -455,6 +453,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 s_host = "www.cats.dogs.com";
                 s_uri = "/cats.html";
+                g_ec_cookie_val.clear();
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------

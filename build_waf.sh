@@ -44,7 +44,7 @@ pushd build && \
     -DBUILD_SYMBOLS=ON \
     -DBUILD_APPS=ON \
     -DBUILD_UBUNTU=ON \
-    -DBUILD_RATE_LIMITING=ON \
+    -DBUILD_RATE_LIMITING=OFF \
     -DCMAKE_INSTALL_PREFIX=/usr && \
     make -j$(nproc) && \
     make test && \

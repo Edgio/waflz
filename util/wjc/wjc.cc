@@ -70,10 +70,6 @@
 #ifndef STATUS_ERROR
 #define STATUS_ERROR -1
 #endif
-// TODO REMOVE!!!
-#ifndef WAFLZ_RATE_LIMITING
-#define WAFLZ_RATE_LIMITING 1
-#endif
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------

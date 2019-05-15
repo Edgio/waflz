@@ -47,7 +47,6 @@ SET(SRCS
   sx_profile.cc
   sx_instance.cc
   sx_modsecurity.cc
-  sx_limit.cc
   waflz_server.cc
 )
 if(BUILD_RATE_LIMITING)

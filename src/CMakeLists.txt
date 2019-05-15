@@ -274,14 +274,16 @@ SET(PY_INST
     ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
     ${CMAKE_BINARY_DIR}/proto/rule_pb2.py
     ${CMAKE_BINARY_DIR}/proto/acl_pb2.py
-    # ------------------------------------------------------
-    # rate-limiting proto
-    # ------------------------------------------------------
-    if(BUILD_RATE_LIMITING)
-        ${CMAKE_BINARY_DIR}/proto/scope_pb2.py
-        ${CMAKE_BINARY_DIR}/proto/limit_pb2.py
-    endif()
 )
+# ------------------------------------------------------
+# rate-limiting proto
+# ------------------------------------------------------
+if(BUILD_RATE_LIMITING)
+    list(APPEND PY_INST
+    ${CMAKE_BINARY_DIR}/proto/scope_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/limit_pb2.py
+    )
+endif()
 install(FILES ${PY_INST}
     DESTINATION include/waflz-py
     COMPONENT Headers

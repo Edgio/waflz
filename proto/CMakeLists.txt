@@ -45,7 +45,7 @@ add_custom_command(
 )
 add_custom_command(
     OUTPUT limit_pb2.py
-    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/acl.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/limit.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/limit.proto
 )
 

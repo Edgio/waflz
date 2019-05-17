@@ -72,14 +72,14 @@ get_rqst_data_cb_t rqst_ctx::s_get_rqst_query_str_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_header_size_cb = NULL;
 get_rqst_kv_w_idx_cb_t rqst_ctx::s_get_rqst_header_w_idx_cb = NULL;
 get_rqst_data_w_key_cb_t rqst_ctx::s_get_rqst_header_w_key_cb = NULL;
-get_rqst_data_cb_t rqst_ctx::s_get_rqst_id_cb = NULL;
 get_rqst_body_data_cb_t rqst_ctx::s_get_rqst_body_str_cb = NULL;
 get_rqst_data_cb_t rqst_ctx::s_get_rqst_local_addr_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_canonical_port_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_apparent_cache_status_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_bytes_out_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_bytes_in_cb = NULL;
-get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_req_id_cb = NULL;
+get_rqst_data_size_cb_t rqst_ctx::s_get_rqst_id_cb = NULL;
+get_rqst_data_cb_t rqst_ctx::s_get_rqst_uuid_cb = NULL;
 get_rqst_data_size_cb_t rqst_ctx::s_get_cust_id_cb = NULL;
 //: ----------------------------------------------------------------------------
 //: static
@@ -456,12 +456,15 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-        if(s_get_rqst_id_cb)
+        // -------------------------------------------------
+        // request uuid
+        // -------------------------------------------------
+        if(s_get_rqst_uuid_cb)
         {
                 int32_t l_s;
-                l_s = s_get_rqst_id_cb(&m_req_uuid.m_data,
-                                       m_req_uuid.m_len,
-                                       m_ctx);
+                l_s = s_get_rqst_uuid_cb(&m_req_uuid.m_data,
+                                         m_req_uuid.m_len,
+                                         m_ctx);
                 if(l_s != 0)
                 {
                         // TODO log reason???
@@ -1158,10 +1161,10 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // Request ID
         // -------------------------------------------------
-        if(s_get_rqst_req_id_cb)
+        if(s_get_rqst_id_cb)
         {
                 uint32_t l_req_id;
-                l_s =  s_get_rqst_req_id_cb(l_req_id, m_ctx);
+                l_s =  s_get_rqst_id_cb(l_req_id, m_ctx);
                 if(l_s != 0)
                 {
                         //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_req_id_cb");
@@ -1171,17 +1174,14 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // REQ_UUID
         // -------------------------------------------------
-        if(s_get_rqst_id_cb)
+        if(m_req_uuid.m_len > 0)
         {
-                if(m_req_uuid.m_len > 0)
-                {
-                        l_request_info->set_req_uuid(m_req_uuid.m_data, m_req_uuid.m_len);
-                }
+                l_request_info->set_req_uuid(m_req_uuid.m_data, m_req_uuid.m_len);
         }
         // -------------------------------------------------
         // Customer ID
         // -------------------------------------------------
-        if(s_get_rqst_req_id_cb)
+        if(s_get_cust_id_cb)
         {
                 uint32_t l_cust_id;
                 l_s =  s_get_cust_id_cb(l_cust_id, m_ctx);

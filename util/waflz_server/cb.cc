@@ -320,7 +320,7 @@ int32_t get_rqst_query_str_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 //: ----------------------------------------------------------------------------
 //: get_rqst_id_cb
 //: ----------------------------------------------------------------------------
-int32_t get_rqst_id_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+int32_t get_rqst_uuid_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 {
         const char s_line[] = "aabbccddeeff";
         *a_data = s_line;

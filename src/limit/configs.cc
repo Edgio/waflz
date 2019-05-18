@@ -42,6 +42,95 @@
 //: ----------------------------------------------------------------------------
 #define CONFIG_RL_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
 namespace ns_waflz {
+#if 0
+//: ----------------------------------------------------------------------------
+//: obj type utils
+//: ----------------------------------------------------------------------------
+#define RL_OBJ_TYPE_COORDINATOR_STR "ddos-coordinator"
+#define RL_OBJ_TYPE_ENFORCER_STR "ddos-enforcer"
+#define RL_OBJ_TYPE_ENFORCEMENT_STR "ddos-enforcement"
+//: ----------------------------------------------------------------------------
+//: rl type enum
+//: ----------------------------------------------------------------------------
+typedef enum {
+        LIMIT_OBJ_TYPE_NONE = 0,
+        LIMIT_OBJ_TYPE_CONFIG,
+        LIMIT_OBJ_TYPE_ENFCR
+} limit_obj_type_t;
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+limit_obj_type_t rl_obj_get_type(const char *a_buf)
+{
+        // TODO caseless???
+        if(strncmp(RL_OBJ_TYPE_COORDINATOR_STR, a_buf, sizeof(RL_OBJ_TYPE_COORDINATOR_STR)) == 0)
+        {
+                return LIMIT_OBJ_TYPE_CONFIG;
+        }
+        else if(strncmp(RL_OBJ_TYPE_ENFORCER_STR, a_buf, sizeof(RL_OBJ_TYPE_ENFORCER_STR)) == 0)
+        {
+                return LIMIT_OBJ_TYPE_ENFCR;
+        }
+        else if(strncmp(RL_OBJ_TYPE_ENFORCEMENT_STR, a_buf, sizeof(RL_OBJ_TYPE_ENFORCEMENT_STR)) == 0)
+        {
+                return LIMIT_OBJ_TYPE_ENFCR;
+        }
+        return LIMIT_OBJ_TYPE_NONE;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t rl_obj_get_type(limit_obj_type_t &ao_obj_type,
+                        const char *a_buf,
+                        uint32_t a_buf_len)
+{
+        // init
+        ao_obj_type = LIMIT_OBJ_TYPE_NONE;
+        // Parse
+        rapidjson::Document *l_doc = new rapidjson::Document();
+        l_doc->Parse(a_buf, a_buf_len);
+        // get obj type
+        if(l_doc->IsObject())
+        {
+                // Grab type field.
+                if(l_doc->HasMember("type") &&
+                   (*l_doc)["type"].IsString())
+                {
+                        const char *l_type = (*l_doc)["type"].GetString();
+                        ao_obj_type = rl_obj_get_type(l_type);
+                }
+        }
+        else if(l_doc->IsArray())
+        {
+                // Grab type from first object...
+                if(l_doc->Size() &&
+                   (*l_doc)[0].HasMember("type") &&
+                   (*l_doc)[0]["type"].IsString())
+                {
+                        const char *l_type = (*l_doc)[0]["type"].GetString();
+                        ao_obj_type = rl_obj_get_type(l_type);
+                }
+        }
+        else
+        {
+                RATLZ_PERROR(g_rl_obj_get_type_err_msg, "error json is not object or array");
+                if(l_doc) { delete l_doc; l_doc = NULL;}
+                return STATUS_ERROR;
+        }
+        if(ao_obj_type == RL_OBJ_TYPE_NONE)
+        {
+                RATLZ_PERROR(g_rl_obj_get_type_err_msg, "error json has no type field or not ddos-enforcer or ddos-coordinator type");
+                if(l_doc) { delete l_doc; l_doc = NULL;}
+                return STATUS_ERROR;
+        }
+        if(l_doc) { delete l_doc; l_doc = NULL;}
+        return WAFLZ_STATUS_OK;
+}
+#endif
 //: ----------------------------------------------------------------------------
 //: \details Initialize a ddos config using the provided
 //:          parameter to load in all the configurations and
@@ -86,6 +175,24 @@ int32_t configs::load(void *a_js)
         {
                 return WAFLZ_STATUS_ERROR;
         }
+#if 0
+        // -------------------------------------------------
+        // check type
+        // -------------------------------------------------
+        rl_obj_type_t l_t = rl_obj_type_t::RL_OBJ_TYPE_NONE;
+        const char *l_str = "";
+        if(l_js.HasMember("type") &&
+           l_js["type"].IsString())
+        {
+                l_str = l_js["type"].GetString();
+                l_t = rl_obj_get_type(l_str);
+        }
+        if(l_t == rl_obj_type_t::RL_OBJ_TYPE_NONE)
+        {
+                RATLZ_PERROR(m_err_msg, "unrecognized type string: %s", l_str);
+                return STATUS_ERROR;
+        }
+#endif
         // -------------------------------------------------
         // get id
         // -------------------------------------------------
@@ -109,6 +216,36 @@ int32_t configs::load(void *a_js)
         // -------------------------------------------------
         cust_id_config_map_t::iterator i_cust;
         i_cust = m_cust_id_config_map.find(l_cust_id);
+#if 0
+        // -------------------------------------------------
+        // handle enforcer
+        // -------------------------------------------------
+        if(l_t == rl_obj_type_t::RL_OBJ_TYPE_ENFORCER)
+        {
+                if(i_cust == m_cust_id_coordinator_map.end())
+                {
+                        RATLZ_PERROR(m_err_msg, "can't load enforcers w/o coordinator for id: %lu",
+                                     l_cust_id);
+                        return STATUS_ERROR;
+                }
+                if(!i_cust->second)
+                {
+                        RATLZ_PERROR(m_err_msg, "can't load enforcers for coordinator for id: %lu -coordinator NULL",
+                                     l_cust_id);
+                        return STATUS_ERROR;
+                }
+                int32_t l_s;
+                l_s = (i_cust->second)->merge((void *)&l_js);
+                if(l_s != STATUS_OK)
+                {
+                        RATLZ_PERROR(m_err_msg, "performing merge for id: %lu. Reason: %s",
+                                     l_cust_id,
+                                     (i_cust->second)->get_err_msg());
+                        return STATUS_ERROR;
+                }
+                return STATUS_OK;
+        }
+#endif
         config *l_c = new config(m_db, m_challenge, m_lowercase_headers);
         int32_t l_s;
         // -------------------------------------------------

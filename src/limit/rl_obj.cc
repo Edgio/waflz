@@ -656,18 +656,10 @@ int32_t rl_obj::extract(const char **ao_data,
         case waflz_pb::condition_target_t::REQUEST_URI:
         {
                 _SET_W_CTX(m_uri);
-                // -----------------------------------------
-                // remove any q string from path if exists
-                // -----------------------------------------
-                if(*ao_data &&
-                   ao_data_len)
+                // use length w/o q string
+                if(a_ctx->m_uri_path_len)
                 {
-                        const char *l_q = NULL;
-                        l_q = (const char *)memchr(*ao_data, ao_data_len, '?');
-                        if(l_q)
-                        {
-                                ao_data_len = l_q - *ao_data;
-                        }
+                        ao_data_len = a_ctx->m_uri_path_len;
                 }
                 break;
         }
@@ -851,14 +843,11 @@ int32_t rl_obj::in_scope(bool &ao_match,
                 {
                         return WAFLZ_STATUS_OK;
                 }
-                // -----------------------------------------
-                // remove any q string from path if exists
-                // -----------------------------------------
-                const char *l_q = NULL;
-                l_q = (const char *)memchr(l_d.m_data, l_d.m_len, '?');
-                if(l_q)
+                // use length w/o q string
+                // use length w/o q string
+                if(a_ctx->m_uri_path_len)
                 {
-                        l_d.m_len = l_q - l_d.m_data;
+                        l_d.m_len = a_ctx->m_uri_path_len;
                 }
                 bool l_matched = false;
                 int32_t l_s;

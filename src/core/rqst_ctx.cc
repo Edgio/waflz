@@ -200,6 +200,8 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_cookie_list(),
         m_cookie_map(),
         m_apparent_cache_status(),
+        m_content_type_list(),
+        m_uri_path_len(0),
         m_body_len_max(a_body_len_max),
         m_body_data(NULL),
         m_body_len(0),
@@ -556,6 +558,16 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                 {
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // get path length w/o q string
+                // -----------------------------------------
+                m_uri_path_len = m_uri.m_len;
+                const char *l_q = NULL;
+                l_q = (const char *)memchr(m_uri.m_data, m_uri.m_len, '?');
+                if(l_q)
+                {
+                        m_uri_path_len = l_q - m_uri.m_data;
                 }
         }
         // -------------------------------------------------

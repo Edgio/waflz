@@ -67,7 +67,7 @@ static std::string g_ec_cookie_val = "";
           "\"name\":\"RULE_STUFF\"}"\
           "],"\
      "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-config\","\
+     "\"type\":\"ddos-coordinator\","\
      "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
 //! ----------------------------------------------------------------------------
 //! config
@@ -92,7 +92,7 @@ static std::string g_ec_cookie_val = "";
           "\"name\":\"RULE_STUFF\"}"\
           "],"\
      "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-config\","\
+     "\"type\":\"ddos-coordinator\","\
      "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
 //! ----------------------------------------------------------------------------
 //! sample challenge json

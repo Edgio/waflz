@@ -564,7 +564,7 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                 // -----------------------------------------
                 m_uri_path_len = m_uri.m_len;
                 const char *l_q = NULL;
-                l_q = (const char *)memchr(m_uri.m_data, m_uri.m_len, '?');
+                l_q = (const char *)memchr(m_uri.m_data, '?', m_uri.m_len);
                 if(l_q)
                 {
                         m_uri_path_len = l_q - m_uri.m_data;

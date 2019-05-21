@@ -23,10 +23,6 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-// TODO REMOVE
-#ifndef WAFLZ_RATE_LIMITING
-#define WAFLZ_RATE_LIMITING
-#endif
 #include "waflz/instance.h"
 #include "waflz/profile.h"
 #include "support/ndebug.h"

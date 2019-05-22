@@ -50,6 +50,7 @@
 #include "is2/handler/file_h.h"
 #include "action.pb.h"
 #include <string>
+#include <errno.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <signal.h>

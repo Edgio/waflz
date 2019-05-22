@@ -49,6 +49,7 @@
 #include "is2/handler/proxy_h.h"
 #include "is2/handler/file_h.h"
 #include "action.pb.h"
+#include <errno.h>
 #include <string>
 #include <getopt.h>
 #include <stdio.h>

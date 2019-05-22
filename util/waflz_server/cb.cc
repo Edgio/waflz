@@ -30,6 +30,7 @@
 #include "is2/support/nbq.h"
 #include "is2/support/data.h"
 #include "support/ndebug.h"
+#include <errno.h>
 #include <string.h>
 #include <arpa/inet.h>
 namespace ns_waflz_server {

@@ -26,6 +26,7 @@
 #include "support/ndebug.h"
 #include "waflz/db/redis_db.h"
 #include "waflz/def.h"
+#include <stdlib.h>
 #include <string.h>
 #include <hiredis/hiredis.h>
 namespace ns_waflz {

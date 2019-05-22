@@ -34,6 +34,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
+#include <errno.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>

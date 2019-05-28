@@ -60,7 +60,7 @@ $ cat rule.conf
   SecRule &REQUEST_HEADERS:Host "@eq 0" \
         "phase:2,rev:'2',ver:'OWASP_CRS/2.2.9',t:none,block,msg:'Request Missing a Host Header',id:'960008',tag:'OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_HOST',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',severity:'4',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER-%{matched_var_name}=%{matched_var}"
 
-$ ./build/util/waflz_server/waflz_server --conf-file=rule.conf
+$ ./build/util/waflz_server/waflz_server --modsecurity=rule.conf
 
 ```
 
@@ -69,52 +69,31 @@ $ ./build/util/waflz_server/waflz_server --conf-file=rule.conf
 ```sh
 $ curl -s "http://localhost:12345/index.html" -H"Host:" | jq '.'
 {
-  "req_info": {
-    "epoch_time": {
-      "sec": 1527623134,
-      "nsec": 2909744297
-    },
-    "virt_remote_host": "MC4wLjAuMA==",
-    "request_method": "R0VU",
-    "orig_url": "L2luZGV4Lmh0bWw=",
-    "url": "L2luZGV4Lmh0bWw=",
-    "common_header": {
-      "user_agent": "Y3VybC83LjQ3LjA="
-    },
-    "req_uuid": "YWFiYmNjZGRlZWZm"
+  "matched_var": {
+    "name": "REQUEST_HEADERS",
+    "value": "MA=="
   },
-  "rule_id": 981176,
-  "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3, SQLi=0, XSS=0): Last Matched Message: Request Missing a Host Header",
+  "rule_msg": "Inbound Anomaly Score Exceeded (Total Score: 3): Last Matched Message: Request Missing a Host Header",
+  "rule_op_name": "gt",
+  "rule_op_param": "0",
+  "rule_tag": [
+    "OWASP_CRS/ANOMALY/EXCEEDED"
+  ],
   "rule_target": [
     {
       "name": "TX",
       "param": "ANOMALY_SCORE"
     }
   ],
-  "rule_op_name": "gt",
-  "rule_op_param": "0",
-  "rule_tag": [
-    "OWASP_CRS/ANOMALY/EXCEEDED"
-  ],
-  "matched_var": {
-    "name": "REQUEST_HEADERS",
-    "value": "MA=="
-  },
-  "total_anomaly_score": 3,
-  "total_sql_injection_score": 0,
-  "total_xss_score": 0,
   "sub_event": [
     {
+      "matched_var": {
+        "name": "REQUEST_HEADERS",
+        "value": "MA=="
+      },
       "rule_id": 960008,
-      "rule_msg": "Request Missing a Host Header",
       "rule_intercept_status": 403,
-      "rule_target": [
-        {
-          "name": "REQUEST_HEADERS",
-          "param": "Host",
-          "is_counting": true
-        }
-      ],
+      "rule_msg": "Request Missing a Host Header",
       "rule_op_name": "EQ",
       "rule_op_param": "0",
       "rule_tag": [
@@ -123,19 +102,20 @@ $ curl -s "http://localhost:12345/index.html" -H"Host:" | jq '.'
         "OWASP_TOP_10/A7",
         "PCI/6.5.10"
       ],
-      "matched_var": {
-        "name": "REQUEST_HEADERS",
-        "value": "MA=="
-      },
+      "rule_target": [
+        {
+          "is_counting": true,
+          "name": "REQUEST_HEADERS",
+          "param": "Host"
+        }
+      ],
       "total_anomaly_score": 3,
-      "total_sql_injection_score": 0,
-      "total_xss_score": 0,
       "waf_profile_id": "NA",
       "waf_profile_name": "NA"
     }
   ],
+  "total_anomaly_score": 3,
   "waf_profile_id": "NA",
   "waf_profile_name": "NA"
 }
-
 ```

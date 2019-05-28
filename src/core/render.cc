@@ -284,11 +284,11 @@ static int32_t rr_render(char* ao_buf,
                         {
                                 break;
                         }
-                        ao_len += a_ctx->m_uri.m_len;
+                        ao_len += a_ctx->m_uri_path_len;
                         if(ao_buf)
                         {
-                                memcpy(l_buf, a_ctx->m_uri.m_data, a_ctx->m_uri.m_len);
-                                l_buf += a_ctx->m_uri.m_len;
+                                memcpy(l_buf, a_ctx->m_uri.m_data, a_ctx->m_uri_path_len);
+                                l_buf += a_ctx->m_uri_path_len;
                         }
                         // ---------------------------------
                         // query...

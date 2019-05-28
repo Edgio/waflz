@@ -174,6 +174,8 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_cookie_list(),
         m_cookie_map(),
         m_apparent_cache_status(),
+        m_content_type_list(),
+        m_uri_path_len(0),
         m_body_len_max(a_body_len_max),
         m_body_data(NULL),
         m_body_len(0),
@@ -431,12 +433,15 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                         return WAFLZ_STATUS_ERROR;
                 }
         }
+        // -------------------------------------------------
+        // request id
+        // -------------------------------------------------
         if(m_callbacks && m_callbacks->s_get_rqst_id_cb)
         {
                 int32_t l_s;
                 l_s = m_callbacks->s_get_rqst_id_cb(&m_req_uuid.m_data,
-                                       &m_req_uuid.m_len,
-                                       m_ctx);
+                                                    m_req_uuid.m_len,
+                                                    m_ctx);
                 if(l_s != 0)
                 {
                         // TODO log reason???
@@ -528,6 +533,16 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                 {
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // get path length w/o q string
+                // -----------------------------------------
+                m_uri_path_len = m_uri.m_len;
+                const char *l_q = NULL;
+                l_q = (const char *)memchr(m_uri.m_data, '?', m_uri.m_len);
+                if(l_q)
+                {
+                        m_uri_path_len = l_q - m_uri.m_data;
                 }
         }
         // -------------------------------------------------
@@ -1134,6 +1149,8 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
                 }
                 l_request_info->set_bytes_in(l_bytes_in);
         }
+        // TODO FIX!!!
+#if 0
         // -------------------------------------------------
         // Request ID
         // -------------------------------------------------
@@ -1150,17 +1167,14 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // REQ_UUID
         // -------------------------------------------------
-        if(m_callbacks && m_callbacks->s_get_rqst_id_cb)
+        if(m_req_uuid.m_len > 0)
         {
-                if(m_req_uuid.m_len > 0)
-                {
-                        l_request_info->set_req_uuid(m_req_uuid.m_data, m_req_uuid.m_len);
-                }
+                l_request_info->set_req_uuid(m_req_uuid.m_data, m_req_uuid.m_len);
         }
         // -------------------------------------------------
         // Customer ID
         // -------------------------------------------------
-        if(m_callbacks && m_callbacks->s_get_rqst_req_id_cb)
+        if(s_get_cust_id_cb)
         {
                 uint32_t l_cust_id;
                 l_s =  m_callbacks->s_get_cust_id_cb(&l_cust_id, m_ctx);
@@ -1170,6 +1184,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
                 }
                 l_request_info->set_customer_id(l_cust_id);
         }
+#endif
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

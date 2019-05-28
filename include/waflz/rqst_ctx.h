@@ -160,6 +160,7 @@ public:
         data_map_t m_cookie_map;
         uint32_t m_apparent_cache_status;
         data_list_t m_content_type_list;
+        uint32_t m_uri_path_len;
         const uint32_t m_body_len_max;
         char *m_body_data;
         uint32_t m_body_len;

@@ -33,6 +33,7 @@
 #include "jspb/jspb.h"
 #ifdef WAFLZ_RATE_LIMITING
 #include "waflz/limit/config.h"
+#include "waflz/limit/enforcer.h"
 #include "waflz/limit/rl_obj.h"
 #include "waflz/db/kycb_db.h"
 #include "limit.pb.h"
@@ -86,6 +87,7 @@ typedef enum {
         CONFIG_MODE_MODSECURITY,
 #ifdef WAFLZ_RATE_LIMITING
         CONFIG_MODE_LIMIT,
+        CONFIG_MODE_ENFCR,
 #endif
         CONFIG_MODE_NONE
 } config_mode_t;
@@ -299,7 +301,7 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
         l_s = l_config->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
-                NDBG_OUTPUT("failed to load config config: %s. Reason: %s\n",
+                NDBG_OUTPUT("failed to load config: %s. Reason: %s\n",
                                 a_file.c_str(),
                            l_config->get_err_msg());
                 if(l_config) {delete l_config; l_config = NULL;}
@@ -321,6 +323,58 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
         // -------------------------------------------------
         if(l_buf) { free(l_buf); l_buf = NULL;}
         if(l_config) { delete l_config; l_config = NULL;}
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t validate_enfcr(const std::string &a_file, bool a_display_json)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
+        if(l_s != STATUS_OK)
+        {
+                NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // config
+        // -------------------------------------------------
+        ns_waflz::kycb_db l_kycb_db;
+        ns_waflz::challenge l_challenge;
+        ns_waflz::enforcer *l_enfcr = new ns_waflz::enforcer(true);
+        l_s = l_enfcr->load(l_buf, l_buf_len);
+        if(l_s != STATUS_OK)
+        {
+                NDBG_OUTPUT("failed to load config: %s. Reason: %s\n",
+                                a_file.c_str(),
+                                l_enfcr->get_err_msg());
+                if(l_enfcr) {delete l_enfcr; l_enfcr = NULL;}
+                if(l_buf) {free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // display?
+        // -------------------------------------------------
+        if(a_display_json &&
+            l_enfcr->get_pb())
+        {
+                std::string l_js;
+                ns_waflz::convert_to_json(l_js, *(l_enfcr->get_pb()));
+                NDBG_OUTPUT("%s\n", l_js.c_str());
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_buf) { free(l_buf); l_buf = NULL;}
+        if(l_enfcr) {delete l_enfcr; l_enfcr = NULL;}
         return STATUS_OK;
 }
 #endif
@@ -358,7 +412,8 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  -i, --instance     WAF instance\n");
         fprintf(a_stream, "  -p, --profile      WAF profile\n");
 #ifdef WAFLZ_RATE_LIMITING
-        fprintf(a_stream, "  -l  --limit        Rate Limiting JSON Configuration File [REQUIRED]\n");
+        fprintf(a_stream, "  -l  --limit        Rate Limiting JSON Configuration File\n");
+        fprintf(a_stream, "  -e  --enfcr        Rate Limiting JSON Configuration File (enforcer)\n");
 #endif
         fprintf(a_stream, "  -j, --json         Display config [Default: OFF]\n");
         fprintf(a_stream, "\n");
@@ -395,12 +450,13 @@ int main(int argc, char** argv)
                 { "profile",     1, 0, 'p' },
 #ifdef WAFLZ_RATE_LIMITING
                 { "limit",       1, 0, 'l' },
+                { "enfcr",       1, 0, 'e' },
 #endif
                 { "json",        0, 0, 'j' },
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-        while ((l_opt = getopt_long_only(argc, argv, "hvdnr:i:p:l:j", l_long_options, &l_option_index)) != -1)
+        while ((l_opt = getopt_long_only(argc, argv, "hvdnr:i:p:l:e:j", l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)
                 {
@@ -480,6 +536,15 @@ int main(int argc, char** argv)
                         l_config_mode = CONFIG_MODE_LIMIT;
                         break;
                 }
+                // -----------------------------------------
+                // enfcr
+                // -----------------------------------------
+                case 'e':
+                {
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_ENFCR;
+                        break;
+                }
 #endif
                 // -----------------------------------------
                 //
@@ -548,6 +613,18 @@ int main(int argc, char** argv)
         case(CONFIG_MODE_LIMIT):
         {
                 l_s = validate_limit(l_file, l_display_json);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
+        }
+        // -------------------------------------------------
+        // limit
+        // -------------------------------------------------
+        case(CONFIG_MODE_ENFCR):
+        {
+                l_s = validate_enfcr(l_file, l_display_json);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;

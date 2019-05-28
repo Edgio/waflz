@@ -497,19 +497,18 @@ public:
                 {
                         return l_resp_t;
                 }
-#ifdef WAFLZ_RATE_LIMITING
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
                 if(l_enf
                    // only enforcements for limit mode
+#ifdef WAFLZ_RATE_LIMITING
                    && (!g_config_mode == CONFIG_MODE_LIMIT)
-
+#endif
                    )
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
-#endif
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response
@@ -1235,13 +1234,10 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_MODSECURITY):
         {
-                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
-                l_sx_instance->m_lsnr = l_lsnr;
-                l_sx_instance->m_config = l_config_file;
-                l_sx_instance->m_is_dir_flag = false;
-                l_sx_instance->m_bg_load = l_bg_load;
-                l_sx_instance->m_callbacks = &s_callbacks;
-                g_sx = l_sx_instance;
+                ns_waflz_server::sx_modsecurity *l_sx_msx = new ns_waflz_server::sx_modsecurity();
+                l_sx_msx->m_lsnr = l_lsnr;
+                l_sx_msx->m_config = l_config_file;
+                g_sx = l_sx_msx;
                 break;
         }
 #ifdef WAFLZ_RATE_LIMITING

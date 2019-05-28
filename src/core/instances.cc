@@ -191,8 +191,6 @@ int32_t instances::load_config(instance **ao_instance,
                 *ao_instance = l_instance;
                 return WAFLZ_STATUS_OK;
         }
-        // TODO REMOVE
-        //NDBG_PRINT("l_id: %s -not found\n", l_id.c_str());
         // -------------------------------------------------
         // if update
         // -------------------------------------------------
@@ -420,8 +418,6 @@ int32_t instances::load_config_dir(const char *a_dir_path,
         // -----------------------------------------------------------
         for (int i_f = 0; i_f < l_num_files; ++i_f)
         {
-                // TODO REMOVE
-                //NDBG_PRINT("config file: '%s'\n", l_conf_list[i_f]->d_name);
                 std::string l_full_path(a_dir_path);
                 l_full_path.append("/");
                 l_full_path.append(l_conf_list[i_f]->d_name);

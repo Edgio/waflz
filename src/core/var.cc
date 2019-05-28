@@ -758,7 +758,7 @@ GET_VAR(ARGS_GET)
                     a_var,
                     a_ctx->m_query_arg_list,
                     a_var.is_count(),
-                         false);
+                    false);
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -1236,6 +1236,9 @@ GET_VAR(REQUEST_BODY)
                 ao_list.push_back(l_data);
                 return WAFLZ_STATUS_OK;
         }
+        // -------------------------------------------------
+        // TODO optimize out creation of tmp list???
+        // -------------------------------------------------
         const_arg_list_t l_list;
         const_arg_t l_arg;
         l_arg.m_key = a_ctx->m_body_data;

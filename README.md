@@ -58,7 +58,16 @@ sudo make install
 ```sh
 $ cat rule.conf
   SecRule &REQUEST_HEADERS:Host "@eq 0" \
-        "phase:2,rev:'2',ver:'OWASP_CRS/2.2.9',t:none,block,msg:'Request Missing a Host Header',id:'960008',tag:'OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_HOST',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',severity:'4',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER-%{matched_var_name}=%{matched_var}"
+        "phase:2,\
+        rev:'2',\
+        ver:'OWASP_CRS/2.2.9',\
+        t:none,block,\
+        msg:'Request Missing a Host Header',\
+        id:'960008',\
+        severity:'4',\
+        setvar:'tx.msg=%{rule.msg}',\
+        setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},\
+        setvar:tx.%{rule.id}-OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER-%{matched_var_name}=%{matched_var}"
 
 $ ./build/util/waflz_server/waflz_server --modsecurity=rule.conf
 
@@ -96,12 +105,6 @@ $ curl -s "http://localhost:12345/index.html" -H"Host:" | jq '.'
       "rule_msg": "Request Missing a Host Header",
       "rule_op_name": "EQ",
       "rule_op_param": "0",
-      "rule_tag": [
-        "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_HOST",
-        "WASCTC/WASC-21",
-        "OWASP_TOP_10/A7",
-        "PCI/6.5.10"
-      ],
       "rule_target": [
         {
           "is_counting": true,

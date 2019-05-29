@@ -1229,8 +1229,8 @@ GET_VAR(REQUEST_BODY)
            !a_var.match(0).has_value()))
         {
                 const_arg_t l_data;
-                l_data.m_key = "REQUEST_BODY";
-                l_data.m_key_len = sizeof("REQUEST_BODY") - 1;
+                l_data.m_key = NULL;
+                l_data.m_key_len = 0;
                 l_data.m_val = a_ctx->m_body_data;
                 l_data.m_val_len = a_ctx->m_body_len;
                 ao_list.push_back(l_data);

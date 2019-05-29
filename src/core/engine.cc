@@ -600,13 +600,13 @@ int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
         // -------------------------------------------------
         waflz_pb::sec_config_t *l_cfg = new waflz_pb::sec_config_t();
         config_parser *l_parser = new config_parser();
-        // -----------------------------------------
+        // -------------------------------------------------
         // default format is modsec
-        // -----------------------------------------
+        // -------------------------------------------------
         config_parser::format_t l_format = config_parser::MODSECURITY;
-        // -----------------------------------------
+        // -------------------------------------------------
         // Get the file ext to decide format
-        // -----------------------------------------
+        // -------------------------------------------------
         if(strncmp(get_file_ext(a_include).c_str(), "json", sizeof("json")) == 0)
         {
                 l_format = config_parser::JSON;
@@ -625,9 +625,9 @@ int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
         // TODO remove -debug...
         //l_parser->show_status();
         if(l_parser) { delete l_parser; l_parser = NULL;}
-        // -----------------------------------------
+        // -------------------------------------------------
         // compile
-        // -----------------------------------------
+        // -------------------------------------------------
         compiled_config_t *l_new_cx_cfg = NULL;
         l_new_cx_cfg = new compiled_config_t();
         l_s = compile(*l_new_cx_cfg, *l_cfg);

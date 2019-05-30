@@ -19,10 +19,6 @@ import base64
 # ------------------------------------------------------------------------------
 G_TEST_HOST = 'http://127.0.0.1:12345'
 # ------------------------------------------------------------------------------
-# globals
-# ------------------------------------------------------------------------------
-g_server_pid = -1
-# ------------------------------------------------------------------------------
 # run_command
 # ------------------------------------------------------------------------------
 def run_command(command):
@@ -32,14 +28,16 @@ def run_command(command):
 # ------------------------------------------------------------------------------
 # fixture
 # ------------------------------------------------------------------------------
-@pytest.fixture()
-def setup_func():
-    global g_server_pid
+@pytest.fixture(scope='module')
+def setup_waflz_server():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
-    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'));
-    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'));
+    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
+    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
     l_conf_path = os.path.realpath(os.path.join(l_file_path, 'template.waf.prof.json'))
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
@@ -52,25 +50,16 @@ def setup_func():
                     '-r', l_ruleset_path,
                     '-g', l_geoip2city_path,
                     '-s', l_geoip2ISP_path]))
-    g_server_pid = l_subproc.pid
-    time.sleep(0.3)
-# ------------------------------------------------------------------------------
-# teardown_func
-# ------------------------------------------------------------------------------
-def teardown_func():
-    global g_server_pid
-    l_code, l_out, l_err = run_command('kill -9 %d'%(g_server_pid))
-# ------------------------------------------------------------------------------
-# run_around_tests
-# ------------------------------------------------------------------------------
-@pytest.yield_fixture(autouse=True)
-def run_around_tests():
-    # before
-    setup_func()
-    # ...
-    yield
-    # after
-    teardown_func()
+    time.sleep(1)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_waflz_server
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
 # ------------------------------------------------------------------------------
 # check_rqst
 # ------------------------------------------------------------------------------
@@ -226,21 +215,21 @@ def check_vectors(a_file):
 # ------------------------------------------------------------------------------
 # owasp 2.2.9 anomaly
 # ------------------------------------------------------------------------------
-def test_OWASP_2_2_9_anomaly():
+def test_OWASP_2_2_9_anomaly(setup_waflz_server):
     check_vectors('OWASP_2_2_9.anomaly.vectors.json')
 # ------------------------------------------------------------------------------
 # owasp 2.2.9 anomaly low inbound score
 # ------------------------------------------------------------------------------
-def test_OWASP_2_2_9_anomaly_low():
+def test_OWASP_2_2_9_anomaly_low(setup_waflz_server):
     check_vectors('OWASP_2_2_9.anomaly_low.vectors.json')
 # ------------------------------------------------------------------------------
 # owasp 3.0.2 anomaly
 # ------------------------------------------------------------------------------
-def test_OWASP_3_2_anomaly():
+def test_OWASP_3_2_anomaly(setup_waflz_server):
    check_vectors('OWASP_3_2.anomaly.vectors.json')
 # ------------------------------------------------------------------------------
 # owasp 3.0.2 anomaly low inbound score
 # ------------------------------------------------------------------------------
-def test_OWASP_3_2_anomaly_low():
+def test_OWASP_3_2_anomaly_low(setup_waflz_server):
    check_vectors('OWASP_3_2.anomaly_low.vectors.json')
 

@@ -19,10 +19,6 @@ from urllib2 import urlopen
 # ------------------------------------------------------------------------------
 G_TEST_HOST = 'http://127.0.0.1:12345/'
 # ------------------------------------------------------------------------------
-# globals
-# ------------------------------------------------------------------------------
-g_server_pid = -1
-# ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------
 def run_command(command):
@@ -30,16 +26,18 @@ def run_command(command):
     stdout, stderr = p.communicate()
     return (p.returncode, stdout, stderr)
 # ------------------------------------------------------------------------------
-#setup_func
+# fixture
 # ------------------------------------------------------------------------------
-@pytest.fixture()
-def setup_func():
-    global g_server_pid
+@pytest.fixture(scope='module')
+def setup_waflz_server():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
-    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'));
-    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'));
+    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
+    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
     l_profile_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_rtu.waf.prof.json'))
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
@@ -50,22 +48,19 @@ def setup_func():
     #time.sleep(1)
     g_server_pid = l_subproc.pid
     time.sleep(1)
-    print 'setup g_server_pid: %d'%(g_server_pid)
-    #time.sleep(1)
-# ------------------------------------------------------------------------------
-#teardown_func
-# ------------------------------------------------------------------------------
-def teardown_func():
-    global g_server_pid
-    time.sleep(.5)
-    print 'teardown g_server_pid: %d'%(g_server_pid)
-    if g_server_pid != -1:
-        l_code, l_out, l_err = run_command('kill -9 %d'%(g_server_pid))
-        time.sleep(.5)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_waflz_server
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
 # ------------------------------------------------------------------------------
 # test_bb_rtu_request_body
 # ------------------------------------------------------------------------------
-def test_bb_rtu_request_body(setup_func):
+def test_bb_rtu_request_body(setup_waflz_server):
     l_uri = G_TEST_HOST
     l_headers = {'host': 'myhost.com',
                  'Content-Type' : 'application/x-www-form-urlencoded',
@@ -145,5 +140,3 @@ def test_bb_rtu_request_body(setup_func):
     # ------------------------------------------------------
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
-    teardown_func()
-

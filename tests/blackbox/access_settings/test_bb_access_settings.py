@@ -28,11 +28,13 @@ def run_command(command):
     stdout, stderr = p.communicate()
     return (p.returncode, stdout, stderr)
 # ------------------------------------------------------------------------------
-#setup_func
+# fixture
 # ------------------------------------------------------------------------------
-@pytest.fixture()
-def setup_func():
-    global g_server_pid
+@pytest.fixture(scope='module')
+def setup_waflz_server():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
@@ -46,24 +48,19 @@ def setup_func():
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path])
     time.sleep(1)
-    g_server_pid = l_subproc.pid
-    time.sleep(1)
-    print 'setup g_server_pid: %d'%(g_server_pid)
-    time.sleep(1)
-# ------------------------------------------------------------------------------
-#teardown_func
-# ------------------------------------------------------------------------------
-def teardown_func():
-    global g_server_pid
-    time.sleep(.5)
-    print 'teardown g_server_pid: %d'%(g_server_pid)
-    if g_server_pid != -1:
-        l_code, l_out, l_err = run_command('kill -9 %d'%(g_server_pid))
-        time.sleep(.5)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_waflz_server
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
 # ------------------------------------------------------------------------------
 # test_bb_modsecurity_ec_access_settings_ignore_args
 # ------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_01_block_not_in_ignore_args(setup_func):
+def test_bb_modsec_ec_access_settings_01_block_not_in_ignore_args(setup_waflz_server):
     #"ignore_query_args": ["ignore", "this", "crap"]
     l_uri = G_TEST_HOST + '?' + 'arg1&arg2&arg3&arg4&arg5'
     l_headers = {"host": "myhost.com"}
@@ -79,7 +76,7 @@ def test_bb_modsec_ec_access_settings_01_block_not_in_ignore_args(setup_func):
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_02_bypass_in_ignore_args
 # ------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_02_bypass_in_ignore_args():
+def test_bb_modsec_ec_access_settings_02_bypass_in_ignore_args(setup_waflz_server):
     #Test that passing ignore args lets it bypass
     #Max arg limit it 4, we pass 7
     l_uri = G_TEST_HOST + '?' + 'arg1&arg2&arg3&arg4&ignore&this&crap'
@@ -92,7 +89,7 @@ def test_bb_modsec_ec_access_settings_02_bypass_in_ignore_args():
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_03_block_headers_not_in_ignore_header_list
 # ------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_03_block_headers_not_in_ignore_header_list():
+def test_bb_modsec_ec_access_settings_03_block_headers_not_in_ignore_header_list(setup_waflz_server):
     #ignore_header": ["(?i)(benign-header)", "super-whatever-header", "^D.*"]
     l_uri = G_TEST_HOST
     l_headers = {"host": "myhost.com",
@@ -111,7 +108,7 @@ def test_bb_modsec_ec_access_settings_03_block_headers_not_in_ignore_header_list
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_04_bypass_headers_in_ignore_header_list
 # ------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_04_bypass_headers_in_ignore_header_list():
+def test_bb_modsec_ec_access_settings_04_bypass_headers_in_ignore_header_list(setup_waflz_server):
     #Test ignore headers are ignored
     l_uri = G_TEST_HOST
     l_headers = {"host": "myhost.com",
@@ -126,7 +123,7 @@ def test_bb_modsec_ec_access_settings_04_bypass_headers_in_ignore_header_list():
 # -------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_05_bypass_headers_in_ignore_header_list_regex
 # -------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_05_bypass_headers_in_ignore_header_list_regex():
+def test_bb_modsec_ec_access_settings_05_bypass_headers_in_ignore_header_list_regex(setup_waflz_server):
     ########################################
     # Test regex "^D.*"
     ########################################
@@ -144,7 +141,7 @@ def test_bb_modsec_ec_access_settings_05_bypass_headers_in_ignore_header_list_re
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_06_block_cookie_not_in_ignore_cookie_list
 # ------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_06_block_cookie_not_in_ignore_cookie_list():
+def test_bb_modsec_ec_access_settings_06_block_cookie_not_in_ignore_cookie_list(setup_waflz_server):
     #"ignore_cookie": ["(?i)(sketchy_origin)", "(?i)(yousocrazy)"]
     l_uri = G_TEST_HOST
     l_headers = {"host": "myhost.com",
@@ -160,7 +157,7 @@ def test_bb_modsec_ec_access_settings_06_block_cookie_not_in_ignore_cookie_list(
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_07_bypass_cookie_in_ignore_cookie_list
 # ------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_07_bypass_cookie_in_ignore_cookie_list():
+def test_bb_modsec_ec_access_settings_07_bypass_cookie_in_ignore_cookie_list(setup_waflz_server):
     #"ignore_cookie": ["(?i)(sketchy_origin)", "(?i)(yousocrazy)"]
     l_uri = G_TEST_HOST
     l_headers = {"host" : "myhost.com",
@@ -184,7 +181,7 @@ def test_bb_modsec_ec_access_settings_07_bypass_cookie_in_ignore_cookie_list():
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_08_ignore_cookie_in_ignore_cookie_list
 # ------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_08_bypass_cookie_in_ignore_cookie_list_regex():
+def test_bb_modsec_ec_access_settings_08_bypass_cookie_in_ignore_cookie_list_regex(setup_waflz_server):
     ########################################
     # Test regex "^[0-9_].*$"
     ########################################
@@ -200,7 +197,7 @@ def test_bb_modsec_ec_access_settings_08_bypass_cookie_in_ignore_cookie_list_reg
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_09_block_disallowed_http_method
 # ------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_09_block_disallowed_http_method():
+def test_bb_modsec_ec_access_settings_09_block_disallowed_http_method(setup_waflz_server):
     l_uri = G_TEST_HOST
     l_headers = {"host" : "myhost.com"
                 }
@@ -212,7 +209,7 @@ def test_bb_modsec_ec_access_settings_09_block_disallowed_http_method():
 # ------------------------------------------------------------------------------
 # test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings
 # ------------------------------------------------------------------------------
-def test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings():
+def test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings(setup_waflz_server):
     l_uri = G_TEST_HOST
     # ------------------------------------------------------
     # update template
@@ -253,4 +250,3 @@ def test_bb_modsec_ec_access_settings_10_bypass_empty_allowed_settings():
     l_r_json = l_r.json()
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
-    teardown_func()

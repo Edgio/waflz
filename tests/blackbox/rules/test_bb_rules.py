@@ -19,10 +19,6 @@ from urllib2 import urlopen
 # ------------------------------------------------------------------------------
 G_TEST_HOST = 'http://127.0.0.1:12345/'
 # ------------------------------------------------------------------------------
-# globals
-# ------------------------------------------------------------------------------
-g_server_pid = -1
-# ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------
 def run_command(command):
@@ -30,11 +26,13 @@ def run_command(command):
     stdout, stderr = p.communicate()
     return (p.returncode, stdout, stderr)
 # ------------------------------------------------------------------------------
-#setup_func
+# fixture
 # ------------------------------------------------------------------------------
-@pytest.fixture()
-def setup_func():
-    global g_server_pid
+@pytest.fixture(scope='module')
+def setup_waflz_server():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
@@ -47,25 +45,20 @@ def setup_func():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path])
-    #time.sleep(1)
-    g_server_pid = l_subproc.pid
     time.sleep(1)
-    print 'setup g_server_pid: %d'%(g_server_pid)
-    #time.sleep(1)
-# ------------------------------------------------------------------------------
-#teardown_func
-# ------------------------------------------------------------------------------
-def teardown_func():
-    global g_server_pid
-    time.sleep(.5)
-    print 'teardown g_server_pid: %d'%(g_server_pid)
-    if g_server_pid != -1:
-        l_code, l_out, l_err = run_command('kill -9 %d'%(g_server_pid))
-        time.sleep(.5)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_waflz_server
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
 # ------------------------------------------------------------------------------
 # test_bb_without_rule_target_update_fail
 # ------------------------------------------------------------------------------
-def test_bb_without_rule_target_update_fail(setup_func):
+def test_bb_without_rule_target_update_fail(setup_waflz_server):
     l_uri = G_TEST_HOST + '?' + 'origin=Mal%C3%A9&destination=Southeast+Asia&marketcode=MLESEA&countrycode=MV'
     l_headers = {"host": "myhost.com"}
     l_r = requests.get(l_uri, headers=l_headers)
@@ -124,7 +117,7 @@ def test_bb_without_rule_target_update_fail(setup_func):
 # ------------------------------------------------------------------------------
 # test_bb_without_rule_target_update_fail
 # ------------------------------------------------------------------------------
-def test_bb_rule_target_update_xml_var():
+def test_bb_rule_target_update_xml_var(setup_waflz_server):
     l_uri = G_TEST_HOST
     l_headers = {"host": "myhost.com",
                  "Content-Type" : "text/xml"}
@@ -189,4 +182,3 @@ def test_bb_rule_target_update_xml_var():
     # ------------------------------------------------------
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
-    teardown_func()

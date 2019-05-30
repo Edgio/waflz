@@ -31,6 +31,8 @@
 #include "waflz/limit/config.h"
 #include "waflz/limit/challenge.h"
 #include "support/file_util.h"
+#include <errno.h>
+#include <stdlib.h>
 #include <unistd.h>
 //: ----------------------------------------------------------------------------
 //: constants

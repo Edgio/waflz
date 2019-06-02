@@ -86,6 +86,10 @@ static int32_t guess_owasp_version(uint32_t &ao_owasp_version,
                 NDBG_PRINT("Error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // check each line
+        // bail if OWASP 3.x flavor detected
+        // -------------------------------------------------
         ssize_t l_len = 0;
         char *l_line = NULL;
         size_t l_unused;
@@ -98,7 +102,8 @@ static int32_t guess_owasp_version(uint32_t &ao_owasp_version,
                         continue;
                 }
                 if((ns_waflz::strnstr(l_line, "ECRS", l_len) != NULL) ||
-                   (ns_waflz::strnstr(l_line, "3.0.", l_len) != NULL))
+                   (ns_waflz::strnstr(l_line, "OWASP_CRS/3.", l_len) != NULL) ||
+                   (ns_waflz::strnstr(l_line, "anomaly_score_pl", l_len) != NULL))
                 {
                         ao_owasp_version = 300;
                         if(l_line) { free(l_line); l_line = NULL; }
@@ -210,6 +215,10 @@ int32_t sx_modsecurity::init(void)
                            //l_wafl->get_err_msg());
                 return STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // set version...
+        // -------------------------------------------------
+        m_waf->set_owasp_ruleset_version(l_owasp_version);
         // -------------------------------------------------
         // hook geoip db ???
         // -------------------------------------------------

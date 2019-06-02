@@ -715,6 +715,7 @@ int32_t waf::set_defaults(void)
         set_var_tx(l_conf_pb, "900006", "sql_injection_score", "0");
         set_var_tx(l_conf_pb, "900007", "xss_score", "0");
         set_var_tx(l_conf_pb, "900008", "inbound_anomaly_score", "0");
+        set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", "1");
         set_var_tx(l_conf_pb, "900012", "inbound_anomaly_score_level", "1");
         set_var_tx(l_conf_pb, "900014", "anomaly_score_blocking", "on");
         // -------------------------------------------------
@@ -1935,6 +1936,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // Only calculate score if the rule is setting a var
         // e.g setvar:'tx.anomaly_score_pl1=+%{tx.notice_anomaly_score}
         // Or is a chained rule
+        // -------------------------------------------------
         if(get_owasp_ruleset_version() >= 300 &&
            (l_action.setvar_size() > 0 ||
             a_rule.chained_rule_size() > 0))

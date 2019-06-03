@@ -8,9 +8,12 @@ COPY . /opt/waflz
 
 RUN cd /opt/waflz && \
      pip install -r requirements.txt && \
-     ./build.sh && \
-     echo "SecRule ARGS:x \"@streq test\" \"deny,status:403,id:123\"" > test.conf
+     ./build.sh
 
 EXPOSE 12345
 
-CMD ["/opt/waflz/build/util/waflz_server/waflz_server --conf-file=/opt/waflz/test.conf"]
+CMD ["/opt/waflz/build/util/waflz_server/waflz_server", \
+  "--ruleset-dir=/opt/waflz/tests/data/waf/ruleset", \
+  "--geoip-db=/opt/waflz/tests/data/waf/db/GeoLite2-City.mmdb", \
+  "-geoip-isp-db=/opt/waflz/tests/data/waf/db/GeoLite2-ASN.mmdb", \
+  "--profile=/opt/waflz/tests/blackbox/ruleset/template.waf.prof.json"]

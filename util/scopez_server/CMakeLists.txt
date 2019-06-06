@@ -37,12 +37,14 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/util/waflz_server/
   ${CMAKE_SOURCE_DIR}/sub/is2/include
 )
 # ------------------------------------------------------------------------------
 # sources
 # ------------------------------------------------------------------------------
 SET(SRCS
+  ${CMAKE_SOURCE_DIR}/util/waflz_server/cb.cc
   scopez_server.cc
 )
 # ------------------------------------------------------------------------------

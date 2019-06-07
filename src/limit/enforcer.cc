@@ -26,6 +26,7 @@
 #include "support/time_util.h"
 #include "support/ndebug.h"
 #include "support/trace_internal.h"
+#include "limit/rl_op.h"
 #include "jspb/jspb.h"
 #include "waflz/limit/enforcer.h"
 #include "waflz/rqst_ctx.h"

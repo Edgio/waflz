@@ -124,9 +124,6 @@ protected:
         int32_t process_condition_group(bool &ao_matched,
                                         const waflz_pb::condition_group &a_cg,
                                         rqst_ctx *a_ctx);
-        int32_t in_scope(bool &ao_match,
-                         const waflz_pb::scope &a_scope,
-                         rqst_ctx *a_ctx);
         int32_t convertv1(waflz_pb::config& ao_config,
                           const waflz_pb::enforcer& a_enfcr);
         // -------------------------------------------------

@@ -28,6 +28,7 @@
 #include "support/ndebug.h"
 #include "support/string_util.h"
 #include "support/base64.h"
+#include "limit/rl_op.h"
 #include "jspb/jspb.h"
 #include "cityhash/city.h"
 #include "waflz/def.h"

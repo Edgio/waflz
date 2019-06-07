@@ -28,8 +28,11 @@ message op_t {
 //: scope
 //: ----------------------------------------------------------------------------
 message scope {
-        optional op_t host = 1;
-        optional op_t path = 2;
+        // -------------------------------------------------
+        // scope
+        // -------------------------------------------------
+        optional op_t host = 100;
+        optional op_t path = 101;
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
@@ -82,8 +85,8 @@ message scope_config {
         // -------------------------------------------------
         optional string id = 1;
         optional string version = 2;
-        optional string last_modified_date = 300;
-        optional string last_modified_by = 301;
+        optional string last_modified_date = 30;
+        optional string last_modified_by = 31;
         // -------------------------------------------------
         // scopes
         // -------------------------------------------------

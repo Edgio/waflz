@@ -204,7 +204,21 @@ int32_t sx_scopes::init(void)
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // create instances
+        // geoip db
+        // -------------------------------------------------
+        m_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
+        l_s = m_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
+                                  ns_waflz::profile::s_geoip2_isp_db);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                NDBG_PRINT("error initializing geoip2 db's city: %s asn: %s: reason: %s\n",
+                           ns_waflz::profile::s_geoip2_db.c_str(),
+                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
+                           m_geoip2_mmdb->get_err_msg());
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // create scopes
         // -------------------------------------------------
         m_scopes = new ns_waflz::scopes(*m_engine, *m_geoip2_mmdb);
         if(l_s != WAFLZ_STATUS_OK)

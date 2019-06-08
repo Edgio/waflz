@@ -551,19 +551,4 @@ instance *instances::get_first_instance(void)
         }
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-void instances::get_instance_id_vector(id_vector_t &ao_id_vector)
-{
-        ao_id_vector.clear();
-        for(id_instance_map_t::iterator i_i = m_id_instance_map.begin();
-            i_i != m_id_instance_map.end();
-            ++i_i)
-        {
-                ao_id_vector.push_back(i_i->first);
-        }
-}
 }

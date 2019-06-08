@@ -25,10 +25,13 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/scopes.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/config_parser.h"
+#include "waflz/waf.h"
 #include "support/ndebug.h"
 #include "limit/rl_op.h"
 #include "scope.pb.h"
 #include "jspb/jspb.h"
+#include "event.pb.h"
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
@@ -44,6 +47,10 @@
 } while(0)
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
+//: Class Variables
+//: ----------------------------------------------------------------------------
+std::string scopes::s_conf_dir("/oc/local/waf/conf");
+//: ----------------------------------------------------------------------------
 //: \details ctor
 //: \return  None
 //: \param   TODO
@@ -54,7 +61,8 @@ scopes::scopes(engine &a_engine,
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
-        m_geoip2_mmdb(a_geoip2_mmdb)
+        m_geoip2_mmdb(a_geoip2_mmdb),
+        m_id_rules_map()
 {
         m_pb = new waflz_pb::scope_config();
 }
@@ -70,62 +78,7 @@ scopes::~scopes()
                 delete m_pb;
                 m_pb = NULL;
         }
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t scopes::load_config(const char *a_buf,
-                            uint32_t a_buf_len)
-{
-        if(a_buf_len > _SCOPES_MAX_SIZE)
-        {
-                WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
-                             a_buf_len,
-                             _SCOPES_MAX_SIZE);
-                return WAFLZ_STATUS_ERROR;
-        }
-        m_init = false;
-        int32_t l_s;
-        l_s = update_from_json(*m_pb, a_buf, a_buf_len);
-        //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
-        if(l_s != JSPB_OK)
-        {
-                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
-                return WAFLZ_STATUS_ERROR;
-        }
-        l_s = validate();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        m_init = true;
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t scopes::load_config(void *a_js)
-{
-        m_init = false;
-        const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
-        int32_t l_s;
-        l_s = update_from_json(*m_pb, l_js);
-        if(l_s != JSPB_OK)
-        {
-                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
-                return WAFLZ_STATUS_ERROR;
-        }
-        l_s = validate();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        m_init = true;
-        return WAFLZ_STATUS_OK;
+        // TODO clear parts...
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -144,6 +97,168 @@ int32_t scopes::validate(void)
                 return WAFLZ_STATUS_ERROR;
         }
         // TODO -add validation...
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::load_config(const char *a_buf,
+                            uint32_t a_buf_len)
+{
+        if(a_buf_len > _SCOPES_MAX_SIZE)
+        {
+                WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
+                             a_buf_len,
+                             _SCOPES_MAX_SIZE);
+                return WAFLZ_STATUS_ERROR;
+        }
+        m_init = false;
+        // -------------------------------------------------
+        // load from js object
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = update_from_json(*m_pb, a_buf, a_buf_len);
+        //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // validate
+        // -------------------------------------------------
+        l_s = validate();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // for each scope...
+        // -------------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+                l_s = load_parts(l_sc);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // done...
+        // -------------------------------------------------
+        m_init = true;
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::load_config(void *a_js)
+{
+        m_init = false;
+        // -------------------------------------------------
+        // load from js object
+        // -------------------------------------------------
+        const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
+        int32_t l_s;
+        l_s = update_from_json(*m_pb, l_js);
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // validate
+        // -------------------------------------------------
+        l_s = validate();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // for each scope...
+        // -------------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+                l_s = load_parts(l_sc);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // done...
+        // -------------------------------------------------
+        m_init = true;
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::load_parts(waflz_pb::scope& a_scope)
+{
+        // -------------------------------------------------
+        // acl audit
+        // -------------------------------------------------
+        // TODO
+        // -------------------------------------------------
+        // acl prod
+        // -------------------------------------------------
+        // TODO
+        // -------------------------------------------------
+        // rules audit
+        // -------------------------------------------------
+        // TODO
+        // -------------------------------------------------
+        // rules prod
+        // -------------------------------------------------
+        if(a_scope.has_rules_prod_id())
+        {
+                std::string l_p = s_conf_dir + "/rules/" + a_scope.rules_prod_id();
+                // -----------------------------------------
+                // make waf obj
+                // -----------------------------------------
+                waf* l_waf = new waf(m_engine);
+                int32_t l_s;
+                l_s = l_waf->init(config_parser::JSON, l_p, true);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error loading conf file: %s. reason: %s\n",
+                                        l_p.c_str(),
+                                   "__na__");
+                                   // TODO -get reason...
+                                   //l_wafl->get_err_msg());
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // set version...
+                // -----------------------------------------
+                l_waf->set_owasp_ruleset_version(300);
+                // -----------------------------------------
+                // add to map
+                // -----------------------------------------
+                a_scope.set__rules_prod__reserved((uint64_t)l_waf);
+                m_id_rules_map[a_scope.rules_prod_id()] = l_waf;
+        }
+        // -------------------------------------------------
+        // profile audit
+        // -------------------------------------------------
+        // TODO
+        // -------------------------------------------------
+        // profile prod
+        // -------------------------------------------------
+        // TODO
+        // -------------------------------------------------
+        // limits
+        // -------------------------------------------------
+        // TODO
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -191,7 +306,6 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         {
                 const ::waflz_pb::scope& l_sc = m_pb->scopes(i_s);
                 bool l_m;
-                NDBG_PRINT("check scope: %s\n", l_sc.ShortDebugString().c_str());
                 l_s = in_scope(l_m, l_sc, l_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -201,17 +315,85 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 }
                 if(l_m)
                 {
-                        NDBG_PRINT("IN SCOPE!: %s\n", l_sc.ShortDebugString().c_str());
                         // TODO process scope...
+                        l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, ao_rqst_ctx);
                         goto done;
                 }
         }
-        NDBG_PRINT("NOT IN SCOPE!\n");
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
 done:
         if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
         return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
+                        waflz_pb::event** ao_audit_event,
+                        waflz_pb::event** ao_prod_event,
+                        const ::waflz_pb::scope& a_scope,
+                        void *a_ctx,
+                        rqst_ctx **ao_rqst_ctx)
+{
+        // TODO clear ao_* inputs
+        *ao_enf = NULL;
+        *ao_audit_event = NULL;
+        *ao_prod_event = NULL;
+        // -------------------------------------------------
+        // *************************************************
+        //                  A U D I T
+        // *************************************************
+        // -------------------------------------------------
+        // TODO
+        // -------------------------------------------------
+        // *************************************************
+        //                   P R O D
+        // *************************************************
+        // -------------------------------------------------
+        // -------------------------------------------------
+        // acl
+        // -------------------------------------------------
+        // TODO
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+        if(a_scope.has__rules_prod__reserved())
+        {
+                // -----------------------------------------
+                // process
+                // -----------------------------------------
+                waf *l_waf = (waf *)a_scope._rules_prod__reserved();
+                waflz_pb::event *l_event = NULL;
+                int32_t l_s;
+                l_s = l_waf->process(&l_event, a_ctx, ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(!l_event)
+                {
+                        goto prod_profile;
+                }
+                *ao_prod_event = l_event;
+                if(a_scope.has_rules_prod_action())
+                {
+                        *ao_enf = &(a_scope.rules_prod_action());
+                }
+        }
+        // -------------------------------------------------
+        // profile
+        // -------------------------------------------------
+        // TODO
+prod_profile:
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        return WAFLZ_STATUS_OK;
+
 }
 }

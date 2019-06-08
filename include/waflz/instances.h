@@ -56,7 +56,7 @@ class instances
 {
 public:
         // -------------------------------------------------
-        // Public types
+        // public types
         // -------------------------------------------------
         typedef std::vector <std::string> id_vector_t;
         // -------------------------------------------------
@@ -69,11 +69,11 @@ public:
                         return CityHash64(a_key.c_str(), a_key.length());
                 }
         };
-        #if defined(__APPLE__) || defined(__darwin__)
-            typedef std::unordered_map<std::string, instance*, str_hash> id_instance_map_t;
-        #else
-            typedef std::tr1::unordered_map<std::string, instance*, str_hash> id_instance_map_t;
-        #endif
+#if defined(__APPLE__) || defined(__darwin__)
+        typedef std::unordered_map<std::string, instance*, str_hash> id_instance_map_t;
+#else
+        typedef std::tr1::unordered_map<std::string, instance*, str_hash> id_instance_map_t;
+#endif
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
@@ -110,7 +110,6 @@ public:
         const char *get_err_msg(void) { return m_err_msg; }
         instance *get_instance(const std::string &a_id);
         instance *get_first_instance(void);
-        void get_instance_id_vector(id_vector_t &ao_id_vector);
 private:
         // -------------------------------------------------
         // Private methods

@@ -26,7 +26,13 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
+#include "cityhash/city.h"
 #include <string>
+#if defined(__APPLE__) || defined(__darwin__)
+    #include <unordered_map>
+#else
+    #include <tr1/unordered_map>
+#endif
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
@@ -34,6 +40,7 @@ namespace waflz_pb {
         class enforcement;
         class scope_config;
         class event;
+        class scope;
 }
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
@@ -42,6 +49,7 @@ namespace ns_waflz {
 class geoip2_mmdb;
 class engine;
 class rqst_ctx;
+class waf;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
@@ -52,6 +60,21 @@ class scopes
 {
 public:
         // -------------------------------------------------
+        // str hash
+        // -------------------------------------------------
+        struct str_hash
+        {
+                inline std::size_t operator()(const std::string& a_key) const
+                {
+                        return CityHash64(a_key.c_str(), a_key.length());
+                }
+        };
+#if defined(__APPLE__) || defined(__darwin__)
+        typedef std::unordered_map<std::string, waf*, str_hash> id_rules_map_t;
+#else
+        typedef std::tr1::unordered_map<std::string, waf*, str_hash> id_rules_map_t;
+#endif
+        // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
         scopes(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
@@ -61,11 +84,22 @@ public:
         int32_t load_config(const char *a_buf,
                             uint32_t a_buf_len);
         int32_t load_config(void *a_js);
+        int32_t load_parts(waflz_pb::scope& a_scope);
         int32_t process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
                         rqst_ctx **ao_rqst_ctx);
+        int32_t process(const waflz_pb::enforcement** ao_enf,
+                        waflz_pb::event** ao_audit_event,
+                        waflz_pb::event** ao_prod_event,
+                        const ::waflz_pb::scope& a_scope,
+                        void *a_ctx,
+                        rqst_ctx **ao_rqst_ctx);
+        // -------------------------------------------------
+        // public static members
+        // -------------------------------------------------
+        static std::string s_conf_dir;
 private:
         // -------------------------------------------------
         // private methods
@@ -88,6 +122,18 @@ private:
         // *************************************************
         // -------------------------------------------------
         geoip2_mmdb &m_geoip2_mmdb;
+        // -------------------------------------------------
+        // parts...
+        // -------------------------------------------------
+        // acls
+        // TODO
+        // rules
+        // TODO
+        id_rules_map_t m_id_rules_map;
+        // profiles
+        // TODO
+        // limits
+        // TODO
 };
 }
 #endif

@@ -475,6 +475,7 @@ public:
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
+#if 0
                 if(l_enf
                    // only enforcements for limit mode
                    //&& (!g_config_mode == CONFIG_MODE_LIMIT)
@@ -482,20 +483,20 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+#endif
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response
                 // -----------------------------------------
                 if(l_resp_t == ns_is2::H_RESP_NONE)
                 {
-#define _JS_RESP "{\"status\": \"ok\"}"
                         ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                         l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
                                                    "application/json",
-                                                   strlen(_JS_RESP),
+                                                   g_sx_scopes->m_resp.length(),
                                                    a_rqst.m_supports_keep_alives,
                                                    a_session.get_server_name());
-                        l_api_resp.set_body_data(_JS_RESP, strlen(_JS_RESP));
+                        l_api_resp.set_body_data(g_sx_scopes->m_resp.c_str(), g_sx_scopes->m_resp.length());
                         l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
                         ns_is2::queue_api_resp(a_session, l_api_resp);
                         return ns_is2::H_RESP_DONE;
@@ -638,6 +639,11 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -c, --config        scopes config\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
         fprintf(a_stream, "  \n");
+        fprintf(a_stream, "Engine Configuration:\n");
+        fprintf(a_stream, "  -F, --conf-dir      conf directory\n");
+        fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
+        fprintf(a_stream, "  -s, --geoip-isp-db  geoip-isp-db\n");
+        fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Mode: choose one or none\n");
         fprintf(a_stream, "  -w, --static        static file path (for serving)\n");
         fprintf(a_stream, "  -y, --proxy         run server in proxy mode\n");
@@ -672,6 +678,9 @@ int main(int argc, char** argv)
         //ns_is2::trc_log_file_open("/dev/stdout");
         // modes
         server_mode_t l_server_mode = SERVER_MODE_NONE;
+        std::string l_conf_dir;
+        std::string l_geoip_db;
+        std::string l_geoip_isp_db;
         // server settings
         uint16_t l_port = 12345;
         std::string l_server_spec;
@@ -684,8 +693,11 @@ int main(int argc, char** argv)
                 {
                 { "help",         0, 0, 'h' },
                 { "version",      0, 0, 'v' },
-                { "port",         1, 0, 'p' },
                 { "config",       1, 0, 'c' },
+                { "port",         1, 0, 'p' },
+                { "conf-dir",     1, 0, 'F' },
+                { "geoip-db",     1, 0, 'g' },
+                { "geoip-isp-db", 1, 0, 's' },
                 { "static",       1, 0, 'w' },
                 { "proxy",        1, 0, 'y' },
                 { "trace",        1, 0, 't' },
@@ -708,9 +720,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvp:c:w:y:t:H:C:";
+        char l_short_arg_list[] = "hvp:F:g:s:c:w:y:t:H:C:";
 #else
-        char l_short_arg_list[] = "hvp:c:w:y:t:";
+        char l_short_arg_list[] = "hvp:F:g:s:c:w:y:t:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -742,6 +754,14 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
+                // config
+                // -----------------------------------------
+                case 'c':
+                {
+                        l_config_file = l_arg;
+                        break;
+                }
+                // -----------------------------------------
                 // port
                 // -----------------------------------------
                 case 'p':
@@ -758,11 +778,27 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // config
+                // conf dir
                 // -----------------------------------------
-                case 'c':
+                case 'F':
                 {
-                        l_config_file = l_arg;
+                        l_conf_dir = optarg;
+                        break;
+                }
+                // -----------------------------------------
+                // geoip db
+                // -----------------------------------------
+                case 'g':
+                {
+                        l_geoip_db = optarg;
+                        break;
+                }
+                // -----------------------------------------
+                // geoip isp db
+                // -----------------------------------------
+                case 's':
+                {
+                        l_geoip_isp_db = optarg;
                         break;
                 }
                 // -----------------------------------------
@@ -887,6 +923,25 @@ int main(int argc, char** argv)
         // seed random
         // -------------------------------------------------
         srand(time(NULL));
+        // -------------------------------------------------
+        // geoip db checks...
+        // -------------------------------------------------
+        if(l_geoip_db.empty())
+        {
+                fprintf(stdout, "No geoip db provide, using BOGUS_GEO_DATABASE.\n");
+                l_geoip_db = BOGUS_GEO_DATABASE;
+        }
+        if(l_geoip_isp_db.empty())
+        {
+                fprintf(stdout, "No geoip isp db provide, using BOGUS_GEO_DATABASE.\n");
+                l_geoip_isp_db = BOGUS_GEO_DATABASE;
+        }
+        // -------------------------------------------------
+        // setup
+        // -------------------------------------------------
+        ns_waflz::scopes::s_conf_dir = l_conf_dir;
+        ns_waflz::profile::s_geoip2_db = l_geoip_db;
+        ns_waflz::profile::s_geoip2_isp_db = l_geoip_isp_db;
         // -------------------------------------------------
         // *************************************************
         // server setup

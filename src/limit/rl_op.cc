@@ -51,7 +51,6 @@ int32_t rl_run_op(bool &ao_matched,
                 // operator type actually provided
                 l_op_type = a_op.type();
         }
-        NDBG_PRINT("OP: %s\n", a_op.ShortDebugString().c_str());
         switch (l_op_type)
         {
         // -------------------------------------------------
@@ -169,7 +168,6 @@ int32_t rl_run_op(bool &ao_matched,
                 }
                 int l_cmp;
                 const std::string &l_op_match = a_op.value();
-                NDBG_PRINT("check: %s ?= %.*s\n", l_op_match.c_str(), a_len, a_data);
                 l_cmp = fnmatch(l_op_match.c_str(), a_data, l_flags);
                 if(l_cmp == 0)
                 {
@@ -310,7 +308,6 @@ int32_t in_scope(bool &ao_match,
            (a_scope.host().has_value() ||
             a_scope.host().values_size()))
         {
-                NDBG_PRINT("check host\n");
                 const data_t &l_d = a_ctx->m_host;
                 if(!l_d.m_data ||
                    !l_d.m_len)
@@ -319,7 +316,6 @@ int32_t in_scope(bool &ao_match,
                 }
                 bool l_matched = false;
                 int32_t l_s;
-                NDBG_PRINT("check host\n");
                 l_s = rl_run_op(l_matched,
                                 a_scope.host(),
                                 l_d.m_data,
@@ -342,7 +338,6 @@ int32_t in_scope(bool &ao_match,
            (a_scope.path().has_value() ||
             a_scope.path().values_size()))
         {
-                NDBG_PRINT("check path\n");
                 data_t l_d = a_ctx->m_uri;
                 if(!l_d.m_data ||
                    !l_d.m_len)

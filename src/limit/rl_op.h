@@ -44,5 +44,11 @@ int32_t rl_run_op(bool &ao_matched,
                   const char *a_data,
                   uint32_t a_data_len,
                   bool a_case_insensitive);
+//: ----------------------------------------------------------------------------
+//: check scope
+//: ----------------------------------------------------------------------------
+int32_t in_scope(bool &ao_match,
+                 const waflz_pb::scope &a_scope,
+                 rqst_ctx *a_ctx);
 }
 #endif

@@ -2,10 +2,10 @@
 //: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    instance.h
+//: \file:    scopes.h
 //: \details: TODO
 //: \author:  Reed P. Morrison
-//: \date:    04/15/2016
+//: \date:    06/06/2019
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -20,99 +20,120 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _INSTANCE_H_
-#define _INSTANCE_H_
+#ifndef _SCOPES_H_
+#define _SCOPES_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
+#include "cityhash/city.h"
 #include <string>
-#include <list>
+#if defined(__APPLE__) || defined(__darwin__)
+    #include <unordered_map>
+#else
+    #include <tr1/unordered_map>
+#endif
 //: ----------------------------------------------------------------------------
-//: fwd Decl's
+//: fwd decl's
 //: ----------------------------------------------------------------------------
 namespace waflz_pb {
         class enforcement;
-        class instance;
-        class profile;
+        class scope_config;
         class event;
+        class scope;
 }
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
-class profile;
 class geoip2_mmdb;
 class engine;
 class rqst_ctx;
+class waf;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
-typedef std::list <std::string> str_list_t;
-typedef std::list <waflz_pb::enforcement *> enforcement_list_t;
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-class instance
+class scopes
 {
 public:
         // -------------------------------------------------
+        // str hash
+        // -------------------------------------------------
+        struct str_hash
+        {
+                inline std::size_t operator()(const std::string& a_key) const
+                {
+                        return CityHash64(a_key.c_str(), a_key.length());
+                }
+        };
+#if defined(__APPLE__) || defined(__darwin__)
+        typedef std::unordered_map<std::string, waf*, str_hash> id_rules_map_t;
+#else
+        typedef std::tr1::unordered_map<std::string, waf*, str_hash> id_rules_map_t;
+#endif
+        // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        instance(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
-        ~instance();
+        scopes(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
+        ~scopes();
         const char *get_err_msg(void) { return m_err_msg; }
-        const waflz_pb::instance *get_pb(void) { return m_pb; }
-        const std::string &get_id(void) { return m_id; }
-        const std::string &get_name(void) { return m_name; }
-        const std::string &get_customer_id(void) { return m_customer_id; }
-        inline profile* get_audit_profile() { return m_profile_audit; }
-        inline profile* get_prod_profile() { return m_profile_prod; }
-        enforcement_list_t &get_mutable_prod_enfx_list(void);
+        const waflz_pb::scope_config *get_pb(void) { return m_pb; }
         int32_t load_config(const char *a_buf,
-                            uint32_t a_buf_len,
-                            bool a_leave_compiled_file = false);
-        int32_t load_config(void *a_js,
-                            bool a_leave_compiled_file = false);
-        int32_t process(waflz_pb::event **ao_audit_event,
+                            uint32_t a_buf_len);
+        int32_t load_config(void *a_js);
+        int32_t load_parts(waflz_pb::scope& a_scope);
+        int32_t process(const waflz_pb::enforcement **ao_enf,
+                        waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
                         rqst_ctx **ao_rqst_ctx);
-        int32_t process_part(waflz_pb::event **ao_audit_event,
-                             waflz_pb::event **ao_prod_event,
-                             void *a_ctx,
-                             part_mk_t a_part_mk,
-                             rqst_ctx **ao_rqst_ctx);
+        int32_t process(const waflz_pb::enforcement** ao_enf,
+                        waflz_pb::event** ao_audit_event,
+                        waflz_pb::event** ao_prod_event,
+                        const ::waflz_pb::scope& a_scope,
+                        void *a_ctx,
+                        rqst_ctx **ao_rqst_ctx);
+        // -------------------------------------------------
+        // public static members
+        // -------------------------------------------------
+        static std::string s_conf_dir;
 private:
         // -------------------------------------------------
         // private methods
         // -------------------------------------------------
-        //DISALLOW_DEFAULT_CTOR(instance);
+        //DISALLOW_DEFAULT_CTOR(scopes);
         // disallow copy/assign
-        instance(const instance &);
-        instance& operator=(const instance &);
+        scopes(const scopes &);
+        scopes& operator=(const scopes &);
         int32_t validate(void);
-        void set_event_properties(waflz_pb::event &ao_event, profile &a_profile);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
         bool m_init;
-        waflz_pb::instance *m_pb;
+        waflz_pb::scope_config *m_pb;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
-        // properties
-        std::string m_id;
-        std::string m_name;
-        std::string m_customer_id;
-        profile *m_profile_audit;
-        profile *m_profile_prod;
-        bool m_leave_compiled_file;
         // -------------------------------------------------
         // *************************************************
         // geoip2 support
         // *************************************************
         // -------------------------------------------------
         geoip2_mmdb &m_geoip2_mmdb;
+        // -------------------------------------------------
+        // parts...
+        // -------------------------------------------------
+        // acls
+        // TODO
+        // rules
+        // TODO
+        id_rules_map_t m_id_rules_map;
+        // profiles
+        // TODO
+        // limits
+        // TODO
 };
 }
 #endif

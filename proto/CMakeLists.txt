@@ -96,12 +96,12 @@ add_custom_command(
 add_custom_command(
     OUTPUT scope.pb.cc scope.pb.h
     COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/limit.proto
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto
     )
 add_custom_command(
     OUTPUT limit.pb.cc limit.pb.h
     COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/limit.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/limit.proto
     )
 # ------------------------------------------------------------------------------
 # custom target for protobuf output

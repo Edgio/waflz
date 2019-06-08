@@ -1,11 +1,11 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2015 Verizon.  All Rights Reserved.
+//: Copyright (C) 2019 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    waflz_server.cc
+//: \file:    scopez_server.cc
 //: \details: TODO
 //: \author:  Reed P. Morrison
-//: \date:    09/30/2015
+//: \date:    06/05/2019
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -24,20 +24,18 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "cb.h"
-#include "sx.h"
-#include "sx_profile.h"
-#include "sx_instance.h"
-#include "sx_modsecurity.h"
-#ifdef WAFLZ_RATE_LIMITING
-#include "sx_limit.h"
-#endif
+#include "sx_scopes.h"
+// ---------------------------------------------------------
+// waflz
+// ---------------------------------------------------------
+#include "waflz/waflz.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/render.h"
-#include "support/ndebug.h"
-#include "support/base64.h"
+// ---------------------------------------------------------
+// is2
+// ---------------------------------------------------------
 #include "is2/support/trace.h"
 #include "is2/nconn/scheme.h"
-// why need this???
 #include "is2/nconn/nconn.h"
 #include "is2/srvr/srvr.h"
 #include "is2/srvr/lsnr.h"
@@ -48,7 +46,18 @@
 #include "is2/srvr/default_rqst_h.h"
 #include "is2/handler/proxy_h.h"
 #include "is2/handler/file_h.h"
+// ---------------------------------------------------------
+// pb
+// ---------------------------------------------------------
 #include "action.pb.h"
+// ---------------------------------------------------------
+// internal
+// ---------------------------------------------------------
+#include "support/ndebug.h"
+#include "support/base64.h"
+// ---------------------------------------------------------
+// system
+// ---------------------------------------------------------
 #include <errno.h>
 #include <string>
 #include <getopt.h>
@@ -80,28 +89,11 @@ typedef enum {
         SERVER_MODE_FILE,
         SERVER_MODE_NONE
 } server_mode_t;
-typedef enum {
-        CONFIG_MODE_INSTANCE = 0,
-        CONFIG_MODE_INSTANCES,
-        CONFIG_MODE_PROFILE,
-        CONFIG_MODE_MODSECURITY,
-#ifdef WAFLZ_RATE_LIMITING
-        CONFIG_MODE_LIMIT,
-#endif
-        CONFIG_MODE_NONE
-} config_mode_t;
 //: ----------------------------------------------------------------------------
 //: globals
 //: ----------------------------------------------------------------------------
 ns_is2::srvr *g_srvr = NULL;
-ns_waflz_server::sx *g_sx = NULL;
-FILE *g_out_file_ptr = NULL;
-config_mode_t g_config_mode = CONFIG_MODE_NONE;
-//: ****************************************************************************
-//: ----------------------------------------------------------------------------
-//:                           request handler
-//: ----------------------------------------------------------------------------
-//: ****************************************************************************
+ns_scopez_server::sx_scopes *g_sx_scopes = NULL;
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -115,19 +107,6 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
         if(!a_ctx)
         {
                 return ns_is2::H_RESP_NONE;
-        }
-        // -------------------------------------------------
-        // write out if output...
-        // -------------------------------------------------
-        if(g_out_file_ptr)
-        {
-                size_t l_fw_s;
-                l_fw_s = fwrite(g_sx->m_resp.c_str(), 1, g_sx->m_resp.length(), g_out_file_ptr);
-                if(l_fw_s != g_sx->m_resp.length())
-                {
-                        NDBG_PRINT("error performing fwrite.\n");
-                }
-                fwrite("\n", 1, 1, g_out_file_ptr);
         }
         ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
         int32_t l_s;
@@ -470,11 +449,11 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
 //: ----------------------------------------------------------------------------
 //: default
 //: ----------------------------------------------------------------------------
-class waflz_h: public ns_is2::default_rqst_h
+class scopez_h: public ns_is2::default_rqst_h
 {
 public:
-        waflz_h(): default_rqst_h() {}
-        ~waflz_h() {}
+        scopez_h(): default_rqst_h() {}
+        ~scopez_h() {}
         // -------------------------------------------------
         // default rqst handler...
         // -------------------------------------------------
@@ -482,13 +461,13 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                const waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
+                const waflz_pb::enforcement *l_enf = NULL;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx_scopes, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
                         return l_resp_t;
@@ -496,15 +475,15 @@ public:
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
+#if 0
                 if(l_enf
-#ifdef WAFLZ_RATE_LIMITING
                    // only enforcements for limit mode
-                   && (!g_config_mode == CONFIG_MODE_LIMIT)
-#endif
+                   //&& (!g_config_mode == CONFIG_MODE_LIMIT)
                    )
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+#endif
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response
@@ -514,10 +493,10 @@ public:
                         ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                         l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
                                                    "application/json",
-                                                   g_sx->m_resp.length(),
+                                                   g_sx_scopes->m_resp.length(),
                                                    a_rqst.m_supports_keep_alives,
                                                    a_session.get_server_name());
-                        l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
+                        l_api_resp.set_body_data(g_sx_scopes->m_resp.c_str(), g_sx_scopes->m_resp.length());
                         l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
                         ns_is2::queue_api_resp(a_session, l_api_resp);
                         return ns_is2::H_RESP_DONE;
@@ -528,11 +507,11 @@ public:
 //: ----------------------------------------------------------------------------
 //: file
 //: ----------------------------------------------------------------------------
-class waflz_file_h: public ns_is2::file_h
+class scopez_file_h: public ns_is2::file_h
 {
 public:
-        waflz_file_h(): file_h() {}
-        ~waflz_file_h() {}
+        scopez_file_h(): file_h() {}
+        ~scopez_file_h() {}
         // -------------------------------------------------
         // default rqst handler...
         // -------------------------------------------------
@@ -540,13 +519,13 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                const waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
+                const waflz_pb::enforcement *l_enf = NULL;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx_scopes, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
                         return l_resp_t;
@@ -572,12 +551,12 @@ public:
 //: ----------------------------------------------------------------------------
 //: proxy
 //: ----------------------------------------------------------------------------
-class waflz_proxy_h: public ns_is2::proxy_h
+class scopez_proxy_h: public ns_is2::proxy_h
 {
 public:
-        waflz_proxy_h(const std::string &a_proxy_host):
+        scopez_proxy_h(const std::string &a_proxy_host):
                 proxy_h(a_proxy_host, ""){}
-        ~waflz_proxy_h() {}
+        ~scopez_proxy_h() {}
         // -------------------------------------------------
         // default rqst handler...
         // -------------------------------------------------
@@ -585,13 +564,13 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                const waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
+                const waflz_pb::enforcement *l_enf = NULL;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx_scopes, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
                         return l_resp_t;
@@ -639,8 +618,8 @@ void sig_handler(int signo)
 void print_version(FILE* a_stream, int a_exit_code)
 {
         // print out the version information
-        fprintf(a_stream, "waflz_server\n");
-        fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
+        fprintf(a_stream, "scopez_server\n");
+        fprintf(a_stream, "Copyright (C) 2019 Verizon Digital Media.\n");
         fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
         exit(a_exit_code);
 }
@@ -651,34 +630,19 @@ void print_version(FILE* a_stream, int a_exit_code)
 //: ----------------------------------------------------------------------------
 void print_usage(FILE* a_stream, int a_exit_code)
 {
-        fprintf(a_stream, "Usage: waflz_server [options]\n");
+        fprintf(a_stream, "Usage: scopez_server [options]\n");
         fprintf(a_stream, "Options:\n");
         fprintf(a_stream, "  -h, --help          display this help and exit.\n");
         fprintf(a_stream, "  -v, --version       display the version number and exit.\n");
         fprintf(a_stream, "  \n");
-        fprintf(a_stream, "Config Modes: -specify one only\n");
-        fprintf(a_stream, "  -i, --instance      waf instance\n");
-        fprintf(a_stream, "  -d, --instance-dir  waf instance directory\n");
-        fprintf(a_stream, "  -f, --profile       waf profile\n");
-        fprintf(a_stream, "  -m, --modsecurity   modsecurity rules file (experimental)\n");
-#ifdef WAFLZ_RATE_LIMITING
-        fprintf(a_stream, "  -l, --limit         limit config file.\n");
-#endif
+        fprintf(a_stream, "Server Configuration:\n");
+        fprintf(a_stream, "  -c, --config        scopes config\n");
+        fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
-        fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
+        fprintf(a_stream, "  -F, --conf-dir      conf directory\n");
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
         fprintf(a_stream, "  -s, --geoip-isp-db  geoip-isp-db\n");
-        fprintf(a_stream, "  -x, --random-ips    randomly generate ips\n");
-#ifdef WAFLZ_RATE_LIMITING
-        fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
-        fprintf(a_stream, "  -c, --challenge json containing browser challenges\n");
-#endif
-        fprintf(a_stream, "  \n");
-        fprintf(a_stream, "Server Configuration:\n");
-        fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
-        fprintf(a_stream, "  -z, --bg            load configs in background thread\n");
-        fprintf(a_stream, "  -o, --output        write json alerts to file\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Mode: choose one or none\n");
         fprintf(a_stream, "  -w, --static        static file path (for serving)\n");
@@ -714,19 +678,13 @@ int main(int argc, char** argv)
         //ns_is2::trc_log_file_open("/dev/stdout");
         // modes
         server_mode_t l_server_mode = SERVER_MODE_NONE;
+        std::string l_conf_dir;
         std::string l_geoip_db;
         std::string l_geoip_isp_db;
-        std::string l_ruleset_dir;
-        std::string l_config_file;
-        std::string l_server_spec;
-        bool l_bg_load = false;
         // server settings
-        std::string l_out_file;
         uint16_t l_port = 12345;
-#ifdef WAFLZ_RATE_LIMITING
-        std::string l_redis_host;
-        std::string l_challenge_file;
-#endif
+        std::string l_server_spec;
+        std::string l_config_file;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -735,25 +693,14 @@ int main(int argc, char** argv)
                 {
                 { "help",         0, 0, 'h' },
                 { "version",      0, 0, 'v' },
-                { "ruleset-dir",  1, 0, 'r' },
-                { "instance",     1, 0, 'i' },
-                { "instance-dir", 1, 0, 'd' },
-                { "profile",      1, 0, 'f' },
-                { "modsecurity",  1, 0, 'm' },
+                { "config",       1, 0, 'c' },
                 { "port",         1, 0, 'p' },
+                { "conf-dir",     1, 0, 'F' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 's' },
-                { "random-ips",   0, 0, 'x' },
-                { "bg",           0, 0, 'z' },
-                { "trace",        1, 0, 't' },
                 { "static",       1, 0, 'w' },
                 { "proxy",        1, 0, 'y' },
-                { "output",       1, 0, 'o' },
-#ifdef WAFLZ_RATE_LIMITING
-                { "limit",        1, 0, 'l' },
-                { "challenge",    1, 0, 'c' },
-                { "redis-host",   1, 0, 'e' },
-#endif
+                { "trace",        1, 0, 't' },
 #ifdef ENABLE_PROFILER
                 { "cprofile",     1, 0, 'H' },
                 { "hprofile",     1, 0, 'C' },
@@ -761,14 +708,6 @@ int main(int argc, char** argv)
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-#define _TEST_SET_CONFIG_MODE(_type) do { \
-                if(g_config_mode != CONFIG_MODE_NONE) { \
-                        fprintf(stdout, "error multiple config modes specified.\n"); \
-                        return STATUS_ERROR; \
-                } \
-                g_config_mode = CONFIG_MODE_##_type; \
-                l_config_file = l_arg; \
-} while(0)
 #define _TEST_SET_SERVER_MODE(_type) do { \
                 if(l_server_mode != SERVER_MODE_NONE) { \
                         fprintf(stdout, "error multiple server modes specified.\n"); \
@@ -777,14 +716,13 @@ int main(int argc, char** argv)
                 l_server_mode = SERVER_MODE_##_type; \
                 l_server_spec = l_arg; \
 } while(0)
-
         // -------------------------------------------------
-        // Args...
+        // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:H:C:";
+        char l_short_arg_list[] = "hvp:F:g:s:c:w:y:t:H:C:";
 #else
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:";
+        char l_short_arg_list[] = "hvp:F:g:s:c:w:y:t:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -800,7 +738,7 @@ int main(int argc, char** argv)
                 switch (l_opt)
                 {
                 // -----------------------------------------
-                // Help
+                // help
                 // -----------------------------------------
                 case 'h':
                 {
@@ -816,55 +754,13 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // ruleset dir
+                // config
                 // -----------------------------------------
-                case 'r':
+                case 'c':
                 {
-                        l_ruleset_dir = l_arg;
+                        l_config_file = l_arg;
                         break;
                 }
-                // -----------------------------------------
-                // instance
-                // -----------------------------------------
-                case 'i':
-                {
-                        _TEST_SET_CONFIG_MODE(INSTANCE);
-                        break;
-                }
-                // -----------------------------------------
-                // instance-dir
-                // -----------------------------------------
-                case 'd':
-                {
-                        _TEST_SET_CONFIG_MODE(INSTANCES);
-                        break;
-                }
-                // -----------------------------------------
-                // profile
-                // -----------------------------------------
-                case 'f':
-                {
-                        _TEST_SET_CONFIG_MODE(PROFILE);
-                        break;
-                }
-                // -----------------------------------------
-                // modsecurity
-                // -----------------------------------------
-                case 'm':
-                {
-                        _TEST_SET_CONFIG_MODE(MODSECURITY);
-                        break;
-                }
-#ifdef WAFLZ_RATE_LIMITING
-                // -----------------------------------------
-                //  limit config
-                // -----------------------------------------
-                case 'l':
-                {
-                        _TEST_SET_CONFIG_MODE(LIMIT);
-                        break;
-                }
-#endif
                 // -----------------------------------------
                 // port
                 // -----------------------------------------
@@ -882,6 +778,14 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
+                // conf dir
+                // -----------------------------------------
+                case 'F':
+                {
+                        l_conf_dir = optarg;
+                        break;
+                }
+                // -----------------------------------------
                 // geoip db
                 // -----------------------------------------
                 case 'g':
@@ -895,6 +799,22 @@ int main(int argc, char** argv)
                 case 's':
                 {
                         l_geoip_isp_db = optarg;
+                        break;
+                }
+                // -----------------------------------------
+                // static
+                // -----------------------------------------
+                case 'w':
+                {
+                        _TEST_SET_SERVER_MODE(FILE);
+                        break;
+                }
+                // -----------------------------------------
+                // proxy
+                // -----------------------------------------
+                case 'y':
+                {
+                        _TEST_SET_SERVER_MODE(PROXY);
                         break;
                 }
                 // -----------------------------------------
@@ -920,64 +840,6 @@ int main(int argc, char** argv)
                         }
                         break;
                 }
-                // -----------------------------------------
-                // random ip's
-                // -----------------------------------------
-                case 'x':
-                {
-                        ns_waflz_server::g_random_ips = true;
-                        break;
-                }
-                // -----------------------------------------
-                // background loading
-                // -----------------------------------------
-                case 'z':
-                {
-                        l_bg_load = true;
-                        break;
-                }
-                // -----------------------------------------
-                // static
-                // -----------------------------------------
-                case 'w':
-                {
-                        _TEST_SET_SERVER_MODE(FILE);
-                        break;
-                }
-                // -----------------------------------------
-                // proxy
-                // -----------------------------------------
-                case 'y':
-                {
-                        _TEST_SET_SERVER_MODE(PROXY);
-                        break;
-                }
-                // -----------------------------------------
-                // output
-                // -----------------------------------------
-                case 'o':
-                {
-                        l_out_file = l_arg;
-                        break;
-                }
-#ifdef WAFLZ_RATE_LIMITING
-                // -----------------------------------------
-                //  challenges
-                // -----------------------------------------
-                case 'c':
-                {
-                        l_challenge_file = l_arg;
-                        break;
-                }
-                // -----------------------------------------
-                // redis host
-                // -----------------------------------------
-                case 'e':
-                {
-                        l_redis_host = l_arg;
-                        break;
-                }
-#endif
 #ifdef ENABLE_PROFILER
                 // -----------------------------------------
                 // profiler file
@@ -1051,20 +913,6 @@ int main(int argc, char** argv)
         }
 #endif
         // -------------------------------------------------
-        // open out
-        // -------------------------------------------------
-        if(!l_out_file.empty())
-        {
-                g_out_file_ptr = fopen(l_out_file.c_str(), "a");
-                if(!g_out_file_ptr)
-                {
-                        NDBG_PRINT("error opening output file: %s. Reason: %s\n",
-                                        l_out_file.c_str(),
-                                   strerror(errno));
-                        return STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
         // server
         // -------------------------------------------------
         ns_is2::lsnr *l_lsnr = new ns_is2::lsnr(l_port, ns_is2::SCHEME_TCP);
@@ -1089,41 +937,9 @@ int main(int argc, char** argv)
                 l_geoip_isp_db = BOGUS_GEO_DATABASE;
         }
         // -------------------------------------------------
-        // Force directory string to end with '/'
-        // -------------------------------------------------
-        if(!l_ruleset_dir.empty() &&
-           ('/' != l_ruleset_dir[l_ruleset_dir.length() - 1]))
-        {
-                // Append
-                l_ruleset_dir += "/";
-        }
-        // -------------------------------------------------
-        // Validate is directory
-        // Stat file to see if is directory or file
-        // -------------------------------------------------
-        int32_t l_s = 0;
-        if(!l_ruleset_dir.empty())
-        {
-                struct stat l_stat;
-                l_s = stat(l_ruleset_dir.c_str(), &l_stat);
-                if(l_s != 0)
-                {
-                        fprintf(stdout, "error performing stat on directory: %s.  Reason: %s\n", l_ruleset_dir.c_str(), strerror(errno));
-                        exit(STATUS_ERROR);
-                }
-                // -----------------------------------------
-                // Check if is directory
-                // -----------------------------------------
-                if((l_stat.st_mode & S_IFDIR) == 0)
-                {
-                        fprintf(stdout, "error %s does not appear to be a directory\n", l_ruleset_dir.c_str());
-                        exit(STATUS_ERROR);
-                }
-        }
-        // -------------------------------------------------
         // setup
         // -------------------------------------------------
-        ns_waflz::profile::s_ruleset_dir = l_ruleset_dir;
+        ns_waflz::scopes::s_conf_dir = l_conf_dir;
         ns_waflz::profile::s_geoip2_db = l_geoip_db;
         ns_waflz::profile::s_geoip2_isp_db = l_geoip_isp_db;
         // -------------------------------------------------
@@ -1139,8 +955,8 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(SERVER_MODE_PROXY):
         {
-                waflz_proxy_h *l_waflz_proxy_h = new waflz_proxy_h(l_server_spec);
-                l_h = l_waflz_proxy_h;
+                scopez_proxy_h *l_scopez_proxy_h = new scopez_proxy_h(l_server_spec);
+                l_h = l_scopez_proxy_h;
                 break;
         }
         // -------------------------------------------------
@@ -1148,9 +964,9 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(SERVER_MODE_FILE):
         {
-                waflz_file_h *l_waflz_file_h = new waflz_file_h();
-                l_waflz_file_h->set_root(l_server_spec);
-                l_h = l_waflz_file_h;
+                scopez_file_h *l_scopez_file_h = new scopez_file_h();
+                l_scopez_file_h->set_root(l_server_spec);
+                l_h = l_scopez_file_h;
                 break;
         }
         // -------------------------------------------------
@@ -1158,8 +974,8 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         default:
         {
-                waflz_h *l_waflz = new waflz_h();
-                l_h = l_waflz;
+                scopez_h *l_scopez = new scopez_h();
+                l_h = l_scopez;
                 break;
         }
         }
@@ -1169,86 +985,18 @@ int main(int argc, char** argv)
         l_lsnr->set_default_route(l_h);
         // -------------------------------------------------
         // *************************************************
-        // mode setup
+        // scopes setup
         // *************************************************
         // -------------------------------------------------
-        switch(g_config_mode)
-        {
-        // -------------------------------------------------
-        // profile
-        // -------------------------------------------------
-        case(CONFIG_MODE_PROFILE):
-        {
-                ns_waflz_server::sx_profile *l_sx_profile = new ns_waflz_server::sx_profile();
-                l_sx_profile->m_lsnr = l_lsnr;
-                l_sx_profile->m_config = l_config_file;
-                g_sx = l_sx_profile;
-                break;
-        }
-        // -------------------------------------------------
-        // instances
-        // -------------------------------------------------
-        case(CONFIG_MODE_INSTANCES):
-        {
-                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
-                l_sx_instance->m_lsnr = l_lsnr;
-                l_sx_instance->m_config = l_config_file;
-                l_sx_instance->m_is_dir_flag = true;
-                l_sx_instance->m_bg_load = l_bg_load;
-                g_sx = l_sx_instance;
-                break;
-        }
-        // -------------------------------------------------
-        // instance
-        // -------------------------------------------------
-        case(CONFIG_MODE_INSTANCE):
-        {
-                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
-                l_sx_instance->m_lsnr = l_lsnr;
-                l_sx_instance->m_config = l_config_file;
-                l_sx_instance->m_is_dir_flag = false;
-                l_sx_instance->m_bg_load = l_bg_load;
-                g_sx = l_sx_instance;
-                break;
-        }
-        // -------------------------------------------------
-        // modsecurity
-        // -------------------------------------------------
-        case(CONFIG_MODE_MODSECURITY):
-        {
-                ns_waflz_server::sx_modsecurity *l_sx_msx = new ns_waflz_server::sx_modsecurity();
-                l_sx_msx->m_lsnr = l_lsnr;
-                l_sx_msx->m_config = l_config_file;
-                g_sx = l_sx_msx;
-                break;
-        }
-#ifdef WAFLZ_RATE_LIMITING
-        // -------------------------------------------------
-        // modsecurity
-        // -------------------------------------------------
-        case(CONFIG_MODE_LIMIT):
-        {
-                ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit();
-                l_sx_limit->m_lsnr = l_lsnr;
-                l_sx_limit->m_config = l_config_file;
-                // TODO ...
-                g_sx = l_sx_limit;
-                break;
-        }
-#endif
-        // -------------------------------------------------
-        // default
-        // -------------------------------------------------
-        default:
-        {
-                fprintf(stdout, "error no mode specified.\n");
-                return STATUS_ERROR;
-        }
-        }
+        g_sx_scopes = new ns_scopez_server::sx_scopes();
+        g_sx_scopes->m_lsnr = l_lsnr;
+        g_sx_scopes->m_config = l_config_file;
+        g_sx_scopes->m_bg_load = false;
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = g_sx->init();
+        int32_t l_s;
+        l_s = g_sx_scopes->init();
         if(l_s != STATUS_OK)
         {
                 fprintf(stdout, "performing initialization\n");
@@ -1287,9 +1035,8 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(g_out_file_ptr) { fclose(g_out_file_ptr); g_out_file_ptr = NULL; }
         if(g_srvr) { delete g_srvr; g_srvr = NULL; }
         if(l_h) { delete l_h; l_h = NULL; }
-        if(g_sx) { delete g_sx; g_sx = NULL; }
+        if(g_sx_scopes) { delete g_sx_scopes; g_sx_scopes = NULL; }
         return STATUS_OK;
 }

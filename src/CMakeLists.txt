@@ -103,6 +103,7 @@ SET(SRCS
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
     ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
     # ------------------------------------------------------
     # cityhash
     # ------------------------------------------------------
@@ -158,6 +159,7 @@ SET(SRCS
     core/op.cc
     core/macro.cc
     core/render.cc
+    core/scopes.cc
     # ------------------------------------------------------
     # parsers
     # ------------------------------------------------------
@@ -173,7 +175,6 @@ list(APPEND SRCS
     # ------------------------------------------------------
     # pb
     # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
     ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
     #---------------------------------------------
     # ectoken
@@ -253,12 +254,12 @@ set_source_files_properties(
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
     ${CMAKE_BINARY_DIR}/proto/acl.pb.h
     ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.h
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
     # ------------------------------------------------------
     # rate-limiting proto
     # ------------------------------------------------------
     if(BUILD_RATE_LIMITING)
-        ${CMAKE_BINARY_DIR}/proto/scope.pb.h
-        ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
         ${CMAKE_BINARY_DIR}/proto/limit.pb.h
         ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
     endif()

@@ -1,5 +1,6 @@
 syntax = "proto2";
 package waflz_pb;
+import "action.proto";
 //: ----------------------------------------------------------------------------
 //: operator
 //: ----------------------------------------------------------------------------
@@ -27,6 +28,67 @@ message op_t {
 //: scope
 //: ----------------------------------------------------------------------------
 message scope {
-        optional op_t host = 1;
-        optional op_t path = 2;
+        // -------------------------------------------------
+        // scope
+        // -------------------------------------------------
+        optional op_t host = 100;
+        optional op_t path = 101;
+        // -------------------------------------------------
+        // acl
+        // -------------------------------------------------
+        // audit
+        optional string acl_audit_id = 1000;
+        optional uint64 _acl_audit__reserved = 1010;
+        optional enforcement acl_audit_action = 1020;
+        // prod
+        optional string acl_prod_id = 1100;
+        optional uint64 _acl_prod__reserved = 1110;
+        optional enforcement acl_prod_action = 1120;
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+        // audit
+        optional string rules_audit_id = 2000;
+        optional uint64 _rules_audit__reserved = 2010;
+        optional enforcement rules_audit_action = 2020;
+        // prod
+        optional string rules_prod_id = 2100;
+        optional uint64 _rules_prod__reserved = 2110;
+        optional enforcement rules_prod_action = 2120;
+        // -------------------------------------------------
+        // profile
+        // -------------------------------------------------
+        // audit
+        optional string profile_audit_id = 3000;
+        optional uint64 _profile_audit__reserved = 3010;
+        optional enforcement profile_audit_action = 3020;
+        // prod
+        optional string profile_prod_id = 3100;
+        optional uint64 _profile_prod__reserved = 3110;
+        optional enforcement profile_prod_action = 3120;
+        // -------------------------------------------------
+        // limits
+        // -------------------------------------------------
+        message limit_config {
+                optional string id = 1;
+                optional uint64 _reserved_1 = 10;
+                optional enforcement action = 20;
+        }
+        repeated limit_config limits = 4000;
+}
+//: ----------------------------------------------------------------------------
+//: scope
+//: ----------------------------------------------------------------------------
+message scope_config {
+        // -------------------------------------------------
+        // meta
+        // -------------------------------------------------
+        optional string id = 1;
+        optional string version = 2;
+        optional string last_modified_date = 30;
+        optional string last_modified_by = 31;
+        // -------------------------------------------------
+        // scopes
+        // -------------------------------------------------
+        repeated scope scopes = 1000;
 }

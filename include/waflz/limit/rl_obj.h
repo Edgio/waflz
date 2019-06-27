@@ -152,5 +152,6 @@ private:
 //: ----------------------------------------------------------------------------
 int32_t limit_remove(waflz_pb::config &ao_cfg, uint32_t a_off);
 int32_t limit_sweep(waflz_pb::config &ao_cfg);
+int32_t convert_enforcement(waflz_pb::enforcement& ao_enf);
 }
 #endif

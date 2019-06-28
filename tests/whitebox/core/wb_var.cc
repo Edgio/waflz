@@ -250,7 +250,7 @@ TEST_CASE( "test var", "[var]" ) {
         ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
         ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
         ns_waflz::rqst_ctx::s_get_rqst_body_str_cb = get_rqst_body_str_cb;
-        ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true);
+        ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true, true);
         // -------------------------------------------------
         // *************************************************
         //         Content-Type --> parser map

@@ -179,6 +179,7 @@ static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
 //: ----------------------------------------------------------------------------
 rqst_ctx::rqst_ctx(void *a_ctx,
                    uint32_t a_body_len_max,
+                   bool a_parse_xml,
                    bool a_parse_json):
         m_src_addr(),
         m_local_addr(),
@@ -206,6 +207,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_body_data(NULL),
         m_body_len(0),
         m_content_length(0),
+        m_parse_xml(a_parse_xml),
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
         m_req_uuid(),
@@ -922,6 +924,12 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         // -------------------------------------------------
         case PARSER_XML:
         {
+                if(!m_parse_xml)
+                {
+                        // do nothing...
+                        m_init_phase_2 = true;
+                        return WAFLZ_STATUS_OK;
+                }
                 m_body_parser = new parser_xml(this);
                 break;
         }

@@ -67,6 +67,8 @@ add_test(blackbox_rtu
          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/rules/test_bb_rtu.py)
 add_test(blackbox_instances
          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/instances/test_instances.py)
+add_test(blackbox_profile
+         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/profile/test_bb_profile.py)
 # ------------------------------------------------------------------------------
 # tests
 # ------------------------------------------------------------------------------

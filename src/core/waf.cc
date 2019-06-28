@@ -71,6 +71,7 @@ waf::waf(engine &a_engine):
         m_owasp_ruleset_version(0),
         m_paranoia_level(1),
         m_no_log_matched(false),
+        m_parse_xml(false),
         m_parse_json(false)
 {
         m_compiled_config = new compiled_config_t();
@@ -2357,7 +2358,7 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
                 {
                         l_body_size_max = m_pb->request_body_in_memory_limit();
                 }
-                l_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_parse_json);
+                l_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_parse_xml, m_parse_json);
                 if(ao_rqst_ctx)
                 {
                         *ao_rqst_ctx = l_ctx;

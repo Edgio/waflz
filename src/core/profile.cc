@@ -314,10 +314,19 @@ int32_t profile::init(void)
         m_waf->set_name(m_name);
         m_waf->set_owasp_ruleset_version(m_owasp_ruleset_version);
         m_waf->set_paranoia_level(m_paranoia_level);
-        // Json parser
+        // -------------------------------------------------
+        // json parser
+        // -------------------------------------------------
         if(m_pb->general_settings().has_json_parser())
         {
                 m_waf->set_parse_json(m_pb->general_settings().json_parser());
+        }
+        // -------------------------------------------------
+        // xml parser
+        // -------------------------------------------------
+        if(m_pb->general_settings().has_xml_parser())
+        {
+                m_waf->set_parse_xml(m_pb->general_settings().xml_parser());
         }
         // -------------------------------------------------
         // init
@@ -655,7 +664,10 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                 {
                         l_body_size_max = m_waf->get_request_body_in_memory_limit();
                 }
-                l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
+                l_rqst_ctx = new rqst_ctx(a_ctx,
+                                          l_body_size_max,
+                                          m_waf->get_parse_xml(),
+                                          m_waf->get_parse_json());
                 if(ao_rqst_ctx)
                 {
                         *ao_rqst_ctx = l_rqst_ctx;

@@ -102,9 +102,11 @@ public:
         void set_name(const std::string &a_name) { m_name = a_name; }
         void set_owasp_ruleset_version(uint32_t a_version) { m_owasp_ruleset_version = a_version; }
         void set_paranoia_level(uint32_t a_paranoia_level) { m_paranoia_level = a_paranoia_level; }
+        void set_parse_xml( const bool &a_parse_xml) { m_parse_xml = a_parse_xml; }
         void set_parse_json( const bool &a_parse_json) { m_parse_json = a_parse_json; }
         uint32_t get_owasp_ruleset_version(void) { return m_owasp_ruleset_version; }
         uint32_t get_paranoia_level(void) { return m_paranoia_level; }
+        bool get_parse_xml(void) { return m_parse_xml; }
         bool get_parse_json(void) { return m_parse_json; }
         uint32_t get_request_body_in_memory_limit(void);
 private:
@@ -154,6 +156,7 @@ private:
         uint32_t m_owasp_ruleset_version;
         uint32_t m_paranoia_level;
         bool m_no_log_matched;
+        bool m_parse_xml;
         bool m_parse_json;
 #endif
         // -------------------------------------------------

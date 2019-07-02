@@ -28,6 +28,7 @@
 #include "waflz/def.h"
 #include "cityhash/city.h"
 #include <string>
+#include <inttypes.h>
 #if defined(__APPLE__) || defined(__darwin__)
     #include <unordered_map>
 #else
@@ -41,6 +42,7 @@ namespace waflz_pb {
         class scope_config;
         class event;
         class scope;
+        class op_t;
 }
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
@@ -135,5 +137,19 @@ private:
         // limits
         // TODO
 };
+//: ----------------------------------------------------------------------------
+//: run operation
+//: ----------------------------------------------------------------------------
+int32_t rl_run_op(bool &ao_matched,
+                  const waflz_pb::op_t &a_op,
+                  const char *a_data,
+                  uint32_t a_data_len,
+                  bool a_case_insensitive);
+//: ----------------------------------------------------------------------------
+//: check scope
+//: ----------------------------------------------------------------------------
+int32_t in_scope(bool &ao_match,
+                 const waflz_pb::scope &a_scope,
+                 rqst_ctx *a_ctx);
 }
 #endif

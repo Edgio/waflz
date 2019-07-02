@@ -233,13 +233,21 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 int32_t l_s;
                 char *l_dcd = NULL;
                 size_t l_dcd_len = 0;
-                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, _DEFAULT_RESP_BODY_B64, strlen(_DEFAULT_RESP_BODY_B64));
-                if(l_s != STATUS_OK)
+                if(a_enf.has_response_body())
                 {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
-                        break;
+                        l_dcd = (char *)a_enf.response_body().c_str();
+                        l_dcd_len = a_enf.response_body().length();
+                }
+                else
+                {
+                        l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, _DEFAULT_RESP_BODY_B64, strlen(_DEFAULT_RESP_BODY_B64));
+                        if(l_s != STATUS_OK)
+                        {
+                                // error???
+                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                                l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                                break;
+                        }
                 }
                 // -----------------------------------------
                 // render
@@ -300,12 +308,20 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 int32_t l_s;
                 char *l_dcd = NULL;
                 size_t l_dcd_len = 0;
-                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
-                if(l_s != WAFLZ_STATUS_OK)
+                if(a_enf.has_response_body())
                 {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        break;
+                        l_dcd = (char *)a_enf.response_body().c_str();
+                        l_dcd_len = a_enf.response_body().length();
+                }
+                else
+                {
+                        l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                // error???
+                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                                break;
+                        }
                 }
                 // -----------------------------------------
                 // render

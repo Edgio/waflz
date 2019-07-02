@@ -107,6 +107,7 @@ public:
         // -------------------------------------------------
         rqst_ctx(void *a_ctx,
                  uint32_t a_body_len_max,
+                 bool a_parse_xml = false,
                  bool a_parse_json = false);
         ~rqst_ctx();
         int32_t init_phase_1(const pcre_list_t *a_il_query = NULL,
@@ -146,6 +147,7 @@ public:
         char *m_body_data;
         uint32_t m_body_len;
         uint32_t m_content_length;
+        bool m_parse_xml;
         bool m_parse_json;
         std::string m_cookie_mutated;
         data_t m_req_uuid;

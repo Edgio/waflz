@@ -29,6 +29,7 @@
 #include "waflz/waf.h"
 #include "waflz/limit/rl_obj.h"
 #include "support/ndebug.h"
+#include "support/base64.h"
 #include "op/nms.h"
 #include "op/regex.h"
 #include "scope.pb.h"
@@ -49,6 +50,76 @@
         } \
 } while(0)
 namespace ns_waflz {
+//: ----------------------------------------------------------------------------
+//: utils
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg)
+{
+        // -------------------------------------------------
+        // convert type string to enf_type
+        // -------------------------------------------------
+        if(!ao_axn.has_enf_type() &&
+            ao_axn.has_type())
+        {
+                const std::string &l_type = ao_axn.type();
+#define _ELIF_TYPE(_str, _type) else \
+if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
+        ao_axn.set_enf_type(waflz_pb::enforcement_type_t_##_type); \
+}
+            if(0) {}
+            _ELIF_TYPE("REDIRECT_302", REDIRECT_302)
+            _ELIF_TYPE("REDIRECT-302", REDIRECT_302)
+            _ELIF_TYPE("REDIRECT_JS", REDIRECT_JS)
+            _ELIF_TYPE("REDIRECT-JS", REDIRECT_JS)
+            _ELIF_TYPE("HASHCASH", HASHCASH)
+            _ELIF_TYPE("CUSTOM_RESPONSE", CUSTOM_RESPONSE)
+            _ELIF_TYPE("CUSTOM-RESPONSE", CUSTOM_RESPONSE)
+            _ELIF_TYPE("DROP_REQUEST", DROP_REQUEST)
+            _ELIF_TYPE("DROP-REQUEST", DROP_REQUEST)
+            _ELIF_TYPE("DROP_CONNECTION", DROP_CONNECTION)
+            _ELIF_TYPE("DROP-CONNECTION", DROP_CONNECTION)
+            _ELIF_TYPE("NOP", NOP)
+            _ELIF_TYPE("ALERT", ALERT)
+            _ELIF_TYPE("BLOCK_REQUEST", BLOCK_REQUEST)
+            _ELIF_TYPE("BLOCK-REQUEST", BLOCK_REQUEST)
+            _ELIF_TYPE("BROWSER_CHALLENGE", BROWSER_CHALLENGE)
+            _ELIF_TYPE("BROWSER-CHALLENGE", BROWSER_CHALLENGE)
+            else
+            {
+                    WAFLZ_PERROR(ao_err_msg, "unrecognized enforcement type string: %s", l_type.c_str());
+                    return WAFLZ_STATUS_ERROR;
+            }
+        }
+        // -------------------------------------------------
+        // convert b64 encoded resp
+        // -------------------------------------------------
+        if(!ao_axn.has_response_body() &&
+                        ao_axn.has_response_body_base64() &&
+           !ao_axn.response_body_base64().empty())
+        {
+                const std::string& l_b64 = ao_axn.response_body_base64();
+                char* l_body = NULL;
+                size_t l_body_len = 0;
+                int32_t l_s;
+                l_s = b64_decode(&l_body, l_body_len, l_b64.c_str(), l_b64.length());
+                if(!l_body ||
+                   !l_body_len ||
+                   (l_s != WAFLZ_STATUS_OK))
+                {
+                        WAFLZ_PERROR(ao_err_msg, "decoding response_body_base64 string: %s", l_b64.c_str());
+                        return WAFLZ_STATUS_ERROR;
+                }
+                ao_axn.mutable_response_body()->assign(l_body, l_body_len);
+                if(l_body) { free(l_body); l_body = NULL; }
+        }
+        return WAFLZ_STATUS_OK;
+}
+
 //: ----------------------------------------------------------------------------
 //: Class Variables
 //: ----------------------------------------------------------------------------
@@ -251,6 +322,19 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope)
                 m_id_rules_map[a_scope.rules_prod_id()] = l_waf;
         }
         // -------------------------------------------------
+        // rules prod action
+        // -------------------------------------------------
+        if(a_scope.has_rules_prod_action())
+        {
+                waflz_pb::enforcement *l_a = a_scope.mutable_rules_prod_action();
+                int32_t l_s;
+                l_s = compile_action(*l_a, m_err_msg);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
         // profile audit
         // -------------------------------------------------
         // TODO
@@ -262,6 +346,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope)
         // limits
         // -------------------------------------------------
         // TODO
+        NDBG_PRINT("%s\n", a_scope.DebugString().c_str());
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

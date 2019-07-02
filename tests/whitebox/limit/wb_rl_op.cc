@@ -26,8 +26,8 @@
 #include "catch/catch.hpp"
 #include "op/regex.h"
 #include "op/nms.h"
-#include "limit/rl_op.h"
 #include "waflz/def.h"
+#include "waflz/scopes.h"
 #include "waflz/limit/rl_obj.h"
 #include "limit.pb.h"
 //: ----------------------------------------------------------------------------

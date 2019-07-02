@@ -163,7 +163,7 @@ if(BUILD_UBUNTU AND BUILD_CUSTOM_OPENSSL)
 elseif(BUILD_UBUNTU)
   #set(LIBRARIES ${LIBRARIES} pthread ssl crypto)
 else()
-  #set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
+  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
 endif()
 # ------------------------------------------------------------------------------
 # Mac OS X

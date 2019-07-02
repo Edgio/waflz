@@ -151,5 +151,9 @@ int32_t rl_run_op(bool &ao_matched,
 int32_t in_scope(bool &ao_match,
                  const waflz_pb::scope &a_scope,
                  rqst_ctx *a_ctx);
+//: ----------------------------------------------------------------------------
+//: get/convert enforcement
+//: ----------------------------------------------------------------------------
+int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg);
 }
 #endif

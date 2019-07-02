@@ -25,14 +25,14 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/limit/rl_obj.h"
 #include "waflz/rqst_ctx.h"
-#include "support/base64.h"
+#include "waflz/scopes.h"
 #include "support/time_util.h"
 #include "support/ndebug.h"
 #include "support/trace_internal.h"
 #include "support/md5.h"
+#include "support/base64.h"
 #include "op/regex.h"
 #include "op/nms.h"
-#include "limit/rl_op.h"
 #include "limit.pb.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
@@ -205,63 +205,12 @@ int32_t rl_obj::compile_limit(waflz_pb::limit &ao_limit)
         // -------------------------------------------------
         if(ao_limit.has_action())
         {
-                waflz_pb::enforcement *l_e = ao_limit.mutable_action();
-                // -----------------------------------------
-                // coerce type string into enum
-                // -----------------------------------------
-                if(!l_e->has_enf_type() &&
-                   l_e->has_type())
+                waflz_pb::enforcement *l_a = ao_limit.mutable_action();
+                int32_t l_s;
+                l_s = compile_action(*l_a, m_err_msg);
+                if(l_s != WAFLZ_STATUS_OK)
                 {
-                        const std::string &l_type = l_e->type();
-#define _ELIF_TYPE(_str, _type) else \
-if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
-        l_e->set_enf_type(waflz_pb::enforcement_type_t_##_type); \
-}
-                        if(0) {}
-                        _ELIF_TYPE("REDIRECT_302", REDIRECT_302)
-                        _ELIF_TYPE("REDIRECT-302", REDIRECT_302)
-                        _ELIF_TYPE("REDIRECT_JS", REDIRECT_JS)
-                        _ELIF_TYPE("REDIRECT-JS", REDIRECT_JS)
-                        _ELIF_TYPE("HASHCASH", HASHCASH)
-                        _ELIF_TYPE("CUSTOM_RESPONSE", CUSTOM_RESPONSE)
-                        _ELIF_TYPE("CUSTOM-RESPONSE", CUSTOM_RESPONSE)
-                        _ELIF_TYPE("DROP_REQUEST", DROP_REQUEST)
-                        _ELIF_TYPE("DROP-REQUEST", DROP_REQUEST)
-                        _ELIF_TYPE("DROP_CONNECTION", DROP_CONNECTION)
-                        _ELIF_TYPE("DROP-CONNECTION", DROP_CONNECTION)
-                        _ELIF_TYPE("NOP", NOP)
-                        _ELIF_TYPE("ALERT", ALERT)
-                        _ELIF_TYPE("BLOCK_REQUEST", BLOCK_REQUEST)
-                        _ELIF_TYPE("BLOCK-REQUEST", BLOCK_REQUEST)
-                        _ELIF_TYPE("BROWSER_CHALLENGE", BROWSER_CHALLENGE)
-                        _ELIF_TYPE("BROWSER-CHALLENGE", BROWSER_CHALLENGE)
-                        else
-                        {
-                                WAFLZ_PERROR(m_err_msg, "unrecognized enforcement type string: %s", l_type.c_str());
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                // -----------------------------------------
-                // convert b64 encoded resp
-                // -----------------------------------------
-                if(!l_e->has_response_body() &&
-                   l_e->has_response_body_base64() &&
-                   !l_e->response_body_base64().empty())
-                {
-                        const std::string& l_b64 = l_e->response_body_base64();
-                        char* l_body = NULL;
-                        size_t l_body_len = 0;
-                        int32_t l_s;
-                        l_s = b64_decode(&l_body, l_body_len, l_b64.c_str(), l_b64.length());
-                        if(!l_body ||
-                           !l_body_len ||
-                           (l_s != WAFLZ_STATUS_OK))
-                        {
-                                WAFLZ_PERROR(m_err_msg, "decoding response_body_base64 string: %s", l_b64.c_str());
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                        l_e->mutable_response_body()->assign(l_body, l_body_len);
-                        if(l_body) { free(l_body); l_body = NULL; }
+                        return WAFLZ_STATUS_ERROR;
                 }
         }
         return WAFLZ_STATUS_OK;

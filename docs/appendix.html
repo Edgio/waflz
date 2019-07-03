@@ -100,6 +100,22 @@
 </tbody>
 </table>
 </div>
+<div class="section" id="ip-trie-performance">
+<span id="appendix-iptrie"></span><h2>IP Trie Performance<a class="headerlink" href="#ip-trie-performance" title="Permalink to this headline">¶</a></h2>
+<p>Comparing memory and query performance between the waflz <a class="reference external" href="https://github.com/VerizonDigital/waflz/blob/master/src/op/nms.h">IP Tree</a> and ModSecurity <a class="reference external" href="https://github.com/SpiderLabs/ModSecurity/blob/v2/master/apache2/msc_tree.h">msc_tree</a> implementations.</p>
+<div class="align-center figure" id="id2">
+<img alt="Memory Usage IPv4" src="_images/mem_usage_ipv4.svg" /><p class="caption"><span class="caption-text">Comparing ModSecurity vs waflz iptrie Memory Usage (IPv4)</span></p>
+</div>
+<div class="align-center figure" id="id3">
+<img alt="Memory Usage IPv6" src="_images/mem_usage_ipv6.svg" /><p class="caption"><span class="caption-text">Comparing ModSecurity vs waflz iptrie Memory Usage (IPv6)</span></p>
+</div>
+<div class="align-center figure" id="id4">
+<img alt="Search Performance IPv4" src="_images/query_perf_ipv4.svg" /><p class="caption"><span class="caption-text">Comparing ModSecurity vs waflz iptrie Search Performance (IPv4)</span></p>
+</div>
+<div class="align-center figure" id="id5">
+<img alt="Search Performance IPv6" src="_images/query_perf_ipv6.svg" /><p class="caption"><span class="caption-text">Comparing ModSecurity vs waflz iptrie Search Performance (IPv4)</span></p>
+</div>
+</div>
 </div>
 
 
@@ -112,6 +128,7 @@
   <ul>
 <li><a class="reference internal" href="#">Appendix</a><ul>
 <li><a class="reference internal" href="#acl-rule-id-mapping">ACL Rule ID mapping</a></li>
+<li><a class="reference internal" href="#ip-trie-performance">IP Trie Performance</a></li>
 </ul>
 </li>
 </ul>

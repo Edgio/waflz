@@ -83,6 +83,6 @@ Comparing memory and query performance between the waflz `IP Tree <https://githu
     :align: center
     :figclass: align-center
 
-    Comparing ModSecurity vs waflz iptrie Search Performance (IPv4)
+    Comparing ModSecurity vs waflz iptrie Search Performance (IPv6)
 
 

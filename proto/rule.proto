@@ -242,11 +242,6 @@ message sec_rule_t {
                         VERIFYCPF = 35;
                         VERIFYSSN = 36;
                         WITHIN = 37;
-                        // ---------------------------------
-                        // extensions...
-                        // ---------------------------------
-                        EM = 1000;
-                        EMF = 1001;
                 }
                 optional type_t type = 1;
                 optional string value = 2;

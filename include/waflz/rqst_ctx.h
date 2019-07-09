@@ -184,6 +184,13 @@ public:
         // xpath optimization
         // -------------------------------------------------
         xpath_cache_map_t *m_xpath_cache_map;
+        // -------------------------------------------------
+        // extensions
+        // -------------------------------------------------
+        uint32_t m_src_asn;
+        // TODO use uint32???
+        mutable_data_t m_src_asn_str;
+        data_t m_geo_cn2;
 private:
         // -------------------------------------------------
         // private methods

@@ -702,7 +702,8 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -y, --proxy         run server in proxy mode\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Debug Options:\n");
-        fprintf(a_stream, "  -t, --trace         turn on tracing (error/warn/debug/verbose/all)\n");
+        fprintf(a_stream, "  -t, --trace         server tracing  (error/warn/debug/verbose/all)\n");
+        fprintf(a_stream, "  -P, --process       process tracing (rule/match/all)\n");
         fprintf(a_stream, "  \n");
 #ifdef ENABLE_PROFILER
         fprintf(a_stream, "Profile Options:\n");
@@ -724,8 +725,6 @@ int main(int argc, char** argv)
         std::string l_arg;
         int l_option_index = 0;
         ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_NONE);
-        //ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_ALL);
-        //ns_is2::trc_log_file_open("/dev/stdout");
         // modes
         server_mode_t l_server_mode = SERVER_MODE_NONE;
         std::string l_geoip_db;

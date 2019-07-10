@@ -2,7 +2,7 @@
 //: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    trace_internal.cc
+//: \file:    waflz_trace.cc
 //: \details: TODO
 //: \author:  Reed P. Morrison
 //: \date:    04/15/2016
@@ -23,6 +23,7 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
+#if 0
 #include "trace_internal.h"
 #include "time_util.h"
 #include <errno.h>
@@ -173,3 +174,4 @@ void trc_mem_display(FILE *a_file, const uint8_t* a_mem_buf, uint32_t a_length)
         }
 }
 } // namespace ns_waflz {
+#endif

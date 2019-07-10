@@ -30,7 +30,6 @@
 #include "waflz/engine.h"
 #include "support/file_util.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "support/time_util.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
@@ -144,7 +143,7 @@ int32_t instances::load_config(instance **ao_instance,
                                                                     CONFIG_WAF_DATE_FORMAT);
                         if(l_loaded_epoch >= l_config_epoch)
                         {
-                                TRC_DEBUG("config is already latest. not performing update");
+                                //TRC_DEBUG("config is already latest. not performing update");
                                 *ao_instance = i_instance->second;
                                 // Delete the newly created instance
                                 delete l_instance;

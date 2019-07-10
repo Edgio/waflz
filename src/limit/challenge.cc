@@ -30,7 +30,6 @@
 #include "ectoken/ectoken_v3.h"
 #include "support/file_util.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "support/time_util.h"
 #include "support/string_util.h"
 #include "support/base64.h"

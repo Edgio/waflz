@@ -28,7 +28,6 @@
 #include "action.pb.h"
 #include "jspb/jspb.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "waflz/def.h"
 #include "waflz/instance.h"
 #include "waflz/profile.h"

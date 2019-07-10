@@ -26,7 +26,6 @@
 #include "support/time_util.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
-#include "support/trace_internal.h"
 #include "support/ndebug.h"
 #include "waflz/limit/configs.h"
 #include "waflz/limit/config.h"
@@ -136,7 +135,6 @@ int32_t configs::load(void *a_js)
                 if(l_t == _LIMIT_OBJ_NONE)
                 {
                         WAFLZ_PERROR(m_err_msg, "unrecognized type string: %s", l_str);
-                        NDBG_PRINT("unrecognized type string: %s", l_str);
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -148,7 +146,7 @@ int32_t configs::load(void *a_js)
            l_js["customer_id"].IsString())
         {
                 const char *l_str = l_js["customer_id"].GetString();
-                TRC_ALL("customer_id: %s\n", l_str);
+                //TRC_ALL("customer_id: %s\n", l_str);
                 int32_t l_s;
                 l_s = convert_hex_to_uint(l_cust_id, l_str);
                 if(l_s != WAFLZ_STATUS_OK)
@@ -157,7 +155,7 @@ int32_t configs::load(void *a_js)
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-        TRC_ALL("customer_id(int): %lu\n", l_cust_id);
+        //TRC_ALL("customer_id(int): %lu\n", l_cust_id);
         // -------------------------------------------------
         // find in map
         // -------------------------------------------------
@@ -233,7 +231,7 @@ int32_t configs::load(void *a_js)
                 uint64_t l_config_epoch = get_epoch_seconds(l_lmd_new.c_str(), CONFIG_RL_DATE_FORMAT);
                 if(l_loaded_epoch >= l_config_epoch)
                 {
-                        TRC_DEBUG("config is already latest. not performing update");
+                        //TRC_DEBUG("config is already latest. not performing update");
                         if(l_c) { delete l_c; l_c = NULL; }
                         return WAFLZ_STATUS_OK;
                 }

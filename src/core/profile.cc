@@ -30,7 +30,6 @@
 #include "event.pb.h"
 #include "jspb/jspb.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
 #include "support/time_util.h"

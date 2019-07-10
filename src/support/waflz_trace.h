@@ -2,7 +2,7 @@
 //: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    trace_internal.h
+//: \file:    waflz_trace.h
 //: \details: TODO
 //: \author:  Reed P. Morrison
 //: \date:    04/15/2016
@@ -20,11 +20,12 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _TRACE_INTERNAL_H
-#define _TRACE_INTERNAL_H
+#ifndef _WAFLZ_TRACE_H
+#define _WAFLZ_TRACE_H
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
+#if 0
 #include "waflz/trace.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -65,4 +66,5 @@ void trc_log_print(trc_log_level_t a_level,
                    const char *a_format, ...);
 void trc_mem_display(FILE *a_file, const uint8_t *a_mem_buf, uint32_t a_length);
 } // namespace ns_waflz {
+#endif
 #endif // _TRACE_INTERNAL_H

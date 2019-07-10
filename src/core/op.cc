@@ -29,7 +29,6 @@
 #include "core/macro.h"
 #include "core/decode.h"
 #include "support/string_util.h"
-#include "support/trace_internal.h"
 #include "support/ndebug.h"
 #include "op/regex.h"
 #include "op/ac.h"

@@ -24,7 +24,6 @@
 //! includes
 //! ----------------------------------------------------------------------------
 #include "support/time_util.h"
-#include "support/trace_internal.h"
 #include "support/ndebug.h"
 #include "support/string_util.h"
 #include "support/base64.h"
@@ -125,7 +124,7 @@ int32_t config::load()
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_DEBUG("error in compile");
+                //TRC_DEBUG("error in compile");
                 return WAFLZ_STATUS_ERROR;
         }
         // ------------------------------------------------

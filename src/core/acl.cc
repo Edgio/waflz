@@ -24,7 +24,6 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "op/regex.h"
 #include "support/string_util.h"
 #include "op/nms.h"

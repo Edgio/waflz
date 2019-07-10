@@ -28,7 +28,6 @@
 #include "waflz/scopes.h"
 #include "support/time_util.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "support/md5.h"
 #include "support/base64.h"
 #include "op/regex.h"

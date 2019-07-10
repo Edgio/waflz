@@ -255,7 +255,7 @@ TEST_CASE( "instances test", "[instances]" ) {
                 ns_waflz::instance *l_i = NULL;
                 l_ix = new ns_waflz::instances(*l_engine);
                 REQUIRE((l_ix != NULL));
-                l_s = l_ix->load_config(&l_i, WAF_CONF_1001_JSON, sizeof(WAF_CONF_1001_JSON), true, false);
+                l_s = l_ix->load_config(&l_i, WAF_CONF_1001_JSON, sizeof(WAF_CONF_1001_JSON), true);
                 NDBG_PRINT("err_msg: %s\n", l_ix->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
 #if 0

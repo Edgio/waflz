@@ -69,7 +69,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         // TODO get status
         //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
         int32_t l_s;
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
+        l_s = m_profile->load_config(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 TRC_ERROR("performing g_profile->load_config: reason: %s\n", m_profile->get_err_msg());
@@ -156,7 +156,7 @@ int32_t sx_profile::init(void)
         // -------------------------------------------------
         m_profile = new ns_waflz::profile(*m_engine);
         //NDBG_PRINT("load profile: %s\n", l_profile_file.c_str());
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
+        l_s = m_profile->load_config(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error loading config: %s. reason: %s\n",

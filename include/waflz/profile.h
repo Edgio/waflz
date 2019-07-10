@@ -68,8 +68,8 @@ public:
         ~profile();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t process_part(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);
-        int32_t load_config(const char *a_buf, uint32_t a_buf_len, bool a_leave_compiled_file = false);
-        int32_t load_config(const waflz_pb::profile *a_pb, bool a_leave_compiled_file = false);
+        int32_t load_config(const char *a_buf, uint32_t a_buf_len);
+        int32_t load_config(const waflz_pb::profile *a_pb);
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------
@@ -124,7 +124,6 @@ private:
         std::string m_name;
         std::string m_resp_header_name;
         uint16_t m_action;
-        bool m_leave_compiled_file;
         uint32_t m_owasp_ruleset_version;
         uint32_t m_paranoia_level;
         pcre_list_t m_il_query;

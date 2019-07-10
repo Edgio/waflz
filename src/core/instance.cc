@@ -115,8 +115,7 @@ instance::instance(engine &a_engine):
         m_name(),
         m_customer_id(),
         m_profile_audit(NULL),
-        m_profile_prod(NULL),
-        m_leave_compiled_file(false)
+        m_profile_prod(NULL)
 {
         m_pb = new waflz_pb::instance();
 }
@@ -149,8 +148,7 @@ instance::~instance()
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 int32_t instance::load_config(const char *a_buf,
-                              uint32_t a_buf_len,
-                              bool a_leave_compiled_file)
+                              uint32_t a_buf_len)
 {
         if(a_buf_len > CONFIG_SECURITY_WAF_INSTANCE_MAX_SIZE)
         {
@@ -160,7 +158,6 @@ int32_t instance::load_config(const char *a_buf,
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        m_leave_compiled_file = a_leave_compiled_file;
         int32_t l_s;
         l_s = update_from_json(*m_pb, a_buf, a_buf_len);
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
@@ -182,11 +179,9 @@ int32_t instance::load_config(const char *a_buf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instance::load_config(void *a_js,
-                              bool a_leave_compiled_file)
+int32_t instance::load_config(void *a_js)
 {
         m_init = false;
-        m_leave_compiled_file = a_leave_compiled_file;
         const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
         int32_t l_s;
         l_s = update_from_json(*m_pb, l_js);
@@ -282,8 +277,7 @@ int32_t instance::validate(void)
                 m_profile_audit = new profile(m_engine);
                 m_profile_audit->m_action = l_action;
                 int32_t l_s;
-                l_s = m_profile_audit->load_config(&(l_pb.audit_profile()),
-                                                   m_leave_compiled_file);
+                l_s = m_profile_audit->load_config(&(l_pb.audit_profile()));
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "(audit_profile): %s", m_profile_audit->get_err_msg());
@@ -331,8 +325,7 @@ int32_t instance::validate(void)
                 m_profile_prod = new profile(m_engine);
                 m_profile_prod->m_action = l_action;
                 int32_t l_s;
-                l_s = m_profile_prod->load_config(&(l_pb.prod_profile()),
-                                                  m_leave_compiled_file);
+                l_s = m_profile_prod->load_config(&(l_pb.prod_profile()));
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "(prod_profile): %s", m_profile_prod->get_err_msg());

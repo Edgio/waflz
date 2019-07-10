@@ -73,7 +73,7 @@ static void *t_load_instance(void *a_context)
         }
         int32_t l_s;
         ns_waflz::instance *l_instance = NULL;
-        l_s = l_i->m_instances->load_config(&l_instance, l_i->m_buf, l_i->m_buf_len, true);
+        l_s = l_i->m_instances->load_config(&l_instance, l_i->m_buf, l_i->m_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 TRC_ERROR("performing m_profile->load_config\n");
@@ -111,7 +111,7 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
                 //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
                 int32_t l_s;
                 ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len, true);
+                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         TRC_ERROR("performing m_profile->load_config\n");
@@ -211,7 +211,6 @@ int32_t sx_instance::init(void)
                 //NDBG_PRINT("l_instance_dir: %s\n", l_instance_dir.c_str());
                 l_s = m_instances->load_config_dir(m_config.c_str(),
                                                    m_config.length(),
-                                                   true,
                                                    true);
                 if(l_s != WAFLZ_STATUS_OK)
                 {

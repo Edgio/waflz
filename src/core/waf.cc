@@ -737,7 +737,7 @@ int32_t waf::set_defaults(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
+int32_t waf::init(profile &a_profile)
 {
         if(!a_profile.get_pb())
         {

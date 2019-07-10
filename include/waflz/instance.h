@@ -68,11 +68,8 @@ public:
         inline profile* get_audit_profile() { return m_profile_audit; }
         inline profile* get_prod_profile() { return m_profile_prod; }
         enforcement_list_t &get_mutable_prod_enfx_list(void);
-        int32_t load_config(const char *a_buf,
-                            uint32_t a_buf_len,
-                            bool a_leave_compiled_file = false);
-        int32_t load_config(void *a_js,
-                            bool a_leave_compiled_file = false);
+        int32_t load_config(const char *a_buf, uint32_t a_buf_len);
+        int32_t load_config(void *a_js);
         int32_t process(waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
@@ -105,7 +102,6 @@ private:
         std::string m_customer_id;
         profile *m_profile_audit;
         profile *m_profile_prod;
-        bool m_leave_compiled_file;
 };
 }
 #endif

@@ -144,7 +144,7 @@ static int32_t validate_ruleset_dir(std::string &a_ruleset_dir)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-static int32_t validate_profile(const std::string &a_file, std::string &a_ruleset_dir, bool a_cleanup_tmp)
+static int32_t validate_profile(const std::string &a_file, std::string &a_ruleset_dir)
 {
         int32_t l_s;
         // -------------------------------------------------
@@ -178,8 +178,7 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // -------------------------------------------------
         ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
         l_s = l_profile->load_config(l_config_buf,
-                                     l_config_buf_len,
-                                     !a_cleanup_tmp);
+                                     l_config_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
@@ -204,7 +203,7 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-static int32_t validate_instance(const std::string &a_file, std::string &a_ruleset_dir, bool a_cleanup_tmp)
+static int32_t validate_instance(const std::string &a_file, std::string &a_ruleset_dir)
 {
         int32_t l_s;
         // -------------------------------------------------
@@ -237,7 +236,7 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // instantiate the compiler and validate it
         // -------------------------------------------------
         ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine);
-        l_s = l_instance->load_config(l_config_buf, l_config_buf_len, !a_cleanup_tmp);
+        l_s = l_instance->load_config(l_config_buf, l_config_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
@@ -392,7 +391,6 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  -h, --help         Display this help and exit.\n");
         fprintf(a_stream, "  -v, --version      Display the version number and exit.\n");
         fprintf(a_stream, "  -d, --verbose      Verbose messages [Default: OFF]\n");
-        fprintf(a_stream, "  -n, --no-cleanup   Don't clean up tmp files [Default: OFF]\n");
         fprintf(a_stream, "  -r, --ruleset-dir  WAF Ruleset directory [REQUIRED]\n");
         fprintf(a_stream, "  -i, --instance     WAF instance\n");
         fprintf(a_stream, "  -p, --profile      WAF profile\n");
@@ -421,7 +419,6 @@ int main(int argc, char** argv)
         std::string l_ruleset_dir;
         bool l_display_json = false;
         int l_option_index = 0;
-        bool l_cleanup_tmp_files = true;
         bool l_verbose = false;
         config_mode_t l_config_mode = CONFIG_MODE_NONE;
         struct option l_long_options[] =
@@ -429,7 +426,6 @@ int main(int argc, char** argv)
                 { "help",        0, 0, 'h' },
                 { "version",     0, 0, 'v' },
                 { "verbose",     0, 0, 'd' },
-                { "no-cleanup",  0, 0, 'n' },
                 { "ruleset-dir", 1, 0, 'r' },
                 { "instance",    1, 0, 'i' },
                 { "profile",     1, 0, 'p' },
@@ -441,7 +437,7 @@ int main(int argc, char** argv)
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-        while ((l_opt = getopt_long_only(argc, argv, "hvdnr:i:p:l:e:j", l_long_options, &l_option_index)) != -1)
+        while ((l_opt = getopt_long_only(argc, argv, "hvdr:i:p:l:e:j", l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)
                 {
@@ -475,14 +471,6 @@ int main(int argc, char** argv)
                 case 'd':
                 {
                         l_verbose = 1;
-                        break;
-                }
-                // -----------------------------------------
-                //
-                // -----------------------------------------
-                case 'n':
-                {
-                        l_cleanup_tmp_files = 0;
                         break;
                 }
                 // -----------------------------------------
@@ -572,7 +560,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_PROFILE):
         {
-                l_s = validate_profile(l_file, l_ruleset_dir, l_cleanup_tmp_files);
+                l_s = validate_profile(l_file, l_ruleset_dir);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;
@@ -584,7 +572,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_INSTANCE):
         {
-                l_s = validate_instance(l_file, l_ruleset_dir, l_cleanup_tmp_files);
+                l_s = validate_instance(l_file, l_ruleset_dir);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;

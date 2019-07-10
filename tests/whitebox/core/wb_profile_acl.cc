@@ -406,7 +406,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load_config(l_pb, false);
+                l_s = l_profile->load_config(l_pb);
                 NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}

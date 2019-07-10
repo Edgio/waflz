@@ -97,7 +97,6 @@ instances::~instances()
 //: ----------------------------------------------------------------------------
 int32_t instances::load_config(instance **ao_instance,
                                void *a_js,
-                               bool a_leave_compiled_file,
                                bool a_update)
 {
         if(!a_js)
@@ -110,8 +109,7 @@ int32_t instances::load_config(instance **ao_instance,
         // -------------------------------------------------
         instance *l_instance = new instance(m_engine);
         int32_t l_s;
-        l_s = l_instance->load_config(a_js,
-                                      a_leave_compiled_file);
+        l_s = l_instance->load_config(a_js);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_AERROR(m_err_msg, "%s", l_instance->get_err_msg());
@@ -191,7 +189,6 @@ int32_t instances::load_config(instance **ao_instance,
 int32_t instances::load_config(instance **ao_instance,
                                const char *a_buf,
                                uint32_t a_buf_len,
-                               bool a_leave_compiled_file,
                                bool a_update)
 {
         // ---------------------------------------
@@ -227,7 +224,6 @@ int32_t instances::load_config(instance **ao_instance,
                 int32_t l_s;
                 l_s = load_config(ao_instance,
                                   (void *)l_js,
-                                  a_leave_compiled_file,
                                   a_update);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -250,7 +246,6 @@ int32_t instances::load_config(instance **ao_instance,
                         int32_t l_s;
                         l_s = load_config(ao_instance,
                                           (void *)&l_e,
-                                          a_leave_compiled_file,
                                           a_update);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
@@ -278,7 +273,6 @@ int32_t instances::load_config(instance **ao_instance,
 int32_t instances::load_config_file(instance **ao_instance,
                                     const char *a_file_path,
                                     uint32_t a_file_path_len,
-                                    bool a_leave_compiled_file,
                                     bool a_update)
 {
         int32_t l_s;
@@ -310,7 +304,6 @@ int32_t instances::load_config_file(instance **ao_instance,
 //: ----------------------------------------------------------------------------
 int32_t instances::load_config_dir(const char *a_dir_path,
                                    uint32_t a_dir_path_len,
-                                   bool a_leave_compiled_file,
                                    bool a_update)
 {
         // TODO log?
@@ -392,7 +385,6 @@ int32_t instances::load_config_dir(const char *a_dir_path,
                 l_s = load_config_file(&l_instance,
                                        l_full_path.c_str(),
                                        l_full_path.length(),
-                                       a_leave_compiled_file,
                                        a_update);
                 if(l_s != WAFLZ_STATUS_OK)
                 {

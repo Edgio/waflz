@@ -101,7 +101,6 @@ profile::profile(engine &a_engine):
         m_name(profile::s_default_name),
         m_resp_header_name(),
         m_action(waflz_pb::enforcement_type_t_NOP),
-        m_leave_compiled_file(false),
         m_owasp_ruleset_version(229),
         m_paranoia_level(1),
         m_il_query(),
@@ -144,9 +143,7 @@ void profile::set_pb(waflz_pb::profile *a_pb)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t profile::load_config(const char *a_buf,
-                             uint32_t a_buf_len,
-                             bool a_leave_compiled_file)
+int32_t profile::load_config(const char *a_buf, uint32_t a_buf_len)
 {
         if(a_buf_len > CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE)
         {
@@ -156,7 +153,6 @@ int32_t profile::load_config(const char *a_buf,
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        m_leave_compiled_file = a_leave_compiled_file;
         if(m_pb)
         {
                 delete m_pb;
@@ -195,8 +191,7 @@ int32_t profile::load_config(const char *a_buf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t profile::load_config(const waflz_pb::profile *a_pb,
-                             bool a_leave_compiled_file)
+int32_t profile::load_config(const waflz_pb::profile *a_pb)
 {
         if(!a_pb)
         {
@@ -204,7 +199,6 @@ int32_t profile::load_config(const waflz_pb::profile *a_pb,
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        m_leave_compiled_file = a_leave_compiled_file;
         if(m_pb)
         {
                 delete m_pb;
@@ -324,7 +318,7 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = m_waf->init(*this, m_leave_compiled_file);
+        l_s = m_waf->init(*this);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "waf init reason: %s", m_waf->get_err_msg());

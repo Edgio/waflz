@@ -83,16 +83,13 @@ public:
         int32_t load_config_file(instance **ao_instance,
                                  const char *a_file_path,
                                  uint32_t a_file_path_len,
-                                 bool a_leave_compiled_file = false,
                                  bool a_update = false);
         int32_t load_config(instance **ao_instance,
                             const char *a_buf,
                             uint32_t a_buf_len,
-                            bool a_leave_compiled_file = false,
                             bool a_update = false);
         int32_t load_config_dir(const char *a_dir_path,
                                 uint32_t a_dir_path_len,
-                                bool a_leave_compiled_file = false,
                                 bool a_update = false);
         int32_t process(waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
@@ -118,7 +115,6 @@ private:
         instances& operator=(const instances &);
         int32_t load_config(instance **ao_instance,
                             void *a_js,
-                            bool a_leave_compiled_file = false,
                             bool a_update = false);
         // -------------------------------------------------
         // Private members

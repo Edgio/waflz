@@ -98,8 +98,8 @@ namespace ns_waflz {
 #define WFLZ_TRC_LEVEL_MAP(XX)\
         XX(0,  NONE,        N)\
         XX(1,  ERROR,       E)\
-        XX(2,  MATCH,       R)\
-        XX(3,  RULE,        M)\
+        XX(2,  MATCH,       M)\
+        XX(3,  RULE,        R)\
         XX(5,  ALL,         A)
 typedef enum trc_level_enum
 {

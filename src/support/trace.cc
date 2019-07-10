@@ -1,8 +1,8 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
+//: Copyright (C) 2018 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    waflz_trace.cc
+//: \file:    trace.cc
 //: \details: TODO
 //: \author:  Reed P. Morrison
 //: \date:    04/15/2016
@@ -23,63 +23,34 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#if 0
-#include "trace_internal.h"
-#include "time_util.h"
+#include "waflz/trace.h"
 #include <errno.h>
 #include <string.h>
-#include <stdarg.h>
-#include <stdint.h>
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
-//: Statics
+//: Externs
 //: ----------------------------------------------------------------------------
-trc_log_level_t s_trc_log_level = TRC_LOG_LEVEL_ERROR;
-FILE* s_trc_log_file = stdout;
+trc_level_t g_trc_level = WFLZ_TRC_LEVEL_ERROR;
+FILE* g_trc_file = stdout;
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-void trc_log_print(trc_log_level_t a_level,
-                   const char *a_file,
-                   const char *a_func,
-                   uint32_t a_line,
-                   const char *a_format, ...)
+void trc_level_set(trc_level_t a_level)
 {
-        if(s_trc_log_file &&
-           (s_trc_log_level >= a_level))
-        {
-                fprintf(s_trc_log_file, "%.3f %s %s:%s.%d: ",
-                        ((double)get_time_ms())/1000.0,
-                        trc_log_level_str(a_level),
-                        a_file, a_func, a_line);
-                va_list l_args;
-                va_start(l_args, a_format);
-                vfprintf(s_trc_log_file, a_format, l_args);
-                va_end(l_args);
-                fflush(s_trc_log_file);
-        }
+        g_trc_level = a_level;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-void trc_log_level_set(trc_log_level_t a_level)
-{
-        s_trc_log_level = a_level;
-}
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-int32_t trc_log_file_open(const std::string &a_file)
+int32_t trc_file_open(const std::string &a_file)
 {
         // WARNING DON'T USE TRC MACROS HERE'S -WILL BE RECURSIVE
-        s_trc_log_file = fopen(a_file.c_str(), "a");
-        if(!s_trc_log_file)
+        g_trc_file = fopen(a_file.c_str(), "a");
+        if(!g_trc_file)
         {
                 printf("Error opening trace logging file: %s. Reason: %s\n",
                                 a_file.c_str(),
@@ -93,14 +64,14 @@ int32_t trc_log_file_open(const std::string &a_file)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t trc_log_file_close(void)
+int32_t trc_file_close(void)
 {
         int l_s;
-        l_s = fclose(s_trc_log_file);
+        l_s = fclose(g_trc_file);
         if(l_s != 0)
         {
                 printf("Error closing trace logging file: %p. Reason: %s\n",
-                                s_trc_log_file,
+                                g_trc_file,
                                 strerror(errno));
                 return -1;
         }
@@ -117,15 +88,15 @@ int32_t trc_log_file_close(void)
 #ifndef ELEM_AT
   #define ELEM_AT(a, i, v) ((unsigned int) (i) < ARRAY_SIZE(a) ? (a)[(i)] : (v))
 #endif
-static const char *s_trc_log_level_strs[] =
+static const char *trc_level_strs[] =
 {
 #define XX(num, name, string) #string,
-        TRC_LOG_LEVEL_MAP(XX)
+        WFLZ_TRC_LEVEL_MAP(XX)
 #undef XX
 };
-const char *trc_log_level_str(trc_log_level_t a_level)
+const char *trc_level_str(trc_level_t a_level)
 {
-        return ELEM_AT(s_trc_log_level_strs, a_level, "?");
+        return ELEM_AT(trc_level_strs, a_level, "?");
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -174,4 +145,3 @@ void trc_mem_display(FILE *a_file, const uint8_t* a_mem_buf, uint32_t a_length)
         }
 }
 } // namespace ns_waflz {
-#endif

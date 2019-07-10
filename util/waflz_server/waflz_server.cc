@@ -34,6 +34,7 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/render.h"
 #include "waflz/engine.h"
+#include "waflz/trace.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
 #include "is2/support/trace.h"
@@ -702,8 +703,8 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -y, --proxy         run server in proxy mode\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Debug Options:\n");
-        fprintf(a_stream, "  -t, --trace         server tracing  (error/warn/debug/verbose/all)\n");
-        fprintf(a_stream, "  -P, --process       process tracing (rule/match/all)\n");
+        fprintf(a_stream, "  -t, --trace         tracing (error/rule/match/all)\n");
+        fprintf(a_stream, "  -T, --server-trace  server tracing  (error/warn/debug/verbose/all)\n");
         fprintf(a_stream, "  \n");
 #ifdef ENABLE_PROFILER
         fprintf(a_stream, "Profile Options:\n");
@@ -724,6 +725,7 @@ int main(int argc, char** argv)
         char l_opt;
         std::string l_arg;
         int l_option_index = 0;
+        ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ERROR);
         ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_NONE);
         // modes
         server_mode_t l_server_mode = SERVER_MODE_NONE;
@@ -759,6 +761,7 @@ int main(int argc, char** argv)
                 { "random-ips",   0, 0, 'x' },
                 { "bg",           0, 0, 'z' },
                 { "trace",        1, 0, 't' },
+                { "server-trace", 1, 0, 'T' },
                 { "static",       1, 0, 'w' },
                 { "proxy",        1, 0, 'y' },
                 { "output",       1, 0, 'o' },
@@ -795,9 +798,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:H:C:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:H:C:";
 #else
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -911,11 +914,32 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // trace
+                // tracing
                 // -----------------------------------------
+#define ELIF_TRACE_STR(_level) else if(strncasecmp(_level, l_arg.c_str(), sizeof(_level)) == 0)
                 case 't':
                 {
-#define ELIF_TRACE_STR(_level) else if(strncasecmp(_level, l_arg.c_str(), sizeof(_level)) == 0)
+                        bool l_trace = false;
+                        if(0) {}
+                        ELIF_TRACE_STR("error") { ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ERROR);   l_trace = true; }
+                        ELIF_TRACE_STR("rule")  { ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_RULE);    l_trace = true; }
+                        ELIF_TRACE_STR("match") { ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_MATCH);   l_trace = true; }
+                        ELIF_TRACE_STR("all")   { ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ALL);     l_trace = true; }
+                        else
+                        {
+                                ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_NONE);
+                        }
+                        if(l_trace)
+                        {
+                                ns_waflz::trc_file_open("/dev/stdout");
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // server trace
+                // -----------------------------------------
+                case 'T':
+                {
                         bool l_trace = false;
                         if(0) {}
                         ELIF_TRACE_STR("error") { ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_ERROR); l_trace = true; }

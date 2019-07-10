@@ -80,7 +80,6 @@ public:
         instances(engine &a_engine,
                   bool a_enable_locking = false);
         ~instances();
-        int32_t init_dbs(void);
         int32_t load_config_file(instance **ao_instance,
                                  const char *a_file_path,
                                  uint32_t a_file_path_len,
@@ -124,18 +123,11 @@ private:
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------
-        bool m_init;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
         id_instance_map_t m_id_instance_map;
         pthread_mutex_t m_mutex;
         bool m_enable_locking;
-        // -------------------------------------------------
-        // *************************************************
-        // geoip2 support
-        // *************************************************
-        // -------------------------------------------------
-        geoip2_mmdb *m_geoip_mmdb;
 };
 }
 #endif

@@ -164,20 +164,6 @@ int32_t sx_modsecurity::init(void)
                 NDBG_PRINT("error initializing engine\n");
                 return STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // geoip db
-        // -------------------------------------------------
-        m_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        l_s = m_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                  ns_waflz::profile::s_geoip2_isp_db);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_geoip2_mmdb->get_err_msg());
-                return STATUS_ERROR;
-        }
         // -----------------------------------------
         // guess format from ext...
         // -----------------------------------------
@@ -219,10 +205,6 @@ int32_t sx_modsecurity::init(void)
         // set version...
         // -------------------------------------------------
         m_waf->set_owasp_ruleset_version(l_owasp_version);
-        // -------------------------------------------------
-        // hook geoip db ???
-        // -------------------------------------------------
-        // TODO
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

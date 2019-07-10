@@ -68,10 +68,6 @@ namespace ns_waflz {
 uint_fast32_t profile::s_next_ec_rule_id = 430000;
 const std::string profile::s_default_name("");
 std::string profile::s_ruleset_dir("/oc/local/waf/ruleset/");
-std::string profile::s_geoip_db;
-std::string profile::s_geoip_isp_db;
-std::string profile::s_geoip2_db;
-std::string profile::s_geoip2_isp_db;
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -95,13 +91,11 @@ static void clear_ignore_list(pcre_list_t &a_pcre_list)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-profile::profile(engine &a_engine,
-                 geoip2_mmdb &a_geoip2_mmdb):
+profile::profile(engine &a_engine):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
-        m_geoip2_mmdb(a_geoip2_mmdb),
         m_acl(NULL),
         m_waf(NULL),
         m_id(),
@@ -116,7 +110,7 @@ profile::profile(engine &a_engine,
         m_il_cookie()
 {
         m_pb = new waflz_pb::profile();
-        m_acl = new acl(a_geoip2_mmdb);
+        m_acl = new acl();
 }
 //: ----------------------------------------------------------------------------
 //: \details dtor
@@ -174,7 +168,7 @@ int32_t profile::load_config(const char *a_buf,
                 delete m_acl;
                 m_acl = NULL;
         }
-        m_acl = new acl(m_geoip2_mmdb);
+        m_acl = new acl();
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------
@@ -676,7 +670,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------
-        l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
+        l_s = l_rqst_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), &m_il_query, &m_il_header, &m_il_cookie);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
@@ -690,7 +684,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         if(a_part_mk & PART_MK_ACL)
         {
                 bool l_whitelist = false;
-                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
+                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, *l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???

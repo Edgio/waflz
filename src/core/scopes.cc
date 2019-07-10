@@ -27,6 +27,7 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/config_parser.h"
 #include "waflz/waf.h"
+#include "waflz/engine.h"
 #include "waflz/limit/rl_obj.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
@@ -129,13 +130,11 @@ std::string scopes::s_conf_dir("/oc/local/waf/conf");
 //: \return  None
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-scopes::scopes(engine &a_engine,
-               geoip2_mmdb &a_geoip2_mmdb):
+scopes::scopes(engine &a_engine):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
-        m_geoip2_mmdb(a_geoip2_mmdb),
         m_id_rules_map()
 {
         m_pb = new waflz_pb::scope_config();
@@ -380,7 +379,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------
-        l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+        l_s = l_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), NULL, NULL, NULL);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???

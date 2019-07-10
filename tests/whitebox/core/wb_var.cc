@@ -27,6 +27,7 @@
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "core/var.h"
+#include "support/geoip2_mmdb.h"
 #include "support/ndebug.h"
 #include <string.h>
 //: ----------------------------------------------------------------------------
@@ -236,6 +237,7 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
 //: parse
 //: ----------------------------------------------------------------------------
 TEST_CASE( "test var", "[var]" ) {
+        ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         ns_waflz::init_var_cb_vector();
         ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
         ns_waflz::rqst_ctx::s_get_rqst_url_cb = get_rqst_url_cb;
@@ -262,7 +264,7 @@ TEST_CASE( "test var", "[var]" ) {
         l_ctype_parser_map["application/xml"]                   = ns_waflz::PARSER_XML;
         l_ctype_parser_map["application/json"]                  = ns_waflz::PARSER_JSON;
         l_ctype_parser_map["multipart/form-data"]               = ns_waflz::PARSER_MULTIPART;
-        l_rqst_ctx->init_phase_1();
+        l_rqst_ctx->init_phase_1(l_geoip2_mmdb);
         l_rqst_ctx->init_phase_2(l_ctype_parser_map);
         // -------------------------------------------------
         // ARGS
@@ -1670,7 +1672,7 @@ TEST_CASE( "test var", "[var]" ) {
                         l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true);
                 }
                 l_rqst_ctx->m_content_type_list.clear();
-                l_rqst_ctx->init_phase_1();
+                l_rqst_ctx->init_phase_1(l_geoip2_mmdb);
                 l_rqst_ctx->init_phase_2(l_ctype_parser_map);
                 // -----------------------------------------
                 // get all
@@ -1762,7 +1764,7 @@ TEST_CASE( "test var", "[var]" ) {
                         l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, true);
                 }
                 l_rqst_ctx->m_content_type_list.clear();
-                l_rqst_ctx->init_phase_1();
+                l_rqst_ctx->init_phase_1(l_geoip2_mmdb);
                 l_rqst_ctx->init_phase_2(l_ctype_parser_map);
                 // -----------------------------------------
                 // get all

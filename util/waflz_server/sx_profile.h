@@ -33,7 +33,6 @@
 namespace ns_waflz {
 class engine;
 class profile;
-class geoip2_mmdb;
 class enforcement;
 }
 namespace ns_waflz_server {
@@ -76,7 +75,6 @@ public:
         ns_waflz::engine *m_engine;
         ns_waflz::profile *m_profile;
         update_profile_h *m_update_profile_h;
-        ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
         waflz_pb::enforcement *m_action;
 };
 }

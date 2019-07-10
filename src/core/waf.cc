@@ -2371,7 +2371,7 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = l_ctx->init_phase_1();
+        l_s = l_ctx->init_phase_1(m_engine.get_geoip2_mmdb());
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???

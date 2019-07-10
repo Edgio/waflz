@@ -49,6 +49,7 @@ namespace ns_waflz
 class regex;
 class ac;
 class macro;
+class geoip2_mmdb;
 //: ----------------------------------------------------------------------------
 //: engine
 //: ----------------------------------------------------------------------------
@@ -58,14 +59,20 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        engine();
+        engine(void);
         ~engine();
         int32_t init(void);
         macro &get_macro(void){ return *m_macro;}
         const ctype_parser_map_t &get_ctype_parser_map(void) { return m_ctype_parser_map;}
         int32_t compile(compiled_config_t &ao_cx_cfg, waflz_pb::sec_config_t &a_config);
+        geoip2_mmdb& get_geoip2_mmdb(void) { return *m_geoip2_mmdb; }
         const char *get_err_msg(void) { return m_err_msg; }
         void set_ruleset_dir(std::string a_ruleset_dir) { m_ruleset_dir = a_ruleset_dir; }
+        // -------------------------------------------------
+        // public static members
+        // -------------------------------------------------
+        static std::string s_geoip2_db;
+        static std::string s_geoip2_isp_db;
 private:
         // -------------------------------------------------
         // private methods
@@ -91,6 +98,12 @@ private:
         compiled_config_map_t m_compiled_config_map;
         ctype_parser_map_t m_ctype_parser_map;
         std::string m_ruleset_dir;
+        // -------------------------------------------------
+        // *************************************************
+        // geoip2 support
+        // *************************************************
+        // -------------------------------------------------
+        geoip2_mmdb *m_geoip2_mmdb;
         char m_err_msg[WAFLZ_ERR_LEN];
 };
 }

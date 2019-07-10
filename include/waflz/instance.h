@@ -42,7 +42,6 @@ namespace ns_waflz {
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 class profile;
-class geoip2_mmdb;
 class engine;
 class rqst_ctx;
 //: ----------------------------------------------------------------------------
@@ -59,7 +58,7 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        instance(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
+        instance(engine &a_engine);
         ~instance();
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::instance *get_pb(void) { return m_pb; }
@@ -107,12 +106,6 @@ private:
         profile *m_profile_audit;
         profile *m_profile_prod;
         bool m_leave_compiled_file;
-        // -------------------------------------------------
-        // *************************************************
-        // geoip2 support
-        // *************************************************
-        // -------------------------------------------------
-        geoip2_mmdb &m_geoip2_mmdb;
 };
 }
 #endif

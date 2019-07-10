@@ -28,7 +28,6 @@
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/time_util.h"
-#include "support/geoip2_mmdb.h"
 #include "waflz/engine.h"
 #include "jspb/jspb.h"
 #ifdef WAFLZ_RATE_LIMITING
@@ -157,10 +156,6 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // geoip db
-        // -------------------------------------------------
-        ns_waflz::geoip2_mmdb *l_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        // -------------------------------------------------
         // engine
         // -------------------------------------------------
         ns_waflz::engine *l_engine = new ns_waflz::engine();
@@ -174,7 +169,6 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
-                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
@@ -182,7 +176,7 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // -------------------------------------------------
         // profile
         // -------------------------------------------------
-        ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
+        ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
         l_s = l_profile->load_config(l_config_buf,
                                      l_config_buf_len,
                                      !a_cleanup_tmp);
@@ -192,7 +186,6 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
                 NDBG_OUTPUT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
                            a_file.c_str(),
                            l_profile->get_err_msg());
-                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_profile) { delete l_profile; l_profile = NULL; }
@@ -203,7 +196,6 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // -------------------------------------------------
         if(l_profile) { delete l_profile; l_profile = NULL; }
         if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
-        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
         if(l_engine) { delete l_engine; l_engine = NULL; }
         return STATUS_OK;
 }
@@ -224,10 +216,6 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // geoip db
-        // -------------------------------------------------
-        ns_waflz::geoip2_mmdb *l_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        // -------------------------------------------------
         // engine
         // -------------------------------------------------
         ns_waflz::engine *l_engine = new ns_waflz::engine();
@@ -241,7 +229,6 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
-                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
@@ -249,7 +236,7 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // -------------------------------------------------
         // instantiate the compiler and validate it
         // -------------------------------------------------
-        ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine, *l_geoip2_mmdb);
+        ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine);
         l_s = l_instance->load_config(l_config_buf, l_config_buf_len, !a_cleanup_tmp);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -257,7 +244,6 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
                 NDBG_OUTPUT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
                             a_file.c_str(),
                             l_instance->get_err_msg());
-                if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_instance) { delete l_instance; l_instance = NULL; }
@@ -267,7 +253,6 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // cleanup
         // -------------------------------------------------
         if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
-        if(l_geoip2_mmdb) { delete l_geoip2_mmdb; l_geoip2_mmdb = NULL; }
         if(l_engine) { delete l_engine; l_engine = NULL; }
         if(l_instance) { delete l_instance; l_instance = NULL; }
         return STATUS_OK;

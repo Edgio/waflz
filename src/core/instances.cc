@@ -31,7 +31,6 @@
 #include "support/file_util.h"
 #include "support/ndebug.h"
 #include "support/trace_internal.h"
-#include "support/geoip2_mmdb.h"
 #include "support/time_util.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
@@ -61,13 +60,11 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 instances::instances(engine &a_engine,
                      bool a_enable_locking):
-        m_init(false),
         m_err_msg(),
         m_engine(a_engine),
         m_id_instance_map(),
         m_mutex(),
-        m_enable_locking(a_enable_locking),
-        m_geoip_mmdb(NULL)
+        m_enable_locking(a_enable_locking)
 {
         // Initialize the mutex
         if(m_enable_locking)
@@ -93,31 +90,6 @@ instances::~instances()
         {
                 pthread_mutex_destroy(&m_mutex);
         }
-        if(m_geoip_mmdb)
-        {
-                delete m_geoip_mmdb;
-                m_geoip_mmdb = NULL;
-        }
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t instances::init_dbs(void)
-{
-         m_geoip_mmdb = new geoip2_mmdb();
-         int32_t l_s;
-         l_s = m_geoip_mmdb->init(profile::s_geoip2_db,
-                                profile::s_geoip2_isp_db);
-
-         if(l_s != WAFLZ_STATUS_OK)
-         {
-                  WAFLZ_PERROR(m_err_msg,"error intialiting");
-                  return WAFLZ_STATUS_OK;
-         }
-         m_init = true;
-        return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -129,11 +101,6 @@ int32_t instances::load_config(instance **ao_instance,
                                bool a_leave_compiled_file,
                                bool a_update)
 {
-        if(!m_init)
-        {
-                WAFLZ_PERROR(m_err_msg, "not init'd");
-                return WAFLZ_STATUS_ERROR;
-        }
         if(!a_js)
         {
                 WAFLZ_PERROR(m_err_msg, "a_js == NULL");
@@ -142,7 +109,7 @@ int32_t instances::load_config(instance **ao_instance,
         // -------------------------------------------------
         // load
         // -------------------------------------------------
-        instance *l_instance = new instance(m_engine, *m_geoip_mmdb);
+        instance *l_instance = new instance(m_engine);
         int32_t l_s;
         l_s = l_instance->load_config(a_js,
                                       a_leave_compiled_file);

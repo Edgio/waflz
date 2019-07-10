@@ -48,7 +48,6 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
-class geoip2_mmdb;
 class engine;
 class rqst_ctx;
 class waf;
@@ -79,7 +78,7 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        scopes(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
+        scopes(engine &a_engine);
         ~scopes();
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
@@ -118,12 +117,6 @@ private:
         waflz_pb::scope_config *m_pb;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
-        // -------------------------------------------------
-        // *************************************************
-        // geoip2 support
-        // *************************************************
-        // -------------------------------------------------
-        geoip2_mmdb &m_geoip2_mmdb;
         // -------------------------------------------------
         // parts...
         // -------------------------------------------------

@@ -76,6 +76,8 @@ int32_t geoip2_mmdb::init(const std::string& a_city_mmdb_path,
 {
         MMDB_s *l_db = NULL;
         int32_t l_s;
+        m_city_mmdb = NULL;
+        m_asn_mmdb = NULL;
         // -------------------------------------------------
         // city db
         // -------------------------------------------------
@@ -83,13 +85,12 @@ int32_t geoip2_mmdb::init(const std::string& a_city_mmdb_path,
         l_s = MMDB_open(a_city_mmdb_path.c_str(), MMDB_MODE_MMAP, l_db);
         if(l_s != MMDB_SUCCESS)
         {
-                NDBG_PRINT("reason %s\nfile name:%s\n", MMDB_strerror(l_s), a_city_mmdb_path.c_str());
                 WAFLZ_PERROR(m_err_msg,
                              "Can't open city mmdb file %s. Reason: %s",
                              a_city_mmdb_path.c_str(),
                              MMDB_strerror(l_s));
                 if(l_db) { free(l_db); l_db = NULL; }
-                return WAFLZ_STATUS_OK;
+                goto open_asn;
         }
         if(l_s == MMDB_IO_ERROR)
         {
@@ -100,6 +101,7 @@ int32_t geoip2_mmdb::init(const std::string& a_city_mmdb_path,
                 return WAFLZ_STATUS_ERROR;
         }
         m_city_mmdb = l_db;
+open_asn:
         // -------------------------------------------------
         // asn db
         // -------------------------------------------------
@@ -112,7 +114,7 @@ int32_t geoip2_mmdb::init(const std::string& a_city_mmdb_path,
                              a_asn_mmdb_path.c_str(),
                              MMDB_strerror(l_s));
                 if(l_db) { free(l_db); l_db = NULL; }
-                return WAFLZ_STATUS_ERROR;
+                goto done;
         }
         if(l_s == MMDB_IO_ERROR)
         {
@@ -123,6 +125,7 @@ int32_t geoip2_mmdb::init(const std::string& a_city_mmdb_path,
                 return WAFLZ_STATUS_ERROR;
         }
         m_asn_mmdb = l_db;
+done:
         // -------------------------------------------------
         // done
         // -------------------------------------------------
@@ -146,12 +149,16 @@ int32_t geoip2_mmdb::get_country(const char **ao_buf,
         }
         *ao_buf = NULL;
         ao_buf_len = 0;
-        if(!m_init ||
-           !m_city_mmdb)
+        if(!m_init)
         {
                 WAFLZ_PERROR(m_err_msg, "not initialized");
                 return WAFLZ_STATUS_OK;
         }
+        if(!m_city_mmdb)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+
         ::MMDB_lookup_result_s l_ls;
         int32_t l_gai_err = 0;
         int32_t l_mmdb_err = MMDB_SUCCESS;
@@ -232,10 +239,13 @@ int32_t geoip2_mmdb::get_country(const char **ao_buf,
 int32_t geoip2_mmdb::get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_len)
 {
         ao_asn = 0;
-        if(!m_init ||
-           !m_asn_mmdb)
+        if(!m_init)
         {
                 WAFLZ_PERROR(m_err_msg, "not initialized");
+                return WAFLZ_STATUS_OK;
+        }
+        if(!m_asn_mmdb)
+        {
                 return WAFLZ_STATUS_OK;
         }
         ::MMDB_lookup_result_s l_ls;

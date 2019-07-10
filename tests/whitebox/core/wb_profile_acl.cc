@@ -279,7 +279,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
         char l_cwd[1024];
         if(getcwd(l_cwd, sizeof(l_cwd)) != NULL)
         {
-            //fprintf(stdout, "Current working dir: %s\n", cwd);
+                //fprintf(stdout, "Current working dir: %s\n", cwd);
         }
         std::string l_rule_dir = l_cwd;
         l_rule_dir += "/../../../../tests/data/waf/ruleset/";

@@ -43,7 +43,7 @@ public:
         // -------------------------------------------------
         // public types
         // -------------------------------------------------
-		typedef std::unordered_map<uint64_t, scopes*> cust_id_scopes_map_t;
+        typedef std::unordered_map<uint64_t, scopes*> cust_id_scopes_map_t;
         // -------------------------------------------------
         // load config methods
         // -------------------------------------------------
@@ -53,7 +53,7 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        scopes_configs();
+        scopes_configs(engine& a_engine);
         ~scopes_configs();
 private:
         // -------------------------------------------------
@@ -62,11 +62,14 @@ private:
         // disallow copy/assign
         scopes_configs(const scopes_configs &);
         scopes_configs& operator=(const scopes_configs &);
-        int32_t load(void *a_js);
+        int32_t load(void *a_js, bool a_update);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------
         cust_id_scopes_map_t m_cust_id_scopes_map;
+        char m_err_msg[WAFLZ_ERR_LEN];
+        engine& m_engine;
+        geoip2_mmdb *m_geoip2_mmdb;
 };
 
 }

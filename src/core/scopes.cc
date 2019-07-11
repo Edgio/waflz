@@ -136,6 +136,7 @@ scopes::scopes(engine &a_engine,
         m_err_msg(),
         m_engine(a_engine),
         m_geoip2_mmdb(a_geoip2_mmdb),
+        m_id(),
         m_id_rules_map()
 {
         m_pb = new waflz_pb::scope_config();
@@ -170,6 +171,7 @@ int32_t scopes::validate(void)
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
+        m_id= m_pb->id();
         // TODO -add validation...
         return WAFLZ_STATUS_OK;
 }

@@ -83,6 +83,7 @@ public:
         ~scopes();
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
+        std::string& get_id(void) { return m_id; }
         int32_t load_config(const char *a_buf,
                             uint32_t a_buf_len);
         int32_t load_config(void *a_js);
@@ -124,6 +125,8 @@ private:
         // *************************************************
         // -------------------------------------------------
         geoip2_mmdb &m_geoip2_mmdb;
+        // properties
+        std::string m_id;
         // -------------------------------------------------
         // parts...
         // -------------------------------------------------

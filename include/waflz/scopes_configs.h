@@ -62,14 +62,14 @@ private:
         // disallow copy/assign
         scopes_configs(const scopes_configs &);
         scopes_configs& operator=(const scopes_configs &);
-        int32_t load(void *a_js, bool a_update);
+        int32_t load(void *a_js);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------
         cust_id_scopes_map_t m_cust_id_scopes_map;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine& m_engine;
-        geoip2_mmdb *m_geoip2_mmdb;
+        geoip2_mmdb* m_geoip2_mmdb;
 };
 
 }

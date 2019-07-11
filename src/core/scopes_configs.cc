@@ -25,11 +25,15 @@
 //: ----------------------------------------------------------------------------
 #include "support/file_util.h"
 #include "support/time_util.h"
+#include "support/trace_internal.h"
+#include "support/string_util.h"
 #include "waflz/scopes_configs.h"
+#include "waflz/scopes.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
 #include <dirent.h>
+#include "scope.pb.h"
 
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
@@ -41,7 +45,7 @@ scopes_configs::scopes_configs(engine &a_engine):
 		m_cust_id_scopes_map(),
         m_engine(a_engine),
         m_err_msg(),
-        m_geoip2_mmdb(NULL)
+        m_geoip2_mmdb()
 {
 }
 //: ----------------------------------------------------------------------------
@@ -215,7 +219,7 @@ int32_t scopes_configs::load_scopes(const char *a_buf, uint32_t a_buf_len)
         if(l_js->IsObject())
         {
                 int32_t l_s;
-                l_s = load((void *)l_js, false);
+                l_s = load((void *)l_js);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_js) { delete l_js; l_js = NULL; }
@@ -247,7 +251,7 @@ int32_t scopes_configs::load_scopes(const char *a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::load(void* a_js, bool a_update)
+int32_t scopes_configs::load(void* a_js)
 {
         if(!a_js)
         {
@@ -255,7 +259,7 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
                 return WAFLZ_STATUS_ERROR;                
         }
 
-        scopes *l_scopes = new scopes(m_engine, m_geoip2_mmdb);
+        scopes *l_scopes = new scopes(m_engine, *m_geoip2_mmdb);
         int32_t l_s;
         l_s = l_scopes->load_config(a_js);
         if(l_s != WAFLZ_STATUS_OK)
@@ -264,12 +268,19 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
                 if(l_scopes) { delete l_scopes; l_scopes = NULL;}
                 return WAFLZ_STATUS_ERROR;                
         }
-        const std::string& l_id = l_scopes->get_id();
+        uint64_t l_cust_id = 0;
+        std::string& l_id_str = l_scopes->get_id();
+        l_s = convert_hex_to_uint(l_cust_id, l_id_str.c_str());
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+        		WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint");
+        		return WAFLZ_STATUS_ERROR;
+        }       
         // -------------------------------------------------
         // check for exist in map
         // -------------------------------------------------
         cust_id_scopes_map_t::iterator i_scopes;
-        i_scopes = m_cust_id_scopes_map.find(l_id);
+        i_scopes = m_cust_id_scopes_map.find(l_cust_id);
         // -------------------------------------------------
         // found existing instance
         // -------------------------------------------------
@@ -284,9 +295,9 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
                    (l_new_pb->has_last_modified_date()))
                 {
                         uint64_t l_loaded_epoch = get_epoch_seconds(l_old_pb->last_modified_date().c_str(),
-                                                                    CONFIG_WAF_DATE_FORMAT);
+                                                                    CONFIG_DATE_FORMAT);
                         uint64_t l_config_epoch = get_epoch_seconds(l_new_pb->last_modified_date().c_str(),
-                                                                    CONFIG_WAF_DATE_FORMAT);
+                                                                    CONFIG_DATE_FORMAT);
                         if(l_loaded_epoch >= l_config_epoch)
                         {
                                 TRC_DEBUG("config is already latest. not performing update");
@@ -301,26 +312,13 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
                 i_scopes->second = l_scopes;
                 return WAFLZ_STATUS_OK;                
         }
-        // -------------------------------------------------
-        // if update
-        // -------------------------------------------------
-        if(a_update)
-        {
-                // -----------------------------------------
-                // skip updating instances that haven't
-                // already been loaded.
-                // -----------------------------------------
-                if(l_scopes)
-                {
-                        delete l_scopes;
-                        l_scopes = NULL;
-                }
-                return WAFLZ_STATUS_OK;
-        }
+        //TODO: check if its ok to update instance that
+        // has not been loaded before. Introduce a_update 
+        // var if it is required
         // -------------------------------------------------
         // add to map
         // -------------------------------------------------
-        m_cust_id_scopes_map[l_id] = l_scopes;
+        m_cust_id_scopes_map[l_cust_id] = l_scopes;
 		return WAFLZ_STATUS_OK;
 }
 

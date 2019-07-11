@@ -182,8 +182,7 @@ int32_t configs::load(void *a_js)
                 l_s = (i_cust->second)->merge((void *)&l_js);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "performing merge for id: %lu. Reason: %s",
-                                     l_cust_id,
+                        WAFLZ_PERROR(m_err_msg, "%s",
                                      (i_cust->second)->get_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -197,7 +196,7 @@ int32_t configs::load(void *a_js)
         l_s = l_c->load((void *)&l_js);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing load. Reason: %s",
+                WAFLZ_PERROR(m_err_msg, "%s",
                              l_c->get_err_msg());
                 if(l_c) { delete l_c; l_c = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -419,9 +418,6 @@ int32_t configs::load_file(const char *a_file_path,
         l_s = read_file(a_file_path, &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing read_file: %s. Reason: %s",
-                             a_file_path,
-                             get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }

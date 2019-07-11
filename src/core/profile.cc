@@ -173,7 +173,7 @@ int32_t profile::load_config(const char *a_buf, uint32_t a_buf_len)
         //NDBG_PRINT("whole config %s", m_pb->DebugString().c_str());
         if(l_s != JSPB_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "parsing json. reason: %s", get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -321,7 +321,7 @@ int32_t profile::init(void)
         l_s = m_waf->init(*this);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "waf init reason: %s", m_waf->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -475,7 +475,7 @@ l_acl_pb->add_##_field(l_gs._field(i_t)); \
         l_s = m_acl->compile();
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "access settings: reason: %s", m_acl->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = true;

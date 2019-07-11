@@ -245,9 +245,8 @@ int32_t challenge::load_file(const char* a_file_path, uint32_t a_file_path_len)
         l_s = read_file(a_file_path, &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing read_file: %s. Reason: %s",
-                             a_file_path,
-                             get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "performing read_file: %s",
+                             a_file_path);
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }

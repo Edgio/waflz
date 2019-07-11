@@ -182,9 +182,7 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
-                NDBG_OUTPUT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
-                           a_file.c_str(),
-                           l_profile->get_err_msg());
+                NDBG_OUTPUT("%s\n", l_profile->get_err_msg());
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_profile) { delete l_profile; l_profile = NULL; }
@@ -240,9 +238,7 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
-                NDBG_OUTPUT("failed to load modsecurity config at %s.  Reason: Invalid json: %s\n",
-                            a_file.c_str(),
-                            l_instance->get_err_msg());
+                NDBG_OUTPUT("%s\n", l_instance->get_err_msg());
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_instance) { delete l_instance; l_instance = NULL; }
@@ -285,9 +281,7 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
         l_s = l_config->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
-                NDBG_OUTPUT("failed to load config: %s. Reason: %s\n",
-                                a_file.c_str(),
-                           l_config->get_err_msg());
+                NDBG_OUTPUT("%s\n", l_config->get_err_msg());
                 if(l_config) {delete l_config; l_config = NULL;}
                 if(l_buf) {free(l_buf); l_buf = NULL;}
                 return STATUS_ERROR;
@@ -337,9 +331,7 @@ static int32_t validate_enfcr(const std::string &a_file, bool a_display_json)
         l_s = l_enfcr->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
-                NDBG_OUTPUT("failed to load config: %s. Reason: %s\n",
-                                a_file.c_str(),
-                                l_enfcr->get_err_msg());
+                NDBG_OUTPUT("%s\n", l_enfcr->get_err_msg());
                 if(l_enfcr) {delete l_enfcr; l_enfcr = NULL;}
                 if(l_buf) {free(l_buf); l_buf = NULL;}
                 return STATUS_ERROR;

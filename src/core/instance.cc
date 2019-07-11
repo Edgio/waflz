@@ -280,7 +280,7 @@ int32_t instance::validate(void)
                 l_s = m_profile_audit->load_config(&(l_pb.audit_profile()));
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "(audit_profile): %s", m_profile_audit->get_err_msg());
+                        WAFLZ_PERROR(m_err_msg, "%s", m_profile_audit->get_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -328,7 +328,7 @@ int32_t instance::validate(void)
                 l_s = m_profile_prod->load_config(&(l_pb.prod_profile()));
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "(prod_profile): %s", m_profile_prod->get_err_msg());
+                        WAFLZ_PERROR(m_err_msg, "%s", m_profile_prod->get_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
         }

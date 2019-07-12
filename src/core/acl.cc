@@ -24,9 +24,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "op/regex.h"
-#include "support/geoip2_mmdb.h"
 #include "support/string_util.h"
 #include "op/nms.h"
 #include "waflz/def.h"
@@ -80,10 +78,9 @@ const str_set_t g_ignore_ct_set(g_ignore_ct_set_vals,
 //: \return  None
 //: \param   None
 //: ----------------------------------------------------------------------------
-acl::acl(geoip2_mmdb &a_geoip2_mmdb):
+acl::acl(void):
         m_err_msg(),
         m_pb(NULL),
-        m_geoip2_mmdb(a_geoip2_mmdb),
         m_ip_whitelist(NULL),
         m_ip_blacklist(NULL),
         m_country_whitelist(),
@@ -467,49 +464,26 @@ country_check:
         // -------------------------------------------------
         if(m_country_whitelist.size() &&
            l_buf &&
-           l_buf_len)
+           l_buf_len &&
+           a_ctx.m_geo_cn2.m_data &&
+           a_ctx.m_geo_cn2.m_len)
         {
-                const char *l_cn = NULL;
-                uint32_t l_cn_len = 0;
-                l_s = m_geoip2_mmdb.get_country(&l_cn, l_cn_len, l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                std::string l_cn_str;
+                l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                if(m_country_whitelist.find(l_cn_str) != m_country_whitelist.end())
                 {
-                        WAFLZ_PERROR(m_err_msg,
-                                     "geoip2 country lookup: reason: %s",
-                                     m_geoip2_mmdb.get_err_msg());
-                        //return WAFLZ_STATUS_ERROR;
-                        goto asn_check;
-                }
-                if(l_cn && l_cn_len)
-                {
-                        std::string l_cn_str;
-                        l_cn_str.assign(l_cn, l_cn_len);
-                        if(m_country_whitelist.find(l_cn_str) != m_country_whitelist.end())
-                        {
-                                ao_match = true;
-                                return WAFLZ_STATUS_OK;
-                        }
+                        ao_match = true;
+                        return WAFLZ_STATUS_OK;
                 }
         }
 asn_check:
         // -------------------------------------------------
-        // ASN
+        // asn
         // -------------------------------------------------
         if(m_asn_whitelist.size() &&
-           l_buf &&
-           l_buf_len)
+           a_ctx.m_src_asn)
         {
-                uint32_t l_asn;
-                l_s = m_geoip2_mmdb.get_asn(l_asn, l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg,
-                                     "geoip2 country lookup: reason: %s",
-                                     m_geoip2_mmdb.get_err_msg());
-                        //return WAFLZ_STATUS_ERROR;
-                        goto url_check;
-                }
-                if(m_asn_whitelist.find(l_asn) != m_asn_whitelist.end())
+                if(m_asn_whitelist.find(a_ctx.m_src_asn) != m_asn_whitelist.end())
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
@@ -670,28 +644,16 @@ country_check:
         // -------------------------------------------------
         if(m_country_blacklist.size() &&
            l_buf &&
-           l_buf_len)
+           l_buf_len &&
+           a_ctx.m_geo_cn2.m_data &&
+           a_ctx.m_geo_cn2.m_len)
         {
-                const char *l_cn = NULL;
-                uint32_t l_cn_len = 0;
-                l_s = m_geoip2_mmdb.get_country(&l_cn, l_cn_len, l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg,
-                                     "geoip2 country lookup: reason: %s",
-                                     m_geoip2_mmdb.get_err_msg());
-                        goto asn_check;
-                }
                 std::string l_cn_str;
+                l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
                 bool l_match = false;
-                if(l_cn &&
-                   l_cn_len)
+                if(m_country_blacklist.find(l_cn_str) != m_country_blacklist.end())
                 {
-                        l_cn_str.assign(l_cn, l_cn_len);
-                        if(m_country_blacklist.find(l_cn_str) != m_country_blacklist.end())
-                        {
-                                l_match = true;
-                        }
+                        l_match = true;
                 }
                 if(!l_match)
                 {
@@ -725,21 +687,10 @@ asn_check:
         // ASN
         // -------------------------------------------------
         if(m_asn_blacklist.size() &&
-           l_buf &&
-           l_buf_len)
+           a_ctx.m_src_asn)
         {
-                uint32_t l_asn;
-                l_s = m_geoip2_mmdb.get_asn(l_asn, l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg,
-                                     "geoip2 country lookup: reason: %s",
-                                     m_geoip2_mmdb.get_err_msg());
-                        //return WAFLZ_STATUS_ERROR;
-                        goto url_check;
-                }
                 bool l_match = false;
-                if(m_asn_blacklist.find(l_asn) != m_asn_blacklist.end())
+                if(m_asn_blacklist.find(a_ctx.m_src_asn) != m_asn_blacklist.end())
                 {
                         l_match = true;
                 }
@@ -767,7 +718,7 @@ asn_check:
                 ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
                 l_var->set_name("GEO:ASN");
                 char l_asn_str[16];
-                snprintf(l_asn_str, 16, "AS%u", l_asn);
+                snprintf(l_asn_str, 16, "AS%u", a_ctx.m_src_asn);
                 l_var->set_value(l_asn_str);
                 *ao_event = l_event;
                 return WAFLZ_STATUS_OK;
@@ -1275,93 +1226,64 @@ done:
 int32_t acl::process(waflz_pb::event **ao_event,
                      bool &ao_whitelist,
                      void *a_ctx,
-                     rqst_ctx **ao_rqst_ctx)
+                     rqst_ctx &a_rqst_ctx)
 {
         if(!ao_event)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        *ao_event = NULL;
-        ao_whitelist = false;
-        // -------------------------------------------------
-        // create new if null
-        // -------------------------------------------------
-        rqst_ctx *l_rqst_ctx = NULL;
-        if(ao_rqst_ctx &&
-           *ao_rqst_ctx)
+        if(!a_rqst_ctx.m_init_phase_1)
         {
-                l_rqst_ctx = *ao_rqst_ctx;
-        }
-        if(!l_rqst_ctx)
-        {
-                l_rqst_ctx = new rqst_ctx(a_ctx, 0, false);
-                if(ao_rqst_ctx)
-                {
-                        *ao_rqst_ctx = l_rqst_ctx;
-                }
-        }
-        // -------------------------------------------------
-        // init phase 1 for processing acl
-        // -------------------------------------------------
-        int32_t l_s;
-        l_s = l_rqst_ctx->init_phase_1();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
+        *ao_event = NULL;
+        ao_whitelist = false;
         bool l_match = false;
+        int32_t l_s;
         // -------------------------------------------------
         // whitelist...
         // -------------------------------------------------
-        l_s = process_whitelist(l_match, *l_rqst_ctx);
+        l_s = process_whitelist(l_match, a_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         // if whitelist match, we outtie
         if(l_match)
         {
                 ao_whitelist = true;
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         waflz_pb::event *l_event = NULL;
         // -------------------------------------------------
         // blacklist...
         // -------------------------------------------------
-        l_s = process_blacklist(&l_event, *l_rqst_ctx);
+        l_s = process_blacklist(&l_event, a_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_event)
         {
                 *ao_event = l_event;
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // settings...
         // -------------------------------------------------
-        l_s = process_settings(&l_event, *l_rqst_ctx);
+        l_s = process_settings(&l_event, a_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_event)
         {
                 *ao_event = l_event;
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL;}
         return WAFLZ_STATUS_OK;
 }
 }

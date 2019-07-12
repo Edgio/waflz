@@ -57,8 +57,8 @@ find_python_module(requests REQUIRED)
 # ------------------------------------------------------------------------------
 # waflz
 # ------------------------------------------------------------------------------
-add_test(blackbox_access_settings
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/access_settings/test_bb_access_settings.py)
+add_test(blackbox_acl
+         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/acl/test_bb_acl.py)
 add_test(blackbox_ruleset
          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/ruleset/test_ruleset.py)
 add_test(blackbox_rules
@@ -69,6 +69,8 @@ add_test(blackbox_instances
          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/instances/test_instances.py)
 add_test(blackbox_profile
          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/profile/test_bb_profile.py)
+add_test(blackbox_wjc
+         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/wjc/test_bb_wjc.py)
 # ------------------------------------------------------------------------------
 # tests
 # ------------------------------------------------------------------------------

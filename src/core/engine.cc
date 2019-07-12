@@ -27,6 +27,7 @@
 #include "waflz/config_parser.h"
 #include "waflz/engine.h"
 #include "support/string_util.h"
+#include "support/geoip2_mmdb.h"
 #include "op/regex.h"
 #include "op/ac.h"
 #include "op/nms.h"
@@ -37,6 +38,11 @@
 #include "core/op.h"
 #include <libxml/parser.h>
 namespace ns_waflz {
+//: ----------------------------------------------------------------------------
+//: Class Variables
+//: ----------------------------------------------------------------------------
+std::string engine::s_geoip2_db;
+std::string engine::s_geoip2_isp_db;
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -86,12 +92,14 @@ _compiled_config::~_compiled_config()
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-engine::engine():
+engine::engine(void):
         m_macro(NULL),
         m_config_list(),
         m_compiled_config_map(),
         m_ctype_parser_map(),
-        m_ruleset_dir()
+        m_ruleset_dir(),
+        m_geoip2_mmdb(),
+        m_err_msg()
 {
 }
 //: ----------------------------------------------------------------------------
@@ -129,6 +137,16 @@ engine::~engine()
         {
                 delete m_macro;
                 m_macro = NULL;
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                  geoip2 dbs
+        // *************************************************
+        // -------------------------------------------------
+        if(m_geoip2_mmdb)
+        {
+                delete m_geoip2_mmdb;
+                m_geoip2_mmdb = NULL;
         }
 }
 //: ----------------------------------------------------------------------------
@@ -175,6 +193,18 @@ int32_t engine::init(void)
         // *************************************************
         // -------------------------------------------------
         xmlInitParser();
+        // -------------------------------------------------
+        // *************************************************
+        //                  geoip2 dbs
+        // *************************************************
+        // -------------------------------------------------
+        m_geoip2_mmdb = new geoip2_mmdb();
+        l_s = m_geoip2_mmdb->init(s_geoip2_db, s_geoip2_isp_db);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                 WAFLZ_PERROR(m_err_msg,"error intialiting");
+                 return WAFLZ_STATUS_OK;
+        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

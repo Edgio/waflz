@@ -31,10 +31,12 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/engine.h"
 #include "waflz/profile.h"
+#include "waflz/trace.h"
 #include "op/ac.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
+#include "support/time_util.h"
 #include "support/md5.h"
 #include "core/op.h"
 #include "core/var.h"
@@ -456,7 +458,7 @@ int32_t waf::compile(void)
         l_s = m_engine.compile(*m_compiled_config, *m_pb);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "engine compile reason: %s", m_engine.get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_engine.get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -735,7 +737,7 @@ int32_t waf::set_defaults(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
+int32_t waf::init(profile &a_profile)
 {
         if(!a_profile.get_pb())
         {
@@ -1296,10 +1298,10 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
                           const waflz_pb::sec_rule_t &a_rule,
                           rqst_ctx &a_ctx)
 {
-        //NDBG_PRINT("**********************************************\n");
-        //NDBG_PRINT("*                 R U L E                     \n");
-        //NDBG_PRINT("**********************************************\n");
-        //NDBG_PRINT("rule: %s\n", a_rule.ShortDebugString().c_str());
+        WFLZ_TRC_RULE("%s%s%s\n",
+                      ANSI_COLOR_FG_YELLOW,
+                      a_rule.ShortDebugString().c_str(),
+                      ANSI_COLOR_OFF);
         // -------------------------------------------------
         // chain rule loop
         // -------------------------------------------------
@@ -1370,9 +1372,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // matched...
         // -------------------------------------------------
-        //NDBG_PRINT("%sMATCH%s: !!!\n%s%s%s\n",
-        //           ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
-        //           ANSI_COLOR_FG_RED, a_rule.ShortDebugString().c_str(), ANSI_COLOR_OFF);
         if(!a_rule.has_action())
         {
                 return WAFLZ_STATUS_OK;
@@ -1380,10 +1379,10 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // run disruptive action...
         // -------------------------------------------------
-        // TODO !!!
-        //NDBG_PRINT("%sACTIONS%s: !!!\n%s%s%s\n",
-        //           ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF,
-        //           ANSI_COLOR_FG_MAGENTA, a_rule.action().ShortDebugString().c_str(), ANSI_COLOR_OFF);
+        WFLZ_TRC_MATCH("ACTION: %s%s%s\n",
+                        ANSI_COLOR_FG_RED,
+                        a_rule.action().ShortDebugString().c_str(),
+                        ANSI_COLOR_OFF);
 #if 0
         for(int32_t i_s = 0; i_s < a_rule.action().setvar_size(); ++i_s)
         {
@@ -1628,9 +1627,10 @@ run_op:
                                                 a_ctx.m_cx_matched_var_name.append(l_var_name);
                                         }
                                 }
-                                //NDBG_PRINT("%sMATCH%s: !!!%s%s%s\n",
-                                //           ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF,
-                                //           ANSI_COLOR_FG_MAGENTA, a_rule.ShortDebugString().c_str(), ANSI_COLOR_OFF);
+                                WFLZ_TRC_MATCH("%s%s%s\n",
+                                                ANSI_COLOR_FG_MAGENTA,
+                                                a_rule.ShortDebugString().c_str(),
+                                                ANSI_COLOR_OFF);
                                 ao_match = true;
                                 break;
                         }
@@ -2371,7 +2371,7 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = l_ctx->init_phase_1();
+        l_s = l_ctx->init_phase_1(m_engine.get_geoip2_mmdb());
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???

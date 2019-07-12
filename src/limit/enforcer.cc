@@ -25,7 +25,6 @@
 //: ----------------------------------------------------------------------------
 #include "support/time_util.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "jspb/jspb.h"
 #include "waflz/limit/enforcer.h"
 #include "waflz/rqst_ctx.h"
@@ -189,7 +188,7 @@ int32_t enforcer::load(void *a_js)
                 l_s = update_from_json(*m_pb, l_js);
                 if(l_s != JSPB_OK)
                 {
-                        TRC_DEBUG("error in load_config\n");
+                        //TRC_DEBUG("error in load_config\n");
                         WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -201,7 +200,7 @@ int32_t enforcer::load(void *a_js)
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_DEBUG("error in validate load_config");
+                //TRC_DEBUG("error in validate load_config");
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -211,7 +210,7 @@ int32_t enforcer::load(void *a_js)
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_DEBUG("error in compile");
+                //TRC_DEBUG("error in compile");
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -237,7 +236,7 @@ int32_t enforcer::load(void *a_js)
                 }
                 if(!l_e_duration_s)
                 {
-                        TRC_DEBUG("missing duration in either enforcement or limit");
+                        //TRC_DEBUG("missing duration in either enforcement or limit");
                         return WAFLZ_STATUS_ERROR;
                 }
                 // set end time for limit -controls expiration
@@ -268,7 +267,7 @@ int32_t enforcer::load(const char *a_buf, uint32_t a_buf_len)
         l_ok = l_js->Parse(a_buf, a_buf_len);
         if (!l_ok)
         {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)\n",
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;

@@ -47,6 +47,7 @@ namespace ns_waflz {
 //! fwd decl's
 //! ----------------------------------------------------------------------------
 class waf;
+class geoip2_mmdb;
 //! ----------------------------------------------------------------------------
 //! types
 //! ----------------------------------------------------------------------------
@@ -110,7 +111,8 @@ public:
                  bool a_parse_xml = false,
                  bool a_parse_json = false);
         ~rqst_ctx();
-        int32_t init_phase_1(const pcre_list_t *a_il_query = NULL,
+        int32_t init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
+                             const pcre_list_t *a_il_query = NULL,
                              const pcre_list_t *a_il_header = NULL,
                              const pcre_list_t *a_il_cookie = NULL);
         int32_t init_phase_2(const ctype_parser_map_t &a_ctype_parser_map);
@@ -184,6 +186,13 @@ public:
         // xpath optimization
         // -------------------------------------------------
         xpath_cache_map_t *m_xpath_cache_map;
+        // -------------------------------------------------
+        // extensions
+        // -------------------------------------------------
+        uint32_t m_src_asn;
+        // TODO use uint32???
+        mutable_data_t m_src_asn_str;
+        data_t m_geo_cn2;
 private:
         // -------------------------------------------------
         // private methods

@@ -30,7 +30,6 @@
 #include "ectoken/ectoken_v3.h"
 #include "support/file_util.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "support/time_util.h"
 #include "support/string_util.h"
 #include "support/base64.h"
@@ -198,7 +197,7 @@ int32_t challenge::load(const char* a_buf, uint32_t a_buf_len)
         l_ok = l_js->Parse(a_buf, a_buf_len);
         if(!l_ok)
         {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)\n",
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -246,9 +245,8 @@ int32_t challenge::load_file(const char* a_file_path, uint32_t a_file_path_len)
         l_s = read_file(a_file_path, &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing read_file: %s. Reason: %s",
-                             a_file_path,
-                             get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "performing read_file: %s",
+                             a_file_path);
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }

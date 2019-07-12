@@ -34,7 +34,6 @@
 #include "is2/srvr/api_resp.h"
 #include "is2/srvr/srvr.h"
 #include "jspb/jspb.h"
-#include "support/geoip2_mmdb.h"
 #include "support/file_util.h"
 #include "event.pb.h"
 #include "config.pb.h"
@@ -74,7 +73,7 @@ static void *t_load_instance(void *a_context)
         }
         int32_t l_s;
         ns_waflz::instance *l_instance = NULL;
-        l_s = l_i->m_instances->load_config(&l_instance, l_i->m_buf, l_i->m_buf_len, true);
+        l_s = l_i->m_instances->load_config(&l_instance, l_i->m_buf, l_i->m_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 TRC_ERROR("performing m_profile->load_config\n");
@@ -112,7 +111,7 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
                 //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
                 int32_t l_s;
                 ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len, true);
+                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         TRC_ERROR("performing m_profile->load_config\n");
@@ -162,7 +161,6 @@ sx_instance::sx_instance(void):
         m_engine(NULL),
         m_instances(NULL),
         m_update_instances_h(NULL),
-        m_geoip2_mmdb(NULL),
         m_id_vector()
 {
 
@@ -177,7 +175,6 @@ sx_instance::~sx_instance(void)
         if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_instances) { delete m_instances; m_instances = NULL; }
         if(m_update_instances_h) { delete m_update_instances_h; m_update_instances_h = NULL; }
-        if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL; }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -203,22 +200,7 @@ int32_t sx_instance::init(void)
         m_instances = new ns_waflz::instances(*m_engine, m_bg_load);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_instances->get_err_msg());
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // init dbs
-        // -------------------------------------------------
-        l_s = m_instances->init_dbs();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_instances->get_err_msg());
+                // TODO log reason
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -229,7 +211,6 @@ int32_t sx_instance::init(void)
                 //NDBG_PRINT("l_instance_dir: %s\n", l_instance_dir.c_str());
                 l_s = m_instances->load_config_dir(m_config.c_str(),
                                                    m_config.length(),
-                                                   true,
                                                    true);
                 if(l_s != WAFLZ_STATUS_OK)
                 {

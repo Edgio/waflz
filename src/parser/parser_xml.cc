@@ -26,7 +26,6 @@
 #include "waflz/def.h"
 #include "parser/parser_xml.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------

@@ -30,7 +30,6 @@
 #include "event.pb.h"
 #include "jspb/jspb.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
 #include "support/time_util.h"
@@ -68,10 +67,6 @@ namespace ns_waflz {
 uint_fast32_t profile::s_next_ec_rule_id = 430000;
 const std::string profile::s_default_name("");
 std::string profile::s_ruleset_dir("/oc/local/waf/ruleset/");
-std::string profile::s_geoip_db;
-std::string profile::s_geoip_isp_db;
-std::string profile::s_geoip2_db;
-std::string profile::s_geoip2_isp_db;
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -95,20 +90,17 @@ static void clear_ignore_list(pcre_list_t &a_pcre_list)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-profile::profile(engine &a_engine,
-                 geoip2_mmdb &a_geoip2_mmdb):
+profile::profile(engine &a_engine):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
-        m_geoip2_mmdb(a_geoip2_mmdb),
         m_acl(NULL),
         m_waf(NULL),
         m_id(),
         m_name(profile::s_default_name),
         m_resp_header_name(),
         m_action(waflz_pb::enforcement_type_t_NOP),
-        m_leave_compiled_file(false),
         m_owasp_ruleset_version(229),
         m_paranoia_level(1),
         m_il_query(),
@@ -116,7 +108,7 @@ profile::profile(engine &a_engine,
         m_il_cookie()
 {
         m_pb = new waflz_pb::profile();
-        m_acl = new acl(a_geoip2_mmdb);
+        m_acl = new acl();
 }
 //: ----------------------------------------------------------------------------
 //: \details dtor
@@ -151,9 +143,7 @@ void profile::set_pb(waflz_pb::profile *a_pb)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t profile::load_config(const char *a_buf,
-                             uint32_t a_buf_len,
-                             bool a_leave_compiled_file)
+int32_t profile::load_config(const char *a_buf, uint32_t a_buf_len)
 {
         if(a_buf_len > CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE)
         {
@@ -163,7 +153,6 @@ int32_t profile::load_config(const char *a_buf,
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        m_leave_compiled_file = a_leave_compiled_file;
         if(m_pb)
         {
                 delete m_pb;
@@ -174,7 +163,7 @@ int32_t profile::load_config(const char *a_buf,
                 delete m_acl;
                 m_acl = NULL;
         }
-        m_acl = new acl(m_geoip2_mmdb);
+        m_acl = new acl();
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------
@@ -184,7 +173,7 @@ int32_t profile::load_config(const char *a_buf,
         //NDBG_PRINT("whole config %s", m_pb->DebugString().c_str());
         if(l_s != JSPB_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "parsing json. reason: %s", get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -202,8 +191,7 @@ int32_t profile::load_config(const char *a_buf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t profile::load_config(const waflz_pb::profile *a_pb,
-                             bool a_leave_compiled_file)
+int32_t profile::load_config(const waflz_pb::profile *a_pb)
 {
         if(!a_pb)
         {
@@ -211,7 +199,6 @@ int32_t profile::load_config(const waflz_pb::profile *a_pb,
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        m_leave_compiled_file = a_leave_compiled_file;
         if(m_pb)
         {
                 delete m_pb;
@@ -268,7 +255,7 @@ int32_t profile::regex_list_add(const std::string &a_regex,
                 l_regex->get_err_info(&l_err_ptr, l_err_off);
                 delete l_regex;
                 l_regex = NULL;
-                //WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in access_settings ignore list. Reason: %s -offset: %d\n",
+                //WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in access_settings ignore list. Reason: %s -offset: %d",
                 //            a_regex.c_str(),
                 //            l_err_ptr,
                 //            l_err_off);
@@ -331,10 +318,10 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = m_waf->init(*this, m_leave_compiled_file);
+        l_s = m_waf->init(*this);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "waf init reason: %s", m_waf->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -488,7 +475,7 @@ l_acl_pb->add_##_field(l_gs._field(i_t)); \
         l_s = m_acl->compile();
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "access settings: reason: %s", m_acl->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = true;
@@ -676,7 +663,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------
-        l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
+        l_s = l_rqst_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), &m_il_query, &m_il_header, &m_il_cookie);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
@@ -690,7 +677,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         if(a_part_mk & PART_MK_ACL)
         {
                 bool l_whitelist = false;
-                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
+                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, *l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???

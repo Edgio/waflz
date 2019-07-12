@@ -30,6 +30,7 @@
 // ---------------------------------------------------------
 #include "waflz/waflz.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/engine.h"
 #include "waflz/render.h"
 // ---------------------------------------------------------
 // is2
@@ -673,9 +674,6 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -C, --cprofile      Google cpu profiler output file\n");
         fprintf(a_stream, "  \n");
 #endif
-        fprintf(a_stream, "NOTE: to run in w/o geoip db's:\n");
-        fprintf(a_stream, "      make a file in tmp to act like geo IP database\n");
-        fprintf(a_stream, "      ~>touch %s\n", BOGUS_GEO_DATABASE);
         exit(a_exit_code);
 }
 //: ----------------------------------------------------------------------------
@@ -940,24 +938,11 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         srand(time(NULL));
         // -------------------------------------------------
-        // geoip db checks...
-        // -------------------------------------------------
-        if(l_geoip_db.empty())
-        {
-                fprintf(stdout, "No geoip db provide, using BOGUS_GEO_DATABASE.\n");
-                l_geoip_db = BOGUS_GEO_DATABASE;
-        }
-        if(l_geoip_isp_db.empty())
-        {
-                fprintf(stdout, "No geoip isp db provide, using BOGUS_GEO_DATABASE.\n");
-                l_geoip_isp_db = BOGUS_GEO_DATABASE;
-        }
-        // -------------------------------------------------
         // setup
         // -------------------------------------------------
         ns_waflz::scopes::s_conf_dir = l_conf_dir;
-        ns_waflz::profile::s_geoip2_db = l_geoip_db;
-        ns_waflz::profile::s_geoip2_isp_db = l_geoip_isp_db;
+        ns_waflz::engine::s_geoip2_db = l_geoip_db;
+        ns_waflz::engine::s_geoip2_isp_db = l_geoip_isp_db;
         // -------------------------------------------------
         // *************************************************
         // server setup

@@ -102,7 +102,7 @@ static int32_t validate_ruleset_dir(std::string &a_ruleset_dir)
         // -------------------------------------------------
         if(a_ruleset_dir.empty())
         {
-                NDBG_OUTPUT("error ruleset directory is required.\n");
+                fprintf(stderr, "error ruleset directory is required.\n");
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -122,7 +122,7 @@ static int32_t validate_ruleset_dir(std::string &a_ruleset_dir)
         l_s = stat(a_ruleset_dir.c_str(), &l_stat);
         if(l_s != 0)
         {
-                NDBG_OUTPUT("error performing stat on directory: %s.  Reason: %s\n", a_ruleset_dir.c_str(), strerror(errno));
+                fprintf(stderr, "error performing stat on directory: %s.  Reason: %s\n", a_ruleset_dir.c_str(), strerror(errno));
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -130,7 +130,7 @@ static int32_t validate_ruleset_dir(std::string &a_ruleset_dir)
         // -------------------------------------------------
         if((l_stat.st_mode & S_IFDIR) == 0)
         {
-                NDBG_OUTPUT("error %s does not appear to be a directory\n", a_ruleset_dir.c_str());
+                fprintf(stderr, "error %s does not appear to be a directory\n", a_ruleset_dir.c_str());
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -168,7 +168,7 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
@@ -182,7 +182,7 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
-                NDBG_OUTPUT("%s\n", l_profile->get_err_msg());
+                fprintf(stderr, "%s\n", l_profile->get_err_msg());
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_profile) { delete l_profile; l_profile = NULL; }
@@ -225,7 +225,7 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
@@ -238,7 +238,7 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
-                NDBG_OUTPUT("%s\n", l_instance->get_err_msg());
+                fprintf(stderr, "%s\n", l_instance->get_err_msg());
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
                 if(l_instance) { delete l_instance; l_instance = NULL; }
@@ -269,7 +269,7 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
         l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
-                NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -281,7 +281,7 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
         l_s = l_config->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
-                NDBG_OUTPUT("%s\n", l_config->get_err_msg());
+                fprintf(stderr, "%s\n", l_config->get_err_msg());
                 if(l_config) {delete l_config; l_config = NULL;}
                 if(l_buf) {free(l_buf); l_buf = NULL;}
                 return STATUS_ERROR;
@@ -319,7 +319,7 @@ static int32_t validate_enfcr(const std::string &a_file, bool a_display_json)
         l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
-                NDBG_OUTPUT("failed to read file at %s\n", a_file.c_str());
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -331,7 +331,7 @@ static int32_t validate_enfcr(const std::string &a_file, bool a_display_json)
         l_s = l_enfcr->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
-                NDBG_OUTPUT("%s\n", l_enfcr->get_err_msg());
+                fprintf(stderr, "%s\n", l_enfcr->get_err_msg());
                 if(l_enfcr) {delete l_enfcr; l_enfcr = NULL;}
                 if(l_buf) {free(l_buf); l_buf = NULL;}
                 return STATUS_ERROR;
@@ -603,7 +603,7 @@ int main(int argc, char** argv)
         case(CONFIG_MODE_NONE):
         default:
         {
-                NDBG_OUTPUT("error conf required.\n");
+                fprintf(stderr, "error conf required.\n");
                 return STATUS_ERROR;
         }
         }

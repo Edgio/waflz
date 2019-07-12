@@ -248,7 +248,7 @@ int32_t rl_obj::compile_op(::waflz_pb::op_t& ao_op)
                 l_s = l_rx->init(l_val.c_str(), l_val.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "failed to compile regex: '%s'.\n", l_val.c_str());
+                        WAFLZ_PERROR(m_err_msg, "failed to compile regex: '%s'.", l_val.c_str());
                         delete l_rx;
                         l_rx = NULL;
                         return WAFLZ_STATUS_ERROR;
@@ -380,12 +380,12 @@ int32_t rl_obj::compile_op(::waflz_pb::op_t& ao_op)
                 l_s = create_nms_from_ip_str_list(&l_nms, l_ip_str_list);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "failed to compile ip_list\n");
+                        WAFLZ_PERROR(m_err_msg, "failed to compile ip_list");
                         return WAFLZ_STATUS_ERROR;
                 }
                 if(!l_nms)
                 {
-                        WAFLZ_PERROR(m_err_msg, "failed to compile ip_list\n");
+                        WAFLZ_PERROR(m_err_msg, "failed to compile ip_list");
                         return WAFLZ_STATUS_ERROR;
                 }
                 ao_op.set__reserved_1((uint64_t)(l_nms));

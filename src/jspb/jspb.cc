@@ -464,7 +464,7 @@ static int32_t update_field(google::protobuf::Message& ao_msg,
         JSPB_TRACE("update_field\n");
         if (!((a_val.*a_checker)()))
         {
-                JSPB_PERROR("expecting type: %s for field: '%s'\n", a_field->type_name(), a_field->full_name().c_str());
+                JSPB_PERROR("expecting type: %s for field: '%s'", a_field->type_name(), a_field->full_name().c_str());
                 return JSPB_ERROR;
         }
         (a_ref->*a_updater)(&ao_msg, a_field, (a_val.*a_accessor)());

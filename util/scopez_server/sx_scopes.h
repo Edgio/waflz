@@ -33,7 +33,6 @@
 //: ----------------------------------------------------------------------------
 namespace ns_waflz {
 class engine;
-class geoip2_mmdb;
 }
 namespace ns_scopez_server {
 //: ----------------------------------------------------------------------------
@@ -76,7 +75,6 @@ public:
         bool m_scopes_dir;
         ns_waflz::engine *m_engine;
         update_scopes_h *m_update_scopes_h;
-        ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
         ns_waflz::scopes *m_scopes;
         std::string m_id;
 };

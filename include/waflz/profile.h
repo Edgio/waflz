@@ -48,7 +48,6 @@ namespace ns_waflz {
 class engine;
 class waf;
 class acl;
-class geoip2_mmdb;
 class regex;
 class rqst_ctx;
 //: ----------------------------------------------------------------------------
@@ -65,12 +64,12 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
+        profile(engine &a_engine);
         ~profile();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t process_part(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);
-        int32_t load_config(const char *a_buf, uint32_t a_buf_len, bool a_leave_compiled_file = false);
-        int32_t load_config(const waflz_pb::profile *a_pb, bool a_leave_compiled_file = false);
+        int32_t load_config(const char *a_buf, uint32_t a_buf_len);
+        int32_t load_config(const waflz_pb::profile *a_pb);
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------
@@ -91,10 +90,6 @@ public:
         // -------------------------------------------------
         static uint_fast32_t s_next_ec_rule_id;
         static std::string s_ruleset_dir;
-        static std::string s_geoip_db;
-        static std::string s_geoip_isp_db;
-        static std::string s_geoip2_db;
-        static std::string s_geoip2_isp_db;
 private:
         // -------------------------------------------------
         // private types
@@ -117,7 +112,6 @@ private:
         waflz_pb::profile *m_pb;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
-        geoip2_mmdb &m_geoip2_mmdb;
         // -------------------------------------------------
         // engines...
         // -------------------------------------------------
@@ -130,7 +124,6 @@ private:
         std::string m_name;
         std::string m_resp_header_name;
         uint16_t m_action;
-        bool m_leave_compiled_file;
         uint32_t m_owasp_ruleset_version;
         uint32_t m_paranoia_level;
         pcre_list_t m_il_query;

@@ -1,0 +1,135 @@
+{
+  "access_settings": {
+    "country": {
+      "blacklist": [],
+      "whitelist": []
+    },
+    "ip": {
+      "blacklist": [],
+      "whitelist": []
+    },
+    "referer": {
+      "blacklist": [],
+      "whitelist": []
+    },
+    "referrer": {
+      "blacklist": [],
+      "whitelist": []
+    },
+    "url": {
+      "blacklist": ["*dogs[]"],
+      "whitelist": []
+    },
+    "user-agent": {
+      "blacklist": [],
+      "whitelist": []
+    },
+    "asn": {
+      "blacklist": ["blah", "blah"],
+      "whitelist": []
+    }
+  },
+  "created_date": "04/18/2019 07:48:25 PM",
+  "custom_rules": [],
+  "disabled_rules": [],
+  "general_settings": {
+    "allowed_http_methods": [
+      "GET",
+      "POST",
+      "PUT",
+      "HEAD",
+      "OPTIONS",
+      "PATCH",
+      "DELETE"
+    ],
+    "allowed_request_content_types": [
+      "application/json",
+      "application/x-amf",
+      "application/x-www-form-urlencoded",
+      "application/xml",
+      "multipart/form-data",
+      "text/html",
+      "text/plain",
+      "text/xml"
+    ],
+    "anomaly_threshold": 10,
+    "arg_length": 8000,
+    "arg_name_length": 1024,
+    "combined_file_sizes": 6291456,
+    "debug_level": 0,
+    "debug_log": "",
+    "disallowed_extensions": [
+      ".asa",
+      ".asax",
+      ".ascx",
+      ".axd",
+      ".backup",
+      ".bak",
+      ".bat",
+      ".cdx",
+      ".cer",
+      ".cfg",
+      ".cmd",
+      ".conf",
+      ".config",
+      ".cs",
+      ".csproj",
+      ".csr",
+      ".dat",
+      ".db",
+      ".dbf",
+      ".dll",
+      ".dos",
+      ".exe",
+      ".htr",
+      ".htw",
+      ".ida",
+      ".idc",
+      ".idq",
+      ".inc",
+      ".ini",
+      ".key",
+      ".licx",
+      ".lnk",
+      ".log",
+      ".mdb",
+      ".old",
+      ".pass",
+      ".pdb",
+      ".pol",
+      ".printer",
+      ".pwd",
+      ".resources",
+      ".resx",
+      ".sql",
+      ".sys",
+      ".vb",
+      ".vbproj",
+      ".vbs",
+      ".vsdisco",
+      ".webinfo",
+      ".xsd",
+      ".xsx"
+    ],
+    "disallowed_headers": [],
+    "engine": "anomaly",
+    "json_parser": true,
+    "max_file_size": 6291456,
+    "max_num_args": 512,
+    "process_request_body": true,
+    "process_response_body": false,
+    "response_header_name": "X-EC-Security-Audit",
+    "response_mime_types": [],
+    "total_arg_length": 64000,
+    "validate_utf8_encoding": true,
+    "xml_parser": true
+  },
+  "id": "mNXJFPLz",
+  "last_modified_date": "2019-04-18T19:48:25.142172Z",
+  "name": "dev testing",
+  "policies": [
+  ],
+  "rule_target_updates": [],
+  "ruleset_id": "OWASP-CRS-3.2",
+  "ruleset_version": "2018-10-04"
+}

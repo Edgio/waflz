@@ -56,15 +56,13 @@
 //: ----------------------------------------------------------------------------
 #ifndef WAFLZ_PERROR
 #define WAFLZ_PERROR(_str, ...) do { \
-  int _len = strlen(_str); \
-  snprintf(_str + _len, WAFLZ_ERR_LEN - _len, "%s.%s.%d: ",__FILE__,__FUNCTION__,__LINE__); \
-  snprintf(_str + _len, WAFLZ_ERR_LEN - _len, __VA_ARGS__); \
+  snprintf(_str, WAFLZ_ERR_LEN, __VA_ARGS__); \
 } while(0)
 #endif
 #ifndef WAFLZ_AERROR
 #define WAFLZ_AERROR(_str, ...) do { \
   int _len = strlen(_str); \
-  snprintf(_str + _len, WAFLZ_ERR_LEN - _len, __VA_ARGS__); \
+  snprintf(_str + _len, WAFLZ_ERR_LEN - _len - 1, __VA_ARGS__); \
 } while(0)
 #endif
 //: ----------------------------------------------------------------------------

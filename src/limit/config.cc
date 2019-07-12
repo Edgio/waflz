@@ -24,7 +24,6 @@
 //! includes
 //! ----------------------------------------------------------------------------
 #include "support/time_util.h"
-#include "support/trace_internal.h"
 #include "support/ndebug.h"
 #include "support/string_util.h"
 #include "support/base64.h"
@@ -125,7 +124,7 @@ int32_t config::load()
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_DEBUG("error in compile");
+                //TRC_DEBUG("error in compile");
                 return WAFLZ_STATUS_ERROR;
         }
         // ------------------------------------------------
@@ -367,7 +366,7 @@ int32_t config::load(const char *a_buf,
         l_ok = l_js->Parse(a_buf, a_buf_len);
         if (!l_ok)
         {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)\n",
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -553,7 +552,7 @@ int32_t config::process(const waflz_pb::enforcement** ao_enfcmnt,
         // TODO -return enforcer...
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing enforcer merge.  Reason: %s\n", m_enfx->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_enfx->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_cfg) { delete l_cfg; l_cfg = NULL; }
@@ -708,7 +707,7 @@ int32_t config::merge(waflz_pb::config &ao_cfg)
         // TODO -return enforcer...
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing enforcer merge.  Reason: %s\n", m_enfx->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_enfx->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
@@ -728,7 +727,7 @@ int32_t config::merge(void *a_js)
         l_s = l_e->load(a_js);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing load enforcer.  Reason: %s\n", l_e->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", l_e->get_err_msg());
                 if(l_e) { delete l_e; l_e = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }

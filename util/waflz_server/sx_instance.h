@@ -33,7 +33,6 @@
 //: ----------------------------------------------------------------------------
 namespace ns_waflz {
 class engine;
-class geoip2_mmdb;
 }
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
@@ -79,7 +78,6 @@ public:
         ns_waflz::engine *m_engine;
         ns_waflz::instances *m_instances;
         update_instances_h *m_update_instances_h;
-        ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
         ns_waflz::instances::id_vector_t m_id_vector;
 };
 }

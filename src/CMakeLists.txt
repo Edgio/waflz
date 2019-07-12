@@ -123,7 +123,7 @@ SET(SRCS
     support/geoip2_mmdb.cc
     support/file_util.cc
     support/string_util.cc
-    support/trace_internal.cc
+    support/trace.cc
     support/ndebug.cc
     support/base64.cc
     # ------------------------------------------------------

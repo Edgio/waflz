@@ -33,7 +33,6 @@
 #include "is2/srvr/api_resp.h"
 #include "is2/srvr/srvr.h"
 #include "jspb/jspb.h"
-#include "support/geoip2_mmdb.h"
 #include "support/file_util.h"
 #include "event.pb.h"
 //: ----------------------------------------------------------------------------
@@ -70,7 +69,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         // TODO get status
         //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
         int32_t l_s;
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
+        l_s = m_profile->load_config(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 TRC_ERROR("performing g_profile->load_config: reason: %s\n", m_profile->get_err_msg());
@@ -99,7 +98,6 @@ sx_profile::sx_profile(void):
         m_engine(NULL),
         m_profile(NULL),
         m_update_profile_h(NULL),
-        m_geoip2_mmdb(NULL),
         m_action(NULL)
 {
         // -------------------------------------------------
@@ -121,7 +119,6 @@ sx_profile::~sx_profile(void)
         if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_profile) { delete m_profile; m_profile = NULL; }
         if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
-        if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL; }
         if(m_action) { delete m_action; m_action = NULL; }
 }
 //: ----------------------------------------------------------------------------
@@ -143,20 +140,6 @@ int32_t sx_profile::init(void)
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // geoip db
-        // -------------------------------------------------
-        m_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        l_s = m_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                  ns_waflz::profile::s_geoip2_isp_db);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_geoip2_mmdb->get_err_msg());
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
         // read file
         // -------------------------------------------------
         char *l_buf;
@@ -171,9 +154,9 @@ int32_t sx_profile::init(void)
         // -------------------------------------------------
         // load profile
         // -------------------------------------------------
-        m_profile = new ns_waflz::profile(*m_engine, *m_geoip2_mmdb);
+        m_profile = new ns_waflz::profile(*m_engine);
         //NDBG_PRINT("load profile: %s\n", l_profile_file.c_str());
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
+        l_s = m_profile->load_config(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error loading config: %s. reason: %s\n",

@@ -279,7 +279,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
         char l_cwd[1024];
         if(getcwd(l_cwd, sizeof(l_cwd)) != NULL)
         {
-            //fprintf(stdout, "Current working dir: %s\n", cwd);
+                //fprintf(stdout, "Current working dir: %s\n", cwd);
         }
         std::string l_rule_dir = l_cwd;
         l_rule_dir += "/../../../../tests/data/waf/ruleset/";
@@ -294,8 +294,8 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
         //l_geoip2_city_file += "/../tests/data/waf/db/GeoLite2-City.mmdb";
         l_geoip2_asn_file += "/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb";
         //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
-        ns_waflz::profile::s_geoip2_db = l_geoip2_city_file;
-        ns_waflz::profile::s_geoip2_isp_db = l_geoip2_asn_file;
+        ns_waflz::engine::s_geoip2_db = l_geoip2_city_file;
+        ns_waflz::engine::s_geoip2_isp_db = l_geoip2_asn_file;
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
@@ -303,15 +303,11 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // -----------------------------------------
                 // setup
                 // -----------------------------------------
-                ns_waflz::geoip2_mmdb *l_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-                int32_t l_s;
-                l_s = l_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                          ns_waflz::profile::s_geoip2_isp_db);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
                 ns_waflz::engine *l_engine = new ns_waflz::engine();
+                int32_t l_s;
                 l_s = l_engine->init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
+                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
                 waflz_pb::profile *l_pb = init_std_profile_pb();
                 // *****************************************
                 // -----------------------------------------
@@ -410,7 +406,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load_config(l_pb, false);
+                l_s = l_profile->load_config(l_pb);
                 NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
@@ -969,11 +965,6 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 {
                         delete l_engine;
                         l_engine = NULL;
-                }
-                if(l_geoip2_mmdb)
-                {
-                        delete l_geoip2_mmdb;
-                        l_geoip2_mmdb = NULL;
                 }
         }
 }

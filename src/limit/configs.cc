@@ -26,7 +26,6 @@
 #include "support/time_util.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
-#include "support/trace_internal.h"
 #include "support/ndebug.h"
 #include "waflz/limit/configs.h"
 #include "waflz/limit/config.h"
@@ -132,7 +131,6 @@ int32_t configs::load(void *a_js)
                 if(l_t == _LIMIT_OBJ_NONE)
                 {
                         WAFLZ_PERROR(m_err_msg, "unrecognized type string: %s", l_str);
-                        NDBG_PRINT("unrecognized type string: %s", l_str);
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -144,7 +142,7 @@ int32_t configs::load(void *a_js)
            l_js["customer_id"].IsString())
         {
                 const char *l_str = l_js["customer_id"].GetString();
-                TRC_ALL("customer_id: %s\n", l_str);
+                //TRC_ALL("customer_id: %s\n", l_str);
                 int32_t l_s;
                 l_s = convert_hex_to_uint(l_cust_id, l_str);
                 if(l_s != WAFLZ_STATUS_OK)
@@ -153,7 +151,7 @@ int32_t configs::load(void *a_js)
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-        TRC_ALL("customer_id(int): %lu\n", l_cust_id);
+        //TRC_ALL("customer_id(int): %lu\n", l_cust_id);
         // -------------------------------------------------
         // find in map
         // -------------------------------------------------
@@ -180,8 +178,7 @@ int32_t configs::load(void *a_js)
                 l_s = (i_cust->second)->merge((void *)&l_js);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "performing merge for id: %lu. Reason: %s",
-                                     l_cust_id,
+                        WAFLZ_PERROR(m_err_msg, "%s",
                                      (i_cust->second)->get_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -195,7 +192,7 @@ int32_t configs::load(void *a_js)
         l_s = l_c->load((void *)&l_js);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing load. Reason: %s",
+                WAFLZ_PERROR(m_err_msg, "%s",
                              l_c->get_err_msg());
                 if(l_c) { delete l_c; l_c = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -229,7 +226,7 @@ int32_t configs::load(void *a_js)
                 uint64_t l_config_epoch = get_epoch_seconds(l_lmd_new.c_str(), CONFIG_DATE_FORMAT);
                 if(l_loaded_epoch >= l_config_epoch)
                 {
-                        TRC_DEBUG("config is already latest. not performing update");
+                        //TRC_DEBUG("config is already latest. not performing update");
                         if(l_c) { delete l_c; l_c = NULL; }
                         return WAFLZ_STATUS_OK;
                 }
@@ -260,7 +257,7 @@ int32_t configs::load(const char *a_buf, uint32_t a_buf_len)
         l_ok = l_js->Parse(a_buf, a_buf_len);
         if (!l_ok)
         {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)\n",
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -417,9 +414,6 @@ int32_t configs::load_file(const char *a_file_path,
         l_s = read_file(a_file_path, &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing read_file: %s. Reason: %s",
-                             a_file_path,
-                             get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }

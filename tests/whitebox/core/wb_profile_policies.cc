@@ -29,7 +29,6 @@
 #include "waflz/instances.h"
 #include "config.pb.h"
 #include "support/ndebug.h"
-#include "support/geoip2_mmdb.h"
 #include <unistd.h>
 //: ----------------------------------------------------------------------------
 //: TODO
@@ -116,8 +115,8 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
         //l_geoip2_city_file += "/../tests/data/waf/db/GeoLite2-City.mmdb";
         l_geoip2_asn_file += "/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb";
         //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
-        ns_waflz::profile::s_geoip2_db = l_geoip2_city_file;
-        ns_waflz::profile::s_geoip2_isp_db = l_geoip2_asn_file;
+        ns_waflz::engine::s_geoip2_db = l_geoip2_city_file;
+        ns_waflz::engine::s_geoip2_isp_db = l_geoip2_asn_file;
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
@@ -125,15 +124,11 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 // -----------------------------------------
                 // setup
                 // -----------------------------------------
-                ns_waflz::geoip2_mmdb *l_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
                 int32_t l_s;
-                l_s = l_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                          ns_waflz::profile::s_geoip2_isp_db);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
                 ns_waflz::engine *l_engine = new ns_waflz::engine();
                 l_s = l_engine->init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine, *l_geoip2_mmdb);
+                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
                 waflz_pb::profile *l_pb = init_std_profile_pb();
 #if 0
                 //-------------------------------------------
@@ -183,11 +178,6 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 {
                         delete l_engine;
                         l_engine = NULL;
-                }
-                if(l_geoip2_mmdb)
-                {
-                        delete l_geoip2_mmdb;
-                        l_geoip2_mmdb = NULL;
                 }
         }
 }

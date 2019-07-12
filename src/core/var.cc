@@ -465,24 +465,6 @@ static void add_vars_const(const_arg_list_t &ao_list,
         ao_list.push_back(l_data); \
         }while(0)
 //: ----------------------------------------------------------------------------
-//: \details: REMOTE_ADDR
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-GET_VAR(REMOTE_ADDR)
-{
-        if(!a_ctx)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        // TODO -handle counts!
-        // -------------------------------------------------
-        // unconditional match
-        // -------------------------------------------------
-        _ADD_VAR(a_ctx->m_src_addr);
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
 //: \details: REQUEST_PROTOCOL
 //: \return:  TODO
 //: \param:   TODO
@@ -1447,6 +1429,73 @@ GET_VAR(XML)
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
+//: \details: REMOTE_ADDR
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+GET_VAR(REMOTE_ADDR)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // TODO -handle counts!
+        // -------------------------------------------------
+        // unconditional match
+        // -------------------------------------------------
+        _ADD_VAR(a_ctx->m_src_addr);
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: REMOTE_ASN
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+GET_VAR(REMOTE_ASN)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // TODO -handle counts!
+        // -------------------------------------------------
+        // unconditional match
+        // -------------------------------------------------
+        _ADD_VAR(a_ctx->m_src_asn_str);
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: GEO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+GET_VAR(GEO)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!a_var.match_size() ||
+           !a_var.match(0).has_value() ||
+           a_var.match(0).value().empty())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        const std::string& l_type = a_var.match(0).value();
+        // TODO -handle counts!
+        if(0) {}
+#define _ELIF_GEO_TYPE(_str) else if(l_type == _str)
+        // -------------------------------------------------
+        // COUNTRY_CODE
+        // -------------------------------------------------
+        _ELIF_GEO_TYPE("COUNTRY_CODE")
+        {
+                _ADD_VAR(a_ctx->m_geo_cn2);
+        }
+        return WAFLZ_STATUS_OK;
+}
+
+//: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
 #define INIT_GET_VAR(_type) \
@@ -1514,7 +1563,12 @@ void init_var_cb_vector(void)
         // urlencoded body
         // -------------------------------------------------
         INIT_GET_VAR(REQUEST_BODY);
+        // -------------------------------------------------
+        // address info
+        // -------------------------------------------------
         INIT_GET_VAR(REMOTE_ADDR);
+        INIT_GET_VAR(REMOTE_ASN);
+        INIT_GET_VAR(GEO);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO

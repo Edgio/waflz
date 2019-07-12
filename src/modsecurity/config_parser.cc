@@ -1384,6 +1384,7 @@ int32_t config_parser::parse_vars(variable_list_t &ao_variable_list,
                         else VARIABLE_SET_IF_KV(MULTIPART_UNMATCHED_BOUNDARY)
                         else VARIABLE_SET_IF_KV(QUERY_STRING)
                         else VARIABLE_SET_IF_KV(REMOTE_ADDR)
+                        else VARIABLE_SET_IF_KV(REMOTE_ASN)
                         else VARIABLE_SET_IF_KV(REQBODY_ERROR)
                         else VARIABLE_SET_IF_KV(REQUEST_BASENAME)
                         else VARIABLE_SET_IF_KV(REQUEST_BODY)

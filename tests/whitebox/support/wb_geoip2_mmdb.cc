@@ -46,16 +46,13 @@ TEST_CASE( "maxminds geoip2 mmdb test", "[geoip2_mmdb]" ) {
         //l_geoip2_city_file += "/../tests/data/waf/db/GeoLite2-City.mmdb";
         l_geoip2_asn_file += "/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb";
         //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
-        ns_waflz::profile::s_geoip2_db = l_geoip2_city_file;
-        ns_waflz::profile::s_geoip2_isp_db = l_geoip2_asn_file;
         // -------------------------------------------------
         // bad init
         // -------------------------------------------------
         SECTION("validate bad init") {
                 ns_waflz::geoip2_mmdb *l_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
                 int32_t l_s;
-                l_s = l_geoip2_mmdb->init("/tmp/monkeys",
-                                          "/tmp/bananas");
+                l_s = l_geoip2_mmdb->init("/tmp/monkeys", "/tmp/bananas");
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // cleanup
@@ -75,8 +72,7 @@ TEST_CASE( "maxminds geoip2 mmdb test", "[geoip2_mmdb]" ) {
                 // -----------------------------------------
                 // init
                 // -----------------------------------------
-                l_s = l_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                          ns_waflz::profile::s_geoip2_isp_db);
+                l_s = l_geoip2_mmdb->init(l_geoip2_city_file, l_geoip2_asn_file);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // lookups
@@ -122,8 +118,7 @@ TEST_CASE( "maxminds geoip2 mmdb test", "[geoip2_mmdb]" ) {
                 // -----------------------------------------
                 // init
                 // -----------------------------------------
-                l_s = l_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                          ns_waflz::profile::s_geoip2_isp_db);
+                l_s = l_geoip2_mmdb->init(l_geoip2_city_file, l_geoip2_asn_file);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // lookups

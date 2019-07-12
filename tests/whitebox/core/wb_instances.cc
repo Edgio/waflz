@@ -30,6 +30,7 @@
 #include "waflz/instance.h"
 #include "waflz/profile.h"
 #include "waflz/rqst_ctx.h"
+#include "support/ndebug.h"
 #include "jspb/jspb.h"
 #include "event.pb.h"
 #include "config.pb.h"
@@ -208,18 +209,6 @@ TEST_CASE( "instances test", "[instances]" ) {
         // -------------------------------------------------
         SECTION("Verify load") {
                 // -----------------------------------------
-                // touch geoip db file
-                // -----------------------------------------
-                int l_fd = open("/tmp/BOGUS_GEO_DATABASE.db", O_RDWR | O_CREAT | O_TRUNC,
-                                                              S_IRUSR | S_IWUSR |
-                                                              S_IRGRP | S_IWGRP |
-                                                              S_IROTH | S_IWOTH);
-                if(l_fd == -1)
-                {
-                        printf("error performing open. reason: %s\n", strerror(errno));
-                }
-                REQUIRE((l_fd != -1));
-                // -----------------------------------------
                 // get ruleset dir
                 // -----------------------------------------
                 char l_cwd[1024];
@@ -241,8 +230,8 @@ TEST_CASE( "instances test", "[instances]" ) {
                 //l_geoip2_city_file += "/../tests/data/waf/db/GeoLite2-City.mmdb";
                 l_geoip2_asn_file += "/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb";
                 //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
-                ns_waflz::profile::s_geoip2_db = l_geoip2_city_file;
-                ns_waflz::profile::s_geoip2_isp_db = l_geoip2_asn_file;
+                ns_waflz::engine::s_geoip2_db = l_geoip2_city_file;
+                ns_waflz::engine::s_geoip2_isp_db = l_geoip2_asn_file;
                 // waf
                 ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cb;
@@ -266,9 +255,8 @@ TEST_CASE( "instances test", "[instances]" ) {
                 ns_waflz::instance *l_i = NULL;
                 l_ix = new ns_waflz::instances(*l_engine);
                 REQUIRE((l_ix != NULL));
-                l_s = l_ix->init_dbs();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_ix->load_config(&l_i, WAF_CONF_1001_JSON, sizeof(WAF_CONF_1001_JSON), true, false);
+                l_s = l_ix->load_config(&l_i, WAF_CONF_1001_JSON, sizeof(WAF_CONF_1001_JSON), true);
+                NDBG_PRINT("err_msg: %s\n", l_ix->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
 #if 0
                 REQUIRE((l_i != NULL));

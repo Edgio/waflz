@@ -28,6 +28,7 @@
 #include "support/time_util.h"
 #include "support/string_util.h"
 #include "support/ndebug.h"
+#include "support/geoip2_mmdb.h"
 #include "waflz/def.h"
 #include "waflz/limit/config.h"
 #include "waflz/limit/configs.h"
@@ -471,6 +472,7 @@ static int32_t get_rqst_header_w_idx_bc_cb(const char **ao_key,
 //! config tests
 //! ----------------------------------------------------------------------------
 TEST_CASE( "config test", "[config]" ) {
+        ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         // -------------------------------------------------
         // bad config
         // -------------------------------------------------
@@ -612,7 +614,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -714,7 +716,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -824,7 +826,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -854,7 +856,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -956,7 +958,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_limit = NULL;
                 l_enf = NULL;
@@ -986,7 +988,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -1053,7 +1055,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -1084,7 +1086,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -1118,7 +1120,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -1182,7 +1184,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -1212,7 +1214,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -1246,7 +1248,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -1319,7 +1321,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 //-----------------------------------------
                 // all request should always get enforcement
@@ -1407,7 +1409,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -1437,7 +1439,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match
@@ -1471,7 +1473,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // Verify no match

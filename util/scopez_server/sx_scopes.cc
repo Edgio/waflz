@@ -32,7 +32,6 @@
 #include "is2/srvr/api_resp.h"
 #include "is2/srvr/srvr.h"
 #include "jspb/jspb.h"
-#include "support/geoip2_mmdb.h"
 #include "support/file_util.h"
 #include "event.pb.h"
 #include "config.pb.h"
@@ -156,7 +155,6 @@ sx_scopes::sx_scopes(void):
         m_bg_load(false),
         m_engine(NULL),
         m_update_scopes_h(NULL),
-        m_geoip2_mmdb(NULL),
         m_scopes(NULL)
 {
 
@@ -170,7 +168,6 @@ sx_scopes::~sx_scopes(void)
 {
         if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
-        if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL; }
         if(m_scopes) { delete m_scopes; m_scopes = NULL; }
 }
 //: ----------------------------------------------------------------------------
@@ -182,18 +179,6 @@ int32_t sx_scopes::init(void)
 {
         int32_t l_s;
         // -------------------------------------------------
-        // geoip db
-        // -------------------------------------------------
-        m_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        l_s = m_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                  ns_waflz::profile::s_geoip2_isp_db);
-
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error intialiting");
-                 return STATUS_ERROR;
-        }
-        // -------------------------------------------------
         // engine
         // -------------------------------------------------
         m_engine = new ns_waflz::engine();
@@ -204,29 +189,12 @@ int32_t sx_scopes::init(void)
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // geoip db
-        // -------------------------------------------------
-        m_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        l_s = m_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                  ns_waflz::profile::s_geoip2_isp_db);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_geoip2_mmdb->get_err_msg());
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
         // create scopes
         // -------------------------------------------------
-        m_scopes = new ns_waflz::scopes(*m_engine, *m_geoip2_mmdb);
+        m_scopes = new ns_waflz::scopes(*m_engine);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_scopes->get_err_msg());
+                // TODO log error
                 return STATUS_ERROR;
         }
         // -------------------------------------------------

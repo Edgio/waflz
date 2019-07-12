@@ -26,6 +26,7 @@
 #include "catch/catch.hpp"
 #include "jspb/jspb.h"
 #include "support/time_util.h"
+#include "support/geoip2_mmdb.h"
 #include "waflz/def.h"
 #include "waflz/limit/enforcer.h"
 #include "waflz/limit/config.h"
@@ -115,6 +116,7 @@ static int32_t get_rqst_src_addr_cb(const char **a_data,
 //: config tests
 //: ----------------------------------------------------------------------------
 TEST_CASE( "no rules test", "[no_rules]" ) {
+        ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         // -------------------------------------------------
         // Valid config
         // -------------------------------------------------
@@ -158,7 +160,7 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // run requests
@@ -193,7 +195,7 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // verify no match
@@ -211,7 +213,7 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // verify match

@@ -32,6 +32,7 @@
 #include "support/ndebug.h"
 #include "support/string_util.h"
 #include "support/time_util.h"
+#include "support/geoip2_mmdb.h"
 #include "parser/parser_url_encoded.h"
 #include "parser/parser_xml.h"
 #include "parser/parser_json.h"
@@ -243,6 +244,14 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         // *************************************************
         // -------------------------------------------------
         m_xpath_cache_map(NULL),
+        // -------------------------------------------------
+        // *************************************************
+        // extensions
+        // *************************************************
+        // -------------------------------------------------
+        m_src_asn(0),
+        m_src_asn_str(),
+        m_geo_cn2(),
         m_ctx(a_ctx)
 {
 }
@@ -315,6 +324,10 @@ rqst_ctx::~rqst_ctx()
         // delete any tokens
         // -------------------------------------------------
         if(m_token.m_data) { free(m_token.m_data); m_token.m_data = NULL; m_token.m_len = 0; }
+        // -------------------------------------------------
+        // delete any extensions
+        // -------------------------------------------------
+        if(m_src_asn_str.m_data) { free(m_src_asn_str.m_data); m_src_asn_str.m_data = NULL; m_src_asn_str.m_len = 0; }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -373,7 +386,8 @@ int32_t rqst_ctx::reset_phase_1()
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
+int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
+                               const pcre_list_t *a_il_query,
                                const pcre_list_t *a_il_header,
                                const pcre_list_t *a_il_cookie)
 {
@@ -395,6 +409,53 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                 {
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // country code
+        // -------------------------------------------------
+        if(m_src_addr.m_data &&
+           m_src_addr.m_len)
+        {
+                int32_t l_s;
+                l_s = a_geoip2_mmdb.get_country(&m_geo_cn2.m_data,
+                                                m_geo_cn2.m_len,
+                                                m_src_addr.m_data,
+                                                m_src_addr.m_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        //WAFLZ_PERROR(m_err_msg,
+                        //             "geoip2 country lookup: reason: %s",
+                        //             a_geoip2_mmdb.get_err_msg());
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // asn
+        // -------------------------------------------------
+        if(m_src_addr.m_data &&
+           m_src_addr.m_len)
+        {
+                int32_t l_s;
+                l_s = a_geoip2_mmdb.get_asn(m_src_asn,
+                                            m_src_addr.m_data,
+                                            m_src_addr.m_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        //WAFLZ_PERROR(m_err_msg,
+                        //             "geoip2 country lookup: reason: %s",
+                        //             m_geoip2_mmdb.get_err_msg());
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // converting to str temporarily for str
+                // comparisons...
+                // -----------------------------------------
+                if(m_src_asn)
+                {
+                        m_src_asn_str.m_len = asprintf(&(m_src_asn_str.m_data), "%d", m_src_asn);
                 }
         }
         // -------------------------------------------------

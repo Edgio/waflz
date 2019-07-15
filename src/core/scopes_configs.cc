@@ -25,7 +25,8 @@
 //: ----------------------------------------------------------------------------
 #include "support/file_util.h"
 #include "support/time_util.h"
-#include "support/trace_internal.h"
+#include "support/ndebug.h"
+#include "waflz/trace.h"
 #include "support/string_util.h"
 #include "waflz/scopes_configs.h"
 #include "waflz/scopes.h"
@@ -44,8 +45,7 @@ namespace ns_waflz {
 scopes_configs::scopes_configs(engine &a_engine):
 		m_cust_id_scopes_map(),
         m_engine(a_engine),
-        m_err_msg(),
-        m_geoip2_mmdb()
+        m_err_msg()
 {
 }
 //: ----------------------------------------------------------------------------
@@ -70,6 +70,7 @@ scopes_configs::~scopes_configs()
 //: ----------------------------------------------------------------------------
 int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a_scopes_dir_str_len)
 {
+		NDBG_PRINT("load_scopes_dir %s\n", a_scopes_dir_str);
         // -----------------------------------------------------------
         // this function should look through the given directory and
         // look for all ddos.json files, open them and call
@@ -80,6 +81,7 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
         public:
                 static int compare(const struct dirent* a_dirent)
                 {
+                		NDBG_PRINT("Looking at file: %s\n", a_dirent->d_name);
                         //TRACE("Looking at file: '%s'", a_dirent->d_name);
                         switch (a_dirent->d_name[0])
                         {
@@ -90,18 +92,18 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
                         {
                                 // valid path name to consider
                                 const char* l_found = NULL;
-                                l_found = ::strcasestr(a_dirent->d_name, ".ddos.json");
+                                l_found = ::strcasestr(a_dirent->d_name, ".scopes.json");
                                 // look for the .conf suffix
                                 if (l_found == NULL)
                                 {
                                         // not a .ddos.json file
-                                        //TRACE("Failed to find .ddos.json suffix");
+                                        NDBG_PRINT("Failed to find .scopes.json suffix\n");
                                         goto done;
                                 }
                                 if (::strlen(l_found) != 10)
                                 {
                                         // failed to find .conf right at the end
-                                        //TRACE("found in the wrong place. %zu", ::strlen(l_found));
+                                        NDBG_PRINT("found in the wrong place. %zu", ::strlen(l_found));
                                         goto done;
                                 }
                                 // we want this file
@@ -109,7 +111,7 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
                                 break;
                         }
                         default:
-                                //TRACE("Found invalid first char: '%c'", a_dirent->d_name[0]);
+                                NDBG_PRINT("Found invalid first char: '%c'", a_dirent->d_name[0]);
                                 goto done;
                         }
                 done:
@@ -125,10 +127,11 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
                                 &l_conf_list,
                                 is_conf_file::compare,
                                 alphasort);
-        if(l_num_files < 0)
+        NDBG_PRINT("Num of file %d\n", l_num_files);
+        if(l_num_files <= 0)
         {
                 // failed to build the list of directory entries
-                WAFLZ_PERROR(m_err_msg, "Failed to load rl config configs. Reason: failed to scan profile directory: %s: %s",
+                WAFLZ_PERROR(m_err_msg, "Failed to load scope config  Reason: failed to scan profile directory: %s: %s",
                              a_scopes_dir_str,
                              (errno == 0 ? "unknown" : strerror(errno)));
                 return WAFLZ_STATUS_ERROR;
@@ -140,7 +143,8 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
         {
                 // for each file
                 // TODO log?
-                //TRACE("Found ddos config file: '%s'", l_conf_list[i_f]->d_name);
+        		NDBG_PRINT("Found scope config file: %s", l_conf_list[i_f]->d_name );
+                //fprintf(stdout, "Found scope config file: '%s'", l_conf_list[i_f]->d_name);
                 std::string l_full_path(a_scopes_dir_str);
                 l_full_path.append("/");
                 l_full_path.append(l_conf_list[i_f]->d_name);
@@ -163,7 +167,8 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::load_scopes_file(const char* a_scopes_file_path, uint32_t a_scopes_file_path_len)
+int32_t scopes_configs::load_scopes_file(const char* a_scopes_file_path,
+										 uint32_t a_scopes_file_path_len)
 {
         int32_t l_s;
         char *l_buf = NULL;
@@ -259,7 +264,7 @@ int32_t scopes_configs::load(void* a_js)
                 return WAFLZ_STATUS_ERROR;                
         }
 
-        scopes *l_scopes = new scopes(m_engine, *m_geoip2_mmdb);
+        scopes *l_scopes = new scopes(m_engine);
         int32_t l_s;
         l_s = l_scopes->load_config(a_js);
         if(l_s != WAFLZ_STATUS_OK)
@@ -300,7 +305,6 @@ int32_t scopes_configs::load(void* a_js)
                                                                     CONFIG_DATE_FORMAT);
                         if(l_loaded_epoch >= l_config_epoch)
                         {
-                                TRC_DEBUG("config is already latest. not performing update");
                                 // Delete the newly created scope
                                 delete l_scopes;
                                 l_scopes = NULL;
@@ -320,6 +324,34 @@ int32_t scopes_configs::load(void* a_js)
         // -------------------------------------------------
         m_cust_id_scopes_map[l_cust_id] = l_scopes;
 		return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+scopes* scopes_configs::get_scopes(uint64_t a_id)
+{
+		cust_id_scopes_map_t::iterator l_it;
+		l_it = m_cust_id_scopes_map.find(a_id);
+		if(l_it != m_cust_id_scopes_map.end())
+		{
+				return l_it->second;
+		}
+		return NULL; 
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+scopes* scopes_configs::get_first_scopes()
+{
+		if(m_cust_id_scopes_map.size())
+		{
+				return m_cust_id_scopes_map.begin()->second;
+		}	
+		return NULL;
 }
 
 }

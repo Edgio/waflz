@@ -659,6 +659,8 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Configuration:\n");
         fprintf(a_stream, "  -c, --config        scopes config\n");
+        fprintf(a_stream, "  -d  --directory     scopes dir\n");
+        fprintf(a_stream, "  -i  --scopeid       scope id(should be used when loading scope dir)");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
@@ -706,6 +708,7 @@ int main(int argc, char** argv)
         std::string l_server_spec;
         std::string l_config_file;
         std::string l_scopes_dir;
+        std::string l_scopes_id;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -717,6 +720,7 @@ int main(int argc, char** argv)
                 { "config",       1, 0, 'c' },
                 { "port",         1, 0, 'p' },
                 { "scopes-dir",   1, 0, 'd' },
+                { "scope-id",     1, 0, 'i' },
                 { "conf-dir",     1, 0, 'F' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 's' },
@@ -744,15 +748,14 @@ int main(int argc, char** argv)
                         return STATUS_ERROR; \
                 } \
                 l_config_mode = CONFIG_MODE_##_type; \
-                l_config_file = l_arg; \
-} while(0
+} while(0)
         // -------------------------------------------------
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvp:d:F:g:s:c:w:y:t:H:C:";
+        char l_short_arg_list[] = "hvp:d:i:F:g:s:c:w:y:t:H:C:";
 #else
-        char l_short_arg_list[] = "hvp:d:F:g:s:c:w:y:t:";
+        char l_short_arg_list[] = "hvp:d:i:F:g:s:c:w:y:t:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -817,6 +820,14 @@ int main(int argc, char** argv)
                         l_scopes_dir = l_arg;
                         break;
 
+                }
+                // -----------------------------------------
+                // scope id 
+                // -----------------------------------------
+                case 'i':
+                {
+                        l_scopes_id = l_arg;
+                        break;
                 }
                 // -----------------------------------------
                 // conf dir
@@ -1007,7 +1018,7 @@ int main(int argc, char** argv)
                 break;
         }
         }
-
+        fprintf(stdout,"%d\n", l_config_mode);
         switch(l_config_mode)
         {
         // -------------------------------------------------
@@ -1019,6 +1030,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_lsnr = l_lsnr;
                 g_sx_scopes->m_config = l_config_file;
                 g_sx_scopes->m_bg_load = false;
+                break;
         }
         case(CONFIG_MODE_SCOPES_DIR):
         {
@@ -1027,12 +1039,13 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_config = l_scopes_dir;
                 g_sx_scopes->m_bg_load = false;
                 g_sx_scopes->m_scopes_dir = true;
-                g_sx_scopes->m_id = "0050";                
+                g_sx_scopes->m_id = l_scopes_id;
+                break;
 
         }
         default:
         {
-                fprintf(stdout, "error no mode specified");
+                fprintf(stdout, "error no config mode specified");
                 return STATUS_ERROR;
         }
         }
@@ -1040,15 +1053,6 @@ int main(int argc, char** argv)
         // default route...
         // -------------------------------------------------
         l_lsnr->set_default_route(l_h);
-        // -------------------------------------------------
-        // *************************************************
-        // scopes setup
-        // *************************************************
-        // -------------------------------------------------
-        g_sx_scopes = new ns_scopez_server::sx_scopes();
-        g_sx_scopes->m_lsnr = l_lsnr;
-        g_sx_scopes->m_config = l_config_file;
-        g_sx_scopes->m_bg_load = false;
         // -------------------------------------------------
         // init
         // -------------------------------------------------

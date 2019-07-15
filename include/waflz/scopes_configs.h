@@ -51,6 +51,12 @@ public:
         int32_t load_scopes_file(const char *a_file_path, uint32_t a_file_path_len);
         int32_t load_scopes(const char *a_buf, uint32_t a_buf_len);
         // -------------------------------------------------
+        // getters
+        // -------------------------------------------------
+        scopes* get_scopes(uint64_t a_id);
+        scopes* get_first_scopes();
+        const char *get_err_msg(void) { return m_err_msg; }
+        // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
         scopes_configs(engine& a_engine);
@@ -69,7 +75,6 @@ private:
         cust_id_scopes_map_t m_cust_id_scopes_map;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine& m_engine;
-        geoip2_mmdb* m_geoip2_mmdb;
 };
 
 }

@@ -27,6 +27,7 @@
 //: ----------------------------------------------------------------------------
 #include <stdint.h>
 #include "waflz/scopes.h"
+#include "waflz/scopes_configs.h"
 #include "sx.h"
 //: ----------------------------------------------------------------------------
 //: fwd decl's
@@ -75,7 +76,8 @@ public:
         bool m_scopes_dir;
         ns_waflz::engine *m_engine;
         update_scopes_h *m_update_scopes_h;
-        ns_waflz::scopes *m_scopes;
+        ns_waflz::scopes_configs *m_scopes_configs;
+        std::string m_config_path;
         std::string m_id;
 };
 }

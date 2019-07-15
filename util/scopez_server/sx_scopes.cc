@@ -48,6 +48,7 @@
 #ifndef STATUS_ERROR
   #define STATUS_ERROR -1
 #endif
+#define _SCOPEZ_SERVER_SCOPES_ID "waf-scopes-id"
 namespace ns_scopez_server {
 #if 0
 //: ----------------------------------------------------------------------------
@@ -157,8 +158,7 @@ sx_scopes::sx_scopes(void):
         m_engine(NULL),
         m_update_scopes_h(NULL),
         m_scopes_configs(NULL),
-        m_config_path(),
-        m_id()
+        m_config_path()
 {
 
 }
@@ -274,14 +274,28 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // get scope object
         // -------------------------------------------------
-        if(!m_id.empty())
+        if(m_scopes_dir)
         {
-                uint64_t ao_cust_id;
-                l_s = ns_waflz::convert_hex_to_uint(ao_cust_id, m_id.c_str());
-                l_scopes = m_scopes_configs->get_scopes(ao_cust_id);
+                std::string l_id;
+                const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
+                ns_is2::mutable_data_t i_hdr;
+                if(!ns_is2::find_first(i_hdr, l_headers, _SCOPEZ_SERVER_SCOPES_ID, sizeof(_SCOPEZ_SERVER_SCOPES_ID)))
+                {
+                        NDBG_PRINT("an was not provided in the header waf-scopes-id\n");
+                        return ns_is2::H_RESP_SERVER_ERROR; 
+                }
+                l_id.assign(i_hdr.m_data, i_hdr.m_len);
+                uint64_t l_cust_id;
+                l_s = ns_waflz::convert_hex_to_uint(l_cust_id, l_id.c_str());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("an provided is not a provided hex\n");
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
+                l_scopes = m_scopes_configs->get_scopes(l_cust_id);
                 if(l_scopes == NULL)
                 {
-                        NDBG_PRINT("wrong scope id %s\n", m_id.c_str());
+                        NDBG_PRINT("Error getting scopes\n");
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
         }

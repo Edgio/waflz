@@ -347,7 +347,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope)
         // limits
         // -------------------------------------------------
         // TODO
-        NDBG_PRINT("%s\n", a_scope.DebugString().c_str());
+        //NDBG_PRINT("%s\n", a_scope.DebugString().c_str());
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

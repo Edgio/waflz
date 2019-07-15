@@ -78,7 +78,6 @@ public:
         update_scopes_h *m_update_scopes_h;
         ns_waflz::scopes_configs *m_scopes_configs;
         std::string m_config_path;
-        std::string m_id;
 };
 }
 #endif

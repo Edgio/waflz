@@ -96,13 +96,13 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
                                 // look for the .conf suffix
                                 if (l_found == NULL)
                                 {
-                                        // not a .ddos.json file
+                                        // not a .scopes.json file
                                         NDBG_PRINT("Failed to find .scopes.json suffix\n");
                                         goto done;
                                 }
-                                if (::strlen(l_found) != 10)
+                                if (::strlen(l_found) != 12)
                                 {
-                                        // failed to find .conf right at the end
+                                        // failed to find .scopes.json right at the end
                                         NDBG_PRINT("found in the wrong place. %zu", ::strlen(l_found));
                                         goto done;
                                 }
@@ -128,7 +128,7 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
                                 is_conf_file::compare,
                                 alphasort);
         NDBG_PRINT("Num of file %d\n", l_num_files);
-        if(l_num_files <= 0)
+        if(l_num_files < 0)
         {
                 // failed to build the list of directory entries
                 WAFLZ_PERROR(m_err_msg, "Failed to load scope config  Reason: failed to scan profile directory: %s: %s",
@@ -333,6 +333,7 @@ int32_t scopes_configs::load(void* a_js)
 scopes* scopes_configs::get_scopes(uint64_t a_id)
 {
 		cust_id_scopes_map_t::iterator l_it;
+
 		l_it = m_cust_id_scopes_map.find(a_id);
 		if(l_it != m_cust_id_scopes_map.end())
 		{

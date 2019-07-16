@@ -4,7 +4,7 @@
       "sec_rule": {
         "action": {
           "action_type": "BLOCK",
-          "file": "0051.rules",
+          "file": "0051-4fsYnj9c.rules",
           "id": "960008",
           "msg": "Request Missing a Host Header",
           "phase": 2,
@@ -49,7 +49,7 @@
       "sec_rule": {
         "action": {
           "action_type": "BLOCK",
-          "file": "0051.rules",
+          "file": "0051-4fsYnj9c.rules",
           "id": "960008",
           "msg": "Request User-Agent is bananas",
           "phase": 2,

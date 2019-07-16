@@ -2,7 +2,7 @@
 //: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    scopes.h
+//: \file:    scopes_configs.h
 //: \details: TODO
 //: \author:  Reed P. Morrison
 //: \date:    06/06/2019
@@ -47,7 +47,7 @@ public:
         // -------------------------------------------------
         // load config methods
         // -------------------------------------------------
-        int32_t load_scopes_dir(const char *a_scopes_dir_path, uint32_t a_scopes_dir_path_len);
+        int32_t load_scopes_dir(const char *a_dir_path, uint32_t a_dir_path_len);
         int32_t load_scopes_file(const char *a_file_path, uint32_t a_file_path_len);
         int32_t load_scopes(const char *a_buf, uint32_t a_buf_len);
         // -------------------------------------------------
@@ -59,7 +59,7 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        scopes_configs(engine& a_engine);
+        scopes_configs(engine& a_engine, bool a_enable_locking);
         ~scopes_configs();
 private:
         // -------------------------------------------------
@@ -75,9 +75,8 @@ private:
         cust_id_scopes_map_t m_cust_id_scopes_map;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine& m_engine;
+        pthread_mutex_t m_mutex;
+        bool m_enable_locking;
 };
-
 }
-
-
 #endif

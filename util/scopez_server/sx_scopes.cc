@@ -194,7 +194,7 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         // create scope configs
         // -------------------------------------------------
-        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine);
+        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, false);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO log error
@@ -208,7 +208,7 @@ int32_t sx_scopes::init(void)
                 l_s = m_scopes_configs->load_scopes_dir(m_config.c_str(), m_config.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("error read file %s\n", m_config.c_str());
+                        NDBG_PRINT("error read dir %s\n", m_config.c_str());
                         return STATUS_ERROR;
                 }
         }
@@ -217,24 +217,23 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         else
         {
-
-        char *l_buf = NULL;
-        uint32_t l_buf_len = 0;
-        //NDBG_PRINT("reading file: %s\n", l_instance_file.c_str());
-        l_s = ns_waflz::read_file(m_config.c_str(), &l_buf, l_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error read_file: %s\n", m_config.c_str());
-                return STATUS_ERROR;
-        }
-        l_s = m_scopes_configs->load_scopes(l_buf, l_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_scopes_configs->get_err_msg());
-                if(l_buf) { free(l_buf); l_buf = NULL; }
-                return STATUS_ERROR;
-        }
-        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                char *l_buf = NULL;
+                uint32_t l_buf_len = 0;
+                //NDBG_PRINT("reading file: %s\n", l_instance_file.c_str());
+                l_s = ns_waflz::read_file(m_config.c_str(), &l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error read_file: %s\n", m_config.c_str());
+                        return STATUS_ERROR;
+                }
+                l_s = m_scopes_configs->load_scopes(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_scopes_configs->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; }
+                        return STATUS_ERROR;
+                }
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         }
         // -------------------------------------------------
         // update 

@@ -23,30 +23,37 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#include "support/file_util.h"
-#include "support/time_util.h"
-#include "support/ndebug.h"
-#include "waflz/trace.h"
-#include "support/string_util.h"
 #include "waflz/scopes_configs.h"
 #include "waflz/scopes.h"
+#include "waflz/trace.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
+#include "support/file_util.h"
+#include "support/time_util.h"
+#include "support/ndebug.h"
+#include "support/string_util.h"
 #include <dirent.h>
 #include "scope.pb.h"
-
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-scopes_configs::scopes_configs(engine &a_engine):
+scopes_configs::scopes_configs(engine &a_engine,
+							   bool a_enable_locking):
 		m_cust_id_scopes_map(),
         m_engine(a_engine),
-        m_err_msg()
+        m_err_msg(),
+        m_mutex(),
+        m_enable_locking(a_enable_locking)
 {
+		// Initialize the mutex
+        if(m_enable_locking)
+        {
+                pthread_mutex_init(&m_mutex, NULL);
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -62,15 +69,19 @@ scopes_configs::~scopes_configs()
 				delete it->second;
 				it->second = NULL;
 		}
+        // Initialize the mutex
+        if(m_enable_locking)
+        {
+                pthread_mutex_destroy(&m_mutex);
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a_scopes_dir_str_len)
+int32_t scopes_configs::load_scopes_dir(const char* a_dir_path, uint32_t a_dir_path_len)
 {
-		NDBG_PRINT("load_scopes_dir %s\n", a_scopes_dir_str);
         // -----------------------------------------------------------
         // this function should look through the given directory and
         // look for all ddos.json files, open them and call
@@ -81,8 +92,6 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
         public:
                 static int compare(const struct dirent* a_dirent)
                 {
-                		NDBG_PRINT("Looking at file: %s\n", a_dirent->d_name);
-                        //TRACE("Looking at file: '%s'", a_dirent->d_name);
                         switch (a_dirent->d_name[0])
                         {
                         case 'a' ... 'z':
@@ -97,13 +106,13 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
                                 if (l_found == NULL)
                                 {
                                         // not a .scopes.json file
-                                        NDBG_PRINT("Failed to find .scopes.json suffix\n");
+                                        //NDBG_PRINT("Failed to find .scopes.json suffix\n");
                                         goto done;
                                 }
                                 if (::strlen(l_found) != 12)
                                 {
                                         // failed to find .scopes.json right at the end
-                                        NDBG_PRINT("found in the wrong place. %zu", ::strlen(l_found));
+                                       // NDBG_PRINT("found in the wrong place. %zu", ::strlen(l_found));
                                         goto done;
                                 }
                                 // we want this file
@@ -111,7 +120,7 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
                                 break;
                         }
                         default:
-                                NDBG_PRINT("Found invalid first char: '%c'", a_dirent->d_name[0]);
+                                //NDBG_PRINT("Found invalid first char: '%c'", a_dirent->d_name[0]);
                                 goto done;
                         }
                 done:
@@ -123,16 +132,15 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
         // -----------------------------------------------------------
         struct dirent** l_conf_list;
         int l_num_files = -1;
-        l_num_files = ::scandir(a_scopes_dir_str,
+        l_num_files = ::scandir(a_dir_path,
                                 &l_conf_list,
                                 is_conf_file::compare,
                                 alphasort);
-        NDBG_PRINT("Num of file %d\n", l_num_files);
         if(l_num_files < 0)
         {
                 // failed to build the list of directory entries
                 WAFLZ_PERROR(m_err_msg, "Failed to load scope config  Reason: failed to scan profile directory: %s: %s",
-                             a_scopes_dir_str,
+                             a_dir_path,
                              (errno == 0 ? "unknown" : strerror(errno)));
                 return WAFLZ_STATUS_ERROR;
         }
@@ -143,9 +151,8 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
         {
                 // for each file
                 // TODO log?
-        		NDBG_PRINT("Found scope config file: %s", l_conf_list[i_f]->d_name );
-                //fprintf(stdout, "Found scope config file: '%s'", l_conf_list[i_f]->d_name);
-                std::string l_full_path(a_scopes_dir_str);
+        		//NDBG_PRINT("Found scope config file: %s", l_conf_list[i_f]->d_name );
+                std::string l_full_path(a_dir_path);
                 l_full_path.append("/");
                 l_full_path.append(l_conf_list[i_f]->d_name);
                 int32_t l_s;
@@ -167,18 +174,18 @@ int32_t scopes_configs::load_scopes_dir(const char* a_scopes_dir_str, uint32_t a
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::load_scopes_file(const char* a_scopes_file_path,
-										 uint32_t a_scopes_file_path_len)
+int32_t scopes_configs::load_scopes_file(const char* a_file_path,
+										 uint32_t a_file_path_len)
 {
         int32_t l_s;
         char *l_buf = NULL;
         uint32_t l_buf_len;
-        l_s = read_file(a_scopes_file_path, &l_buf, l_buf_len);
+        l_s = read_file(a_file_path, &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing read_file: %s. Reason: %s",
-                             a_scopes_file_path,
-                             get_err_msg());
+                WAFLZ_PERROR(m_err_msg, ":read_file[%s]: %s",
+                             a_file_path,
+                             ns_waflz::get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }
@@ -221,6 +228,11 @@ int32_t scopes_configs::load_scopes(const char *a_buf, uint32_t a_buf_len)
         // ---------------------------------------
         // object
         // ---------------------------------------
+        // Lock down this junk
+        if (m_enable_locking)
+        {
+                pthread_mutex_lock(&m_mutex);
+        }
         if(l_js->IsObject())
         {
                 int32_t l_s;
@@ -249,6 +261,10 @@ int32_t scopes_configs::load_scopes(const char *a_buf, uint32_t a_buf_len)
                 }
         }
         if(l_js) { delete l_js; l_js = NULL; }
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -354,5 +370,4 @@ scopes* scopes_configs::get_first_scopes()
 		}	
 		return NULL;
 }
-
 }

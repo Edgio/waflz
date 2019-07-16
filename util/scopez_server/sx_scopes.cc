@@ -279,7 +279,10 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
                 std::string l_id;
                 const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
                 ns_is2::mutable_data_t i_hdr;
-                if(!ns_is2::find_first(i_hdr, l_headers, _SCOPEZ_SERVER_SCOPES_ID, sizeof(_SCOPEZ_SERVER_SCOPES_ID)))
+                if(!ns_is2::find_first(i_hdr,
+                                       l_headers,
+                                       _SCOPEZ_SERVER_SCOPES_ID,
+                                       sizeof(_SCOPEZ_SERVER_SCOPES_ID)))
                 {
                         NDBG_PRINT("an was not provided in the header waf-scopes-id\n");
                         return ns_is2::H_RESP_SERVER_ERROR; 

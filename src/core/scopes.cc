@@ -170,7 +170,7 @@ int32_t scopes::validate(void)
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
-        m_id= m_pb->id();
+        m_id = m_pb->id();
         // TODO -add validation...
         return WAFLZ_STATUS_OK;
 }

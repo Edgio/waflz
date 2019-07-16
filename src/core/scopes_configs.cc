@@ -69,7 +69,7 @@ scopes_configs::~scopes_configs()
                 delete it->second;
                 it->second = NULL;
         }
-        // Initialize the mutex
+        // destroy mutex
         if(m_enable_locking)
         {
                 pthread_mutex_destroy(&m_mutex);
@@ -390,7 +390,6 @@ int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
                 pthread_mutex_unlock(&m_mutex);
         }
         return WAFLZ_STATUS_OK;
-
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO

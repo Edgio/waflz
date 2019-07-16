@@ -51,6 +51,15 @@ public:
         int32_t load_scopes_file(const char *a_file_path, uint32_t a_file_path_len);
         int32_t load_scopes(const char *a_buf, uint32_t a_buf_len);
         // -------------------------------------------------
+        // process
+        // -------------------------------------------------
+        int32_t process(const waflz_pb::enforcement **ao_enf,
+                        waflz_pb::event **ao_audit_event,
+                        waflz_pb::event **ao_prod_event,
+                        void *a_ctx,
+                        uint64_t a_id,
+                        rqst_ctx **ao_rqst_ctx);
+        // -------------------------------------------------
         // getters
         // -------------------------------------------------
         scopes* get_scopes(uint64_t a_id);

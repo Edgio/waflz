@@ -268,13 +268,14 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
         waflz_pb::event *l_event_audit = NULL;
         ns_waflz::rqst_ctx *l_ctx  = NULL;
         m_resp = "{\"status\": \"ok\"}";
-
-        ns_waflz::scopes* l_scopes = NULL;
         // -------------------------------------------------
-        // get scope object
+        // process scopes dir/single scopes file
         // -------------------------------------------------
         if(m_scopes_dir)
         {
+                // -------------------------------------------------
+                // get cust an
+                // -------------------------------------------------
                 std::string l_id;
                 const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
                 ns_is2::mutable_data_t i_hdr;
@@ -291,34 +292,47 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
                         NDBG_PRINT("an provided is not a provided hex\n");
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
-                l_scopes = m_scopes_configs->get_scopes(l_cust_id);
-                if(l_scopes == NULL)
+                l_s = m_scopes_configs->process(ao_enf,
+                                                &l_event_audit,
+                                                &l_event_prod,
+                                                &a_session,
+                                                l_cust_id,
+                                                &l_ctx);
+                // -------------------------------------------------
+                // process
+                // -------------------------------------------------
+                if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("Error getting scopes\n");
+                        NDBG_PRINT("error processing config. reason: %s\n",
+                                    m_scopes_configs->get_err_msg());
+                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
+                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
         }
         else
         {
+                ns_waflz::scopes* l_scopes = NULL;
                 l_scopes = m_scopes_configs->get_first_scopes();
                 if(l_scopes == NULL)
                 {
                         NDBG_PRINT("No scopes to process\n");
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
-        }
-        // -------------------------------------------------
-        // process
-        // -------------------------------------------------
-        l_s = l_scopes->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, &l_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error processing config. reason: %s\n",
-                           m_scopes_configs->get_err_msg());
-                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                return ns_is2::H_RESP_SERVER_ERROR;
+                // -------------------------------------------------
+                // process
+                // -------------------------------------------------
+                l_s = l_scopes->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, &l_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error processing config. reason: %s\n",
+                                    l_scopes->get_err_msg());
+                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
+                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
         }
         // -------------------------------------------------
         // *************************************************

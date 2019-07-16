@@ -47,6 +47,10 @@
 #ifndef WAFLZ_ERR_LEN
   #define WAFLZ_ERR_LEN 4096
 #endif
+
+#ifndef CONFIG_DATE_FORMAT
+  #define CONFIG_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
+#endif 
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------

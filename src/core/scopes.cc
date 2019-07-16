@@ -135,6 +135,7 @@ scopes::scopes(engine &a_engine):
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
+        m_id(),
         m_id_rules_map()
 {
         m_pb = new waflz_pb::scope_config();
@@ -169,6 +170,7 @@ int32_t scopes::validate(void)
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
+        m_id = m_pb->id();
         // TODO -add validation...
         return WAFLZ_STATUS_OK;
 }
@@ -345,7 +347,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope)
         // limits
         // -------------------------------------------------
         // TODO
-        NDBG_PRINT("%s\n", a_scope.DebugString().c_str());
+        //NDBG_PRINT("%s\n", a_scope.DebugString().c_str());
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

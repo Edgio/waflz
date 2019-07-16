@@ -33,6 +33,7 @@
 #include "is2/srvr/srvr.h"
 #include "jspb/jspb.h"
 #include "support/file_util.h"
+#include "support/string_util.h"
 #include "event.pb.h"
 #include "config.pb.h"
 #include "rapidjson/document.h"
@@ -47,6 +48,7 @@
 #ifndef STATUS_ERROR
   #define STATUS_ERROR -1
 #endif
+#define _SCOPEZ_SERVER_SCOPES_ID "waf-scopes-id"
 namespace ns_scopez_server {
 #if 0
 //: ----------------------------------------------------------------------------
@@ -155,7 +157,8 @@ sx_scopes::sx_scopes(void):
         m_bg_load(false),
         m_engine(NULL),
         m_update_scopes_h(NULL),
-        m_scopes(NULL)
+        m_scopes_configs(NULL),
+        m_config_path()
 {
 
 }
@@ -168,7 +171,7 @@ sx_scopes::~sx_scopes(void)
 {
         if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
-        if(m_scopes) { delete m_scopes; m_scopes = NULL; }
+        if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -189,39 +192,51 @@ int32_t sx_scopes::init(void)
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // create scopes
+        // create scope configs
         // -------------------------------------------------
-        m_scopes = new ns_waflz::scopes(*m_engine);
+        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, false);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO log error
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // read file
+        // load scopes dir
         // -------------------------------------------------
-        char *l_buf = NULL;
-        uint32_t l_buf_len = 0;
-        //NDBG_PRINT("reading file: %s\n", l_instance_file.c_str());
-        l_s = ns_waflz::read_file(m_config.c_str(), &l_buf, l_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+        if(m_scopes_dir)
         {
-                NDBG_PRINT("error read_file: %s\n", m_config.c_str());
-                return STATUS_ERROR;
+                l_s = m_scopes_configs->load_scopes_dir(m_config.c_str(), m_config.length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error read dir %s\n", m_config.c_str());
+                        return STATUS_ERROR;
+                }
         }
         // -------------------------------------------------
-        // load scopes
+        // load single scopes file
         // -------------------------------------------------
-        l_s = m_scopes->load_config(l_buf, l_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+        else
         {
-                NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_scopes->get_err_msg());
-                if(l_buf) { free(l_buf); l_buf = NULL; }
-                return STATUS_ERROR;
+                char *l_buf = NULL;
+                uint32_t l_buf_len = 0;
+                //NDBG_PRINT("reading file: %s\n", l_instance_file.c_str());
+                l_s = ns_waflz::read_file(m_config.c_str(), &l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error read_file: %s\n", m_config.c_str());
+                        return STATUS_ERROR;
+                }
+                l_s = m_scopes_configs->load_scopes(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_scopes_configs->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; }
+                        return STATUS_ERROR;
+                }
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         }
-        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         // -------------------------------------------------
-        // update instances
+        // update 
         // -------------------------------------------------
         m_update_scopes_h = new update_scopes_h();
         m_update_scopes_h->m_bg_load = m_bg_load;
@@ -241,7 +256,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
 {
         ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
         if(ao_enf) { *ao_enf = NULL;}
-        if(!m_scopes)
+        if(!m_scopes_configs)
         {
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -254,17 +269,73 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
         ns_waflz::rqst_ctx *l_ctx  = NULL;
         m_resp = "{\"status\": \"ok\"}";
         // -------------------------------------------------
-        // process
+        // process scopes dir/single scopes file
         // -------------------------------------------------
-        l_s = m_scopes->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, &l_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
+        if(m_scopes_dir)
         {
-                NDBG_PRINT("error processing config. reason: %s\n",
-                           m_scopes->get_err_msg());
-                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                return ns_is2::H_RESP_SERVER_ERROR;
+                // -------------------------------------------------
+                // get cust an
+                // -------------------------------------------------
+                std::string l_id;
+                const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
+                ns_is2::mutable_data_t i_hdr;
+                if(!ns_is2::find_first(i_hdr,
+                                       l_headers,
+                                       _SCOPEZ_SERVER_SCOPES_ID,
+                                       sizeof(_SCOPEZ_SERVER_SCOPES_ID)))
+                {
+                        NDBG_PRINT("an was not provided in the header waf-scopes-id\n");
+                        return ns_is2::H_RESP_SERVER_ERROR; 
+                }
+                l_id.assign(i_hdr.m_data, i_hdr.m_len);
+                uint64_t l_cust_id;
+                l_s = ns_waflz::convert_hex_to_uint(l_cust_id, l_id.c_str());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("an provided is not a provided hex\n");
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
+                l_s = m_scopes_configs->process(ao_enf,
+                                                &l_event_audit,
+                                                &l_event_prod,
+                                                &a_session,
+                                                l_cust_id,
+                                                &l_ctx);
+                // -------------------------------------------------
+                // process
+                // -------------------------------------------------
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error processing config. reason: %s\n",
+                                    m_scopes_configs->get_err_msg());
+                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
+                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
+        }
+        else
+        {
+                ns_waflz::scopes* l_scopes = NULL;
+                l_scopes = m_scopes_configs->get_first_scopes();
+                if(l_scopes == NULL)
+                {
+                        NDBG_PRINT("No scopes to process\n");
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
+                // -------------------------------------------------
+                // process
+                // -------------------------------------------------
+                l_s = l_scopes->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, &l_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error processing config. reason: %s\n",
+                                    l_scopes->get_err_msg());
+                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
+                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
         }
         // -------------------------------------------------
         // *************************************************

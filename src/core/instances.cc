@@ -50,7 +50,6 @@
         } \
 } while(0)
 #endif
-#define CONFIG_WAF_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -136,9 +135,9 @@ int32_t instances::load_config(instance **ao_instance,
                    (l_new_pb->has_last_modified_date()))
                 {
                         uint64_t l_loaded_epoch = get_epoch_seconds(l_old_pb->last_modified_date().c_str(),
-                                                                    CONFIG_WAF_DATE_FORMAT);
+                                                                    CONFIG_DATE_FORMAT);
                         uint64_t l_config_epoch = get_epoch_seconds(l_new_pb->last_modified_date().c_str(),
-                                                                    CONFIG_WAF_DATE_FORMAT);
+                                                                    CONFIG_DATE_FORMAT);
                         if(l_loaded_epoch >= l_config_epoch)
                         {
                                 //TRC_DEBUG("config is already latest. not performing update");

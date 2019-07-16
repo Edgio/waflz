@@ -90,6 +90,11 @@ typedef enum {
         SERVER_MODE_FILE,
         SERVER_MODE_NONE
 } server_mode_t;
+typedef enum {
+        CONFIG_MODE_SCOPES = 0,
+        CONFIG_MODE_SCOPES_DIR,
+        CONFIG_MODE_NONE
+} config_mode_t;
 //: ----------------------------------------------------------------------------
 //: globals
 //: ----------------------------------------------------------------------------
@@ -654,6 +659,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Configuration:\n");
         fprintf(a_stream, "  -c, --config        scopes config\n");
+        fprintf(a_stream, "  -d  --directory     scopes dir\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
@@ -692,6 +698,7 @@ int main(int argc, char** argv)
         //ns_is2::trc_log_file_open("/dev/stdout");
         // modes
         server_mode_t l_server_mode = SERVER_MODE_NONE;
+        config_mode_t l_config_mode = CONFIG_MODE_NONE;
         std::string l_conf_dir;
         std::string l_geoip_db;
         std::string l_geoip_isp_db;
@@ -699,6 +706,7 @@ int main(int argc, char** argv)
         uint16_t l_port = 12345;
         std::string l_server_spec;
         std::string l_config_file;
+        std::string l_scopes_dir;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -709,6 +717,7 @@ int main(int argc, char** argv)
                 { "version",      0, 0, 'v' },
                 { "config",       1, 0, 'c' },
                 { "port",         1, 0, 'p' },
+                { "scopes-dir",   1, 0, 'd' },
                 { "conf-dir",     1, 0, 'F' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 's' },
@@ -730,13 +739,20 @@ int main(int argc, char** argv)
                 l_server_mode = SERVER_MODE_##_type; \
                 l_server_spec = l_arg; \
 } while(0)
+#define _TEST_SET_CONFIG_MODE(_type) do { \
+                if(l_config_mode != CONFIG_MODE_NONE) { \
+                        fprintf(stdout, "error multiple config modes specified.\n"); \
+                        return STATUS_ERROR; \
+                } \
+                l_config_mode = CONFIG_MODE_##_type; \
+} while(0)
         // -------------------------------------------------
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvp:F:g:s:c:w:y:t:H:C:";
+        char l_short_arg_list[] = "hvp:d:F:g:s:c:w:y:t:H:C:";
 #else
-        char l_short_arg_list[] = "hvp:F:g:s:c:w:y:t:";
+        char l_short_arg_list[] = "hvp:d:F:g:s:c:w:y:t:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -772,6 +788,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'c':
                 {
+                        _TEST_SET_CONFIG_MODE(SCOPES);
                         l_config_file = l_arg;
                         break;
                 }
@@ -790,6 +807,16 @@ int main(int argc, char** argv)
                         }
                         l_port = (uint16_t)l_port_val;
                         break;
+                }
+                // -----------------------------------------
+                // scopes dir
+                // -----------------------------------------
+                case 'd':
+                {
+                        _TEST_SET_CONFIG_MODE(SCOPES_DIR);
+                        l_scopes_dir = l_arg;
+                        break;
+
                 }
                 // -----------------------------------------
                 // conf dir
@@ -980,19 +1007,40 @@ int main(int argc, char** argv)
                 break;
         }
         }
+        fprintf(stdout,"%d\n", l_config_mode);
+        switch(l_config_mode)
+        {
+        // -------------------------------------------------
+        //  single scope
+        // -------------------------------------------------  
+        case(CONFIG_MODE_SCOPES):
+        {
+                g_sx_scopes = new ns_scopez_server::sx_scopes();
+                g_sx_scopes->m_lsnr = l_lsnr;
+                g_sx_scopes->m_config = l_config_file;
+                g_sx_scopes->m_bg_load = false;
+                break;
+        }
+        case(CONFIG_MODE_SCOPES_DIR):
+        {
+                g_sx_scopes = new ns_scopez_server::sx_scopes();
+                g_sx_scopes->m_lsnr = l_lsnr;
+                g_sx_scopes->m_config = l_scopes_dir;
+                g_sx_scopes->m_bg_load = false;
+                g_sx_scopes->m_scopes_dir = true;
+                break;
+
+        }
+        default:
+        {
+                fprintf(stdout, "error no config mode specified");
+                return STATUS_ERROR;
+        }
+        }
         // -------------------------------------------------
         // default route...
         // -------------------------------------------------
         l_lsnr->set_default_route(l_h);
-        // -------------------------------------------------
-        // *************************************************
-        // scopes setup
-        // *************************************************
-        // -------------------------------------------------
-        g_sx_scopes = new ns_scopez_server::sx_scopes();
-        g_sx_scopes->m_lsnr = l_lsnr;
-        g_sx_scopes->m_config = l_config_file;
-        g_sx_scopes->m_bg_load = false;
         // -------------------------------------------------
         // init
         // -------------------------------------------------

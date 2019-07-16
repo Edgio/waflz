@@ -37,10 +37,6 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
-#define CONFIG_RL_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: obj type utils
@@ -226,8 +222,8 @@ int32_t configs::load(void *a_js)
         if(!l_lmd_cur.empty() &&
            !l_lmd_new.empty())
         {
-                uint64_t l_loaded_epoch = get_epoch_seconds(l_lmd_cur.c_str(), CONFIG_RL_DATE_FORMAT);
-                uint64_t l_config_epoch = get_epoch_seconds(l_lmd_new.c_str(), CONFIG_RL_DATE_FORMAT);
+                uint64_t l_loaded_epoch = get_epoch_seconds(l_lmd_cur.c_str(), CONFIG_DATE_FORMAT);
+                uint64_t l_config_epoch = get_epoch_seconds(l_lmd_new.c_str(), CONFIG_DATE_FORMAT);
                 if(l_loaded_epoch >= l_config_epoch)
                 {
                         //TRC_DEBUG("config is already latest. not performing update");

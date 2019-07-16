@@ -4,7 +4,7 @@
       "sec_rule": {
         "action": {
           "action_type": "BLOCK",
-          "file": "monkey_rulez.conf",
+          "file": "0051-4fsYnj9c.rules",
           "id": "960008",
           "msg": "Request Missing a Host Header",
           "phase": 2,
@@ -49,9 +49,9 @@
       "sec_rule": {
         "action": {
           "action_type": "BLOCK",
-          "file": "monkey_rulez.conf",
+          "file": "0051-4fsYnj9c.rules",
           "id": "960008",
-          "msg": "Request User-Agent is monkeez",
+          "msg": "Request User-Agent is bananas",
           "phase": 2,
           "rev": "2",
           "setvar": [
@@ -73,7 +73,7 @@
           "is_negated": false,
           "is_regex": false,
           "type": "CONTAINS",
-          "value": "monkeez"
+          "value": "bananas"
         },
         "variable": [
           {

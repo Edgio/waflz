@@ -1,20 +1,20 @@
 {
-  "id": "monkeez",
+  "id": "0051",
   "last_modified_date": "2019-04-18T19:48:25.142172Z",
-  "last_modified_by": "Mr. Monkeez",
+  "last_modified_by": "Mr. bananas",
   "scopes": [
   {
     "host": {
       "is_negated": false,
       "type": "GLOB",
-      "value": "monkeez.com"
+      "value": "bananas.com"
     },
     "path": {
       "is_negated": false,
       "type": "GLOB",
-      "value": "*"
+      "value": "/test.html"
     },
-    "rules_prod_id": "monkey_rulez.conf.json",
+    "rules_prod_id": "0051-4fsYnj9c.rules.json",
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",

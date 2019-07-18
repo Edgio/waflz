@@ -1148,8 +1148,6 @@ int main(int argc, char** argv)
         // setup
         // -------------------------------------------------
         ns_waflz::profile::s_ruleset_dir = l_ruleset_dir;
-        ns_waflz::engine::s_geoip2_db = l_geoip_db;
-        ns_waflz::engine::s_geoip2_isp_db = l_geoip_isp_db;
         // -------------------------------------------------
         // *************************************************
         // server setup

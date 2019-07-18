@@ -41,8 +41,8 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: Class Variables
 //: ----------------------------------------------------------------------------
-std::string engine::s_geoip2_db;
-std::string engine::s_geoip2_isp_db;
+//std::string engine::s_geoip2_db;
+//std::string engine::s_geoip2_isp_db;
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -92,12 +92,14 @@ _compiled_config::~_compiled_config()
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-engine::engine(void):
+engine::engine():
         m_macro(NULL),
         m_config_list(),
         m_compiled_config_map(),
         m_ctype_parser_map(),
         m_ruleset_dir(),
+        m_geoip2_db(),
+        m_geoip2_isp_db(),
         m_geoip2_mmdb(),
         m_err_msg()
 {
@@ -154,9 +156,13 @@ engine::~engine()
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t engine::init(void)
+int32_t engine::init()
 {
         int32_t l_s;
+        // -------------------------------------------------
+        // 
+        // -------------------------------------------------
+
         // -------------------------------------------------
         // macro...
         // -------------------------------------------------
@@ -199,7 +205,7 @@ int32_t engine::init(void)
         // *************************************************
         // -------------------------------------------------
         m_geoip2_mmdb = new geoip2_mmdb();
-        l_s = m_geoip2_mmdb->init(s_geoip2_db, s_geoip2_isp_db);
+        l_s = m_geoip2_mmdb->init(m_geoip2_db, m_geoip2_isp_db);
         if(l_s != WAFLZ_STATUS_OK)
         {
                  WAFLZ_PERROR(m_err_msg,"error intialiting");
@@ -724,5 +730,16 @@ int32_t engine::merge(compiled_config_t &ao_cx_cfg,
                 }
         }
         return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+void engine::set_geoip2_dbs(const std::string& a_geoip2_db,
+                            const std::string& a_geoip2_isp_db)
+{
+        m_geoip2_db = a_geoip2_db;
+        m_geoip2_isp_db = a_geoip2_isp_db;
 }
 }

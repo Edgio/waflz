@@ -76,6 +76,8 @@ public:
         ns_waflz::profile *m_profile;
         update_profile_h *m_update_profile_h;
         waflz_pb::enforcement *m_action;
+        std::string m_geoip2_db;
+        std::string m_geoip2_isp_db;
 };
 }
 #endif

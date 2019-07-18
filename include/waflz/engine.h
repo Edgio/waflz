@@ -59,20 +59,16 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        engine(void);
+        engine();
         ~engine();
-        int32_t init(void);
+        int32_t init();
         macro &get_macro(void){ return *m_macro;}
         const ctype_parser_map_t &get_ctype_parser_map(void) { return m_ctype_parser_map;}
         int32_t compile(compiled_config_t &ao_cx_cfg, waflz_pb::sec_config_t &a_config);
         geoip2_mmdb& get_geoip2_mmdb(void) { return *m_geoip2_mmdb; }
         const char *get_err_msg(void) { return m_err_msg; }
         void set_ruleset_dir(std::string a_ruleset_dir) { m_ruleset_dir = a_ruleset_dir; }
-        // -------------------------------------------------
-        // public static members
-        // -------------------------------------------------
-        static std::string s_geoip2_db;
-        static std::string s_geoip2_isp_db;
+        void set_geoip2_dbs(const std::string& a_geoip2_db, const std::string& a_geoip2_isp_db);
 private:
         // -------------------------------------------------
         // private methods
@@ -104,6 +100,8 @@ private:
         // *************************************************
         // -------------------------------------------------
         geoip2_mmdb *m_geoip2_mmdb;
+        std::string m_geoip2_db;
+        std::string m_geoip2_isp_db;
         char m_err_msg[WAFLZ_ERR_LEN];
 };
 }

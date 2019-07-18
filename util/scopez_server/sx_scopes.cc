@@ -158,7 +158,9 @@ sx_scopes::sx_scopes(void):
         m_engine(NULL),
         m_update_scopes_h(NULL),
         m_scopes_configs(NULL),
-        m_config_path()
+        m_config_path(),
+        m_geoip2_db(),
+        m_geoip2_isp_db()
 {
 
 }
@@ -185,6 +187,7 @@ int32_t sx_scopes::init(void)
         // engine
         // -------------------------------------------------
         m_engine = new ns_waflz::engine();
+        m_engine->set_geoip2_dbs(m_geoip2_db, m_geoip2_isp_db);
         l_s = m_engine->init();
         if(l_s != WAFLZ_STATUS_OK)
         {

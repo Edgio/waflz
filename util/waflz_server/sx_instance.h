@@ -79,6 +79,8 @@ public:
         ns_waflz::instances *m_instances;
         update_instances_h *m_update_instances_h;
         ns_waflz::instances::id_vector_t m_id_vector;
+        std::string m_geoip2_db;
+        std::string m_geoip2_isp_db;
 };
 }
 #endif

@@ -291,12 +291,8 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
         std::string l_geoip2_city_file = l_cwd;
         std::string l_geoip2_asn_file = l_cwd;
         l_geoip2_city_file += "/../../../../tests/data/waf/db/GeoLite2-City.mmdb";
-        //l_geoip2_city_file += "/../tests/data/waf/db/GeoLite2-City.mmdb";
         l_geoip2_asn_file += "/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb";
-        //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
-        ns_waflz::engine::s_geoip2_db = l_geoip2_city_file;
-        ns_waflz::engine::s_geoip2_isp_db = l_geoip2_asn_file;
-        // -------------------------------------------------
+        //--------------------------------------------------
         // acl
         // -------------------------------------------------
         SECTION("acl tests") {
@@ -304,6 +300,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // setup
                 // -----------------------------------------
                 ns_waflz::engine *l_engine = new ns_waflz::engine();
+                l_engine->set_geoip2_dbs(l_geoip2_city_file, l_geoip2_asn_file);
                 int32_t l_s;
                 l_s = l_engine->init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));

@@ -246,12 +246,8 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
         l_rule_dir += "/../../../../tests/data/waf/ruleset/";
         //l_rule_dir += "/../tests/data/waf/ruleset/";
         l_geoip2_city_file += "/../../../../tests/data/waf/db/GeoLite2-City.mmdb";
-        //l_geoip2_city_file += "/../tests/data/waf/db/GeoLite2-City.mmdb";
         l_geoip2_asn_file += "/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb";
-        //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
         ns_waflz::profile::s_ruleset_dir = l_rule_dir;
-        ns_waflz::engine::s_geoip2_db = l_geoip2_city_file;
-        ns_waflz::engine::s_geoip2_isp_db = l_geoip2_asn_file;
         // TODO FIX!!!
 #if 0
         // -------------------------------------------------

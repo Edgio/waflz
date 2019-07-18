@@ -38,17 +38,48 @@ git submodule update -f --init || {
 # ------------------------------------------------------------------------------
 # Build waflz
 # ------------------------------------------------------------------------------
-mkdir -p build
-pushd build && \
-    cmake ../ \
-    -DBUILD_SYMBOLS=ON \
-    -DBUILD_APPS=ON \
-    -DBUILD_UBUNTU=ON \
-    -DBUILD_RATE_LIMITING=ON \
-    -DCMAKE_INSTALL_PREFIX=/usr && \
+main() {
+
+    build_asan=0
+    while getopts ":a" opt; do
+        case "${opt}" in
+            a)
+                build_asan=1
+            ;;
+
+            \?)
+                echo "Invalid option: -$OPTARG" >&2
+                exit $?
+            ;;
+        esac
+    done
+
+    mkdir -p build
+    pushd build
+
+    if [[ "${build_asan}" -eq 1 ]]; then
+        cmake ../ \
+        -DBUILD_ASAN=ON\
+        -DBUILD_SYMBOLS=ON \
+        -DBUILD_APPS=ON \
+        -DBUILD_UBUNTU=ON \
+        -DBUILD_RATE_LIMITING=ON \
+        -DCMAKE_INSTALL_PREFIX=/usr
+    else
+        cmake ../ \
+        -DBUILD_SYMBOLS=ON \
+        -DBUILD_APPS=ON \
+        -DBUILD_UBUNTU=ON \
+        -DBUILD_RATE_LIMITING=ON \
+        -DCMAKE_INSTALL_PREFIX=/usr
+    fi
+
     make -j$(nproc) && \
     make test && \
     umask 0022 && chmod -R a+rX . && \
     make package && \
-popd && \
-exit $?
+    popd && \
+    exit $?
+}
+
+main "${@}"

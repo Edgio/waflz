@@ -41,8 +41,17 @@ git submodule update -f --init || {
 main() {
 
     build_asan=0
-    while getopts "a" opt; do
-        build_asan=1
+    while getopts ":a" opt; do
+        case "${opt}" in
+            a)
+                build_asan=1
+            ;;
+
+            \?)
+                echo "Invalid option: -$OPTARG" >&2
+                exit $?
+            ;;
+        esac
     done
 
     mkdir -p build

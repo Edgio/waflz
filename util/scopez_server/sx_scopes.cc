@@ -160,7 +160,8 @@ sx_scopes::sx_scopes(void):
         m_scopes_configs(NULL),
         m_config_path(),
         m_geoip2_db(),
-        m_geoip2_isp_db()
+        m_geoip2_isp_db(),
+        m_conf_dir()
 {
 
 }
@@ -198,6 +199,7 @@ int32_t sx_scopes::init(void)
         // create scope configs
         // -------------------------------------------------
         m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, false);
+        m_scopes_configs->set_conf_dir(m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO log error

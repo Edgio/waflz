@@ -290,7 +290,7 @@ int32_t scopes_configs::load(void* a_js)
 
         scopes *l_scopes = new scopes(m_engine);
         int32_t l_s;
-        l_s = l_scopes->load_config(a_js);
+        l_s = l_scopes->load_config(a_js, m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_AERROR(m_err_msg, "%s", l_scopes->get_err_msg());

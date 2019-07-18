@@ -120,11 +120,6 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
         }
         return WAFLZ_STATUS_OK;
 }
-
-//: ----------------------------------------------------------------------------
-//: Class Variables
-//: ----------------------------------------------------------------------------
-std::string scopes::s_conf_dir("/oc/local/waf/conf");
 //: ----------------------------------------------------------------------------
 //: \details ctor
 //: \return  None
@@ -180,7 +175,8 @@ int32_t scopes::validate(void)
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 int32_t scopes::load_config(const char *a_buf,
-                            uint32_t a_buf_len)
+                            uint32_t a_buf_len,
+                            const std::string& a_conf_dir_path)
 {
         if(a_buf_len > _SCOPES_MAX_SIZE)
         {
@@ -215,7 +211,7 @@ int32_t scopes::load_config(const char *a_buf,
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-                l_s = load_parts(l_sc);
+                l_s = load_parts(l_sc, a_conf_dir_path);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
@@ -232,7 +228,7 @@ int32_t scopes::load_config(const char *a_buf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::load_config(void *a_js)
+int32_t scopes::load_config(void *a_js, const std::string& a_conf_dir_path)
 {
         m_init = false;
         // -------------------------------------------------
@@ -260,7 +256,7 @@ int32_t scopes::load_config(void *a_js)
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-                l_s = load_parts(l_sc);
+                l_s = load_parts(l_sc, a_conf_dir_path);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
@@ -277,7 +273,8 @@ int32_t scopes::load_config(void *a_js)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::load_parts(waflz_pb::scope& a_scope)
+int32_t scopes::load_parts(waflz_pb::scope& a_scope,
+                           const std::string& a_conf_dir_path)
 {
         // -------------------------------------------------
         // acl audit
@@ -296,7 +293,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope)
         // -------------------------------------------------
         if(a_scope.has_rules_prod_id())
         {
-                std::string l_p = s_conf_dir + "/rules/" + a_scope.rules_prod_id();
+                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id();
                 // -----------------------------------------
                 // make waf obj
                 // -----------------------------------------

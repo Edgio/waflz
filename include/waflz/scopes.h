@@ -84,9 +84,12 @@ public:
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
         std::string& get_id(void) { return m_id; }
         int32_t load_config(const char *a_buf,
-                            uint32_t a_buf_len);
-        int32_t load_config(void *a_js);
-        int32_t load_parts(waflz_pb::scope& a_scope);
+                            uint32_t a_buf_len,
+                            const std::string& a_conf_dir_path);
+        int32_t load_config(void *a_js,
+                            const std::string& a_conf_dir_path);
+        int32_t load_parts(waflz_pb::scope& a_scope,
+                           const std::string& a_conf_dir_path);
         int32_t process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
@@ -98,10 +101,6 @@ public:
                         const ::waflz_pb::scope& a_scope,
                         void *a_ctx,
                         rqst_ctx **ao_rqst_ctx);
-        // -------------------------------------------------
-        // public static members
-        // -------------------------------------------------
-        static std::string s_conf_dir;
 private:
         // -------------------------------------------------
         // private methods

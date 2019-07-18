@@ -80,6 +80,7 @@ public:
         std::string m_config_path;
         std::string m_geoip2_db;
         std::string m_geoip2_isp_db;
+        std::string m_conf_dir;
 };
 }
 #endif

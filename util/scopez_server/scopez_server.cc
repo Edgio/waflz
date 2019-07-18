@@ -965,10 +965,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         srand(time(NULL));
         // -------------------------------------------------
-        // setup
-        // -------------------------------------------------
-        ns_waflz::scopes::s_conf_dir = l_conf_dir;
-        // -------------------------------------------------
         // *************************************************
         // server setup
         // *************************************************
@@ -1019,6 +1015,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_bg_load = false;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
+                g_sx_scopes->m_conf_dir = l_conf_dir;
                 break;
         }
         case(CONFIG_MODE_SCOPES_DIR):
@@ -1030,6 +1027,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_scopes_dir = true;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
+                g_sx_scopes->m_conf_dir = l_conf_dir;
                 break;
 
         }

@@ -70,6 +70,7 @@ waf::waf(engine &a_engine):
         m_engine(a_engine),
         m_id("NA"),
         m_name("NA"),
+        m_ruleset_dir(),
         m_owasp_ruleset_version(0),
         m_paranoia_level(1),
         m_no_log_matched(false),
@@ -455,7 +456,7 @@ int32_t waf::compile(void)
         // compile
         // -------------------------------------------------
         int32_t l_s;
-        l_s = m_engine.compile(*m_compiled_config, *m_pb);
+        l_s = m_engine.compile(*m_compiled_config, *m_pb, m_ruleset_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", m_engine.get_err_msg());
@@ -1100,27 +1101,23 @@ done:
         l_conf_pb.set_ruleset_version(l_prof_pb.ruleset_version());
         {
         struct dirent** l_conf_list = NULL;
-        std::string l_ruleset_dir = a_profile.s_ruleset_dir;
-        l_ruleset_dir.append(l_prof_pb.ruleset_id());
-        l_ruleset_dir.append("/version/");
-        l_ruleset_dir.append(l_prof_pb.ruleset_version());
-        l_ruleset_dir.append("/policy/");
-        // -------------------------------------------------
-        // set ruleset dir for engine before it compiles
-        // -------------------------------------------------
-        m_engine.set_ruleset_dir(l_ruleset_dir);
+        m_ruleset_dir = m_engine.get_ruleset_dir();
+        m_ruleset_dir.append(l_prof_pb.ruleset_id());
+        m_ruleset_dir.append("/version/");
+        m_ruleset_dir.append(l_prof_pb.ruleset_version());
+        m_ruleset_dir.append("/policy/");
         // -------------------------------------------------
         // scan ruleset dir
         // -------------------------------------------------
         int l_num_files = -1;
-        l_num_files = ::scandir(l_ruleset_dir.c_str(),
+        l_num_files = ::scandir(m_ruleset_dir.c_str(),
                                 &l_conf_list,
                                 is_conf_file::compare,
                                 alphasort);
         if(l_num_files == -1)
         {
                 // failed to build the list of directory entries
-                WAFLZ_PERROR(m_err_msg, "Failed to compile modsecurity json instance-profile settings.  Reason: failed to scan profile directory: %s: %s", l_ruleset_dir.c_str(), (errno == 0 ? "unknown" : strerror(errno)));
+                WAFLZ_PERROR(m_err_msg, "Failed to compile modsecurity json instance-profile settings.  Reason: failed to scan profile directory: %s: %s", m_ruleset_dir.c_str(), (errno == 0 ? "unknown" : strerror(errno)));
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -1139,7 +1136,7 @@ done:
                         if(l_enable_policies.find(l_conf_list[i_f]->d_name) != l_enable_policies.end())
                         {
                                 std::string &l_inc = *(l_conf_pb.add_directive()->mutable_include());
-                                l_inc.append(l_ruleset_dir);
+                                l_inc.append(m_ruleset_dir);
                                 l_inc.append(l_conf_list[i_f]->d_name);
                         }
                 }

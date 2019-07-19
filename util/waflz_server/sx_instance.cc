@@ -161,7 +161,10 @@ sx_instance::sx_instance(void):
         m_engine(NULL),
         m_instances(NULL),
         m_update_instances_h(NULL),
-        m_id_vector()
+        m_id_vector(),
+        m_ruleset_dir(),
+        m_geoip2_db(),
+        m_geoip2_isp_db()
 {
 
 }
@@ -188,6 +191,8 @@ int32_t sx_instance::init(void)
         // engine
         // -------------------------------------------------
         m_engine = new ns_waflz::engine();
+        m_engine->set_ruleset_dir(m_ruleset_dir);
+        m_engine->set_geoip2_dbs(m_geoip2_db, m_geoip2_isp_db);
         l_s = m_engine->init();
         if(l_s != WAFLZ_STATUS_OK)
         {

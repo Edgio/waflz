@@ -65,8 +65,6 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 // in an unreserved block
 uint_fast32_t profile::s_next_ec_rule_id = 430000;
-const std::string profile::s_default_name("");
-std::string profile::s_ruleset_dir("/oc/local/waf/ruleset/");
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -98,7 +96,7 @@ profile::profile(engine &a_engine):
         m_acl(NULL),
         m_waf(NULL),
         m_id(),
-        m_name(profile::s_default_name),
+        m_name(),
         m_resp_header_name(),
         m_action(waflz_pb::enforcement_type_t_NOP),
         m_owasp_ruleset_version(229),

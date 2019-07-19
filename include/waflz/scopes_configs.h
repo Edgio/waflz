@@ -60,6 +60,7 @@ public:
         scopes* get_first_scopes();
         const char *get_err_msg(void) { return m_err_msg; }
         void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }
+        void set_conf_dir(const std::string& a_conf_dir) { m_conf_dir = a_conf_dir; }
         scopes_configs(engine& a_engine, bool a_enable_locking);
         ~scopes_configs();
 private:
@@ -78,6 +79,7 @@ private:
         engine& m_engine;
         pthread_mutex_t m_mutex;
         bool m_enable_locking;
+        std::string m_conf_dir;
 };
 }
 #endif

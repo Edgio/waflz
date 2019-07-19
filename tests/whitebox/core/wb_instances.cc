@@ -223,15 +223,11 @@ TEST_CASE( "instances test", "[instances]" ) {
                 // -----------------------------------------
                 // callbacks
                 // -----------------------------------------
-                ns_waflz::profile::s_ruleset_dir = l_rule_dir;
                 std::string l_geoip2_city_file = l_cwd;
                 std::string l_geoip2_asn_file = l_cwd;
                 l_geoip2_city_file += "/../../../../tests/data/waf/db/GeoLite2-City.mmdb";
-                //l_geoip2_city_file += "/../tests/data/waf/db/GeoLite2-City.mmdb";
                 l_geoip2_asn_file += "/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb";
-                //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
-                ns_waflz::engine::s_geoip2_db = l_geoip2_city_file;
-                ns_waflz::engine::s_geoip2_isp_db = l_geoip2_asn_file;
+
                 // waf
                 ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
                 ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cb;
@@ -248,6 +244,8 @@ TEST_CASE( "instances test", "[instances]" ) {
                 // init
                 // -----------------------------------------
                 ns_waflz::engine *l_engine = new ns_waflz::engine();
+                l_engine->set_ruleset_dir(l_rule_dir);
+                l_engine->set_geoip2_dbs(l_geoip2_city_file, l_geoip2_asn_file);
                 int32_t l_s;
                 l_s = l_engine->init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));

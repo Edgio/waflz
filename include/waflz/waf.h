@@ -153,6 +153,7 @@ private:
         // -------------------------------------------------
         std::string m_id;
         std::string m_name;
+        std::string m_ruleset_dir;
         uint32_t m_owasp_ruleset_version;
         uint32_t m_paranoia_level;
         bool m_no_log_matched;

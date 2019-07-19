@@ -89,7 +89,6 @@ public:
         // public static members
         // -------------------------------------------------
         static uint_fast32_t s_next_ec_rule_id;
-        static std::string s_ruleset_dir;
 private:
         // -------------------------------------------------
         // private types
@@ -129,10 +128,6 @@ private:
         pcre_list_t m_il_query;
         pcre_list_t m_il_header;
         pcre_list_t m_il_cookie;
-        // -------------------------------------------------
-        // class members
-        // -------------------------------------------------
-        static const std::string s_default_name;
         // -------------------------------------------------
         // friends
         // -------------------------------------------------

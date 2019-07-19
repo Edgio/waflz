@@ -105,7 +105,6 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
         std::string l_rule_dir = l_cwd;
         l_rule_dir += "/../../../../tests/data/waf/ruleset/";
         //l_rule_dir += "/../tests/data/waf/ruleset/";
-        ns_waflz::profile::s_ruleset_dir = l_rule_dir;
         // -----------------------------------------
         // geoip
         // -----------------------------------------
@@ -122,6 +121,7 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 // -----------------------------------------
                 int32_t l_s;
                 ns_waflz::engine *l_engine = new ns_waflz::engine();
+                l_engine->set_ruleset_dir(l_rule_dir);
                 l_engine->set_geoip2_dbs(l_geoip2_city_file, l_geoip2_asn_file);
                 l_s = l_engine->init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));

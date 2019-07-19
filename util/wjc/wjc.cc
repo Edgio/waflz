@@ -133,10 +133,6 @@ static int32_t validate_ruleset_dir(std::string &a_ruleset_dir)
                 fprintf(stderr, "error %s does not appear to be a directory\n", a_ruleset_dir.c_str());
                 return STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // Set the directory
-        // -------------------------------------------------
-        ns_waflz::profile::s_ruleset_dir = a_ruleset_dir.c_str();
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -159,6 +155,7 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // engine
         // -------------------------------------------------
         ns_waflz::engine *l_engine = new ns_waflz::engine();
+        l_engine->set_ruleset_dir(a_ruleset_dir);
         l_engine->init();
         // -------------------------------------------------
         // read file
@@ -216,6 +213,7 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // engine
         // -------------------------------------------------
         ns_waflz::engine *l_engine = new ns_waflz::engine();
+        l_engine->set_ruleset_dir(a_ruleset_dir);
         l_engine->init();
         // -------------------------------------------------
         // read file

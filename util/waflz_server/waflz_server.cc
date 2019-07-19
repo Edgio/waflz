@@ -1145,10 +1145,6 @@ int main(int argc, char** argv)
                 }
         }
         // -------------------------------------------------
-        // setup
-        // -------------------------------------------------
-        ns_waflz::profile::s_ruleset_dir = l_ruleset_dir;
-        // -------------------------------------------------
         // *************************************************
         // server setup
         // *************************************************
@@ -1204,6 +1200,9 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_profile *l_sx_profile = new ns_waflz_server::sx_profile();
                 l_sx_profile->m_lsnr = l_lsnr;
                 l_sx_profile->m_config = l_config_file;
+                l_sx_profile->m_ruleset_dir = l_ruleset_dir;
+                l_sx_profile->m_geoip2_db = l_geoip_db;
+                l_sx_profile->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx = l_sx_profile;
                 break;
         }
@@ -1215,6 +1214,9 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
                 l_sx_instance->m_lsnr = l_lsnr;
                 l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_ruleset_dir = l_ruleset_dir;
+                l_sx_instance->m_geoip2_db = l_geoip_db;
+                l_sx_instance->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_instance->m_is_dir_flag = true;
                 l_sx_instance->m_bg_load = l_bg_load;
                 g_sx = l_sx_instance;
@@ -1228,6 +1230,9 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
                 l_sx_instance->m_lsnr = l_lsnr;
                 l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_ruleset_dir = l_ruleset_dir;
+                l_sx_instance->m_geoip2_db = l_geoip_db;
+                l_sx_instance->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_instance->m_is_dir_flag = false;
                 l_sx_instance->m_bg_load = l_bg_load;
                 g_sx = l_sx_instance;

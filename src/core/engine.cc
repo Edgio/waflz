@@ -92,7 +92,7 @@ engine::engine():
         m_config_list(),
         m_compiled_config_map(),
         m_ctype_parser_map(),
-        m_ruleset_dir(),
+        m_ruleset_root_dir("/oc/local/waf/ruleset/"),
         m_geoip2_db(),
         m_geoip2_isp_db(),
         m_geoip2_mmdb(),
@@ -214,7 +214,8 @@ int32_t engine::init()
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 int32_t engine::compile(compiled_config_t &ao_cx_cfg,
-                        waflz_pb::sec_config_t &a_config)
+                        waflz_pb::sec_config_t &a_config,
+                        const std::string& a_ruleset_dir)
 {
         // -------------------------------------------------
         // clear all
@@ -238,7 +239,8 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                         compiled_config_t *l_cx_cfg = NULL;
                         l_s = process_include(&l_cx_cfg,
                                               l_d.include(),
-                                              a_config);
+                                              a_config,
+                                              a_ruleset_dir);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 // TODO log reason???
@@ -453,7 +455,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 {
                                         int32_t l_s;
                                         nms *l_nms = NULL;
-                                        std::string l_f_path = m_ruleset_dir;
+                                        std::string l_f_path = a_ruleset_dir;
                                         l_f_path.append(l_rule->operator_().value());
                                         l_s = create_nms_from_file(&l_nms, l_f_path);
                                         if(l_s != WAFLZ_STATUS_OK)
@@ -490,7 +492,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 {
                                         int32_t l_s;
                                         ac *l_ac = NULL;
-                                        std::string l_f_path = m_ruleset_dir;
+                                        std::string l_f_path = a_ruleset_dir;
                                         l_f_path.append(l_rule->operator_().value());
                                         l_s = create_ac_from_file(&l_ac, l_f_path);
                                         if(l_s != WAFLZ_STATUS_OK)
@@ -614,7 +616,8 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
 //: ----------------------------------------------------------------------------
 int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
                                 const std::string &a_include,
-                                waflz_pb::sec_config_t &a_config)
+                                waflz_pb::sec_config_t &a_config,
+                                const std::string& a_ruleset_dir)
 {
         // -------------------------------------------------
         // find include in config map...
@@ -661,7 +664,7 @@ int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
         // -------------------------------------------------
         compiled_config_t *l_new_cx_cfg = NULL;
         l_new_cx_cfg = new compiled_config_t();
-        l_s = compile(*l_new_cx_cfg, *l_cfg);
+        l_s = compile(*l_new_cx_cfg, *l_cfg, a_ruleset_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_new_cx_cfg) { delete l_new_cx_cfg; l_new_cx_cfg = NULL;}

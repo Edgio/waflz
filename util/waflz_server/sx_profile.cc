@@ -99,6 +99,7 @@ sx_profile::sx_profile(void):
         m_profile(NULL),
         m_update_profile_h(NULL),
         m_action(NULL),
+        m_ruleset_dir(),
         m_geoip2_db(),
         m_geoip2_isp_db()
 {
@@ -135,6 +136,7 @@ int32_t sx_profile::init(void)
         // engine
         // -------------------------------------------------
         m_engine = new ns_waflz::engine();
+        m_engine->set_ruleset_dir(m_ruleset_dir);
         m_engine->set_geoip2_dbs(m_geoip2_db, m_geoip2_isp_db);
         l_s = m_engine->init();
         if(l_s != WAFLZ_STATUS_OK)

@@ -24,10 +24,9 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include <maxminddb.h>
-#include "support/geoip2_mmdb.h"
-#include "support/ndebug.h"
-// waflz
 #include "waflz/def.h"
+#include "waflz/geoip2_mmdb.h"
+#include "support/ndebug.h"
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>

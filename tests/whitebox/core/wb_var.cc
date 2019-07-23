@@ -26,8 +26,8 @@
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/geoip2_mmdb.h"
 #include "core/var.h"
-#include "support/geoip2_mmdb.h"
 #include "support/ndebug.h"
 #include <string.h>
 #include <unistd.h>

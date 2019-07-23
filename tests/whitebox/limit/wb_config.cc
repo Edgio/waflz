@@ -28,13 +28,13 @@
 #include "support/time_util.h"
 #include "support/string_util.h"
 #include "support/ndebug.h"
-#include "support/geoip2_mmdb.h"
 #include "waflz/def.h"
 #include "waflz/limit/config.h"
 #include "waflz/limit/configs.h"
 #include "waflz/limit/challenge.h"
 #include "waflz/db/kycb_db.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/geoip2_mmdb.h"
 #include "limit.pb.h"
 #include <string.h>
 #include <unistd.h>

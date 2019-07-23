@@ -28,6 +28,7 @@
 #include "support/ndebug.h"
 #include "waflz/limit/enforcer.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/geoip2_mmdb.h"
 #include "waflz/def.h"
 #include "limit.pb.h"
 #include <string.h>

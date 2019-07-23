@@ -28,11 +28,11 @@
 #include "waflz/profile.h"
 #include "waflz/instances.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/geoip2_mmdb.h"
 #include "waflz/def.h"
 #include "config.pb.h"
 #include "event.pb.h"
 #include "support/ndebug.h"
-#include "support/geoip2_mmdb.h"
 #include <unistd.h>
 //: ----------------------------------------------------------------------------
 //: TODO

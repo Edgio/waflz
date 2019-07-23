@@ -73,6 +73,9 @@ private:
         // -------------------------------------------------
         // Private methods
         // -------------------------------------------------
+        // Disallow copy/assign
+        geoip2_mmdb(const geoip2_mmdb &);
+        geoip2_mmdb& operator=(const geoip2_mmdb &);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------

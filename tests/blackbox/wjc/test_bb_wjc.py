@@ -57,4 +57,4 @@ def test_bb_wjc_bad_asn(setup_wjc):
     #print(l_sp_stderr)
     #print('return code: %d'%(l_sp.returncode))
     assert l_sp.returncode != 0
-    assert l_sp_stderr == 'expecting type: uint32 for field: \'waflz_pb.profile.access_settings_t.lists_asn_t.blacklist\'\n'
+    assert l_sp_stderr == 'expecting type: uint32 for field: \'waflz_pb.acl.lists_asn_t.blacklist\'\n'

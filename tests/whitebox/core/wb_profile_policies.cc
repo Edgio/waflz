@@ -76,15 +76,15 @@ static waflz_pb::profile *init_std_profile_pb(void)
         // -----------------------------------------
         // access settings -required fields
         // -----------------------------------------
-        ::waflz_pb::profile_access_settings_t* l_ax = NULL;
+        ::waflz_pb::acl* l_ax = NULL;
         l_ax = l_pb->mutable_access_settings();
-        ::waflz_pb::profile_access_settings_t_lists_t* l_ax_ip = l_ax->mutable_ip();
+        ::waflz_pb::acl_lists_t* l_ax_ip = l_ax->mutable_ip();
         UNUSED(l_ax_ip);
-        ::waflz_pb::profile_access_settings_t_lists_t* l_ax_cntry = l_ax->mutable_country();
+        ::waflz_pb::acl_lists_t* l_ax_cntry = l_ax->mutable_country();
         UNUSED(l_ax_cntry);
-        ::waflz_pb::profile_access_settings_t_lists_t* l_ax_url = l_ax->mutable_url();
+        ::waflz_pb::acl_lists_t* l_ax_url = l_ax->mutable_url();
         UNUSED(l_ax_url);
-        ::waflz_pb::profile_access_settings_t_lists_t* l_ax_refr = l_ax->mutable_referer();
+        ::waflz_pb::acl_lists_t* l_ax_refr = l_ax->mutable_referer();
         UNUSED(l_ax_refr);
         return l_pb;
 }

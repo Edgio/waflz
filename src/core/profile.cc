@@ -224,7 +224,7 @@ int32_t profile::load_config(const waflz_pb::profile *a_pb)
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 void set_acl_wl_bl(::waflz_pb::acl_lists_t *ao_list,
-                   const waflz_pb::profile_access_settings_t_lists_t &a_list)
+                   const waflz_pb::acl_lists_t &a_list)
 {
         for(int32_t i_t = 0; i_t < a_list.whitelist_size(); ++i_t)
         {
@@ -327,7 +327,7 @@ int32_t profile::init(void)
         //                  I G N O R E
         // *************************************************
         // -------------------------------------------------
-        const ::waflz_pb::profile_access_settings_t& l_as = m_pb->access_settings();
+        const ::waflz_pb::acl& l_as = m_pb->access_settings();
         // -------------------------------------------------
         // ignore query args
         // -------------------------------------------------
@@ -552,7 +552,7 @@ int32_t profile::validate(void)
         // access settings
         // -------------------------------------------------
         VERIFY_HAS(l_pb, access_settings);
-        const ::waflz_pb::profile_access_settings_t& l_as = l_pb.access_settings();
+        const ::waflz_pb::acl& l_as = l_pb.access_settings();
         VERIFY_HAS(l_as, country);
         VERIFY_HAS(l_as, ip);
         VERIFY_HAS(l_as, url);

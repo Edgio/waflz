@@ -85,15 +85,15 @@ static waflz_pb::profile *init_std_profile_pb(void)
         // -----------------------------------------
         // access settings -required fields
         // -----------------------------------------
-        ::waflz_pb::profile_access_settings_t* l_ax = NULL;
+        ::waflz_pb::acl* l_ax = NULL;
         l_ax = l_pb->mutable_access_settings();
-        ::waflz_pb::profile_access_settings_t_lists_t* l_ax_ip = l_ax->mutable_ip();
+        ::waflz_pb::acl_lists_t* l_ax_ip = l_ax->mutable_ip();
         UNUSED(l_ax_ip);
-        ::waflz_pb::profile_access_settings_t_lists_t* l_ax_cntry = l_ax->mutable_country();
+        ::waflz_pb::acl_lists_t* l_ax_cntry = l_ax->mutable_country();
         UNUSED(l_ax_cntry);
-        ::waflz_pb::profile_access_settings_t_lists_t* l_ax_url = l_ax->mutable_url();
+        ::waflz_pb::acl_lists_t* l_ax_url = l_ax->mutable_url();
         UNUSED(l_ax_url);
-        ::waflz_pb::profile_access_settings_t_lists_t* l_ax_refr = l_ax->mutable_referer();
+        ::waflz_pb::acl_lists_t* l_ax_refr = l_ax->mutable_referer();
         UNUSED(l_ax_refr);
         return l_pb;
 }
@@ -311,7 +311,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // ip settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::profile_access_settings_t_lists_t* l_ax_ipl = l_pb->mutable_access_settings()->mutable_ip();
+                ::waflz_pb::acl_lists_t* l_ax_ipl = l_pb->mutable_access_settings()->mutable_ip();
                 l_ax_ipl->add_blacklist("212.43.2.0/16");
                 l_ax_ipl->add_blacklist("243.49.2.7");
                 l_ax_ipl->add_whitelist("200.162.133.3");
@@ -322,7 +322,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // country settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::profile_access_settings_t_lists_t* l_ax_ctyl = l_pb->mutable_access_settings()->mutable_country();
+                ::waflz_pb::acl_lists_t* l_ax_ctyl = l_pb->mutable_access_settings()->mutable_country();
                 l_ax_ctyl->add_blacklist("CN");
                 l_ax_ctyl->add_whitelist("JP");
                 // *****************************************
@@ -330,7 +330,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // asn settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::profile_access_settings_t_lists_asn_t* l_ax_asn = l_pb->mutable_access_settings()->mutable_asn();
+                ::waflz_pb::acl_lists_asn_t* l_ax_asn = l_pb->mutable_access_settings()->mutable_asn();
                 l_ax_asn->add_blacklist(26496);
                 l_ax_asn->add_whitelist(15133);
                 // *****************************************
@@ -338,7 +338,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // url settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::profile_access_settings_t_lists_t* l_ax_url = l_pb->mutable_access_settings()->mutable_url();
+                ::waflz_pb::acl_lists_t* l_ax_url = l_pb->mutable_access_settings()->mutable_url();
                 l_ax_url->add_blacklist("/login-confirm/index.html");
                 l_ax_url->add_blacklist("\\/banana\\/m.*\\.html");
                 l_ax_url->add_whitelist("/chickenkiller/kill_chickenzz.html");
@@ -347,7 +347,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // user-agent settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::profile_access_settings_t_lists_t* l_ax_ua = l_pb->mutable_access_settings()->mutable_user_agent();
+                ::waflz_pb::acl_lists_t* l_ax_ua = l_pb->mutable_access_settings()->mutable_user_agent();
                 l_ax_ua->add_blacklist("cats are really cool dude");
                 l_ax_ua->add_blacklist("curl\\/.*");
                 l_ax_ua->add_whitelist("monkeys luv bananas");
@@ -356,7 +356,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // referer settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::profile_access_settings_t_lists_t* l_ax_refr = l_pb->mutable_access_settings()->mutable_referer();
+                ::waflz_pb::acl_lists_t* l_ax_refr = l_pb->mutable_access_settings()->mutable_referer();
                 l_ax_refr->add_blacklist("bad reefer");
                 l_ax_refr->add_blacklist("really\\/bad\\/.*");
                 l_ax_refr->add_whitelist("monkeys luv referers");
@@ -365,7 +365,7 @@ TEST_CASE( "profile acls test", "[profile_acls]" )
                 // cookie settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::profile_access_settings_t_lists_t* l_ax_cookie = l_pb->mutable_access_settings()->mutable_cookie();
+                ::waflz_pb::acl_lists_t* l_ax_cookie = l_pb->mutable_access_settings()->mutable_cookie();
                 l_ax_cookie->add_blacklist("bad_[0-9]_key");
                 l_ax_cookie->add_blacklist("wonky_key");
                 l_ax_cookie->add_blacklist("wonky_value");

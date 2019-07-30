@@ -216,7 +216,7 @@ int32_t sx_instance::init(void)
                 //NDBG_PRINT("l_instance_dir: %s\n", l_instance_dir.c_str());
                 l_s = m_instances->load_config_dir(m_config.c_str(),
                                                    m_config.length(),
-                                                   true);
+                                                   false);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config dir: %s. reason: %s\n", m_config.c_str(), m_instances->get_err_msg());
@@ -244,7 +244,7 @@ int32_t sx_instance::init(void)
                 // load instance
                 // -----------------------------------------
                 ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len, true);
+                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len, false);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_instances->get_err_msg());

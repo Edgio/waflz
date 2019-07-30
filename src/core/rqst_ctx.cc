@@ -418,17 +418,18 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
            m_src_addr.m_len)
         {
                 int32_t l_s;
+                m_geo_cn2.m_data = NULL;
+                m_geo_cn2.m_len = 0;
                 l_s = a_geoip2_mmdb.get_country(&m_geo_cn2.m_data,
                                                 m_geo_cn2.m_len,
                                                 m_src_addr.m_data,
                                                 m_src_addr.m_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        //WAFLZ_PERROR(m_err_msg,
-                        //             "geoip2 country lookup: reason: %s",
-                        //             a_geoip2_mmdb.get_err_msg());
+                        //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
+                        //            a_geoip2_mmdb.get_err_msg());
                         // TODO log reason???
-                        return WAFLZ_STATUS_ERROR;
+                        // fail is fine...
                 }
         }
         // -------------------------------------------------
@@ -438,16 +439,16 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
            m_src_addr.m_len)
         {
                 int32_t l_s;
+                m_src_asn = 0;
                 l_s = a_geoip2_mmdb.get_asn(m_src_asn,
                                             m_src_addr.m_data,
                                             m_src_addr.m_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        //WAFLZ_PERROR(m_err_msg,
-                        //             "geoip2 country lookup: reason: %s",
-                        //             m_geoip2_mmdb.get_err_msg());
+                        //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
+                        //           a_geoip2_mmdb.get_err_msg());
                         // TODO log reason???
-                        return WAFLZ_STATUS_ERROR;
+                        // fail is fine...
                 }
                 // -----------------------------------------
                 // converting to str temporarily for str

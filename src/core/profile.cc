@@ -629,6 +629,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
 {
         if(!ao_event)
         {
+                WAFLZ_PERROR(m_err_msg, "ao_event == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
@@ -664,7 +665,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         l_s = l_rqst_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), &m_il_query, &m_il_header, &m_il_cookie);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                // TODO -log error???
+                WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::init_phase_1");
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -678,7 +679,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                 l_s = m_acl->process(&l_event, l_whitelist, a_ctx, *l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        // TODO log error reason???
+                        WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());
                         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -704,7 +705,7 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                 l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        // TODO log error reason???
+                        WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());
                         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -718,7 +719,7 @@ done:
                 l_s = l_rqst_ctx->append_rqst_info(*l_event);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        // TODO log error reason???
+                        WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info");
                         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }

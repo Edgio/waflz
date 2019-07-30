@@ -250,3 +250,18 @@ def test_bb_acl_10_bypass_empty_allowed_settings(setup_waflz_server):
     l_r_json = l_r.json()
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
+# ------------------------------------------------------------------------------
+# test_bb_acl_11_ignore_cookie_in_ignore_cookie_list
+# ------------------------------------------------------------------------------
+def test_bb_acl_11_geoip2_lookup_softfail(setup_waflz_server):
+    l_uri = G_TEST_HOST
+    l_headers = {"host" : "myhost.com",
+                 # use malformed ip for lookups
+                 "x-waflz-ip" : "0_123_ADB__bloop"
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    print l_r_json
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'

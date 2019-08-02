@@ -29,6 +29,7 @@
 #include "waflz/waflz.h"
 #include "waflz/def.h"
 #include "waflz/waf.h"
+#include "rule.pb.h"
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <list>
@@ -257,9 +258,42 @@ int main(int argc, char** argv)
         }
         //uint64_t l_start_time_ms = get_time_ms();
         //uint64_t l_end_time_ms = get_time_ms() - l_start_time_ms;
-        // -------------------------------------------
+        // -------------------------------------------------
+        // strip compiled bits
+        // -------------------------------------------------
+        waflz_pb::sec_config_t* l_pb = l_waf->get_pb();
+        for(int i_d = 0; i_d < l_pb->directive_size(); ++i_d)
+        {
+                ::waflz_pb::directive_t* l_d = l_pb->mutable_directive(i_d);
+                if(!l_d->has_sec_rule())
+                {
+                        continue;
+                }
+                ::waflz_pb::sec_rule_t* l_r = l_d->mutable_sec_rule();
+                if(l_r->has_operator_())
+                {
+                        ::waflz_pb::sec_rule_t_operator_t* l_o = l_r->mutable_operator_();
+                        if(l_o->has__reserved_1())
+                        {
+                                l_o->clear__reserved_1();
+                        }
+                }
+                for(int i_cr = 0; i_cr < l_r->chained_rule_size(); ++i_cr)
+                {
+                        ::waflz_pb::sec_rule_t* l_cr = l_r->mutable_chained_rule(i_cr);
+                        if(l_cr->has_operator_())
+                        {
+                                ::waflz_pb::sec_rule_t_operator_t* l_o = l_r->mutable_operator_();
+                                if(l_o->has__reserved_1())
+                                {
+                                        l_o->clear__reserved_1();
+                                }
+                        }
+                }
+        }
+        // -------------------------------------------------
         // Write out
-        // -------------------------------------------
+        // -------------------------------------------------
         // Get pbuf string
         std::string l_str;
         int32_t l_num_bytes_written = 0;
@@ -269,7 +303,6 @@ int main(int argc, char** argv)
                 printf("Error performing get_str.\n");
                 return WAFLZ_STATUS_ERROR;
         }
-
         if(l_output_file.empty())
         {
                 // Write

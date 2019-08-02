@@ -95,6 +95,7 @@ public:
         int32_t init(config_parser::format_t a_format, const std::string &a_path, bool a_apply_defaults = false);
         int32_t get_str(std::string &ao_str, config_parser::format_t a_format);
         const char *get_err_msg(void) { return m_err_msg; }
+        waflz_pb::sec_config_t* get_pb(void) { return m_pb; }
         // -------------------------------------------------
         // properties
         // -------------------------------------------------

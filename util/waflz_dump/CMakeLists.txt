@@ -36,6 +36,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_BINARY_DIR}/proto
 )
 # ------------------------------------------------------------------------------
 #

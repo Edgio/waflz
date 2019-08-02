@@ -289,12 +289,24 @@ int32_t config::load(void *a_js)
         int32_t l_s;
         const rapidjson::Value &l_js = *((rapidjson::Value *)a_js);
         // -------------------------------------------------
+        // create pbuf...
+        // -------------------------------------------------
+        if(l_js.HasMember("version") &&
+           l_js["version"].GetInt() > 1)
+        {
+                l_s = update_from_json(*m_pb, l_js);
+                if(l_s != JSPB_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
         // handle v1 configs...
         // -------------------------------------------------
-        if(l_js.HasMember("type") &&
-           l_js["type"].IsString())
+        else
         {
-                // -----------------------------------------
+               // -----------------------------------------
                 // create v1 pbuf...
                 // -----------------------------------------
                 waflz_pb::enforcer *l_v1_pb = NULL;
@@ -320,18 +332,6 @@ int32_t config::load(void *a_js)
                         return WAFLZ_STATUS_ERROR;
                 }
                 if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-        }
-        // -------------------------------------------------
-        // create pbuf...
-        // -------------------------------------------------
-        else
-        {
-                l_s = update_from_json(*m_pb, l_js);
-                if(l_s != JSPB_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
-                        return WAFLZ_STATUS_ERROR;
-                }
         }
         // -------------------------------------------------
         // load and validate

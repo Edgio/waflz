@@ -291,8 +291,8 @@ int32_t config::load(void *a_js)
         // -------------------------------------------------
         // handle v1 configs...
         // -------------------------------------------------
-        if(l_js.HasMember("type") &&
-           l_js["type"].IsString())
+        if(!l_js.HasMember("version") ||
+           (l_js["version"].GetInt() < 2))
         {
                 // -----------------------------------------
                 // create v1 pbuf...

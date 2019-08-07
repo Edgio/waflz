@@ -283,7 +283,7 @@ int main(int argc, char** argv)
                         ::waflz_pb::sec_rule_t* l_cr = l_r->mutable_chained_rule(i_cr);
                         if(l_cr->has_operator_())
                         {
-                                ::waflz_pb::sec_rule_t_operator_t* l_o = l_r->mutable_operator_();
+                                ::waflz_pb::sec_rule_t_operator_t* l_o = l_cr->mutable_operator_();
                                 if(l_o->has__reserved_1())
                                 {
                                         l_o->clear__reserved_1();

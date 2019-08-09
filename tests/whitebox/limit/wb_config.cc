@@ -53,7 +53,7 @@
           "\"dimensions\":[\"IP\"],"\
           "\"rules\":["\
               "{\"variable\":[{\"type\":\"REQUEST_HEADERS\",\"match\":[{\"value\":\"Referer\"}]}],"\
-               "\"operator\":{\"type\":\"PM\",\"is_negated\":false,\"values\":[\"mycooltestwithreferelengthgreaterthantheonepassedinthetest\", \"http://gp1.can.transactcdn.com/0016715\"]},"\
+               "\"operator\":{\"type\":\"EM\",\"is_negated\":false,\"values\":[\"mycooltestwithreferelengthgreaterthantheonepassedinthetest\", \"http://gp1.can.transactcdn.com/0016715\"]},"\
                "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
                "\"name\":\"CONDITIONZZZZZZZEYAY\","\
                "\"chained_rule\":[]}],"\
@@ -96,7 +96,7 @@
           "\"dimensions\":[\"IP\"],"\
           "\"rules\":["\
               "{\"variable\":[{\"type\":\"REQUEST_HEADERS\",\"match\":[{\"value\":\"Referer\"}]}],"\
-               "\"operator\":{\"type\":\"PM\",\"is_negated\":false,\"values\":[\"mycooltestwithreferelengthgreaterthantheonepassedinthetest\", \"http://gp1.can.transactcdn.com/0016715\"]},"\
+               "\"operator\":{\"type\":\"EM\",\"is_negated\":false,\"values\":[\"mycooltestwithreferelengthgreaterthantheonepassedinthetest\", \"http://gp1.can.transactcdn.com/0016715\"]},"\
                "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
                "\"name\":\"CONDITIONZZZZZZZEYAY\","\
                "\"chained_rule\":[{\"id\" : \"4d0bba8d-837b-48db-806e-9415457ee0f119AE6\", \"operator\": {\"value\":\"js\",\"is_negated\":true,\"type\":\"STREQ\"},\"variable\":[{\"type\":\"FILE_EXT\"}]}]}],"\
@@ -144,35 +144,6 @@
           "\"scope\": {"\
               "\"host\": {\"type\":\"GLOB\",\"is_negated\":false,\"value\":\"*.cats.*.com\"},"\
               "\"path\": {\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"/cats.html\"}"\
-          "},"\
-          "\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"rules\":["\
-              "{\"variable\":[{\"type\":\"REQUEST_METHOD\"}],"\
-               "\"operator\":{\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"HACK_THE_PLANET\"},"\
-               "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
-               "\"name\":\"CONDITIONZZZZZZZEYAY\","\
-               "\"chained_rule\":[]}],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
-//! ----------------------------------------------------------------------------
-//! config
-//! ----------------------------------------------------------------------------
-#define REQUEST_METHOD_CONFIG_W_SCOPE_PM_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"PM\",\"is_negated\":false,\"values\":[\"www.cats.dogs.com\", \"www.cats1.dogs1.com\", \"\"]},"\
-              "\"path\": {\"type\":\"PM\",\"is_negated\":false,\"values\":[\"/cats.html\", \"/dogs.html\"]}"\
           "},"\
           "\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
           "\"dimensions\":[\"IP\"],"\
@@ -1137,136 +1108,6 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 // Verify no match
                 // -----------------------------------------
-                l_s = l_c->process(&l_enf, &l_limit, l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_enf == NULL));
-                REQUIRE((l_limit == NULL));
-                // -----------------------------------------
-                // cleanup
-                // -----------------------------------------
-                if(l_c) { delete l_c; l_c = NULL; }
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                unlink(l_db_file);
-        }
-        // -------------------------------------------------
-        // request method
-        // -------------------------------------------------
-        SECTION("verify request method w/ scope for PM") {
-                ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
-                int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_db.init();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config *l_c = new ns_waflz::config(l_db, l_challenge);
-                l_s = l_c->load(REQUEST_METHOD_CONFIG_W_SCOPE_PM_JSON, sizeof(REQUEST_METHOD_CONFIG_W_SCOPE_PM_JSON));
-                //printf("err: %s\n", l_c.get_err_msg());
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // -----------------------------------------
-                // waflz obj
-                // -----------------------------------------
-                void *l_rctx = NULL;
-                ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_pb::enforcement *l_enf = NULL;
-                const ::waflz_pb::limit* l_limit = NULL;
-                // -----------------------------------------
-                // set rqst_ctx
-                // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_host_cb = get_rqst_host_bats_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cats_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_method_cb = get_rqst_method_hack_the_planet_cb;
-                // -----------------------------------------
-                // init rqst ctx
-                // -----------------------------------------
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // -----------------------------------------
-                // Verify no match
-                // -----------------------------------------
-                l_limit = NULL;
-                l_enf = NULL;
-                for(int i=0; i<5; ++i)
-                {
-                        l_s = l_c->process(&l_enf, &l_limit, l_ctx);
-                        REQUIRE((l_s == WAFLZ_STATUS_OK));
-                        REQUIRE((l_enf == NULL));
-                        REQUIRE((l_limit == NULL));
-                }
-                // -----------------------------------------
-                // Verify no match
-                // -----------------------------------------
-                l_s = l_c->process(&l_enf, &l_limit, l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_enf == NULL));
-                REQUIRE((l_limit == NULL));
-                // -----------------------------------------
-                // switch rqst host
-                // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_host_cb = get_rqst_host_cats_cb;
-                // -----------------------------------------
-                // init rqst ctx
-                // -----------------------------------------
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // -----------------------------------------
-                // Verify no match
-                // -----------------------------------------
-                l_limit = NULL;
-                l_enf = NULL;
-                for(int i=0; i<5; ++i)
-                {
-                        l_s = l_c->process(&l_enf, &l_limit, l_ctx);
-                        REQUIRE((l_s == WAFLZ_STATUS_OK));
-                        REQUIRE((l_enf == NULL));
-                        REQUIRE((l_limit == NULL));
-                }
-                // -----------------------------------------
-                // verify match
-                // -----------------------------------------
-                l_s = l_c->process(&l_enf, &l_limit, l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_enf != NULL));
-                REQUIRE((l_enf->has_id()));
-                REQUIRE((l_enf->id() == "28b3de98-b3e1-4642-ac77-50d2fe69fab416715"));
-                REQUIRE((l_limit != NULL));
-                REQUIRE((l_limit->has_id()));
-                REQUIRE((l_limit->id() == "0A0c5799-78b1-470f-91af-f1c999be94cb16715"));
-                // -----------------------------------------
-                // switch uri
-                // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_host_cb = get_rqst_host_bats_cb;
-                // -----------------------------------------
-                // init rqst ctx
-                // -----------------------------------------
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
-                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                // -----------------------------------------
-                // Verify no match
-                // -----------------------------------------
-                l_limit = NULL;
-                l_enf = NULL;
-                for(int i=0; i<5; ++i)
-                {
-                        l_s = l_c->process(&l_enf, &l_limit, l_ctx);
-                        REQUIRE((l_s == WAFLZ_STATUS_OK));
-                        REQUIRE((l_enf == NULL));
-                        REQUIRE((l_limit == NULL));
-                }
-                // -----------------------------------------
-                // Verify no match
-                // -----------------------------------------
-                l_limit = NULL;
-                l_enf = NULL;
                 l_s = l_c->process(&l_enf, &l_limit, l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_enf == NULL));

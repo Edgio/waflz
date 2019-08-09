@@ -564,49 +564,6 @@ int32_t rl_run_op(bool &ao_matched,
                 break;
         }
         // -------------------------------------------------
-        // PM
-        // -------------------------------------------------
-        case waflz_pb::op_t_type_t_PM:
-        {
-                // -----------------------------------------
-                // substring match multiple strings
-                // -----------------------------------------
-                // most naive possible implementation
-                // TODO explore using pm operator
-                // -----------------------------------------
-                for(int i_val = 0; i_val < a_op.values_size(); ++i_val)
-                {
-                        // for each value
-                        const std::string& l_op_match = a_op.values(i_val);
-                        if(l_op_match.length() > a_len)
-                        {
-                                continue;
-                        }
-                        // If match value empty, continue
-                        if(l_op_match.empty())
-                        {
-                                continue;
-                        }
-                        const char *l_match = 0;
-                        if(a_case_insensitive)
-                        {
-                                l_match = strcasestr(a_data, l_op_match.c_str());
-                        }
-                        else
-                        {
-                                l_match = strstr(a_data, l_op_match.c_str());
-                        }
-                        if(l_match != NULL)
-                        {
-                                // matched
-                                ao_matched = true;
-                                break;
-                        }
-                        //TRACE("Got data: '%.*s' and match[%u] '%s'", SUBBUF_FORMAT(a_data), i_val, l_op_match.c_str());
-                }
-                break;
-        }
-        // -------------------------------------------------
         // GLOB (glob -wildcard match)
         // -------------------------------------------------
         case waflz_pb::op_t_type_t_GLOB:

@@ -82,18 +82,25 @@ acl::acl(void):
         m_err_msg(),
         m_pb(NULL),
         m_ip_whitelist(NULL),
+        m_ip_accesslist(NULL),
         m_ip_blacklist(NULL),
         m_country_whitelist(),
+        m_country_accesslist(),
         m_country_blacklist(),
         m_asn_whitelist(),
+        m_asn_accesslist(),
         m_asn_blacklist(),
         m_url_rx_whitelist(NULL),
+        m_url_rx_accesslist(NULL),
         m_url_rx_blacklist(NULL),
         m_ua_rx_whitelist(NULL),
+        m_ua_rx_accesslist(NULL),
         m_ua_rx_blacklist(NULL),
         m_referer_rx_whitelist(NULL),
+        m_referer_rx_accesslist(NULL),
         m_referer_rx_blacklist(NULL),
         m_cookie_rx_whitelist(NULL),
+        m_cookie_rx_accesslist(NULL),
         m_cookie_rx_blacklist(NULL)
 {
         m_pb = new waflz_pb::acl();
@@ -108,14 +115,19 @@ acl::~acl(void)
 #define _DELETE_OBJ(_obj) if(_obj) { delete _obj; _obj = NULL; }
 
         _DELETE_OBJ(m_ip_whitelist);
+        _DELETE_OBJ(m_ip_accesslist);
         _DELETE_OBJ(m_ip_blacklist);
         _DELETE_OBJ(m_url_rx_whitelist);
+        _DELETE_OBJ(m_url_rx_accesslist);
         _DELETE_OBJ(m_url_rx_blacklist);
         _DELETE_OBJ(m_ua_rx_whitelist);
+        _DELETE_OBJ(m_ua_rx_accesslist);
         _DELETE_OBJ(m_ua_rx_blacklist);
         _DELETE_OBJ(m_referer_rx_whitelist);
+        _DELETE_OBJ(m_referer_rx_accesslist);
         _DELETE_OBJ(m_referer_rx_blacklist);
         _DELETE_OBJ(m_cookie_rx_whitelist);
+        _DELETE_OBJ(m_cookie_rx_accesslist);
         _DELETE_OBJ(m_cookie_rx_blacklist);
         if(m_pb) { delete m_pb; m_pb = NULL; }
 }
@@ -188,34 +200,18 @@ int32_t acl::compile()
         // -------------------------------------------------
         if(m_pb->has_ip())
         {
-                if(m_pb->ip().whitelist_size())
-                {
-                        if(m_ip_whitelist)
-                        {
-                                delete m_ip_whitelist;
-                                m_ip_whitelist = NULL;
-                        }
-                        m_ip_whitelist = new nms();
-                        for(int32_t i_ip = 0; i_ip < m_pb->ip().whitelist_size(); ++i_ip)
-                        {
-                                const std::string &l_str = m_pb->ip().whitelist(i_ip);
-                                m_ip_whitelist->add(l_str.c_str(), l_str.length());
-                        }
-                }
-                if(m_pb->ip().blacklist_size())
-                {
-                        if(m_ip_blacklist)
-                        {
-                                delete m_ip_blacklist;
-                                m_ip_blacklist = NULL;
-                        }
-                        m_ip_blacklist = new nms();
-                        for(int32_t i_ip = 0; i_ip < m_pb->ip().blacklist_size(); ++i_ip)
-                        {
-                                const std::string &l_str = m_pb->ip().blacklist(i_ip);
-                                m_ip_blacklist->add(l_str.c_str(), l_str.length());
-                        }
-                }
+#define _COMPILE_IP_LIST(_type) do { \
+        if(m_pb->ip()._type##_size()) { \
+                if(m_ip_##_type) { delete m_ip_##_type; m_ip_##_type = NULL; } \
+                m_ip_##_type = new nms(); \
+                for(int32_t i_ip = 0; i_ip < m_pb->ip()._type##_size(); ++i_ip) { \
+                        const std::string &l_str = m_pb->ip()._type(i_ip); \
+                        m_ip_##_type->add(l_str.c_str(), l_str.length()); \
+                } \
+        } } while(0)
+                _COMPILE_IP_LIST(whitelist);
+                _COMPILE_IP_LIST(accesslist);
+                _COMPILE_IP_LIST(blacklist);
         }
         // -------------------------------------------------
         // country
@@ -228,28 +224,26 @@ int32_t acl::compile()
         // -------------------------------------------------
         if(m_pb->has_country())
         {
-                for(int32_t i_ip = 0; i_ip < m_pb->country().whitelist_size(); ++i_ip)
-                {
-                        m_country_whitelist.insert(m_pb->country().whitelist(i_ip));
-                }
-                for(int32_t i_ip = 0; i_ip < m_pb->country().blacklist_size(); ++i_ip)
-                {
-                        m_country_blacklist.insert(m_pb->country().blacklist(i_ip));
-                }
+#define _COMPILE_COUNTRY_LIST(_type) do { \
+        for(int32_t i_ip = 0; i_ip < m_pb->country()._type##_size(); ++i_ip) { \
+                m_country_##_type.insert(m_pb->country()._type(i_ip)); \
+        } } while(0)
+                _COMPILE_COUNTRY_LIST(whitelist);
+                _COMPILE_COUNTRY_LIST(accesslist);
+                _COMPILE_COUNTRY_LIST(blacklist);
         }
         // -------------------------------------------------
         // ASN
         // -------------------------------------------------
         if(m_pb->has_asn())
         {
-                for(int32_t i_ip = 0; i_ip < m_pb->asn().whitelist_size(); ++i_ip)
-                {
-                        m_asn_whitelist.insert(m_pb->asn().whitelist(i_ip));
-                }
-                for(int32_t i_ip = 0; i_ip < m_pb->asn().blacklist_size(); ++i_ip)
-                {
-                        m_asn_blacklist.insert(m_pb->asn().blacklist(i_ip));
-                }
+#define _COMPILE_ASN_LIST(_type) do { \
+        for(int32_t i_ip = 0; i_ip < m_pb->asn()._type##_size(); ++i_ip) { \
+                m_asn_##_type.insert(m_pb->asn()._type(i_ip)); \
+        } } while(0)
+                _COMPILE_ASN_LIST(whitelist);
+                _COMPILE_ASN_LIST(accesslist);
+                _COMPILE_ASN_LIST(blacklist);
         }
         // -------------------------------------------------
         // url
@@ -600,12 +594,12 @@ int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         // ip or src_addr used for: ip, country, asn
         l_buf = a_ctx.m_src_addr.m_data;
         l_buf_len = a_ctx.m_src_addr.m_len;
-        if(m_ip_blacklist &&
+        if(m_ip_accesslist &&
            l_buf &&
            l_buf_len)
         {
                 bool l_match = false;
-                l_s = m_ip_blacklist->contains(l_match, l_buf, l_buf_len);
+                l_s = m_ip_accesslist->contains(l_match, l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???
@@ -642,7 +636,7 @@ country_check:
         // -------------------------------------------------
         // country
         // -------------------------------------------------
-        if(m_country_blacklist.size() &&
+        if(m_country_accesslist.size() &&
            l_buf &&
            l_buf_len &&
            a_ctx.m_geo_cn2.m_data &&
@@ -651,7 +645,7 @@ country_check:
                 std::string l_cn_str;
                 l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
                 bool l_match = false;
-                if(m_country_blacklist.find(l_cn_str) != m_country_blacklist.end())
+                if(m_country_accesslist.find(l_cn_str) != m_country_accesslist.end())
                 {
                         l_match = true;
                 }
@@ -686,11 +680,11 @@ asn_check:
         // -------------------------------------------------
         // ASN
         // -------------------------------------------------
-        if(m_asn_blacklist.size() &&
+        if(m_asn_accesslist.size() &&
            a_ctx.m_src_asn)
         {
                 bool l_match = false;
-                if(m_asn_blacklist.find(a_ctx.m_src_asn) != m_asn_blacklist.end())
+                if(m_asn_accesslist.find(a_ctx.m_src_asn) != m_asn_accesslist.end())
                 {
                         l_match = true;
                 }
@@ -727,20 +721,20 @@ url_check:
         // -------------------------------------------------
         // url
         // -------------------------------------------------
-        if(!m_url_rx_blacklist)
+        if(!m_url_rx_accesslist)
         {
                 goto user_agent_check;
         }
         // set buf to uri
         l_buf = a_ctx.m_uri.m_data;
         l_buf_len = a_ctx.m_uri.m_len;
-        if(m_url_rx_blacklist &&
+        if(m_url_rx_accesslist &&
            l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
                 bool l_match = false;
-                l_s = m_url_rx_blacklist->compare(l_buf, l_buf_len);
+                l_s = m_url_rx_accesslist->compare(l_buf, l_buf_len);
                 if(l_s >= 0)
                 {
                         l_match = true;
@@ -775,20 +769,20 @@ user_agent_check:
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        if(!m_ua_rx_blacklist)
+        if(!m_ua_rx_accesslist)
         {
                 goto referer_check;
         }
         // get header from header map.
         _GET_HEADER("User-Agent", l_buf);
-        if(m_ua_rx_blacklist &&
+        if(m_ua_rx_accesslist &&
            l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
                 bool l_match = false;
                 std::string l_rx_capture;
-                l_s = m_ua_rx_blacklist->compare(l_buf, l_buf_len, &l_rx_capture);
+                l_s = m_ua_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
                 if(l_s >= 0)
                 {
                         l_match = true;
@@ -809,7 +803,7 @@ user_agent_check:
                 l_sevent->set_rule_id(80012);
                 l_sevent->set_rule_msg("Accesslist User-Agent match");
                 l_sevent->set_rule_op_name("rx");
-                l_sevent->set_rule_op_param(m_ua_rx_blacklist->get_regex_string());
+                l_sevent->set_rule_op_param(m_ua_rx_accesslist->get_regex_string());
                 l_sevent->add_rule_tag("ACCESSLIST/USER-AGENT");
                 ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
                 l_rule_target->set_name("REQUEST_HEADERS");
@@ -824,19 +818,19 @@ referer_check:
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
-        if(!m_referer_rx_blacklist)
+        if(!m_referer_rx_accesslist)
         {
                 goto cookie_check;
         }
         _GET_HEADER("Referer", l_buf);
-        if(m_referer_rx_blacklist &&
+        if(m_referer_rx_accesslist &&
            l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
                 bool l_match = false;
                 std::string l_rx_capture;
-                l_s = m_referer_rx_blacklist->compare(l_buf, l_buf_len, &l_rx_capture);
+                l_s = m_referer_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
                 if(l_s >= 0)
                 {
                         l_match = true;
@@ -857,7 +851,7 @@ referer_check:
                 l_sevent->set_rule_id(80010);
                 l_sevent->set_rule_msg("Accesslist Referer match");
                 l_sevent->set_rule_op_name("rx");
-                l_sevent->set_rule_op_param(m_referer_rx_blacklist->get_regex_string());
+                l_sevent->set_rule_op_param(m_referer_rx_accesslist->get_regex_string());
                 l_sevent->add_rule_tag("ACCESSLIST/REFERER");
                 ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
                 l_rule_target->set_name("REQUEST_HEADERS");
@@ -872,19 +866,19 @@ cookie_check:
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
-        if(!m_cookie_rx_blacklist)
+        if(!m_cookie_rx_accesslist)
         {
                 return WAFLZ_STATUS_OK;
         }
         _GET_HEADER("Cookie", l_buf);
-        if(m_cookie_rx_blacklist &&
+        if(m_cookie_rx_accesslist &&
            l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
                 bool l_match = false;
                 std::string l_rx_capture;
-                l_s = m_cookie_rx_blacklist->compare(l_buf, l_buf_len, &l_rx_capture);
+                l_s = m_cookie_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
                 if(l_s >= 0)
                 {
                         l_match = true;
@@ -905,7 +899,7 @@ cookie_check:
                 l_sevent->set_rule_id(80003);
                 l_sevent->set_rule_msg("Accesslist Cookie match");
                 l_sevent->set_rule_op_name("rx");
-                l_sevent->set_rule_op_param(m_cookie_rx_blacklist->get_regex_string());
+                l_sevent->set_rule_op_param(m_cookie_rx_accesslist->get_regex_string());
                 l_sevent->add_rule_tag("ACCESSLIST/Cookie");
                 ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
                 l_rule_target->set_name("REQUEST_HEADERS");

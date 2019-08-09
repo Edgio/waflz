@@ -8,7 +8,6 @@ message op_t {
         enum type_t {
                 STREQ = 1;
                 RX = 2;
-                PM = 3;
                 GLOB = 4;
                 EM = 5;
                 IPMATCH = 6;

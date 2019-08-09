@@ -207,8 +207,7 @@ int32_t acl::compile()
                 for(int32_t i_ip = 0; i_ip < m_pb->ip()._type##_size(); ++i_ip) { \
                         const std::string &l_str = m_pb->ip()._type(i_ip); \
                         m_ip_##_type->add(l_str.c_str(), l_str.length()); \
-                } \
-        } } while(0)
+        } } } while(0)
                 _COMPILE_IP_LIST(whitelist);
                 _COMPILE_IP_LIST(accesslist);
                 _COMPILE_IP_LIST(blacklist);
@@ -250,120 +249,76 @@ int32_t acl::compile()
         // -------------------------------------------------
         if(m_pb->has_url())
         {
-                if(m_pb->url().whitelist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_url_rx_whitelist,
-                                                 m_pb->url().whitelist(),
-                                                 m_pb->url().whitelist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling url whitelist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                if(m_pb->url().blacklist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_url_rx_blacklist,
-                                                 m_pb->url().blacklist(),
-                                                 m_pb->url().blacklist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling url blacklist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
+#define _COMPILE_URL_LIST(_type) do { \
+        if(m_pb->url()._type##_size()) { \
+                int32_t l_s; \
+                l_s = compile_regex_list(&m_url_rx_##_type, \
+                                         m_pb->url()._type(), \
+                                         m_pb->url()._type##_size()); \
+                if(l_s != WAFLZ_STATUS_OK) { \
+                        WAFLZ_PERROR(m_err_msg, "compiling url %s", #_type); \
+                        return WAFLZ_STATUS_ERROR; \
+        } } } while(0)
+                _COMPILE_URL_LIST(whitelist);
+                _COMPILE_URL_LIST(accesslist);
+                _COMPILE_URL_LIST(blacklist);
         }
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
         if(m_pb->has_user_agent())
         {
-                if(m_pb->user_agent().whitelist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_ua_rx_whitelist,
-                                                 m_pb->user_agent().whitelist(),
-                                                 m_pb->user_agent().whitelist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling user-agent whitelist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                if(m_pb->user_agent().blacklist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_ua_rx_blacklist,
-                                                 m_pb->user_agent().blacklist(),
-                                                 m_pb->user_agent().blacklist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling user-agent blacklist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
+#define _COMPILE_USER_AGENT_LIST(_type) do { \
+        if(m_pb->user_agent()._type##_size()) { \
+                int32_t l_s; \
+                l_s = compile_regex_list(&m_ua_rx_##_type, \
+                                         m_pb->user_agent()._type(), \
+                                         m_pb->user_agent()._type##_size()); \
+                if(l_s != WAFLZ_STATUS_OK) { \
+                        WAFLZ_PERROR(m_err_msg, "compiling user-agent %s", #_type); \
+                        return WAFLZ_STATUS_ERROR; \
+        } } } while(0)
+                _COMPILE_USER_AGENT_LIST(whitelist);
+                _COMPILE_USER_AGENT_LIST(accesslist);
+                _COMPILE_USER_AGENT_LIST(blacklist);
         }
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
         if(m_pb->has_referer())
         {
-                if(m_pb->referer().whitelist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_referer_rx_whitelist,
-                                                 m_pb->referer().whitelist(),
-                                                 m_pb->referer().whitelist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling referer whitelist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                if(m_pb->referer().blacklist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_referer_rx_blacklist,
-                                                 m_pb->referer().blacklist(),
-                                                 m_pb->referer().blacklist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling referer blacklist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
+#define _COMPILE_REFERER_LIST(_type) do { \
+        if(m_pb->referer()._type##_size()) { \
+                int32_t l_s; \
+                l_s = compile_regex_list(&m_referer_rx_##_type, \
+                                         m_pb->referer()._type(), \
+                                         m_pb->referer()._type##_size()); \
+                if(l_s != WAFLZ_STATUS_OK) { \
+                        WAFLZ_PERROR(m_err_msg, "compiling referer %s", #_type); \
+                        return WAFLZ_STATUS_ERROR; \
+        } } } while(0)
+                _COMPILE_REFERER_LIST(whitelist);
+                _COMPILE_REFERER_LIST(accesslist);
+                _COMPILE_REFERER_LIST(blacklist);
         }
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
         if(m_pb->has_cookie())
         {
-                if(m_pb->cookie().whitelist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_cookie_rx_whitelist,
-                                                 m_pb->cookie().whitelist(),
-                                                 m_pb->cookie().whitelist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling cookie whitelist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                if(m_pb->cookie().blacklist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_cookie_rx_blacklist,
-                                                 m_pb->cookie().blacklist(),
-                                                 m_pb->cookie().blacklist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling cookie blacklist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
+#define _COMPILE_COOKIE_LIST(_type) do { \
+        if(m_pb->cookie()._type##_size()) { \
+                int32_t l_s; \
+                l_s = compile_regex_list(&m_cookie_rx_##_type, \
+                                         m_pb->cookie()._type(), \
+                                         m_pb->cookie()._type##_size()); \
+                if(l_s != WAFLZ_STATUS_OK) { \
+                        WAFLZ_PERROR(m_err_msg, "compiling cookie %s", #_type); \
+                        return WAFLZ_STATUS_ERROR; \
+        } } } while(0)
+                _COMPILE_COOKIE_LIST(whitelist);
+                _COMPILE_COOKIE_LIST(accesslist);
+                _COMPILE_COOKIE_LIST(blacklist);
         }
         // -------------------------------------------------
         // allowed_http_methods

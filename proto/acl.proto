@@ -10,10 +10,12 @@ message acl {
         message lists_t {
                 repeated string blacklist = 1;
                 repeated string whitelist = 2;
+                repeated string accesslist = 3;
         }
         message lists_asn_t {
                 repeated uint32 blacklist = 1;
                 repeated uint32 whitelist = 2;
+                repeated uint32 accesslist = 3;
         }
         // -------------------------------------------------
 	// acl's...

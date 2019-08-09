@@ -582,6 +582,348 @@ cookie_check:
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
+{
+        if(!ao_event)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_event = NULL;
+        const char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        data_t l_d;
+        const data_map_t &l_hm = a_ctx.m_header_map;
+        int32_t l_s;
+        // -------------------------------------------------
+        // ip
+        // -------------------------------------------------
+        // ip or src_addr used for: ip, country, asn
+        l_buf = a_ctx.m_src_addr.m_data;
+        l_buf_len = a_ctx.m_src_addr.m_len;
+        if(m_ip_blacklist &&
+           l_buf &&
+           l_buf_len)
+        {
+                bool l_match = false;
+                l_s = m_ip_blacklist->contains(l_match, l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO log error reason???
+                        goto country_check;
+                }
+                if(l_match)
+                {
+                        goto country_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist IP match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80008);
+                l_sevent->set_rule_msg("Accesslist IP deny");
+                l_sevent->set_rule_op_name("ipMatch");
+                l_sevent->set_rule_op_param("ip_accesslist");
+                l_sevent->add_rule_tag("ACCESSLIST/IP");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("TX");
+                l_rule_target->set_param("REAL_IP");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("TX:real_ip");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+country_check:
+        // -------------------------------------------------
+        // country
+        // -------------------------------------------------
+        if(m_country_blacklist.size() &&
+           l_buf &&
+           l_buf_len &&
+           a_ctx.m_geo_cn2.m_data &&
+           a_ctx.m_geo_cn2.m_len)
+        {
+                std::string l_cn_str;
+                l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                bool l_match = false;
+                if(m_country_blacklist.find(l_cn_str) != m_country_blacklist.end())
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto asn_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist Country deny");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80004);
+                l_sevent->set_rule_msg("Accesslist Country deny");
+                l_sevent->set_rule_op_name("geoLookup");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("ACCESSLIST/COUNTRY");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("TX");
+                l_rule_target->set_param("REAL_IP");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("GEO:COUNTRY_CODE");
+                l_var->set_value(l_cn_str);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+asn_check:
+        // -------------------------------------------------
+        // ASN
+        // -------------------------------------------------
+        if(m_asn_blacklist.size() &&
+           a_ctx.m_src_asn)
+        {
+                bool l_match = false;
+                if(m_asn_blacklist.find(a_ctx.m_src_asn) != m_asn_blacklist.end())
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto url_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist ASN match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80001);
+                l_sevent->set_rule_msg("Accesslist ASN match");
+                l_sevent->set_rule_op_name("asnLookup");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("ACCESSLIST/ASN");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("TX");
+                l_rule_target->set_param("REAL_IP");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("GEO:ASN");
+                char l_asn_str[16];
+                snprintf(l_asn_str, 16, "AS%u", a_ctx.m_src_asn);
+                l_var->set_value(l_asn_str);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+url_check:
+        // -------------------------------------------------
+        // url
+        // -------------------------------------------------
+        if(!m_url_rx_blacklist)
+        {
+                goto user_agent_check;
+        }
+        // set buf to uri
+        l_buf = a_ctx.m_uri.m_data;
+        l_buf_len = a_ctx.m_uri.m_len;
+        if(m_url_rx_blacklist &&
+           l_buf &&
+           l_buf_len)
+        {
+                int32_t l_s;
+                bool l_match = false;
+                l_s = m_url_rx_blacklist->compare(l_buf, l_buf_len);
+                if(l_s >= 0)
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto user_agent_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist URL match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80011);
+                l_sevent->set_rule_msg("Accesslist URL match");
+                l_sevent->set_rule_op_name("rx");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("ACCESSLIST/URL");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_URI_RAW");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_URI_RAW");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+user_agent_check:
+        // -------------------------------------------------
+        // user-agent
+        // -------------------------------------------------
+        if(!m_ua_rx_blacklist)
+        {
+                goto referer_check;
+        }
+        // get header from header map.
+        _GET_HEADER("User-Agent", l_buf);
+        if(m_ua_rx_blacklist &&
+           l_buf &&
+           l_buf_len)
+        {
+                int32_t l_s;
+                bool l_match = false;
+                std::string l_rx_capture;
+                l_s = m_ua_rx_blacklist->compare(l_buf, l_buf_len, &l_rx_capture);
+                if(l_s >= 0)
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto referer_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist User-Agent match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80012);
+                l_sevent->set_rule_msg("Accesslist User-Agent match");
+                l_sevent->set_rule_op_name("rx");
+                l_sevent->set_rule_op_param(m_ua_rx_blacklist->get_regex_string());
+                l_sevent->add_rule_tag("ACCESSLIST/USER-AGENT");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_param("User-Agent");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_HEADERS:User-Agent");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+referer_check:
+        // -------------------------------------------------
+        // referer
+        // -------------------------------------------------
+        if(!m_referer_rx_blacklist)
+        {
+                goto cookie_check;
+        }
+        _GET_HEADER("Referer", l_buf);
+        if(m_referer_rx_blacklist &&
+           l_buf &&
+           l_buf_len)
+        {
+                int32_t l_s;
+                bool l_match = false;
+                std::string l_rx_capture;
+                l_s = m_referer_rx_blacklist->compare(l_buf, l_buf_len, &l_rx_capture);
+                if(l_s >= 0)
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto cookie_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist Referer match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80010);
+                l_sevent->set_rule_msg("Accesslist Referer match");
+                l_sevent->set_rule_op_name("rx");
+                l_sevent->set_rule_op_param(m_referer_rx_blacklist->get_regex_string());
+                l_sevent->add_rule_tag("ACCESSLIST/REFERER");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_value("Referer");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_HEADERS:Referer");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+cookie_check:
+        // -------------------------------------------------
+        // cookie
+        // -------------------------------------------------
+        if(!m_cookie_rx_blacklist)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        _GET_HEADER("Cookie", l_buf);
+        if(m_cookie_rx_blacklist &&
+           l_buf &&
+           l_buf_len)
+        {
+                int32_t l_s;
+                bool l_match = false;
+                std::string l_rx_capture;
+                l_s = m_cookie_rx_blacklist->compare(l_buf, l_buf_len, &l_rx_capture);
+                if(l_s >= 0)
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto done;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist Cookie match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80003);
+                l_sevent->set_rule_msg("Accesslist Cookie match");
+                l_sevent->set_rule_op_name("rx");
+                l_sevent->set_rule_op_param(m_cookie_rx_blacklist->get_regex_string());
+                l_sevent->add_rule_tag("ACCESSLIST/Cookie");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_value("Cookie");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_HEADERS:Cookie");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+done:
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
         if(!ao_event)
@@ -1255,6 +1597,19 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_OK;
         }
         waflz_pb::event *l_event = NULL;
+        // -------------------------------------------------
+        // accesslist...
+        // -------------------------------------------------
+        l_s = process_accesslist(&l_event, a_rqst_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_event)
+        {
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
         // -------------------------------------------------
         // blacklist...
         // -------------------------------------------------

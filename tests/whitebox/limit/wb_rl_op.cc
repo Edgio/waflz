@@ -116,28 +116,6 @@ TEST_CASE( "op test", "[op]" ) {
                 if(l_op) { delete(l_op); l_op = NULL; }
         }
         // -------------------------------------------------
-        // test pm
-        // -------------------------------------------------
-        SECTION("rl_run_op pm test") {
-                bool l_matched = false;
-                int32_t l_s;
-                waflz_pb::op_t* l_op = new waflz_pb::op_t();
-                l_op->set_type(waflz_pb::op_t_type_t_PM);
-                l_op->add_values("cat");
-                l_op->add_values("dog");
-                l_op->add_values("monkey");
-                l_s = ns_waflz::rl_run_op(l_matched, *l_op, "cat", strlen("cat"), false);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_matched == true));
-                l_s = ns_waflz::rl_run_op(l_matched, *l_op, "/cat/dog/monkey", strlen("/cat/dog/monkey"), false);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_matched == true));
-                l_s = ns_waflz::rl_run_op(l_matched, *l_op, "/barf/barf/barf", strlen("/barf/barf/barf"), false);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_matched == false));
-                if(l_op) { delete(l_op); l_op = NULL; }
-        }
-        // -------------------------------------------------
         // test regex
         // -------------------------------------------------
         SECTION("rl_run_op regex test") {

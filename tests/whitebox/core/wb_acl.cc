@@ -269,9 +269,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         return 0;
 }
 //: ----------------------------------------------------------------------------
-//: profile acl tests
+//: acl tests
 //: ----------------------------------------------------------------------------
-TEST_CASE( "profile acls test", "[profile_acls]" )
+TEST_CASE( "acl test", "[acl]" )
 {
         // -----------------------------------------
         // get ruleset dir

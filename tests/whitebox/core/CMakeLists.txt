@@ -49,14 +49,23 @@ target_link_libraries(wb_matched_data ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_
 SET_TARGET_PROPERTIES(wb_matched_data PROPERTIES OUTPUT_NAME "wb_matched_data")
 add_test(matched_data wb_matched_data)
 # ------------------------------------------------------------------------------
-# wb_profile_acl
+# wb_acl
 # ------------------------------------------------------------------------------
-SET(SRCS wb_profile_acl.cc)
-add_executable(wb_profile_acl ${HDRS} ${SRCS})
-add_dependencies(wb_profile_acl waflzcore)
-target_link_libraries(wb_profile_acl ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
-SET_TARGET_PROPERTIES(wb_profile_acl PROPERTIES OUTPUT_NAME "wb_profile_acl")
-add_test(profile_acl wb_profile_acl)
+SET(SRCS wb_acl.cc)
+add_executable(wb_acl ${HDRS} ${SRCS})
+add_dependencies(wb_acl waflzcore)
+target_link_libraries(wb_acl ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
+SET_TARGET_PROPERTIES(wb_acl PROPERTIES OUTPUT_NAME "wb_acl")
+add_test(acl wb_acl)
+# ------------------------------------------------------------------------------
+# wb_acl_accesslist
+# ------------------------------------------------------------------------------
+SET(SRCS wb_acl_accesslist.cc)
+add_executable(wb_acl_accesslist ${HDRS} ${SRCS})
+add_dependencies(wb_acl_accesslist waflzcore)
+target_link_libraries(wb_acl_accesslist ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
+SET_TARGET_PROPERTIES(wb_acl_accesslist PROPERTIES OUTPUT_NAME "wb_acl_accesslist")
+add_test(acl_accesslist wb_acl_accesslist)
 # ------------------------------------------------------------------------------
 # wb_profile_policies
 # ------------------------------------------------------------------------------

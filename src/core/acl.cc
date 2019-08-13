@@ -651,13 +651,13 @@ asn_check:
                 // top level event
                 // -----------------------------------------
                 waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist ASN match");
+                l_event->set_rule_msg("Accesslist ASN deny");
                 // -----------------------------------------
                 // subevent
                 // -----------------------------------------
                 ::waflz_pb::event *l_sevent = l_event->add_sub_event();
                 l_sevent->set_rule_id(80001);
-                l_sevent->set_rule_msg("Accesslist ASN match");
+                l_sevent->set_rule_msg("Accesslist ASN deny");
                 l_sevent->set_rule_op_name("asnLookup");
                 l_sevent->set_rule_op_param("");
                 l_sevent->add_rule_tag("ACCESSLIST/ASN");
@@ -702,13 +702,13 @@ url_check:
                 // top level event
                 // -----------------------------------------
                 waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist URL match");
+                l_event->set_rule_msg("Accesslist URL deny");
                 // -----------------------------------------
                 // subevent
                 // -----------------------------------------
                 ::waflz_pb::event *l_sevent = l_event->add_sub_event();
                 l_sevent->set_rule_id(80011);
-                l_sevent->set_rule_msg("Accesslist URL match");
+                l_sevent->set_rule_msg("Accesslist URL deny");
                 l_sevent->set_rule_op_name("rx");
                 l_sevent->set_rule_op_param("");
                 l_sevent->add_rule_tag("ACCESSLIST/URL");
@@ -750,13 +750,13 @@ user_agent_check:
                 // top level event
                 // -----------------------------------------
                 waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist User-Agent match");
+                l_event->set_rule_msg("Accesslist User-Agent deny");
                 // -----------------------------------------
                 // subevent
                 // -----------------------------------------
                 ::waflz_pb::event *l_sevent = l_event->add_sub_event();
                 l_sevent->set_rule_id(80012);
-                l_sevent->set_rule_msg("Accesslist User-Agent match");
+                l_sevent->set_rule_msg("Accesslist User-Agent deny");
                 l_sevent->set_rule_op_name("rx");
                 l_sevent->set_rule_op_param(m_ua_rx_accesslist->get_regex_string());
                 l_sevent->add_rule_tag("ACCESSLIST/USER-AGENT");
@@ -798,13 +798,13 @@ referer_check:
                 // top level event
                 // -----------------------------------------
                 waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist Referer match");
+                l_event->set_rule_msg("Accesslist Referer deny");
                 // -----------------------------------------
                 // subevent
                 // -----------------------------------------
                 ::waflz_pb::event *l_sevent = l_event->add_sub_event();
                 l_sevent->set_rule_id(80010);
-                l_sevent->set_rule_msg("Accesslist Referer match");
+                l_sevent->set_rule_msg("Accesslist Referer deny");
                 l_sevent->set_rule_op_name("rx");
                 l_sevent->set_rule_op_param(m_referer_rx_accesslist->get_regex_string());
                 l_sevent->add_rule_tag("ACCESSLIST/REFERER");

@@ -384,92 +384,16 @@ int32_t profile::init(void)
         //                     A C L
         // *************************************************
         // -------------------------------------------------
-        const ::waflz_pb::profile &l_pb = *m_pb;
+        ::waflz_pb::profile &l_pb = *m_pb;
         if(!l_pb.has_access_settings())
         {
                 WAFLZ_PERROR(m_err_msg, "pb missing access settings");
                 return WAFLZ_STATUS_ERROR;
         }
-        // Get acl proto so that we copy over from profile
-        ::waflz_pb::acl *l_acl_pb = m_acl->get_pb();
-        // TODO: Remove copy once we switch to acl json
-        // **************************************************
-        //              access settings
-        // **************************************************
-        if(l_as.has_country())
-        {
-                ::waflz_pb::acl_lists_t* l_c =  l_acl_pb->mutable_country();
-                set_acl_wl_bl(l_c, l_as.country());
-        }
-        if(l_as.has_ip())
-        {
-                ::waflz_pb::acl_lists_t* l_ip =  l_acl_pb->mutable_ip();
-                set_acl_wl_bl(l_ip, l_as.ip());
-        }
-        if(l_as.has_referer())
-        {
-                ::waflz_pb::acl_lists_t* l_url =  l_acl_pb->mutable_referer();
-                set_acl_wl_bl(l_url, l_as.referer());
-        }
-        if(l_as.has_url())
-        {
-                ::waflz_pb::acl_lists_t* l_url =  l_acl_pb->mutable_url();
-                set_acl_wl_bl(l_url, l_as.url());
-        }
-        if(l_as.has_user_agent())
-        {
-                ::waflz_pb::acl_lists_t* l_ua =  l_acl_pb->mutable_user_agent();
-                set_acl_wl_bl(l_ua, l_as.user_agent());
-        }
-        if(l_as.has_cookie())
-        {
-                ::waflz_pb::acl_lists_t* l_cki =  l_acl_pb->mutable_cookie();
-                set_acl_wl_bl(l_cki, l_as.cookie());
-        }
-        if(l_as.has_asn())
-        {
-                ::waflz_pb::acl_lists_asn_t* l_asn =  l_acl_pb->mutable_asn();
-                for(int32_t i_t = 0; i_t < l_as.asn().whitelist_size(); ++i_t)
-                {
-                        l_asn->add_whitelist(l_as.asn().whitelist(i_t));
-                }
-                for(int32_t i_t = 0; i_t < l_as.asn().blacklist_size(); ++i_t)
-                {
-                        l_asn->add_blacklist(l_as.asn().blacklist(i_t));
-                }
-        }
-        // **************************************************
-        //              general settings
-        // **************************************************
-        const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
-#define _SET_ACL(_field) \
-for(int32_t i_t = 0; i_t < l_gs._field##_size(); ++i_t) { \
-l_acl_pb->add_##_field(l_gs._field(i_t)); \
-}
-        if(l_gs.allowed_http_methods_size())
-        {
-                _SET_ACL(allowed_http_methods);
-        }
-        if(l_gs.allowed_http_versions_size())
-        {
-                _SET_ACL(allowed_http_versions);
-        }
-        if(l_gs.allowed_request_content_types_size())
-        {
-                _SET_ACL(allowed_request_content_types);
-        }
-        if(l_gs.disallowed_extensions_size())
-        {
-                _SET_ACL(disallowed_extensions);
-        }
-        if(l_gs.disallowed_headers_size())
-        {
-                _SET_ACL(disallowed_headers);
-        }
-        if(l_gs.has_max_file_size())
-        {
-                l_acl_pb->set_max_file_size(l_gs.max_file_size());
-        }
+        // -------------------------------------------------
+        // compile
+        // -------------------------------------------------
+        m_acl->get_pb()->CopyFrom(l_pb.access_settings());
         l_s = m_acl->compile();
         if(l_s != WAFLZ_STATUS_OK)
         {

@@ -223,23 +223,6 @@ int32_t profile::load_config(const waflz_pb::profile *a_pb)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-void set_acl_wl_bl(::waflz_pb::acl_lists_t *ao_list,
-                   const waflz_pb::acl_lists_t &a_list)
-{
-        for(int32_t i_t = 0; i_t < a_list.whitelist_size(); ++i_t)
-        {
-                ao_list->add_whitelist(a_list.whitelist(i_t));
-        }
-        for(int32_t i_t = 0; i_t < a_list.blacklist_size(); ++i_t)
-        {
-                ao_list->add_blacklist(a_list.blacklist(i_t));
-        }
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
 int32_t profile::regex_list_add(const std::string &a_regex,
                                 pcre_list_t &a_pcre_list)
 {

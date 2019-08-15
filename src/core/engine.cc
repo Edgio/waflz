@@ -93,9 +93,9 @@ engine::engine():
         m_compiled_config_map(),
         m_ctype_parser_map(),
         m_ruleset_root_dir("/oc/local/waf/ruleset/"),
+        m_geoip2_mmdb(),
         m_geoip2_db(),
         m_geoip2_isp_db(),
-        m_geoip2_mmdb(),
         m_err_msg()
 {
 }

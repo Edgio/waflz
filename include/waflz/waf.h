@@ -77,6 +77,16 @@ typedef struct _compiled_config {
         ac_list_t m_ac_list;
         nms_list_t m_nms_list;
         byte_range_list_t m_byte_range_list;
+        _compiled_config():
+                m_marker_map_phase_1(),
+                m_directive_list_phase_1(),
+                m_marker_map_phase_2(),
+                m_directive_list_phase_2(),
+                m_regex_list(),
+                m_ac_list(),
+                m_nms_list(),
+                m_byte_range_list()
+        {}
         ~_compiled_config();
 } compiled_config_t;
 //: ----------------------------------------------------------------------------

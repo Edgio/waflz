@@ -39,9 +39,9 @@ std::string get_file_wo_ext(const std::string &a_filename);
 // hex to int
 int32_t convert_hex_to_uint(uint64_t &ao_val, const char *a_str);
 char * strnstr(const char *s, const char *find, size_t slen);
-int32_t strntol(const char *a_str, size_t a_size, char **ao_end, int a_base);
+long int strntol(const char *a_str, size_t a_size, char **ao_end, int a_base);
 int64_t strntoll(const char *a_str, size_t a_size, char **ao_end, int a_base);
-uint32_t strntoul(const char *a_str, size_t a_size, char **ao_end, int a_base);
+unsigned long int strntoul(const char *a_str, size_t a_size, char **ao_end, int a_base);
 uint64_t strntoull(const char *a_str, size_t a_size, char **ao_end, int a_base);
 #if defined(__APPLE__) || defined(__darwin__)
 void * memrchr(const void *s, int c, size_t n);

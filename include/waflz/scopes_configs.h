@@ -27,6 +27,7 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/scopes.h"
+#include <pthread.h>
 #include <string>
 #include <unordered_map>
 namespace ns_waflz {

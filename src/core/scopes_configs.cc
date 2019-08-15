@@ -44,10 +44,11 @@ namespace ns_waflz {
 scopes_configs::scopes_configs(engine &a_engine,
                                bool a_enable_locking):
         m_cust_id_scopes_map(),
-        m_engine(a_engine),
         m_err_msg(),
+        m_engine(a_engine),
         m_mutex(),
-        m_enable_locking(a_enable_locking)
+        m_enable_locking(a_enable_locking),
+        m_conf_dir()
 {
         // Initialize the mutex
         if(m_enable_locking)

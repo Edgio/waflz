@@ -37,6 +37,7 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 redis_db::redis_db(void):
         kv_db(),
+        m_ctx(NULL),
         m_config_host("localhost"),
         m_config_port(6379)
 {}

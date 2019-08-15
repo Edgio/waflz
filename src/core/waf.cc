@@ -2333,11 +2333,10 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        int32_t l_status = WAFLZ_STATUS_OK;
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         m_anomaly_score_cur = 0;
 #endif
-        int32_t l_s;
+        int32_t l_s = WAFLZ_STATUS_OK;
         // -------------------------------------------------
         // create new if null
         // -------------------------------------------------

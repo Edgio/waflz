@@ -284,12 +284,61 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
                 if(l_buf) {free(l_buf); l_buf = NULL;}
                 return STATUS_ERROR;
         }
+
         // -------------------------------------------------
         // display?
         // -------------------------------------------------
         if(a_display_json &&
            l_config->get_pb())
         {
+                // -------------------------------------------------
+                // strip reserved fields
+                // -------------------------------------------------
+                waflz_pb::config* l_pb = l_config->get_pb();
+                for(int i_l = 0; i_l < l_pb->limits_size(); ++i_l)
+                {
+                        ::waflz_pb::limit* l_lim = l_pb->mutable_limits(i_l);
+                        if(l_lim->has__reserved_1())
+                        {
+                                l_lim->clear__reserved_1();
+                        }
+                        for(int i_cg = 0; i_cg < l_lim->condition_groups_size(); ++i_cg)
+                        {
+                                ::waflz_pb::condition_group* l_cg = l_lim->mutable_condition_groups(i_cg);
+                                for(int i_c = 0; i_c < l_cg->conditions_size(); ++i_c)
+                                {
+                                        ::waflz_pb::condition* l_c = l_cg->mutable_conditions(i_c);
+                                        if(l_c->has_op())
+                                        {
+                                                waflz_pb::op_t* l_op = l_c->mutable_op();
+                                                if(l_op->has__reserved_1())
+                                                {
+                                                        l_op->clear__reserved_1();
+                                                }
+                                        }
+                                }
+                        }
+                        if(l_lim->has_scope())
+                        {
+                                ::waflz_pb::scope* l_scope = l_lim->mutable_scope();
+                                if(l_scope->has_host())
+                                {
+                                        ::waflz_pb::op_t* l_h = l_scope->mutable_host();
+                                        if(l_h->has__reserved_1())
+                                        {
+                                                l_h->clear__reserved_1();
+                                        }
+                                }
+                                if(l_scope->has_path())
+                                {
+                                        ::waflz_pb::op_t* l_p = l_scope->mutable_path();
+                                        if(l_p->has__reserved_1())
+                                        {
+                                                l_p->clear__reserved_1();
+                                        }
+                                }
+                        }
+                }
                 std::string l_js;
                 ns_waflz::convert_to_json(l_js, *(l_config->get_pb()));
                 NDBG_OUTPUT("%s\n", l_js.c_str());

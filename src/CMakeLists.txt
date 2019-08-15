@@ -229,7 +229,7 @@ SET_SOURCE_FILES_PROPERTIES(
     PROPERTIES LANGUAGE C
 )
 set(CMAKE_C_FLAGS "-std=c99")
-set(CMAKE_CXX_FLAGS "-Wall -Weffc++ -Werror")
+set(CMAKE_CXX_FLAGS "-Wall -Weffc++ -Werror -std=c++11")
 # ------------------------------------------------------------------------------
 # headers
 # ------------------------------------------------------------------------------

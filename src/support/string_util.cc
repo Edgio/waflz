@@ -322,16 +322,6 @@ void * memrchr(const void *s, int c, size_t n)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-#define WAFLZ_FG_COLOR_LIST_LENGTH 6
-const char g_color_off[16] = ANSI_COLOR_OFF;
-const char g_color_fg_list[WAFLZ_FG_COLOR_LIST_LENGTH][16] = {
-        ANSI_COLOR_FG_RED,
-        ANSI_COLOR_FG_GREEN,
-        ANSI_COLOR_FG_YELLOW,
-        ANSI_COLOR_FG_BLUE,
-        ANSI_COLOR_FG_MAGENTA,
-        ANSI_COLOR_FG_CYAN
-};
 typedef struct {
         char m_token[32];
         char m_color[32];

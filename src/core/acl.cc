@@ -1234,7 +1234,7 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 // -----------------------------------------
                 const char *l_buf = NULL;
                 uint32_t l_buf_len = 0;
-                uint32_t l_cl = 0;
+                unsigned long l_cl = 0;
                 data_t l_d;
                 const data_map_t &l_hm = a_ctx.m_header_map;
                 _GET_HEADER("Content-Length", l_buf);

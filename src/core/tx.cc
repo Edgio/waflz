@@ -116,7 +116,7 @@ TX(COMPRESSWHITESPACE)
         while(i_i < l_buf_len)
         {
                 if(isspace(l_buf[i_i]) ||
-                   (l_buf[i_i] == _NBSP))
+                   ((unsigned char)l_buf[i_i] == _NBSP))
                 {
                         ++l_cnt;
                 }

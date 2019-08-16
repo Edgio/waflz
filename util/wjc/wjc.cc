@@ -284,7 +284,6 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
                 if(l_buf) {free(l_buf); l_buf = NULL;}
                 return STATUS_ERROR;
         }
-
         // -------------------------------------------------
         // display?
         // -------------------------------------------------

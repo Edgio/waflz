@@ -273,9 +273,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
 //: ----------------------------------------------------------------------------
 TEST_CASE( "acl test", "[acl]" )
 {
-        // -----------------------------------------
+        // -------------------------------------------------
         // get ruleset dir
-        // -----------------------------------------
+        // -------------------------------------------------
         char l_cwd[1024];
         if(getcwd(l_cwd, sizeof(l_cwd)) != NULL)
         {
@@ -284,9 +284,9 @@ TEST_CASE( "acl test", "[acl]" )
         std::string l_rule_dir = l_cwd;
         l_rule_dir += "/../../../../tests/data/waf/ruleset/";
         //l_rule_dir += "/../tests/data/waf/ruleset/";
-        // -----------------------------------------
+        // -------------------------------------------------
         // geoip
-        // -----------------------------------------
+        // -------------------------------------------------
         std::string l_geoip2_city_file = l_cwd;
         std::string l_geoip2_asn_file = l_cwd;
         l_geoip2_city_file += "/../../../../tests/data/waf/db/GeoLite2-City.mmdb";

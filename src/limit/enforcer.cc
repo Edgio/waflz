@@ -45,7 +45,8 @@ namespace ns_waflz
 //: \details TODO
 //: ----------------------------------------------------------------------------
 enforcer::enforcer(bool a_case_insensitive_headers):
-        rl_obj(a_case_insensitive_headers)
+        rl_obj(a_case_insensitive_headers),
+        m_stat_total_limits(0)
 {
 }
 //: ----------------------------------------------------------------------------
@@ -53,7 +54,8 @@ enforcer::enforcer(bool a_case_insensitive_headers):
 //: ----------------------------------------------------------------------------
 enforcer::enforcer(waflz_pb::config *a_pb,
                    bool a_case_insensitive_headers):
-                   rl_obj(a_case_insensitive_headers)
+           rl_obj(a_case_insensitive_headers),
+           m_stat_total_limits(0)
 {
         // initialize pb
         m_pb = a_pb;

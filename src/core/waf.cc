@@ -1950,11 +1950,12 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
                                 ++i_pl;
                                 continue;
                         }
-                        int32_t l_pl_score;
+                        long int l_pl_score;
                         char *l_end_ptr = NULL;
                         l_pl_score = strntol(i_t->second.c_str(), i_t->second.length(), &l_end_ptr, 10);
                         if((l_pl_score == LONG_MAX) ||
-                            (l_pl_score == LONG_MIN))
+                            (l_pl_score == LONG_MIN) ||
+                            (l_pl_score < 0))
                         {
                                 ++i_pl;
                                 continue;
@@ -1964,7 +1965,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
                                 ++i_pl;
                                 continue;
                         }
-                        l_cur_anomaly += l_pl_score;
+                        l_cur_anomaly += (uint32_t)l_pl_score;
                         ++i_pl;
                 } while(m_paranoia_level >= i_pl);
                 if(l_cur_anomaly)
@@ -2333,11 +2334,10 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        int32_t l_status = WAFLZ_STATUS_OK;
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         m_anomaly_score_cur = 0;
 #endif
-        int32_t l_s;
+        int32_t l_s = WAFLZ_STATUS_OK;
         // -------------------------------------------------
         // create new if null
         // -------------------------------------------------

@@ -376,7 +376,41 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // compile
         // -------------------------------------------------
-        m_acl->get_pb()->CopyFrom(l_pb.access_settings());
+        ::waflz_pb::acl *l_acl_pb = m_acl->get_pb();
+        l_acl_pb->CopyFrom(l_pb.access_settings());
+        // -------------------------------------------------
+        // *************************************************
+        //              general settings
+        // *************************************************
+        // -------------------------------------------------
+        const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
+#define _SET_ACL(_field) \
+        for(int32_t i_t = 0; i_t < l_gs._field##_size(); ++i_t) { \
+        l_acl_pb->add_##_field(l_gs._field(i_t)); }
+        if(l_gs.allowed_http_methods_size())
+        {
+                _SET_ACL(allowed_http_methods);
+        }
+        if(l_gs.allowed_http_versions_size())
+        {
+                _SET_ACL(allowed_http_versions);
+        }
+        if(l_gs.allowed_request_content_types_size())
+        {
+                _SET_ACL(allowed_request_content_types);
+        }
+        if(l_gs.disallowed_extensions_size())
+        {
+                _SET_ACL(disallowed_extensions);
+        }
+        if(l_gs.disallowed_headers_size())
+        {
+                _SET_ACL(disallowed_headers);
+        }
+        if(l_gs.has_max_file_size())
+        {
+                l_acl_pb->set_max_file_size(l_gs.max_file_size());
+        }
         l_s = m_acl->compile();
         if(l_s != WAFLZ_STATUS_OK)
         {

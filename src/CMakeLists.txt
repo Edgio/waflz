@@ -29,7 +29,6 @@ endif()
 # ------------------------------------------------------------------------------
 # Can't add for now...
 # ------------------------------------------------------------------------------
-#add_definitions(-Weffc++)
 add_definitions(-DHAVE_CONFIG_H)
 # ------------------------------------------------------------------------------
 # header files to install
@@ -230,6 +229,7 @@ SET_SOURCE_FILES_PROPERTIES(
     PROPERTIES LANGUAGE C
 )
 set(CMAKE_C_FLAGS "-std=c99")
+set(CMAKE_CXX_FLAGS "-Wall -Weffc++ -Werror -std=c++11")
 # ------------------------------------------------------------------------------
 # headers
 # ------------------------------------------------------------------------------
@@ -238,7 +238,7 @@ SET(HDRS
 # ------------------------------------------------------------------------------
 # Tell the build system protobuf files are automatically generated
 # ------------------------------------------------------------------------------
-set_source_files_properties(
+SET(PB_SRCS
     # ------------------------------------------------------
     # proto
     # ------------------------------------------------------
@@ -263,8 +263,9 @@ set_source_files_properties(
         ${CMAKE_BINARY_DIR}/proto/limit.pb.h
         ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
     endif()
-    PROPERTIES GENERATED TRUE
 )
+set_source_files_properties(${PB_SRCS} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
 # ------------------------------------------------------------------------------
 # Python support
 # ------------------------------------------------------------------------------

@@ -316,7 +316,7 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
-                                REQUIRE((strncmp(i_a->m_key, ".monkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_key, "monkeys", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "bananas", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -331,7 +331,7 @@ TEST_CASE( "test var", "[var]" ) {
                 // w/ match
                 // -----------------------------------------
                 ::waflz_pb::variable_t_match_t* l_m = l_var->add_match();
-                l_m->set_value(".seamonkeys");
+                l_m->set_value("seamonkeys");
                 l_al.clear();
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -347,7 +347,7 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
-                                REQUIRE((strncmp(i_a->m_key, ".seamonkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_key, "seamonkeys", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "plankton", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -394,8 +394,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
-                                REQUIRE((strncmp(i_a->m_key, ".monkeys", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, ".monkeys", i_a->m_val_len) == 0));
+                                REQUIRE((strncmp(i_a->m_key, "monkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "monkeys", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:
@@ -409,7 +409,7 @@ TEST_CASE( "test var", "[var]" ) {
                 // w/ match
                 // -----------------------------------------
                 ::waflz_pb::variable_t_match_t* l_m = l_var->add_match();
-                l_m->set_value(".seamonkeys");
+                l_m->set_value("seamonkeys");
                 l_al.clear();
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -425,8 +425,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
-                                REQUIRE((strncmp(i_a->m_key, ".seamonkeys", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, ".seamonkeys", i_a->m_val_len) == 0));
+                                REQUIRE((strncmp(i_a->m_key, "seamonkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "seamonkeys", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:
@@ -629,7 +629,7 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
-                                REQUIRE((strncmp(i_a->m_key, ".monkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_key, "monkeys", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "bananas", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -643,7 +643,7 @@ TEST_CASE( "test var", "[var]" ) {
                 // w/ match
                 // -----------------------------------------
                 ::waflz_pb::variable_t_match_t* l_m = l_var->add_match();
-                l_m->set_value(".seamonkeys");
+                l_m->set_value("seamonkeys");
                 l_al.clear();
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -660,7 +660,7 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
-                                REQUIRE((strncmp(i_a->m_key, ".seamonkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_key, "seamonkeys", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "plankton", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -707,8 +707,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
-                                REQUIRE((strncmp(i_a->m_key, ".monkeys", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, ".monkeys", i_a->m_val_len) == 0));
+                                REQUIRE((strncmp(i_a->m_key, "monkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "monkeys", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:
@@ -721,7 +721,7 @@ TEST_CASE( "test var", "[var]" ) {
                 // w/ match
                 // -----------------------------------------
                 ::waflz_pb::variable_t_match_t* l_m = l_var->add_match();
-                l_m->set_value(".seamonkeys");
+                l_m->set_value("seamonkeys");
                 l_al.clear();
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -738,8 +738,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                                 REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
-                                REQUIRE((strncmp(i_a->m_key, ".seamonkeys", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, ".seamonkeys", i_a->m_val_len) == 0));
+                                REQUIRE((strncmp(i_a->m_key, "seamonkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "seamonkeys", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:
@@ -778,7 +778,6 @@ TEST_CASE( "test var", "[var]" ) {
                     i_a != l_al.end();
                     ++i_a, ++i_idx)
                 {
-                        //NDBG_PRINT("%.*s: %.*s\n", i_a->m_key_len, i_a->m_key, i_a->m_val_len, i_a->m_val);
                         switch(i_idx)
                         {
                         case 0:
@@ -786,7 +785,7 @@ TEST_CASE( "test var", "[var]" ) {
                                 REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "ARGS_COMBINED_SIZE", i_a->m_key_len) == 0));
-                                REQUIRE((i_a->m_val_len == 70));
+                                REQUIRE((i_a->m_val_len == 67));
                                 break;
                         }
                         default:

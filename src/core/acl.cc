@@ -101,7 +101,12 @@ acl::acl(void):
         m_referer_rx_blacklist(NULL),
         m_cookie_rx_whitelist(NULL),
         m_cookie_rx_accesslist(NULL),
-        m_cookie_rx_blacklist(NULL)
+        m_cookie_rx_blacklist(NULL),
+        m_allowed_http_methods(),
+        m_allowed_http_versions(),
+        m_allowed_request_content_types(),
+        m_disallowed_extensions(),
+        m_disallowed_headers()
 {
         m_pb = new waflz_pb::acl();
 }
@@ -380,7 +385,6 @@ int32_t acl::compile()
 int32_t acl::process_whitelist(bool &ao_match, rqst_ctx &a_ctx)
 {
         ao_match = false;
-        const char *l_key = NULL;
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
         data_t l_d;
@@ -425,7 +429,6 @@ country_check:
                         return WAFLZ_STATUS_OK;
                 }
         }
-asn_check:
         // -------------------------------------------------
         // asn
         // -------------------------------------------------
@@ -438,7 +441,6 @@ asn_check:
                         return WAFLZ_STATUS_OK;
                 }
         }
-url_check:
         // -------------------------------------------------
         // get url
         // -------------------------------------------------
@@ -1222,7 +1224,6 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
-        int32_t l_s;
         // -------------------------------------------------
         // file size check
         // -------------------------------------------------
@@ -1233,7 +1234,7 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 // -----------------------------------------
                 const char *l_buf = NULL;
                 uint32_t l_buf_len = 0;
-                uint32_t l_cl = 0;
+                unsigned long l_cl = 0;
                 data_t l_d;
                 const data_map_t &l_hm = a_ctx.m_header_map;
                 _GET_HEADER("Content-Length", l_buf);
@@ -1348,7 +1349,6 @@ content_type_check:
             i_h != a_ctx.m_content_type_list.end();
             ++i_h)
         {
-                bool l_match = false;
                 std::string l_cont_type(i_h->m_data, i_h->m_len);
                 // -----------------------------------------
                 // if any content type matches allowed skip

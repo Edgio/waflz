@@ -517,7 +517,7 @@ public:
                 if(l_enf
 #ifdef WAFLZ_RATE_LIMITING
                    // only enforcements for limit mode
-                   && (!g_config_mode == CONFIG_MODE_LIMIT)
+                   && (g_config_mode == CONFIG_MODE_LIMIT)
 #endif
                    )
                 {

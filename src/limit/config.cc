@@ -1079,7 +1079,7 @@ int32_t config::process_config(waflz_pb::config **ao_cfg,
         {
                 *ao_cfg = NULL;
         }
-        // -----------------------------------------------------------
+        // -------------------------------------------------
         // overall algorithm:
         //   Look up customers coordination configuration
         //
@@ -1092,7 +1092,7 @@ int32_t config::process_config(waflz_pb::config **ao_cfg,
         //   If limits exceeded for customer
         //     For each
         //       synthesize into enforcement config
-        // -----------------------------------------------------------
+        // -------------------------------------------------
         if(!m_pb)
         {
                 // TODO log error reason

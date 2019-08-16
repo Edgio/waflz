@@ -148,7 +148,7 @@ public:
         const uint32_t m_body_len_max;
         char *m_body_data;
         uint32_t m_body_len;
-        uint32_t m_content_length;
+        uint64_t m_content_length;
         bool m_parse_xml;
         bool m_parse_json;
         std::string m_cookie_mutated;

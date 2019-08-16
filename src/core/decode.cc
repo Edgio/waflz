@@ -2169,10 +2169,8 @@ int32_t parse_cookies(const_arg_list_t &ao_cookie_list,
 //: ----------------------------------------------------------------------------
 int32_t parse_content_type(data_list_t &ao_data_list, const_arg_t *a_hdr)
 {
-        char *l_pos_sep = NULL;
         uint32_t i_char = 0;
         uint32_t i_offset = 0;
-        int32_t l_num = 0;
         while(i_char <= a_hdr->m_val_len)
         {
                 // separators

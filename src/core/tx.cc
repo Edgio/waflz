@@ -100,7 +100,7 @@ TX(COMPRESSWHITESPACE)
         // calc new length
         // -------------------------------------------------
         uint32_t l_buf_len = a_len;
-        l_buf_len = strnlen(l_buf, a_len);
+        l_buf_len = (uint32_t)strnlen(l_buf, a_len);
         if(!l_buf ||
            !l_buf_len)
         {
@@ -116,7 +116,7 @@ TX(COMPRESSWHITESPACE)
         while(i_i < l_buf_len)
         {
                 if(isspace(l_buf[i_i]) ||
-                   (l_buf[i_i] == _NBSP))
+                   ((unsigned char)l_buf[i_i] == _NBSP))
                 {
                         ++l_cnt;
                 }
@@ -176,7 +176,7 @@ TX(REMOVEWHITESPACE)
         {
                 // if non-space, copy over
                 if(!isspace(a_buf[i_i]) &&
-                   (a_buf[i_i] != _NBSP))
+                   ((unsigned char)a_buf[i_i] != _NBSP))
                 {
                         l_buf[i_j] = a_buf[i_i];
                         ++i_j;

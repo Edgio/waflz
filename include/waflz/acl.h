@@ -58,6 +58,7 @@ public:
         int32_t compile();
         int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx, rqst_ctx &a_rqst_ctx);
         int32_t process_whitelist(bool &ao_match, rqst_ctx &a_ctx);
+        int32_t process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         int32_t process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         int32_t process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         //: ------------------------------------------------
@@ -101,24 +102,31 @@ private:
         waflz_pb::acl *m_pb;
         // ip
         nms *m_ip_whitelist;
+        nms *m_ip_accesslist;
         nms *m_ip_blacklist;
         // country
         stri_set_t m_country_whitelist;
+        stri_set_t m_country_accesslist;
         stri_set_t m_country_blacklist;
         // asn
         asn_set_t m_asn_whitelist;
+        asn_set_t m_asn_accesslist;
         asn_set_t m_asn_blacklist;
         // url
         regex *m_url_rx_whitelist;
+        regex *m_url_rx_accesslist;
         regex *m_url_rx_blacklist;
         // user-agent
         regex *m_ua_rx_whitelist;
+        regex *m_ua_rx_accesslist;
         regex *m_ua_rx_blacklist;
         // referer
         regex *m_referer_rx_whitelist;
+        regex *m_referer_rx_accesslist;
         regex *m_referer_rx_blacklist;
         // cookie
         regex *m_cookie_rx_whitelist;
+        regex *m_cookie_rx_accesslist;
         regex *m_cookie_rx_blacklist;
         // methods
         stri_set_t m_allowed_http_methods;

@@ -33,6 +33,8 @@
 namespace ns_waflz {
 class configs;
 class enforcement;
+class kv_db;
+class challenge;
 }
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
@@ -58,6 +60,8 @@ public:
         std::string m_challenge_file;
         ns_waflz::configs* m_configs;
         uint64_t m_cust_id;
+        ns_waflz::kv_db *m_db;
+        ns_waflz::challenge *m_challenge;
 
 };
 }

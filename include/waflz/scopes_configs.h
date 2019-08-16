@@ -27,6 +27,7 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/scopes.h"
+#include <pthread.h>
 #include <string>
 #if defined(__APPLE__) || defined(__darwin__)
     #include <unordered_map>

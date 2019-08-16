@@ -82,19 +82,31 @@ acl::acl(void):
         m_err_msg(),
         m_pb(NULL),
         m_ip_whitelist(NULL),
+        m_ip_accesslist(NULL),
         m_ip_blacklist(NULL),
         m_country_whitelist(),
+        m_country_accesslist(),
         m_country_blacklist(),
         m_asn_whitelist(),
+        m_asn_accesslist(),
         m_asn_blacklist(),
         m_url_rx_whitelist(NULL),
+        m_url_rx_accesslist(NULL),
         m_url_rx_blacklist(NULL),
         m_ua_rx_whitelist(NULL),
+        m_ua_rx_accesslist(NULL),
         m_ua_rx_blacklist(NULL),
         m_referer_rx_whitelist(NULL),
+        m_referer_rx_accesslist(NULL),
         m_referer_rx_blacklist(NULL),
         m_cookie_rx_whitelist(NULL),
-        m_cookie_rx_blacklist(NULL)
+        m_cookie_rx_accesslist(NULL),
+        m_cookie_rx_blacklist(NULL),
+        m_allowed_http_methods(),
+        m_allowed_http_versions(),
+        m_allowed_request_content_types(),
+        m_disallowed_extensions(),
+        m_disallowed_headers()
 {
         m_pb = new waflz_pb::acl();
 }
@@ -108,14 +120,19 @@ acl::~acl(void)
 #define _DELETE_OBJ(_obj) if(_obj) { delete _obj; _obj = NULL; }
 
         _DELETE_OBJ(m_ip_whitelist);
+        _DELETE_OBJ(m_ip_accesslist);
         _DELETE_OBJ(m_ip_blacklist);
         _DELETE_OBJ(m_url_rx_whitelist);
+        _DELETE_OBJ(m_url_rx_accesslist);
         _DELETE_OBJ(m_url_rx_blacklist);
         _DELETE_OBJ(m_ua_rx_whitelist);
+        _DELETE_OBJ(m_ua_rx_accesslist);
         _DELETE_OBJ(m_ua_rx_blacklist);
         _DELETE_OBJ(m_referer_rx_whitelist);
+        _DELETE_OBJ(m_referer_rx_accesslist);
         _DELETE_OBJ(m_referer_rx_blacklist);
         _DELETE_OBJ(m_cookie_rx_whitelist);
+        _DELETE_OBJ(m_cookie_rx_accesslist);
         _DELETE_OBJ(m_cookie_rx_blacklist);
         if(m_pb) { delete m_pb; m_pb = NULL; }
 }
@@ -188,34 +205,17 @@ int32_t acl::compile()
         // -------------------------------------------------
         if(m_pb->has_ip())
         {
-                if(m_pb->ip().whitelist_size())
-                {
-                        if(m_ip_whitelist)
-                        {
-                                delete m_ip_whitelist;
-                                m_ip_whitelist = NULL;
-                        }
-                        m_ip_whitelist = new nms();
-                        for(int32_t i_ip = 0; i_ip < m_pb->ip().whitelist_size(); ++i_ip)
-                        {
-                                const std::string &l_str = m_pb->ip().whitelist(i_ip);
-                                m_ip_whitelist->add(l_str.c_str(), l_str.length());
-                        }
-                }
-                if(m_pb->ip().blacklist_size())
-                {
-                        if(m_ip_blacklist)
-                        {
-                                delete m_ip_blacklist;
-                                m_ip_blacklist = NULL;
-                        }
-                        m_ip_blacklist = new nms();
-                        for(int32_t i_ip = 0; i_ip < m_pb->ip().blacklist_size(); ++i_ip)
-                        {
-                                const std::string &l_str = m_pb->ip().blacklist(i_ip);
-                                m_ip_blacklist->add(l_str.c_str(), l_str.length());
-                        }
-                }
+#define _COMPILE_IP_LIST(_type) do { \
+        if(m_pb->ip()._type##_size()) { \
+                if(m_ip_##_type) { delete m_ip_##_type; m_ip_##_type = NULL; } \
+                m_ip_##_type = new nms(); \
+                for(int32_t i_ip = 0; i_ip < m_pb->ip()._type##_size(); ++i_ip) { \
+                        const std::string &l_str = m_pb->ip()._type(i_ip); \
+                        m_ip_##_type->add(l_str.c_str(), l_str.length()); \
+        } } } while(0)
+                _COMPILE_IP_LIST(whitelist);
+                _COMPILE_IP_LIST(accesslist);
+                _COMPILE_IP_LIST(blacklist);
         }
         // -------------------------------------------------
         // country
@@ -228,148 +228,102 @@ int32_t acl::compile()
         // -------------------------------------------------
         if(m_pb->has_country())
         {
-                for(int32_t i_ip = 0; i_ip < m_pb->country().whitelist_size(); ++i_ip)
-                {
-                        m_country_whitelist.insert(m_pb->country().whitelist(i_ip));
-                }
-                for(int32_t i_ip = 0; i_ip < m_pb->country().blacklist_size(); ++i_ip)
-                {
-                        m_country_blacklist.insert(m_pb->country().blacklist(i_ip));
-                }
+#define _COMPILE_COUNTRY_LIST(_type) do { \
+        for(int32_t i_ip = 0; i_ip < m_pb->country()._type##_size(); ++i_ip) { \
+                m_country_##_type.insert(m_pb->country()._type(i_ip)); \
+        } } while(0)
+                _COMPILE_COUNTRY_LIST(whitelist);
+                _COMPILE_COUNTRY_LIST(accesslist);
+                _COMPILE_COUNTRY_LIST(blacklist);
         }
         // -------------------------------------------------
         // ASN
         // -------------------------------------------------
         if(m_pb->has_asn())
         {
-                for(int32_t i_ip = 0; i_ip < m_pb->asn().whitelist_size(); ++i_ip)
-                {
-                        m_asn_whitelist.insert(m_pb->asn().whitelist(i_ip));
-                }
-                for(int32_t i_ip = 0; i_ip < m_pb->asn().blacklist_size(); ++i_ip)
-                {
-                        m_asn_blacklist.insert(m_pb->asn().blacklist(i_ip));
-                }
+#define _COMPILE_ASN_LIST(_type) do { \
+        for(int32_t i_ip = 0; i_ip < m_pb->asn()._type##_size(); ++i_ip) { \
+                m_asn_##_type.insert(m_pb->asn()._type(i_ip)); \
+        } } while(0)
+                _COMPILE_ASN_LIST(whitelist);
+                _COMPILE_ASN_LIST(accesslist);
+                _COMPILE_ASN_LIST(blacklist);
         }
         // -------------------------------------------------
         // url
         // -------------------------------------------------
         if(m_pb->has_url())
         {
-                if(m_pb->url().whitelist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_url_rx_whitelist,
-                                                 m_pb->url().whitelist(),
-                                                 m_pb->url().whitelist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling url whitelist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                if(m_pb->url().blacklist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_url_rx_blacklist,
-                                                 m_pb->url().blacklist(),
-                                                 m_pb->url().blacklist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling url blacklist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
+#define _COMPILE_URL_LIST(_type) do { \
+        if(m_pb->url()._type##_size()) { \
+                int32_t l_s; \
+                l_s = compile_regex_list(&m_url_rx_##_type, \
+                                         m_pb->url()._type(), \
+                                         m_pb->url()._type##_size()); \
+                if(l_s != WAFLZ_STATUS_OK) { \
+                        WAFLZ_PERROR(m_err_msg, "compiling url %s", #_type); \
+                        return WAFLZ_STATUS_ERROR; \
+        } } } while(0)
+                _COMPILE_URL_LIST(whitelist);
+                _COMPILE_URL_LIST(accesslist);
+                _COMPILE_URL_LIST(blacklist);
         }
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
         if(m_pb->has_user_agent())
         {
-                if(m_pb->user_agent().whitelist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_ua_rx_whitelist,
-                                                 m_pb->user_agent().whitelist(),
-                                                 m_pb->user_agent().whitelist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling user-agent whitelist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                if(m_pb->user_agent().blacklist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_ua_rx_blacklist,
-                                                 m_pb->user_agent().blacklist(),
-                                                 m_pb->user_agent().blacklist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling user-agent blacklist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
+#define _COMPILE_USER_AGENT_LIST(_type) do { \
+        if(m_pb->user_agent()._type##_size()) { \
+                int32_t l_s; \
+                l_s = compile_regex_list(&m_ua_rx_##_type, \
+                                         m_pb->user_agent()._type(), \
+                                         m_pb->user_agent()._type##_size()); \
+                if(l_s != WAFLZ_STATUS_OK) { \
+                        WAFLZ_PERROR(m_err_msg, "compiling user-agent %s", #_type); \
+                        return WAFLZ_STATUS_ERROR; \
+        } } } while(0)
+                _COMPILE_USER_AGENT_LIST(whitelist);
+                _COMPILE_USER_AGENT_LIST(accesslist);
+                _COMPILE_USER_AGENT_LIST(blacklist);
         }
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
         if(m_pb->has_referer())
         {
-                if(m_pb->referer().whitelist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_referer_rx_whitelist,
-                                                 m_pb->referer().whitelist(),
-                                                 m_pb->referer().whitelist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling referer whitelist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                if(m_pb->referer().blacklist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_referer_rx_blacklist,
-                                                 m_pb->referer().blacklist(),
-                                                 m_pb->referer().blacklist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling referer blacklist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
+#define _COMPILE_REFERER_LIST(_type) do { \
+        if(m_pb->referer()._type##_size()) { \
+                int32_t l_s; \
+                l_s = compile_regex_list(&m_referer_rx_##_type, \
+                                         m_pb->referer()._type(), \
+                                         m_pb->referer()._type##_size()); \
+                if(l_s != WAFLZ_STATUS_OK) { \
+                        WAFLZ_PERROR(m_err_msg, "compiling referer %s", #_type); \
+                        return WAFLZ_STATUS_ERROR; \
+        } } } while(0)
+                _COMPILE_REFERER_LIST(whitelist);
+                _COMPILE_REFERER_LIST(accesslist);
+                _COMPILE_REFERER_LIST(blacklist);
         }
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
         if(m_pb->has_cookie())
         {
-                if(m_pb->cookie().whitelist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_cookie_rx_whitelist,
-                                                 m_pb->cookie().whitelist(),
-                                                 m_pb->cookie().whitelist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling cookie whitelist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                if(m_pb->cookie().blacklist_size())
-                {
-                        int32_t l_s;
-                        l_s = compile_regex_list(&m_cookie_rx_blacklist,
-                                                 m_pb->cookie().blacklist(),
-                                                 m_pb->cookie().blacklist_size());
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                WAFLZ_PERROR(m_err_msg, "compiling cookie blacklist");
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
+#define _COMPILE_COOKIE_LIST(_type) do { \
+        if(m_pb->cookie()._type##_size()) { \
+                int32_t l_s; \
+                l_s = compile_regex_list(&m_cookie_rx_##_type, \
+                                         m_pb->cookie()._type(), \
+                                         m_pb->cookie()._type##_size()); \
+                if(l_s != WAFLZ_STATUS_OK) { \
+                        WAFLZ_PERROR(m_err_msg, "compiling cookie %s", #_type); \
+                        return WAFLZ_STATUS_ERROR; \
+        } } } while(0)
+                _COMPILE_COOKIE_LIST(whitelist);
+                _COMPILE_COOKIE_LIST(accesslist);
+                _COMPILE_COOKIE_LIST(blacklist);
         }
         // -------------------------------------------------
         // allowed_http_methods
@@ -431,7 +385,6 @@ int32_t acl::compile()
 int32_t acl::process_whitelist(bool &ao_match, rqst_ctx &a_ctx)
 {
         ao_match = false;
-        const char *l_key = NULL;
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
         data_t l_d;
@@ -476,7 +429,6 @@ country_check:
                         return WAFLZ_STATUS_OK;
                 }
         }
-asn_check:
         // -------------------------------------------------
         // asn
         // -------------------------------------------------
@@ -489,7 +441,6 @@ asn_check:
                         return WAFLZ_STATUS_OK;
                 }
         }
-url_check:
         // -------------------------------------------------
         // get url
         // -------------------------------------------------
@@ -575,6 +526,348 @@ cookie_check:
                         return WAFLZ_STATUS_OK;
                 }
         }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
+{
+        if(!ao_event)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_event = NULL;
+        const char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        data_t l_d;
+        const data_map_t &l_hm = a_ctx.m_header_map;
+        int32_t l_s;
+        // -------------------------------------------------
+        // ip
+        // -------------------------------------------------
+        // ip or src_addr used for: ip, country, asn
+        l_buf = a_ctx.m_src_addr.m_data;
+        l_buf_len = a_ctx.m_src_addr.m_len;
+        if(m_ip_accesslist &&
+           l_buf &&
+           l_buf_len)
+        {
+                bool l_match = false;
+                l_s = m_ip_accesslist->contains(l_match, l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO log error reason???
+                        goto country_check;
+                }
+                if(l_match)
+                {
+                        goto country_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist IP match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80008);
+                l_sevent->set_rule_msg("Accesslist IP deny");
+                l_sevent->set_rule_op_name("ipMatch");
+                l_sevent->set_rule_op_param("ip_accesslist");
+                l_sevent->add_rule_tag("ACCESSLIST/IP");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("TX");
+                l_rule_target->set_param("REAL_IP");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("TX:real_ip");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+country_check:
+        // -------------------------------------------------
+        // country
+        // -------------------------------------------------
+        if(m_country_accesslist.size() &&
+           l_buf &&
+           l_buf_len &&
+           a_ctx.m_geo_cn2.m_data &&
+           a_ctx.m_geo_cn2.m_len)
+        {
+                std::string l_cn_str;
+                l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                bool l_match = false;
+                if(m_country_accesslist.find(l_cn_str) != m_country_accesslist.end())
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto asn_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist Country deny");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80004);
+                l_sevent->set_rule_msg("Accesslist Country deny");
+                l_sevent->set_rule_op_name("geoLookup");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("ACCESSLIST/COUNTRY");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("TX");
+                l_rule_target->set_param("REAL_IP");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("GEO:COUNTRY_CODE");
+                l_var->set_value(l_cn_str);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+asn_check:
+        // -------------------------------------------------
+        // ASN
+        // -------------------------------------------------
+        if(m_asn_accesslist.size() &&
+           a_ctx.m_src_asn)
+        {
+                bool l_match = false;
+                if(m_asn_accesslist.find(a_ctx.m_src_asn) != m_asn_accesslist.end())
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto url_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist ASN deny");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80001);
+                l_sevent->set_rule_msg("Accesslist ASN deny");
+                l_sevent->set_rule_op_name("asnLookup");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("ACCESSLIST/ASN");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("TX");
+                l_rule_target->set_param("REAL_IP");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("GEO:ASN");
+                char l_asn_str[16];
+                snprintf(l_asn_str, 16, "AS%u", a_ctx.m_src_asn);
+                l_var->set_value(l_asn_str);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+url_check:
+        // -------------------------------------------------
+        // url
+        // -------------------------------------------------
+        if(!m_url_rx_accesslist)
+        {
+                goto user_agent_check;
+        }
+        // set buf to uri
+        l_buf = a_ctx.m_uri.m_data;
+        l_buf_len = a_ctx.m_uri.m_len;
+        if(m_url_rx_accesslist &&
+           l_buf &&
+           l_buf_len)
+        {
+                int32_t l_s;
+                bool l_match = false;
+                l_s = m_url_rx_accesslist->compare(l_buf, l_buf_len);
+                if(l_s >= 0)
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto user_agent_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist URL deny");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80011);
+                l_sevent->set_rule_msg("Accesslist URL deny");
+                l_sevent->set_rule_op_name("rx");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("ACCESSLIST/URL");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_URI_RAW");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_URI_RAW");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+user_agent_check:
+        // -------------------------------------------------
+        // user-agent
+        // -------------------------------------------------
+        if(!m_ua_rx_accesslist)
+        {
+                goto referer_check;
+        }
+        // get header from header map.
+        _GET_HEADER("User-Agent", l_buf);
+        if(m_ua_rx_accesslist &&
+           l_buf &&
+           l_buf_len)
+        {
+                int32_t l_s;
+                bool l_match = false;
+                std::string l_rx_capture;
+                l_s = m_ua_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
+                if(l_s >= 0)
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto referer_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist User-Agent deny");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80012);
+                l_sevent->set_rule_msg("Accesslist User-Agent deny");
+                l_sevent->set_rule_op_name("rx");
+                l_sevent->set_rule_op_param(m_ua_rx_accesslist->get_regex_string());
+                l_sevent->add_rule_tag("ACCESSLIST/USER-AGENT");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_param("User-Agent");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_HEADERS:User-Agent");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+referer_check:
+        // -------------------------------------------------
+        // referer
+        // -------------------------------------------------
+        if(!m_referer_rx_accesslist)
+        {
+                goto cookie_check;
+        }
+        _GET_HEADER("Referer", l_buf);
+        if(m_referer_rx_accesslist &&
+           l_buf &&
+           l_buf_len)
+        {
+                int32_t l_s;
+                bool l_match = false;
+                std::string l_rx_capture;
+                l_s = m_referer_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
+                if(l_s >= 0)
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto cookie_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist Referer deny");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80010);
+                l_sevent->set_rule_msg("Accesslist Referer deny");
+                l_sevent->set_rule_op_name("rx");
+                l_sevent->set_rule_op_param(m_referer_rx_accesslist->get_regex_string());
+                l_sevent->add_rule_tag("ACCESSLIST/REFERER");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_value("Referer");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_HEADERS:Referer");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+cookie_check:
+        // -------------------------------------------------
+        // cookie
+        // -------------------------------------------------
+        if(!m_cookie_rx_accesslist)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        _GET_HEADER("Cookie", l_buf);
+        if(m_cookie_rx_accesslist &&
+           l_buf &&
+           l_buf_len)
+        {
+                int32_t l_s;
+                bool l_match = false;
+                std::string l_rx_capture;
+                l_s = m_cookie_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
+                if(l_s >= 0)
+                {
+                        l_match = true;
+                }
+                if(l_match)
+                {
+                        goto done;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Accesslist Cookie match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80003);
+                l_sevent->set_rule_msg("Accesslist Cookie match");
+                l_sevent->set_rule_op_name("rx");
+                l_sevent->set_rule_op_param(m_cookie_rx_accesslist->get_regex_string());
+                l_sevent->add_rule_tag("ACCESSLIST/Cookie");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("REQUEST_HEADERS");
+                l_rule_target->set_value("Cookie");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("REQUEST_HEADERS:Cookie");
+                l_var->set_value(l_buf, l_buf_len);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+done:
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -931,7 +1224,6 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
-        int32_t l_s;
         // -------------------------------------------------
         // file size check
         // -------------------------------------------------
@@ -942,7 +1234,7 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 // -----------------------------------------
                 const char *l_buf = NULL;
                 uint32_t l_buf_len = 0;
-                uint32_t l_cl = 0;
+                unsigned long l_cl = 0;
                 data_t l_d;
                 const data_map_t &l_hm = a_ctx.m_header_map;
                 _GET_HEADER("Content-Length", l_buf);
@@ -1057,7 +1349,6 @@ content_type_check:
             i_h != a_ctx.m_content_type_list.end();
             ++i_h)
         {
-                bool l_match = false;
                 std::string l_cont_type(i_h->m_data, i_h->m_len);
                 // -----------------------------------------
                 // if any content type matches allowed skip
@@ -1255,6 +1546,19 @@ int32_t acl::process(waflz_pb::event **ao_event,
                 return WAFLZ_STATUS_OK;
         }
         waflz_pb::event *l_event = NULL;
+        // -------------------------------------------------
+        // accesslist...
+        // -------------------------------------------------
+        l_s = process_accesslist(&l_event, a_rqst_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_event)
+        {
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
         // -------------------------------------------------
         // blacklist...
         // -------------------------------------------------

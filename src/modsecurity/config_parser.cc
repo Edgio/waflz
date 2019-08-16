@@ -3854,11 +3854,19 @@ config_parser::config_parser(void):
         m_cur_line_num(0),
         m_cur_line_pos(0),
         m_cur_parent_rule(NULL),
+        m_directives(),
+        m_variables(),
+        m_operators(),
+        m_actions(),
+        m_transformations(),
+        m_tx_variables(),
+        m_ctls(),
         m_unimplemented_directives(),
         m_unimplemented_variables(),
         m_unimplemented_operators(),
         m_unimplemented_actions(),
-        m_unimplemented_transformations()
+        m_unimplemented_transformations(),
+        m_unimplemented_ctls()
 {
 }
 //: ----------------------------------------------------------------------------

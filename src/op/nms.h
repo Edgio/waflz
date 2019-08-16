@@ -83,6 +83,9 @@ private:
         // -------------------------------------------------
         // private methods
         // -------------------------------------------------
+        // disallow copy/assign
+        nms(const nms &);
+        nms& operator=(const nms &);
         addr_t detect_addr(const char *a_buf, uint32_t a_buf_len);
         int32_t add_ipv4(const char *a_buf, uint32_t a_buf_len);
         int32_t add_ipv4_plain(const char *a_buf, uint32_t a_buf_len);

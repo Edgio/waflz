@@ -56,7 +56,7 @@ int json_add_argument(arg_list_t &ao_arg_list,
         // if no prefix -cannot create var name to ref arg
         // -ignore for now
         // -------------------------------------------------
-        if(!a_parser_json.m_current_key)
+        if(a_parser_json.m_current_key[0] == '\0')
         {
                 return 1;
         }
@@ -65,7 +65,7 @@ int json_add_argument(arg_list_t &ao_arg_list,
         // -------------------------------------------------
         arg_t l_arg;
         // a_key == 'prefix + current_key'
-        if(a_parser_json.m_prefix)
+        if(a_parser_json.m_prefix[0] != '\0')
         {
                 l_arg.m_key_len = asprintf(&l_arg.m_key,
                                            "%s.%s",
@@ -185,7 +185,10 @@ static int yajl_start_map_cb(void *a_ctx)
         if(l_prefix_len)
         {
                 size_t l_max_cat_len;
-                // strncat appends a null character at the end, so account for that
+                // -----------------------------------------
+                // strncat appends null character at end,
+                // -1 to account
+                // -----------------------------------------
                 l_max_cat_len = PARSER_JSON_PREFIX_LEN_MAX - l_prefix_len - 1;
                 if(l_max_cat_len)
                 {
@@ -215,7 +218,7 @@ static int yajl_end_map_cb(void *a_ctx)
         // -------------------------------------------------
         // end of top level hash
         // -------------------------------------------------
-        if(!l_parser->m_prefix[0] == '\0')
+        if(l_parser->m_prefix[0] != '\0')
         {
                 return 1;
         }

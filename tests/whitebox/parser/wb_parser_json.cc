@@ -134,7 +134,7 @@ TEST_CASE( "json parse basic test", "[json_parse_basic]" ) {
                     i_q != l_rqst_ctx->m_body_arg_list.end();
                     ++i_q, ++i_arg)
                 {
-                        //NDBG_OUTPUT(":IARG[%d] [%d]%.*s: [%d]%.*s\n",
+                        //NDBG_PRINT(":IARG[%d] [%d]%.*s: [%d]%.*s\n",
                         //            i_arg,
                         //            i_q->m_key_len, i_q->m_key_len, i_q->m_key,
                         //            i_q->m_val_len, i_q->m_val_len, i_q->m_val);
@@ -142,7 +142,7 @@ TEST_CASE( "json parse basic test", "[json_parse_basic]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_q->m_key, ".id", i_q->m_key_len) == 0));
+                                REQUIRE((strncmp(i_q->m_key, "id", i_q->m_key_len) == 0));
                                 REQUIRE((strncmp(i_q->m_val, "fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj", i_q->m_val_len) == 0));
                                 break;
                         }

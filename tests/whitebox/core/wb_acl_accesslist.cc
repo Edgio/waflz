@@ -350,9 +350,8 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // *****************************************
                 ::waflz_pb::acl_lists_t* l_ax_refr = l_pb->mutable_access_settings()->mutable_referer();
-                l_ax_refr->add_blacklist("bad reefer");
-                l_ax_refr->add_blacklist("really\\/bad\\/.*");
-                l_ax_refr->add_whitelist("monkeys luv referers");
+                l_ax_refr->add_accesslist("bad reefer");
+                l_ax_refr->add_accesslist("really\\/bad\\/.*");
                 // *****************************************
                 // -----------------------------------------
                 // cookie settings
@@ -381,6 +380,14 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 void *l_ctx = NULL;
                 waflz_pb::event *l_event = NULL;
                 ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
+                // -----------------------------------------
+                // setup
+                // -----------------------------------------
+                s_path = "/login-confirm/index.html";
+                s_uri = "/login-confirm/index.html";
+                s_header_user_agent = "cats are really cool dude";
+                s_header_cookie = "wonky_key";
+                s_header_referer = "bad reefer";
                 // -----------------------------------------
                 // country
                 // -----------------------------------------
@@ -411,7 +418,6 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
-
 #if 0
                 // -----------------------------------------
                 // validate blacklist cidr

@@ -100,7 +100,7 @@ public:
         {
                 return m_err_msg;
         }
-        const waflz_pb::config* get_pb(void) { return m_pb; }
+        waflz_pb::config* get_pb(void) { return m_pb; }
         waflz_pb::config* get_mutable_pb(void) { return m_pb; }
         const std::string &get_customer_id(void);
 protected:

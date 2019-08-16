@@ -29,7 +29,12 @@
 #include "waflz/scopes.h"
 #include <pthread.h>
 #include <string>
-#include <unordered_map>
+#if defined(__APPLE__) || defined(__darwin__)
+    #include <unordered_map>
+#else
+    #include <tr1/unordered_map>
+#endif
+
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: fwd Decl's
@@ -44,7 +49,12 @@ public:
         // -------------------------------------------------
         // public types
         // -------------------------------------------------
+#if defined(__APPLE__) || defined(__darwin__)
         typedef std::unordered_map<uint64_t, scopes*> cust_id_scopes_map_t;
+#else
+        typedef std::tr1::unordered_map<uint64_t, scopes*> cust_id_scopes_map_t;
+#endif
+        
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------

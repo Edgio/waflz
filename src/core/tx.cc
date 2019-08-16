@@ -100,7 +100,7 @@ TX(COMPRESSWHITESPACE)
         // calc new length
         // -------------------------------------------------
         uint32_t l_buf_len = a_len;
-        l_buf_len = strnlen(l_buf, a_len);
+        l_buf_len = (uint32_t)strnlen(l_buf, a_len);
         if(!l_buf ||
            !l_buf_len)
         {

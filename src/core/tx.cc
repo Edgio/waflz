@@ -176,7 +176,7 @@ TX(REMOVEWHITESPACE)
         {
                 // if non-space, copy over
                 if(!isspace(a_buf[i_i]) &&
-                   (a_buf[i_i] != _NBSP))
+                   ((unsigned char)a_buf[i_i] != _NBSP))
                 {
                         l_buf[i_j] = a_buf[i_i];
                         ++i_j;

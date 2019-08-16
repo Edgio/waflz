@@ -391,7 +391,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // *****************************************
                 // -----------------------------------------
-                // validate accesslist
+                // validate accesslist block
                 // -----------------------------------------
                 s_ip = "243.49.2.6";
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
@@ -403,6 +403,15 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // validate accesslist pass
+                // -----------------------------------------
+                s_ip = "243.49.2.7";
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+
 #if 0
                 // -----------------------------------------
                 // validate blacklist cidr

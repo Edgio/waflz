@@ -337,6 +337,17 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
                                         }
                                 }
                         }
+                        // -------------------------------------------------
+                        // strip response body
+                        // -------------------------------------------------
+                        if(l_lim->has_action())
+                        {
+                                ::waflz_pb::enforcement* l_action = l_lim->mutable_action();
+                                if(l_action->has_response_body())
+                                {
+                                        l_action->clear_response_body();
+                                }
+                        }
                 }
                 std::string l_js;
                 ns_waflz::convert_to_json(l_js, *(l_config->get_pb()));

@@ -312,7 +312,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // *****************************************
                 ::waflz_pb::acl_lists_t* l_ax_ipl = l_pb->mutable_access_settings()->mutable_ip();
-                l_ax_ipl->add_accesslist("212.43.2.0/16");
+                l_ax_ipl->add_accesslist("212.43.2.0/24");
                 l_ax_ipl->add_accesslist("243.49.2.7");
                 // *****************************************
                 // -----------------------------------------
@@ -321,6 +321,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // *****************************************
                 ::waflz_pb::acl_lists_t* l_ax_ctyl = l_pb->mutable_access_settings()->mutable_country();
                 l_ax_ctyl->add_accesslist("JP");
+                l_ax_ctyl->add_accesslist("KW");
                 // *****************************************
                 // -----------------------------------------
                 // asn settings
@@ -328,6 +329,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // *****************************************
                 ::waflz_pb::acl_lists_asn_t* l_ax_asn = l_pb->mutable_access_settings()->mutable_asn();
                 l_ax_asn->add_accesslist(26496);
+                l_ax_asn->add_accesslist(42961);
                 // *****************************************
                 // -----------------------------------------
                 // url settings
@@ -364,7 +366,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // load
                 // -----------------------------------------
                 l_s = l_profile->load_config(l_pb);
-                NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 // -----------------------------------------
@@ -407,7 +409,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
                 REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist IP deny"));
-                if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -415,56 +417,38 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "243.49.2.7";
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
-                if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
-#if 0
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
-                // validate blacklist cidr
+                // validate accesslist pass
                 // -----------------------------------------
-                s_ip = "212.43.8.7";
+                s_ip = "212.43.2.5";
+                l_event = NULL;
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // validate accesslist block
+                // -----------------------------------------
+                s_ip = "212.43.3.5";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist IP match"));
-                REQUIRE(l_rqst_ctx->m_wl == false);
-                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist IP deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
-                // validate whitelist
-                // -----------------------------------------
-                s_ip = "200.162.133.3";
-                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_event == NULL));
-                REQUIRE(l_rqst_ctx->m_wl == true);
-                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                // -----------------------------------------
-                // validate whitelist cidr
-                // -----------------------------------------
-                s_ip = "199.167.1.17";
-                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_event == NULL));
-                REQUIRE(l_rqst_ctx->m_wl == true);
-                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                // -----------------------------------------
-                // validate whitelist included in blacklist
-                // -----------------------------------------
-                s_ip = "199.167.1.1";
-                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_event == NULL));
-                REQUIRE(l_rqst_ctx->m_wl == true);
-                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-#endif
-                // -----------------------------------------
                 // revert
                 // -----------------------------------------
-                s_ip = "172.217.4.142";
+                s_ip = "243.49.2.7";
                 // -----------------------------------------
                 // referer
                 // -----------------------------------------
@@ -504,6 +488,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                         l_engine = NULL;
                 }
         }
+#if 0
         //--------------------------------------------------
         // accesslist interaction
         // -------------------------------------------------
@@ -546,4 +531,5 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                         l_engine = NULL;
                 }
         }
+#endif
 }

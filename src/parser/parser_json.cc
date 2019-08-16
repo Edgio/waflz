@@ -215,7 +215,7 @@ static int yajl_end_map_cb(void *a_ctx)
         // -------------------------------------------------
         // end of top level hash
         // -------------------------------------------------
-        if(!l_parser->m_prefix[0] == '\0')
+        if(l_parser->m_prefix[0] != '\0')
         {
                 return 1;
         }

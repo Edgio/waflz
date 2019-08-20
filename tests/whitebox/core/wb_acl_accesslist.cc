@@ -310,6 +310,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
         ns_waflz::rqst_ctx::s_get_rqst_method_cb = get_rqst_method_cb;
         ns_waflz::rqst_ctx::s_get_rqst_path_cb = get_rqst_path_cb;
+#if 0
         //--------------------------------------------------
         // accesslist ip+
         // -------------------------------------------------
@@ -545,7 +546,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "59.106.218.87";
                 l_event = NULL;
                 l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
-                if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -586,7 +587,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // *****************************************
                 ::waflz_pb::acl_lists_t* l_ax_url = l_acl->mutable_url();
                 l_ax_url->add_accesslist("/login-confirm/index.html");
-                l_ax_url->add_accesslist("\\/banana\\/m.*\\.html");
+                l_ax_url->add_accesslist("\\/banana\\/t.*\\.html");
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
@@ -597,6 +598,54 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 void *l_ctx = NULL;
                 waflz_pb::event *l_event = NULL;
                 ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
+                // -----------------------------------------
+                // validate accesslist pass
+                // -----------------------------------------
+                s_uri = "/login-confirm/index.html";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // validate accesslist block
+                // -----------------------------------------
+                s_uri = "/login-confirm/admin.php";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist URL deny"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // validate accesslist pass
+                // -----------------------------------------
+                s_uri = "/banana/test.html";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // validate accesslist block
+                // -----------------------------------------
+                s_uri = "/banana/xest.html";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist URL deny"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
@@ -632,11 +681,60 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 waflz_pb::event *l_event = NULL;
                 ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
                 // -----------------------------------------
+                // validate accesslist pass
+                // -----------------------------------------
+                s_header_user_agent = "cats are really cool dude";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // validate accesslist block
+                // -----------------------------------------
+                s_header_user_agent = "dogs are really cool dude";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist User-Agent deny"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // validate accesslist pass
+                // -----------------------------------------
+                s_header_user_agent = "curl/test";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // validate accesslist block
+                // -----------------------------------------
+                s_header_user_agent = "hurl/test";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist User-Agent deny"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
                 if(l_profile) { delete l_profile; l_profile = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
+#endif
         //--------------------------------------------------
         // accesslist referer
         // -------------------------------------------------
@@ -666,11 +764,36 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 waflz_pb::event *l_event = NULL;
                 ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
                 // -----------------------------------------
+                // validate accesslist pass
+                // -----------------------------------------
+                s_header_referer = "bad reefer";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // validate accesslist block
+                // -----------------------------------------
+                s_header_referer = "rad beefer";
+                l_event = NULL;
+                l_s = l_profile->process_part(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist Referer deny"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
                 if(l_profile) { delete l_profile; l_profile = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
+#if 0
         //--------------------------------------------------
         // accesslist cookie
         // -------------------------------------------------
@@ -731,6 +854,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 if(l_profile) { delete l_profile; l_profile = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
+#endif
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------

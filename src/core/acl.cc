@@ -848,13 +848,13 @@ cookie_check:
                 // top level event
                 // -----------------------------------------
                 waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist Cookie match");
+                l_event->set_rule_msg("Accesslist Cookie deny");
                 // -----------------------------------------
                 // subevent
                 // -----------------------------------------
                 ::waflz_pb::event *l_sevent = l_event->add_sub_event();
                 l_sevent->set_rule_id(80003);
-                l_sevent->set_rule_msg("Accesslist Cookie match");
+                l_sevent->set_rule_msg("Accesslist Cookie deny");
                 l_sevent->set_rule_op_name("rx");
                 l_sevent->set_rule_op_param(m_cookie_rx_accesslist->get_regex_string());
                 l_sevent->add_rule_tag("ACCESSLIST/Cookie");

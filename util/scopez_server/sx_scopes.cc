@@ -278,9 +278,9 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         if(m_scopes_dir)
         {
-                // -------------------------------------------------
+                // -----------------------------------------
                 // get cust an
-                // -------------------------------------------------
+                // -----------------------------------------
                 std::string l_id;
                 const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
                 ns_is2::mutable_data_t i_hdr;
@@ -306,9 +306,9 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
                                                 &a_session,
                                                 l_cust_id,
                                                 &l_ctx);
-                // -------------------------------------------------
+                // -----------------------------------------
                 // process
-                // -------------------------------------------------
+                // -----------------------------------------
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason: %s\n",
@@ -328,9 +328,9 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
                         NDBG_PRINT("No scopes to process\n");
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
-                // -------------------------------------------------
+                // -----------------------------------------
                 // process
-                // -------------------------------------------------
+                // -----------------------------------------
                 l_s = l_scopes->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, &l_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -378,6 +378,9 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
         }
+        // -------------------------------------------------
+        // create resp...
+        // -------------------------------------------------
         rapidjson::Document l_js_doc;
         l_js_doc.SetObject();
         rapidjson::Document::AllocatorType& l_js_allocator = l_js_doc.GetAllocator();

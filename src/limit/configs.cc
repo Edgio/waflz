@@ -41,6 +41,7 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: obj type utils
 //: ----------------------------------------------------------------------------
+#define LIMIT_OBJ_CONFIG_STR "CONFIG"
 #define LIMIT_OBJ_COORDINATOR_STR "ddos-coordinator"
 #define LIMIT_OBJ_ENFORCER_STR "ddos-enforcer"
 #define LIMIT_OBJ_ENFORCEMENT_STR "ddos-enforcement"
@@ -59,6 +60,10 @@ typedef enum {
 //: ----------------------------------------------------------------------------
 static limit_obj_t limit_obj_get_type(const char *a_buf)
 {
+        if(strncasecmp(LIMIT_OBJ_CONFIG_STR, a_buf, sizeof(LIMIT_OBJ_CONFIG_STR)) == 0)
+        {
+                return _LIMIT_OBJ_CONFIG;
+        }
         // TODO caseless???
         if(strncmp(LIMIT_OBJ_COORDINATOR_STR, a_buf, sizeof(LIMIT_OBJ_COORDINATOR_STR)) == 0)
         {

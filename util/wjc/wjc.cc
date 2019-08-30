@@ -265,6 +265,26 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+static int32_t validate_acl(const std::string &a_file)
+{
+        // TODO
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t validate_rules(const std::string &a_file)
+{
+        // TODO
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 static int32_t validate_instance(const std::string &a_file, std::string &a_ruleset_dir)
 {
         int32_t l_s;
@@ -317,12 +337,22 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         if(l_instance) { delete l_instance; l_instance = NULL; }
         return STATUS_OK;
 }
+#ifdef WAFLZ_RATE_LIMITING
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-#ifdef WAFLZ_RATE_LIMITING
+static int32_t validate_limit(const std::string &a_file)
+{
+        // TODO
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 static int32_t validate_limits(const std::string &a_file, bool a_display_json)
 {
         int32_t l_s;
@@ -512,6 +542,24 @@ int main(int argc, char** argv)
                         l_config_mode = CONFIG_MODE_PROFILE;
                         break;
                 }
+                // -----------------------------------------
+                // acl
+                // -----------------------------------------
+                case 'a':
+                {
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_ACL;
+                        break;
+                }
+                // -----------------------------------------
+                // rules
+                // -----------------------------------------
+                case 'R':
+                {
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_RULES;
+                        break;
+                }
 #ifdef WAFLZ_RATE_LIMITING
                 // -----------------------------------------
                 // limit
@@ -520,6 +568,15 @@ int main(int argc, char** argv)
                 {
                         l_file = optarg;
                         l_config_mode = CONFIG_MODE_LIMIT;
+                        break;
+                }
+                // -----------------------------------------
+                // limits
+                // -----------------------------------------
+                case 'L':
+                {
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_LIMITS;
                         break;
                 }
 #endif
@@ -560,6 +617,18 @@ int main(int argc, char** argv)
         switch(l_config_mode)
         {
         // -------------------------------------------------
+        // instance
+        // -------------------------------------------------
+        case(CONFIG_MODE_INSTANCE):
+        {
+                l_s = validate_instance(l_file, l_ruleset_dir);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
+        }
+        // -------------------------------------------------
         // profile
         // -------------------------------------------------
         case(CONFIG_MODE_PROFILE):
@@ -572,11 +641,23 @@ int main(int argc, char** argv)
                 break;
         }
         // -------------------------------------------------
-        // profile
+        // acl
         // -------------------------------------------------
-        case(CONFIG_MODE_INSTANCE):
+        case(CONFIG_MODE_ACL):
         {
-                l_s = validate_instance(l_file, l_ruleset_dir);
+                l_s = validate_acl(l_file);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
+        }
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+        case(CONFIG_MODE_RULES):
+        {
+                l_s = validate_rules(l_file);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;
@@ -584,6 +665,18 @@ int main(int argc, char** argv)
                 break;
         }
 #ifdef WAFLZ_RATE_LIMITING
+        // -------------------------------------------------
+        // limit
+        // -------------------------------------------------
+        case(CONFIG_MODE_LIMIT):
+        {
+                l_s = validate_limit(l_file);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
+        }
         // -------------------------------------------------
         // limits
         // -------------------------------------------------

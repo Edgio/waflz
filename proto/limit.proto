@@ -144,6 +144,9 @@ message limit {
         optional bool always_on = 9;
         repeated condition_group condition_groups = 100;
         optional enforcement action = 200;
+	//: ------------------------------------------------
+	//: ************* D E P R E C A T E D **************
+	//: ------------------------------------------------
         optional waflz_pb.scope scope = 1000;
         // -------------------------------------------------
         // reserved for internal use

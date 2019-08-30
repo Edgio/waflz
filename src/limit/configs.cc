@@ -51,7 +51,6 @@ namespace ns_waflz {
 typedef enum {
         _LIMIT_OBJ_NONE = 0,
         _LIMIT_OBJ_CONFIG,
-        _LIMIT_OBJ_ENFCR
 } limit_obj_t;
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -68,14 +67,6 @@ static limit_obj_t limit_obj_get_type(const char *a_buf)
         if(strncmp(LIMIT_OBJ_COORDINATOR_STR, a_buf, sizeof(LIMIT_OBJ_COORDINATOR_STR)) == 0)
         {
                 return _LIMIT_OBJ_CONFIG;
-        }
-        else if(strncmp(LIMIT_OBJ_ENFORCER_STR, a_buf, sizeof(LIMIT_OBJ_ENFORCER_STR)) == 0)
-        {
-                return _LIMIT_OBJ_ENFCR;
-        }
-        else if(strncmp(LIMIT_OBJ_ENFORCEMENT_STR, a_buf, sizeof(LIMIT_OBJ_ENFORCEMENT_STR)) == 0)
-        {
-                return _LIMIT_OBJ_ENFCR;
         }
         return _LIMIT_OBJ_NONE;
 }
@@ -160,35 +151,6 @@ int32_t configs::load(void *a_js)
         // -------------------------------------------------
         // find in map
         // -------------------------------------------------
-        cust_id_config_map_t::iterator i_cust;
-        i_cust = m_cust_id_config_map.find(l_cust_id);
-        // -------------------------------------------------
-        // merge enforcer -v1 only???
-        // -------------------------------------------------
-        if(l_t == _LIMIT_OBJ_ENFCR)
-        {
-                if(i_cust == m_cust_id_config_map.end())
-                {
-                        WAFLZ_PERROR(m_err_msg, "can't load enforcers w/o coordinator for id: %lu",
-                                     l_cust_id);
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(!i_cust->second)
-                {
-                        WAFLZ_PERROR(m_err_msg, "can't load enforcers for coordinator for id: %lu -coordinator NULL",
-                                     l_cust_id);
-                        return WAFLZ_STATUS_ERROR;
-                }
-                int32_t l_s;
-                l_s = (i_cust->second)->merge((void *)&l_js);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "%s",
-                                     (i_cust->second)->get_err_msg());
-                        return WAFLZ_STATUS_ERROR;
-                }
-                return WAFLZ_STATUS_OK;
-        }
         config *l_c = new config(m_db, m_challenge, m_lowercase_headers);
         int32_t l_s;
         // -------------------------------------------------
@@ -205,6 +167,8 @@ int32_t configs::load(void *a_js)
         // -------------------------------------------------
         // add to map...
         // -------------------------------------------------
+        cust_id_config_map_t::iterator i_cust;
+        i_cust = m_cust_id_config_map.find(l_cust_id);
         if(i_cust == m_cust_id_config_map.end())
         {
                 m_cust_id_config_map[l_cust_id] = l_c;

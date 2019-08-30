@@ -68,7 +68,6 @@ public:
         int32_t generate_alert(waflz_pb::alert** ao_alert,
                                rqst_ctx* a_ctx);
         int32_t merge(waflz_pb::config &ao_cfg);
-        int32_t merge(void *a_js);
         challenge &get_challenge(void) { return m_challenge;}
         const char *get_err_msg(void) { return m_err_msg; }
 private:

@@ -690,7 +690,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -x, --random-ips    randomly generate ips\n");
 #ifdef WAFLZ_RATE_LIMITING
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
-        fprintf(a_stream, "  -c, --challenge json containing browser challenges\n");
+        fprintf(a_stream, "  -c, --challenge     json containing browser challenges\n");
 #endif
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Configuration:\n");
@@ -705,6 +705,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "Debug Options:\n");
         fprintf(a_stream, "  -t, --trace         tracing (error/rule/match/all)\n");
         fprintf(a_stream, "  -T, --server-trace  server tracing  (error/warn/debug/verbose/all)\n");
+        fprintf(a_stream, "  -a, --audit-mode    load and exit\n");
         fprintf(a_stream, "  \n");
 #ifdef ENABLE_PROFILER
         fprintf(a_stream, "Profile Options:\n");
@@ -735,6 +736,7 @@ int main(int argc, char** argv)
         std::string l_config_file;
         std::string l_server_spec;
         bool l_bg_load = false;
+        bool l_audit_mode = false;
         // server settings
         std::string l_out_file;
         uint16_t l_port = 12345;
@@ -765,6 +767,7 @@ int main(int argc, char** argv)
                 { "static",       1, 0, 'w' },
                 { "proxy",        1, 0, 'y' },
                 { "output",       1, 0, 'o' },
+                { "audit-mode",   0, 0, 'a' },
 #ifdef WAFLZ_RATE_LIMITING
                 { "limit",        1, 0, 'l' },
                 { "challenge",    1, 0, 'c' },
@@ -798,9 +801,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:H:C:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:H:C:a";
 #else
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:a";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -815,6 +818,14 @@ int main(int argc, char** argv)
                 //NDBG_PRINT("arg[%c=%d]: %s\n", l_opt, l_option_index, l_arg.c_str());
                 switch (l_opt)
                 {
+                // -----------------------------------------
+                // audit mode
+                // -----------------------------------------
+                case 'a':
+                {
+                        l_audit_mode = true;
+                        break;
+                }
                 // -----------------------------------------
                 // Help
                 // -----------------------------------------
@@ -1281,6 +1292,7 @@ int main(int argc, char** argv)
                 fprintf(stdout, "performing initialization\n");
                 return STATUS_ERROR;
         }
+
         // -------------------------------------------------
         // Sigint handler
         // -------------------------------------------------
@@ -1288,6 +1300,13 @@ int main(int argc, char** argv)
         {
                 printf("Error: can't catch SIGINT\n");
                 return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // audit mode
+        // -------------------------------------------------
+        if(l_audit_mode)
+        {
+                goto cleanup;
         }
         // -------------------------------------------------
         // run
@@ -1314,6 +1333,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
+cleanup:
         if(g_out_file_ptr) { fclose(g_out_file_ptr); g_out_file_ptr = NULL; }
         if(g_srvr) { delete g_srvr; g_srvr = NULL; }
         if(l_h) { delete l_h; l_h = NULL; }

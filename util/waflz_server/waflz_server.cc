@@ -690,7 +690,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -x, --random-ips    randomly generate ips\n");
 #ifdef WAFLZ_RATE_LIMITING
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
-        fprintf(a_stream, "  -c, --challenge json containing browser challenges\n");
+        fprintf(a_stream, "  -c, --challenge     json containing browser challenges\n");
 #endif
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Configuration:\n");

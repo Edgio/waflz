@@ -55,6 +55,7 @@ public:
         // -------------------------------------------------
         acl(void);
         ~acl();
+        int32_t load_config(const char *a_buf, uint32_t a_buf_len);
         int32_t compile();
         int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx, rqst_ctx &a_rqst_ctx);
         int32_t process_whitelist(bool &ao_match, rqst_ctx &a_ctx);

@@ -25,6 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/instance.h"
 #include "waflz/profile.h"
+#include "waflz/acl.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/time_util.h"
@@ -267,7 +268,24 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
 //: ----------------------------------------------------------------------------
 static int32_t validate_acl(const std::string &a_file)
 {
-        // TODO
+        int32_t l_s;
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_config_buf = NULL;
+        uint32_t l_config_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
+                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        ns_waflz::acl *l_acl = new ns_waflz::acl();
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_acl) { delete l_acl; l_acl = NULL; }
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -277,7 +295,28 @@ static int32_t validate_acl(const std::string &a_file)
 //: ----------------------------------------------------------------------------
 static int32_t validate_rules(const std::string &a_file)
 {
-        // TODO
+        int32_t l_s;
+        // -------------------------------------------------
+        // engine
+        // -------------------------------------------------
+        ns_waflz::engine *l_engine = new ns_waflz::engine();
+        l_engine->init();
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_config_buf = NULL;
+        uint32_t l_config_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
+                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_engine) { delete l_engine; l_engine = NULL; }
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

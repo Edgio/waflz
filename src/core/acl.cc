@@ -36,6 +36,10 @@
 #include <errno.h>
 #include <limits.h>
 //: ----------------------------------------------------------------------------
+//: constants
+//: ----------------------------------------------------------------------------
+#define _CONFIG_ACL_MAX_SIZE (1<<20)
+//: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
 #define _GET_HEADER(_header, _val) do { \
@@ -135,6 +139,53 @@ acl::~acl(void)
         _DELETE_OBJ(m_cookie_rx_accesslist);
         _DELETE_OBJ(m_cookie_rx_blacklist);
         if(m_pb) { delete m_pb; m_pb = NULL; }
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t acl::load_config(const char *a_buf, uint32_t a_buf_len)
+{
+        if(a_buf_len > _CONFIG_ACL_MAX_SIZE)
+        {
+                WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
+                             a_buf_len,
+                             _CONFIG_ACL_MAX_SIZE);
+                return WAFLZ_STATUS_ERROR;
+        }
+        m_init = false;
+        if(m_pb)
+        {
+                delete m_pb;
+                m_pb = NULL;
+        }
+        if(m_acl)
+        {
+                delete m_acl;
+                m_acl = NULL;
+        }
+        m_acl = new acl();
+        // -------------------------------------------------
+        // load from json
+        // -------------------------------------------------
+        m_pb = new waflz_pb::profile();
+        int32_t l_s;
+        l_s = update_from_json(*m_pb, a_buf, a_buf_len);
+        //NDBG_PRINT("whole config %s", m_pb->DebugString().c_str());
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "%s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // init
+        // -------------------------------------------------
+        l_s = init();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO

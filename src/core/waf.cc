@@ -1420,6 +1420,7 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                                const waflz_pb::sec_rule_t &a_rule,
                                rqst_ctx &a_ctx)
 {
+        printf("waf::process_rule_part\n");
         macro *l_macro =  &(m_engine.get_macro());
         ao_match = false;
         const waflz_pb::sec_action_t &l_a = a_rule.action();

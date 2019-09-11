@@ -826,6 +826,13 @@ OP(RX)
                 }
                 ao_match = true;
         }
+        /*cx_map_t::iterator it;
+        for(it = a_ctx->m_cx_tx_map.begin();
+            it != a_ctx->m_cx_tx_map.end(); ++it)
+        {
+                printf("Key - %s, Value - %s\n", it->first.c_str(), it->second.c_str());
+        }
+        */
         SET_IF_NEGATED();
         return WAFLZ_STATUS_OK;
 }
@@ -1066,6 +1073,7 @@ static op_cb_vector_t s_op_cb_vector = op_cb_vector_t(1024);
 //: ----------------------------------------------------------------------------
 void init_op_cb_vector(void)
 {
+        printf("init_op_cb_vector\n");
         INIT_OP_CB(BEGINSWITH);
         INIT_OP_CB(CONTAINS);
         INIT_OP_CB(CONTAINSWORD);

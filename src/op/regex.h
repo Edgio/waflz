@@ -130,7 +130,6 @@ public:
         // -------------------------------------------------
         int compare(const char *a_buf, uint32_t a_len, std::string *ao_captured = NULL)
         {
-                printf("Regex compare-input buffer- %s\n", a_buf);
                 // -----------------------------------------
                 // Check for NULL
                 // -----------------------------------------
@@ -164,7 +163,6 @@ public:
                 // -----------------------------------------
                 if(l_s == 0)
                 {
-                        printf("pcre match succeeded\n");
                         // ---------------------------------
                         // Number of elements in output
                         // vector, multiple of
@@ -179,7 +177,6 @@ public:
                 {
                         ao_captured->assign(a_buf + l_ovector[0],
                                             (l_ovector[1] - l_ovector[0]));
-                        printf("Regex compare- captured string %s\n", ao_captured->c_str());
                 }
                 int l_int_match;
                 std::string l_string_match;
@@ -187,7 +184,7 @@ public:
                 l_s_re = RE2::FullMatch(a_buf, *m_re, &l_string_match, (void*)NULL, &l_int_match);
                 if(l_s_re > 0)
                 {
-                        printf("RE2 compare-Matched String\n");
+                        //printf("RE2 compare-Matched String\n");
                 }
                 return l_s;
         }
@@ -198,7 +195,7 @@ public:
         /// --------------------------------------------------------------------
         int compare_all(const char *a_buf, uint32_t a_len, data_list_t *ao_captured)
         {
-                //printf("regex compare all - input buf - %s\n", a_buf);
+                //printf("regex compare all\n");
                 // -----------------------------------------
                 // No check for empty input
                 // Input can be empty. e.g empty headers
@@ -248,15 +245,12 @@ public:
                                 }
                         }
                 }while (l_s > 0);
-                //int l_int_match;
-                std::string l_string_match;
                 int l_s_re;
                 std::string input(a_buf, a_len);
-                l_s_re = RE2::PartialMatch(input, *m_re, &l_string_match);
-                printf("Regex compare val %d\n", l_s_re);
+                l_s_re = RE2::FullMatch(input, *m_re);
                 if(l_s_re > 0)
                 {
-                        printf("RE2- compare all-Matched String- %s\n", l_string_match.c_str());
+                        //printf("RE2- compare all-Matched String");
                 }
                 return l_ret_val;
         }

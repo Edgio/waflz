@@ -233,8 +233,18 @@ int32_t limit::init()
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t limit::process(bool &ao_exceeds, rqst_ctx* a_ctx)
+int32_t limit::process(bool &ao_exceeds,
+                       const waflz_pb::condition_group** ao_cg,
+                       rqst_ctx* a_ctx)
 {
+        // -------------------------------------------------
+        // sanity check...
+        // -------------------------------------------------
+        if(!ao_cg)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_cg = NULL;
         // init to false
         ao_exceeds = false;
         // -------------------------------------------------
@@ -333,6 +343,7 @@ int32_t limit::process(bool &ao_exceeds, rqst_ctx* a_ctx)
                 }
                 if(ao_exceeds)
                 {
+                        *ao_cg = &l_cg;
                         return WAFLZ_STATUS_OK;
                 }
         }

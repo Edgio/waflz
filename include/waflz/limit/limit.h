@@ -32,6 +32,7 @@
 //: fwd Decl's
 //: ----------------------------------------------------------------------------
 namespace waflz_pb {
+        class condition_group;
         class limit;
 }
 namespace ns_waflz
@@ -55,7 +56,7 @@ public:
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t load(void *a_js);
         const std::string& get_last_modified_date();
-        int32_t process(bool &ao_exceeds, rqst_ctx* a_ctx);
+        int32_t process(bool &ao_exceeds, const waflz_pb::condition_group** ao_cg, rqst_ctx* a_ctx);
         const char *get_err_msg(void) { return m_err_msg; }
 private:
         // -------------------------------------------------

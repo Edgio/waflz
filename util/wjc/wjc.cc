@@ -35,6 +35,7 @@
 #include "waflz/limit/config.h"
 #include "waflz/limit/enforcer.h"
 #include "waflz/limit/rl_obj.h"
+#include "waflz/limit/limit.h"
 #include "waflz/db/kycb_db.h"
 #include "limit.pb.h"
 #endif
@@ -228,13 +229,13 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // -------------------------------------------------
         // read file
         // -------------------------------------------------
-        char *l_config_buf = NULL;
-        uint32_t l_config_buf_len = 0;
-        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
         }
@@ -242,13 +243,13 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // profile
         // -------------------------------------------------
         ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-        l_s = l_profile->load_config(l_config_buf,
-                                     l_config_buf_len);
+        l_s = l_profile->load_config(l_buf,
+                                     l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
                 fprintf(stderr, "%s\n", l_profile->get_err_msg());
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_profile) { delete l_profile; l_profile = NULL; }
                 return STATUS_ERROR;
@@ -257,7 +258,7 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // cleanup
         // -------------------------------------------------
         if(l_profile) { delete l_profile; l_profile = NULL; }
-        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+        if(l_buf) { free(l_buf); l_buf = NULL;}
         if(l_engine) { delete l_engine; l_engine = NULL; }
         return STATUS_OK;
 }
@@ -272,19 +273,30 @@ static int32_t validate_acl(const std::string &a_file)
         // -------------------------------------------------
         // read file
         // -------------------------------------------------
-        char *l_config_buf = NULL;
-        uint32_t l_config_buf_len = 0;
-        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 return STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // load
+        // -------------------------------------------------
         ns_waflz::acl *l_acl = new ns_waflz::acl();
+        l_s = l_acl->load_config(l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to load acl config: %s.  Reason: %s\n", a_file.c_str(), l_acl->get_err_msg());
+                if(l_buf) { free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
+        if(l_buf) { free(l_buf); l_buf = NULL;}
         if(l_acl) { delete l_acl; l_acl = NULL; }
         return STATUS_OK;
 }
@@ -304,13 +316,13 @@ static int32_t validate_rules(const std::string &a_file)
         // -------------------------------------------------
         // read file
         // -------------------------------------------------
-        char *l_config_buf = NULL;
-        uint32_t l_config_buf_len = 0;
-        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -344,13 +356,13 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // -------------------------------------------------
         // read file
         // -------------------------------------------------
-        char *l_config_buf = NULL;
-        uint32_t l_config_buf_len = 0;
-        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
         }
@@ -358,20 +370,20 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // instantiate the compiler and validate it
         // -------------------------------------------------
         ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine);
-        l_s = l_instance->load_config(l_config_buf, l_config_buf_len);
+        l_s = l_instance->load_config(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
                 fprintf(stderr, "%s\n", l_instance->get_err_msg());
                 if(l_engine) { delete l_engine; l_engine = NULL; }
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 if(l_instance) { delete l_instance; l_instance = NULL; }
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+        if(l_buf) { free(l_buf); l_buf = NULL;}
         if(l_engine) { delete l_engine; l_engine = NULL; }
         if(l_instance) { delete l_instance; l_instance = NULL; }
         return STATUS_OK;
@@ -384,7 +396,36 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
 //: ----------------------------------------------------------------------------
 static int32_t validate_limit(const std::string &a_file)
 {
-        // TODO
+        int32_t l_s;
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
+                if(l_buf) { free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // load
+        // -------------------------------------------------
+        ns_waflz::kycb_db l_kycb_db;
+        ns_waflz::limit *l_limit = new ns_waflz::limit(l_kycb_db);
+        l_s = l_limit->load(l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to load limit config: %s.  Reason: %s\n", a_file.c_str(), l_limit->get_err_msg());
+                if(l_buf) { free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_buf) { free(l_buf); l_buf = NULL;}
+        if(l_limit) { delete l_limit; l_limit = NULL; }
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

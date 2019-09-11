@@ -144,6 +144,9 @@ message limit {
         optional bool always_on = 9;
         repeated condition_group condition_groups = 100;
         optional enforcement action = 200;
+        optional string enabled_date = 400;
+        optional string last_modified_date = 401;
+        optional string customer_id = 402;
 	//: ------------------------------------------------
 	//: ************* D E P R E C A T E D **************
 	//: ------------------------------------------------
@@ -177,7 +180,7 @@ message config {
         // -------------------------------------------------
         // reserved for internal use
         // -------------------------------------------------
-        optional uint64 _customer_id_int = 1000;       
+        optional uint64 _customer_id_int = 1000;
 }
 //: ----------------------------------------------------------------------------
 //: alert

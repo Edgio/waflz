@@ -27,6 +27,7 @@
 #include "op/regex.h"
 #include "support/string_util.h"
 #include "op/nms.h"
+#include "jspb/jspb.h"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/acl.h"
@@ -83,6 +84,7 @@ const str_set_t g_ignore_ct_set(g_ignore_ct_set_vals,
 //: \param   None
 //: ----------------------------------------------------------------------------
 acl::acl(void):
+        m_init(false),
         m_err_msg(),
         m_pb(NULL),
         m_ip_whitelist(NULL),
@@ -160,16 +162,9 @@ int32_t acl::load_config(const char *a_buf, uint32_t a_buf_len)
                 delete m_pb;
                 m_pb = NULL;
         }
-        if(m_acl)
-        {
-                delete m_acl;
-                m_acl = NULL;
-        }
-        m_acl = new acl();
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------
-        m_pb = new waflz_pb::profile();
         int32_t l_s;
         l_s = update_from_json(*m_pb, a_buf, a_buf_len);
         //NDBG_PRINT("whole config %s", m_pb->DebugString().c_str());
@@ -186,6 +181,34 @@ int32_t acl::load_config(const char *a_buf, uint32_t a_buf_len)
         {
                 return WAFLZ_STATUS_ERROR;
         }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t acl::load_config(const waflz_pb::acl* a_pb)
+{
+        if(!a_pb)
+        {
+                WAFLZ_PERROR(m_err_msg, "a_pb == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // copy from json
+        // -------------------------------------------------
+        m_pb->CopyFrom(*a_pb);
+        // -------------------------------------------------
+        // init
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = init();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -243,8 +266,12 @@ static int32_t compile_regex_list(regex **ao_regex,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t acl::compile()
+int32_t acl::init()
 {
+        if(m_init)
+        {
+                return WAFLZ_STATUS_OK;
+        }
         // -------------------------------------------------
         // acl: ip
         // -------------------------------------------------
@@ -426,6 +453,7 @@ int32_t acl::compile()
                         m_disallowed_headers.insert(m_pb->disallowed_headers(i_t));
                 }
         }
+        m_init = true;
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

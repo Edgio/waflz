@@ -194,6 +194,7 @@ list(APPEND SRCS
     limit/enforcer.cc
     limit/config.cc
     limit/configs.cc
+    limit/limit.cc
 )
 endif()
 # ------------------------------------------------------------------------------

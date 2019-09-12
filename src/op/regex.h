@@ -35,6 +35,11 @@
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
+//: define limits
+//: ----------------------------------------------------------------------------
+#define PCRE_MATCH_LIMIT 100
+#define PCRE_MATCH_LIMIT_RECURSION 100
+//: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
 class regex
@@ -78,6 +83,13 @@ public:
                 *a_reason = m_err_ptr;
                 a_offset = m_err_off;
         }
+
+        void set_pcre_match_limits()
+        {
+                m_regex_study->flags |= PCRE_EXTRA_MATCH_LIMIT | PCRE_EXTRA_MATCH_LIMIT_RECURSION;
+                m_regex_study->match_limit = PCRE_MATCH_LIMIT;
+                m_regex_study->match_limit_recursion = PCRE_MATCH_LIMIT_RECURSION;
+        }
         int32_t init(const char *a_buf, uint32_t a_len)
         {
                 if(!a_buf ||
@@ -109,18 +121,21 @@ public:
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
-
+                // -----------------------------------------
+                // set pcre match limits
+                // -----------------------------------------
+                set_pcre_match_limits();
                 // -----------------------------------------
                 // re2
                 // -----------------------------------------
                 m_re = new RE2(m_regex_str, RE2::Quiet);
                 if(!m_re->ok())
                 {
-                        NDBG_PRINT("%serror%s compiling: %s\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, m_regex_str.c_str());
+                        //NDBG_PRINT("%serror%s compiling: %s\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, m_regex_str.c_str());
                 }
                 else
                 {
-                        NDBG_PRINT("%sok%s    compiling: %s\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, m_regex_str.c_str());
+                        //NDBG_PRINT("%sok%s    compiling: %s\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, m_regex_str.c_str());
                 }
                 return WAFLZ_STATUS_OK;
         }
@@ -178,13 +193,14 @@ public:
                         ao_captured->assign(a_buf + l_ovector[0],
                                             (l_ovector[1] - l_ovector[0]));
                 }
-                int l_int_match;
-                std::string l_string_match;
-                int l_s_re;
-                l_s_re = RE2::FullMatch(a_buf, *m_re, &l_string_match, (void*)NULL, &l_int_match);
-                if(l_s_re > 0)
+                if(m_re)
                 {
-                        //printf("RE2 compare-Matched String\n");
+                    int l_s_re;
+                    l_s_re = RE2::FullMatch(a_buf, *m_re);
+                    if(l_s_re > 0)
+                    {
+                            //printf("RE2 compare-Matched String\n");
+                    }
                 }
                 return l_s;
         }
@@ -245,12 +261,15 @@ public:
                                 }
                         }
                 }while (l_s > 0);
-                int l_s_re;
-                std::string input(a_buf, a_len);
-                l_s_re = RE2::FullMatch(input, *m_re);
-                if(l_s_re > 0)
+                if(m_re)
                 {
-                        //printf("RE2- compare all-Matched String");
+                        int l_s_re;
+                        std::string input(a_buf, a_len);
+                        l_s_re = RE2::FullMatch(input, *m_re);
+                        if(l_s_re > 0)
+                        {
+                                //printf("RE2- compare all-Matched String");
+                        }
                 }
                 return l_ret_val;
         }

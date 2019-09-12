@@ -101,6 +101,10 @@ public:
                 m_regex_study = pcre_study(m_regex,
                                            s_pcre_study_options,
                                            &m_err_ptr);
+                m_regex_study->flags = PCRE_EXTRA_MATCH_LIMIT | PCRE_EXTRA_MATCH_LIMIT_RECURSION;
+                m_regex_study->match_limit = 100;
+                m_regex_study->match_limit_recursion = 100;
+
                 // -----------------------------------------
                 // if regex_study NULL not compiled with JIT
                 // check m_err_ptr for error
@@ -109,18 +113,20 @@ public:
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
-
+                printf("pcre-flags %lu\n", m_regex_study->flags);
+                printf("pcre-matchlimit %lu\n",m_regex_study->match_limit);
+                printf("pcre-matchlimitrecursion %lu\n", m_regex_study->match_limit_recursion);
                 // -----------------------------------------
                 // re2
                 // -----------------------------------------
                 m_re = new RE2(m_regex_str, RE2::Quiet);
                 if(!m_re->ok())
                 {
-                        NDBG_PRINT("%serror%s compiling: %s\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, m_regex_str.c_str());
+                        //NDBG_PRINT("%serror%s compiling: %s\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, m_regex_str.c_str());
                 }
                 else
                 {
-                        NDBG_PRINT("%sok%s    compiling: %s\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, m_regex_str.c_str());
+                        //NDBG_PRINT("%sok%s    compiling: %s\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, m_regex_str.c_str());
                 }
                 return WAFLZ_STATUS_OK;
         }

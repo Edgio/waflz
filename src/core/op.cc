@@ -1073,7 +1073,6 @@ static op_cb_vector_t s_op_cb_vector = op_cb_vector_t(1024);
 //: ----------------------------------------------------------------------------
 void init_op_cb_vector(void)
 {
-        printf("init_op_cb_vector\n");
         INIT_OP_CB(BEGINSWITH);
         INIT_OP_CB(CONTAINS);
         INIT_OP_CB(CONTAINSWORD);

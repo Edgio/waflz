@@ -32,6 +32,7 @@
 #include <string>
 #include <list>
 #include <re2/re2.h>
+#include <vector>
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
@@ -193,6 +194,7 @@ public:
                         ao_captured->assign(a_buf + l_ovector[0],
                                             (l_ovector[1] - l_ovector[0]));
                 }
+//#if 0
                 if(m_re)
                 {
                     int l_s_re;
@@ -202,6 +204,7 @@ public:
                             //printf("RE2 compare-Matched String\n");
                     }
                 }
+//#endif
                 return l_s;
         }
         /// --------------------------------------------------------------------
@@ -257,20 +260,40 @@ public:
                                         l_data.m_data = a_buf + l_start;
                                         l_data.m_len = l_len;
                                         ao_captured->push_back(l_data);
-                                        printf("Regex compare all- matched str %s\n", l_data.m_data);
                                 }
                         }
                 }while (l_s > 0);
+//#if 0
                 if(m_re)
                 {
                         int l_s_re;
                         std::string input(a_buf, a_len);
-                        l_s_re = RE2::FullMatch(input, *m_re);
+                        int l_match_size = m_re->NumberOfCapturingGroups();
+                        if(l_match_size < 0)
+                        {
+                                return l_ret_val;
+                        }
+                        if(l_match_size > PCRE_MATCH_LIMIT )
+                        {
+                                l_match_size = PCRE_MATCH_LIMIT;
+                        }
+                        std::vector<RE2::Arg> l_argv(l_match_size);
+                        std::vector<RE2::Arg*> l_args(l_match_size);
+                        std::vector<std::string> l_matches(l_match_size);
+
+                        for(int i=0 ; i < l_match_size; ++i)
+                        {
+                                l_argv[i] = &l_matches[i];
+                                l_args[i] = &l_argv[i];
+                        }
+
+                        l_s_re = RE2::FullMatchN(input, *m_re, l_args.data(), l_match_size);
                         if(l_s_re > 0)
                         {
                                 //printf("RE2- compare all-Matched String");
                         }
                 }
+//#endif
                 return l_ret_val;
         }
         const std::string &get_regex_string(void)

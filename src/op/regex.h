@@ -31,7 +31,6 @@
 #include <string.h>
 #include <string>
 #include <list>
-#include <vector>
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
@@ -235,7 +234,6 @@ public:
                                 }
                         }
                 }while (l_s > 0);
-                
                 return l_ret_val;
         }
         const std::string &get_regex_string(void)

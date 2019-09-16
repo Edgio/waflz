@@ -172,7 +172,6 @@ int32_t engine::init()
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        printf("engine::init\n");
         // -------------------------------------------------
         // init...
         // -------------------------------------------------
@@ -218,7 +217,6 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                         waflz_pb::sec_config_t &a_config,
                         const std::string& a_ruleset_dir)
 {
-        printf("engine::compile\n");
         // -------------------------------------------------
         // clear all
         // -------------------------------------------------

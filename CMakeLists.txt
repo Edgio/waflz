@@ -288,7 +288,6 @@ endif()
 # ------------------------------------------------------------------------------
 set(LIBRARIES ${LIBRARIES} dl)
 set(LIBRARIES ${LIBRARIES} pthread)
-set(LIBRARIES ${LIBRARIES} re2)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LIBRARIES ${LIBRARIES} rt)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")

@@ -499,10 +499,12 @@ public:
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
+#if 0
                 if(l_enf)
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+#endif
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response
@@ -703,7 +705,6 @@ int main(int argc, char** argv)
         uint16_t l_port = 12345;
         std::string l_server_spec;
         std::string l_config_file;
-        std::string l_scopes_dir;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -1011,7 +1012,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------  
         case(CONFIG_MODE_SCOPES):
         {
-                NDBG_PRINT("...\n");
                 g_sx_scopes = new ns_scopez_server::sx_scopes();
                 g_sx_scopes->m_lsnr = l_lsnr;
                 g_sx_scopes->m_config = l_config_file;
@@ -1024,17 +1024,15 @@ int main(int argc, char** argv)
         }
         case(CONFIG_MODE_SCOPES_DIR):
         {
-                NDBG_PRINT("...\n");
                 g_sx_scopes = new ns_scopez_server::sx_scopes();
                 g_sx_scopes->m_lsnr = l_lsnr;
-                g_sx_scopes->m_config = l_scopes_dir;
+                g_sx_scopes->m_config = l_config_file;
                 g_sx_scopes->m_bg_load = false;
                 g_sx_scopes->m_scopes_dir = true;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
                 break;
-
         }
         default:
         {

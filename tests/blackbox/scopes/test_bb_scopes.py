@@ -88,7 +88,6 @@ def setup_scopez_server_single():
 # ------------------------------------------------------------------------------
 # an 0050
 # ------------------------------------------------------------------------------
-'''
 def test_scopes_dir_for_an_0050(setup_scopez_server):
     # ------------------------------------------------------
     # test without UA for AN 0050
@@ -117,11 +116,9 @@ def test_scopes_dir_for_an_0050(setup_scopez_server):
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
-'''
 # ------------------------------------------------------------------------------
 # an 0051
 # ------------------------------------------------------------------------------
-'''
 def test_scopes_dir_for_an_0051(setup_scopez_server):
     # ------------------------------------------------------
     # test with wrong path for AN 0051
@@ -176,11 +173,9 @@ def test_scopes_dir_for_an_0051(setup_scopez_server):
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is bananas'
-'''
 # ------------------------------------------------------------------------------
 # single scope
 # ------------------------------------------------------------------------------
-'''
 def test_single_scope(setup_scopez_server_single):
     # ------------------------------------------------------
     # test single scope for AN 0050
@@ -196,4 +191,3 @@ def test_single_scope(setup_scopez_server_single):
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
-'''

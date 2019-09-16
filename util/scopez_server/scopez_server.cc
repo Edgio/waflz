@@ -293,6 +293,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 int32_t l_s;
                 char *l_dcd = NULL;
                 size_t l_dcd_len = 0;
+                bool l_dcd_allocd = false;
                 if(a_enf.has_response_body())
                 {
                         l_dcd = (char *)a_enf.response_body().c_str();
@@ -307,6 +308,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                                 if(l_dcd) { free(l_dcd); l_dcd = NULL; }
                                 break;
                         }
+                        l_dcd_allocd = true;
                 }
                 // -----------------------------------------
                 // render
@@ -317,14 +319,14 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_dcd_allocd && l_dcd) { free(l_dcd); l_dcd = NULL; }
                         if(l_rndr) { free(l_rndr); l_rndr = NULL; }
                         break;
                 }
                 // -----------------------------------------
                 // set/cleanup
                 // -----------------------------------------
-                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                if(l_dcd_allocd && l_dcd) { free(l_dcd); l_dcd = NULL; }
                 // -----------------------------------------
                 // response
                 // -----------------------------------------
@@ -498,10 +500,7 @@ public:
                 // handle action
                 // -----------------------------------------
 #if 0
-                if(l_enf
-                   // only enforcements for limit mode
-                   //&& (!g_config_mode == CONFIG_MODE_LIMIT)
-                   )
+                if(l_enf)
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
@@ -642,7 +641,7 @@ void print_version(FILE* a_stream, int a_exit_code)
         // print out the version information
         fprintf(a_stream, "scopez_server\n");
         fprintf(a_stream, "Copyright (C) 2019 Verizon Digital Media.\n");
-        fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
+        fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(a_exit_code);
 }
 //: ----------------------------------------------------------------------------
@@ -658,14 +657,14 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -v, --version       display the version number and exit.\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Configuration:\n");
-        fprintf(a_stream, "  -c, --config        scopes config\n");
-        fprintf(a_stream, "  -d  --directory     scopes dir\n");
+        fprintf(a_stream, "  -s, --scopes        scopes (select either -c or -C)\n");
+        fprintf(a_stream, "  -S, --scopes-dir    scopes directory (select either -c or -C)\n");
+        fprintf(a_stream, "  -d  --config-dir    configuration directory\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
-        fprintf(a_stream, "  -F, --conf-dir      conf directory\n");
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
-        fprintf(a_stream, "  -s, --geoip-isp-db  geoip-isp-db\n");
+        fprintf(a_stream, "  -i, --geoip-isp-db  geoip-isp-db\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Mode: choose one or none\n");
         fprintf(a_stream, "  -w, --static        static file path (for serving)\n");
@@ -706,21 +705,26 @@ int main(int argc, char** argv)
         uint16_t l_port = 12345;
         std::string l_server_spec;
         std::string l_config_file;
-        std::string l_scopes_dir;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
+#endif
+#ifdef ENABLE_PROFILER
+        fprintf(a_stream, "Profile Options:\n");
+        fprintf(a_stream, "  -H, --hprofile      Google heap profiler output file\n");
+        fprintf(a_stream, "  -C, --cprofile      Google cpu profiler output file\n");
+        fprintf(a_stream, "  \n");
 #endif
         struct option l_long_options[] =
                 {
                 { "help",         0, 0, 'h' },
                 { "version",      0, 0, 'v' },
-                { "config",       1, 0, 'c' },
+                { "scopes",       1, 0, 's' },
+                { "scopes-dir",   1, 0, 'S' },
+                { "config-dir",   1, 0, 'd' },
                 { "port",         1, 0, 'p' },
-                { "scopes-dir",   1, 0, 'd' },
-                { "conf-dir",     1, 0, 'F' },
                 { "geoip-db",     1, 0, 'g' },
-                { "geoip-isp-db", 1, 0, 's' },
+                { "geoip-isp-db", 1, 0, 'i' },
                 { "static",       1, 0, 'w' },
                 { "proxy",        1, 0, 'y' },
                 { "trace",        1, 0, 't' },
@@ -750,9 +754,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvp:d:F:g:s:c:w:y:t:H:C:";
+        char l_short_arg_list[] = "hvs:S:d:p:g:i:w:y:t:H:C:";
 #else
-        char l_short_arg_list[] = "hvp:d:F:g:s:c:w:y:t:";
+        char l_short_arg_list[] = "hvs:S:d:p:g:i:w:y:t:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -776,7 +780,7 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // Version
+                // version
                 // -----------------------------------------
                 case 'v':
                 {
@@ -784,12 +788,29 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // config
+                // scopes
                 // -----------------------------------------
-                case 'c':
+                case 's':
                 {
                         _TEST_SET_CONFIG_MODE(SCOPES);
                         l_config_file = l_arg;
+                        break;
+                }
+                // -----------------------------------------
+                // scopes-dir
+                // -----------------------------------------
+                case 'S':
+                {
+                        _TEST_SET_CONFIG_MODE(SCOPES_DIR);
+                        l_config_file = l_arg;
+                        break;
+                }
+                // -----------------------------------------
+                // conf dir
+                // -----------------------------------------
+                case 'd':
+                {
+                        l_conf_dir = optarg;
                         break;
                 }
                 // -----------------------------------------
@@ -809,24 +830,6 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // scopes dir
-                // -----------------------------------------
-                case 'd':
-                {
-                        _TEST_SET_CONFIG_MODE(SCOPES_DIR);
-                        l_scopes_dir = l_arg;
-                        break;
-
-                }
-                // -----------------------------------------
-                // conf dir
-                // -----------------------------------------
-                case 'F':
-                {
-                        l_conf_dir = optarg;
-                        break;
-                }
-                // -----------------------------------------
                 // geoip db
                 // -----------------------------------------
                 case 'g':
@@ -837,7 +840,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 // geoip isp db
                 // -----------------------------------------
-                case 's':
+                case 'i':
                 {
                         l_geoip_isp_db = optarg;
                         break;
@@ -1001,7 +1004,7 @@ int main(int argc, char** argv)
                 break;
         }
         }
-        fprintf(stdout,"%d\n", l_config_mode);
+        //fprintf(stdout,"%d\n", l_config_mode);
         switch(l_config_mode)
         {
         // -------------------------------------------------
@@ -1013,6 +1016,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_lsnr = l_lsnr;
                 g_sx_scopes->m_config = l_config_file;
                 g_sx_scopes->m_bg_load = false;
+                g_sx_scopes->m_scopes_dir = false;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
@@ -1022,14 +1026,13 @@ int main(int argc, char** argv)
         {
                 g_sx_scopes = new ns_scopez_server::sx_scopes();
                 g_sx_scopes->m_lsnr = l_lsnr;
-                g_sx_scopes->m_config = l_scopes_dir;
+                g_sx_scopes->m_config = l_config_file;
                 g_sx_scopes->m_bg_load = false;
                 g_sx_scopes->m_scopes_dir = true;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
                 break;
-
         }
         default:
         {
@@ -1056,7 +1059,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         if (signal(SIGINT, sig_handler) == SIG_ERR)
         {
-                printf("Error: can't catch SIGINT\n");
+                fprintf(stdout, "can't catch SIGINT\n");
                 return STATUS_ERROR;
         }
         // -------------------------------------------------

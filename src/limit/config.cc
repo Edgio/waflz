@@ -717,37 +717,6 @@ int32_t config::merge(waflz_pb::config &ao_cfg)
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t config::merge(void *a_js)
-{
-        // -------------------------------------------------
-        // load
-        // -------------------------------------------------
-        enforcer *l_e = new enforcer(m_lowercase_headers);
-        int32_t l_s;
-        l_s = l_e->load(a_js);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                WAFLZ_PERROR(m_err_msg, "%s", l_e->get_err_msg());
-                if(l_e) { delete l_e; l_e = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // merge
-        // -------------------------------------------------
-        l_s = merge(*(const_cast<waflz_pb::config *>(l_e->get_pb())));
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(l_e) { delete l_e; l_e = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(l_e) { delete l_e; l_e = NULL; }
-        return WAFLZ_STATUS_OK;
-}
-//! ----------------------------------------------------------------------------
-//! @details TODO
-//! @return  TODO
-//! @param   TODO
-//! ----------------------------------------------------------------------------
 int32_t config::add_limit_with_key(waflz_pb::limit &ao_limit,
                                   uint16_t a_key,
                                   rqst_ctx *a_ctx)

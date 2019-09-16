@@ -25,6 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/instance.h"
 #include "waflz/profile.h"
+#include "waflz/acl.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/time_util.h"
@@ -34,6 +35,7 @@
 #include "waflz/limit/config.h"
 #include "waflz/limit/enforcer.h"
 #include "waflz/limit/rl_obj.h"
+#include "waflz/limit/limit.h"
 #include "waflz/db/kycb_db.h"
 #include "limit.pb.h"
 #endif
@@ -84,12 +86,79 @@ typedef enum {
         CONFIG_MODE_INSTANCES,
         CONFIG_MODE_PROFILE,
         CONFIG_MODE_MODSECURITY,
+        CONFIG_MODE_RULES,
+        CONFIG_MODE_ACL,
 #ifdef WAFLZ_RATE_LIMITING
         CONFIG_MODE_LIMIT,
-        CONFIG_MODE_ENFCR,
+        CONFIG_MODE_LIMITS,
 #endif
         CONFIG_MODE_NONE
 } config_mode_t;
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+#ifdef WAFLZ_RATE_LIMITING
+static void strip_fields(waflz_pb::config& ao_config)
+{
+        for(int i_l = 0; i_l < ao_config.limits_size(); ++i_l)
+        {
+                ::waflz_pb::limit* l_lim = ao_config.mutable_limits(i_l);
+                if(l_lim->has__reserved_1())
+                {
+                        l_lim->clear__reserved_1();
+                }
+                for(int i_cg = 0; i_cg < l_lim->condition_groups_size(); ++i_cg)
+                {
+                        ::waflz_pb::condition_group* l_cg = l_lim->mutable_condition_groups(i_cg);
+                        for(int i_c = 0; i_c < l_cg->conditions_size(); ++i_c)
+                        {
+                                ::waflz_pb::condition* l_c = l_cg->mutable_conditions(i_c);
+                                if(l_c->has_op())
+                                {
+                                        waflz_pb::op_t* l_op = l_c->mutable_op();
+                                        if(l_op->has__reserved_1())
+                                        {
+                                                l_op->clear__reserved_1();
+                                        }
+                                }
+                        }
+                }
+                if(l_lim->has_scope())
+                {
+                        ::waflz_pb::scope* l_scope = l_lim->mutable_scope();
+                        if(l_scope->has_host())
+                        {
+                                ::waflz_pb::op_t* l_h = l_scope->mutable_host();
+                                if(l_h->has__reserved_1())
+                                {
+                                        l_h->clear__reserved_1();
+                                }
+                        }
+                        if(l_scope->has_path())
+                        {
+                                ::waflz_pb::op_t* l_p = l_scope->mutable_path();
+                                if(l_p->has__reserved_1())
+                                {
+                                        l_p->clear__reserved_1();
+                                }
+                        }
+                }
+                // -----------------------------------------
+                // strip response body
+                // -----------------------------------------
+                if(l_lim->has_action())
+                {
+                        ::waflz_pb::enforcement* l_action = l_lim->mutable_action();
+                        if(l_action->has_response_body())
+                        {
+                                l_action->clear_response_body();
+                        }
+                }
+        }
+}
+#endif
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -160,13 +229,13 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // -------------------------------------------------
         // read file
         // -------------------------------------------------
-        char *l_config_buf = NULL;
-        uint32_t l_config_buf_len = 0;
-        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
         }
@@ -174,13 +243,13 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // profile
         // -------------------------------------------------
         ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-        l_s = l_profile->load_config(l_config_buf,
-                                     l_config_buf_len);
+        l_s = l_profile->load_config(l_buf,
+                                     l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
                 fprintf(stderr, "%s\n", l_profile->get_err_msg());
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_profile) { delete l_profile; l_profile = NULL; }
                 return STATUS_ERROR;
@@ -189,7 +258,76 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // cleanup
         // -------------------------------------------------
         if(l_profile) { delete l_profile; l_profile = NULL; }
-        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+        if(l_buf) { free(l_buf); l_buf = NULL;}
+        if(l_engine) { delete l_engine; l_engine = NULL; }
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t validate_acl(const std::string &a_file)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
+                if(l_buf) { free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // load
+        // -------------------------------------------------
+        ns_waflz::acl *l_acl = new ns_waflz::acl();
+        l_s = l_acl->load_config(l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to load acl config: %s.  Reason: %s\n", a_file.c_str(), l_acl->get_err_msg());
+                if(l_buf) { free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_buf) { free(l_buf); l_buf = NULL;}
+        if(l_acl) { delete l_acl; l_acl = NULL; }
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t validate_rules(const std::string &a_file)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // engine
+        // -------------------------------------------------
+        ns_waflz::engine *l_engine = new ns_waflz::engine();
+        l_engine->init();
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
+                if(l_buf) { free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
         if(l_engine) { delete l_engine; l_engine = NULL; }
         return STATUS_OK;
 }
@@ -218,13 +356,13 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // -------------------------------------------------
         // read file
         // -------------------------------------------------
-        char *l_config_buf = NULL;
-        uint32_t l_config_buf_len = 0;
-        l_s = ns_waflz::read_file(a_file.c_str(), &l_config_buf, l_config_buf_len);
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
         }
@@ -232,22 +370,62 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // instantiate the compiler and validate it
         // -------------------------------------------------
         ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine);
-        l_s = l_instance->load_config(l_config_buf, l_config_buf_len);
+        l_s = l_instance->load_config(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
                 fprintf(stderr, "%s\n", l_instance->get_err_msg());
                 if(l_engine) { delete l_engine; l_engine = NULL; }
-                if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 if(l_instance) { delete l_instance; l_instance = NULL; }
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(l_config_buf) { free(l_config_buf); l_config_buf = NULL;}
+        if(l_buf) { free(l_buf); l_buf = NULL;}
         if(l_engine) { delete l_engine; l_engine = NULL; }
         if(l_instance) { delete l_instance; l_instance = NULL; }
+        return STATUS_OK;
+}
+#ifdef WAFLZ_RATE_LIMITING
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t validate_limit(const std::string &a_file)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
+                if(l_buf) { free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // load
+        // -------------------------------------------------
+        ns_waflz::kycb_db l_kycb_db;
+        ns_waflz::limit *l_limit = new ns_waflz::limit(l_kycb_db);
+        l_s = l_limit->load(l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "failed to load limit config: %s.  Reason: %s\n", a_file.c_str(), l_limit->get_err_msg());
+                if(l_buf) { free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_buf) { free(l_buf); l_buf = NULL;}
+        if(l_limit) { delete l_limit; l_limit = NULL; }
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -255,8 +433,7 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-#ifdef WAFLZ_RATE_LIMITING
-static int32_t validate_limit(const std::string &a_file, bool a_display_json)
+static int32_t validate_limits(const std::string &a_file, bool a_display_json)
 {
         int32_t l_s;
         // -------------------------------------------------
@@ -290,65 +467,8 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
         if(a_display_json &&
            l_config->get_pb())
         {
-                // -------------------------------------------------
-                // strip reserved fields
-                // -------------------------------------------------
                 waflz_pb::config* l_pb = l_config->get_pb();
-                for(int i_l = 0; i_l < l_pb->limits_size(); ++i_l)
-                {
-                        ::waflz_pb::limit* l_lim = l_pb->mutable_limits(i_l);
-                        if(l_lim->has__reserved_1())
-                        {
-                                l_lim->clear__reserved_1();
-                        }
-                        for(int i_cg = 0; i_cg < l_lim->condition_groups_size(); ++i_cg)
-                        {
-                                ::waflz_pb::condition_group* l_cg = l_lim->mutable_condition_groups(i_cg);
-                                for(int i_c = 0; i_c < l_cg->conditions_size(); ++i_c)
-                                {
-                                        ::waflz_pb::condition* l_c = l_cg->mutable_conditions(i_c);
-                                        if(l_c->has_op())
-                                        {
-                                                waflz_pb::op_t* l_op = l_c->mutable_op();
-                                                if(l_op->has__reserved_1())
-                                                {
-                                                        l_op->clear__reserved_1();
-                                                }
-                                        }
-                                }
-                        }
-                        if(l_lim->has_scope())
-                        {
-                                ::waflz_pb::scope* l_scope = l_lim->mutable_scope();
-                                if(l_scope->has_host())
-                                {
-                                        ::waflz_pb::op_t* l_h = l_scope->mutable_host();
-                                        if(l_h->has__reserved_1())
-                                        {
-                                                l_h->clear__reserved_1();
-                                        }
-                                }
-                                if(l_scope->has_path())
-                                {
-                                        ::waflz_pb::op_t* l_p = l_scope->mutable_path();
-                                        if(l_p->has__reserved_1())
-                                        {
-                                                l_p->clear__reserved_1();
-                                        }
-                                }
-                        }
-                        // -------------------------------------------------
-                        // strip response body
-                        // -------------------------------------------------
-                        if(l_lim->has_action())
-                        {
-                                ::waflz_pb::enforcement* l_action = l_lim->mutable_action();
-                                if(l_action->has_response_body())
-                                {
-                                        l_action->clear_response_body();
-                                }
-                        }
-                }
+                strip_fields(*l_pb);
                 std::string l_js;
                 ns_waflz::convert_to_json(l_js, *(l_config->get_pb()));
                 NDBG_OUTPUT("%s\n", l_js.c_str());
@@ -358,56 +478,6 @@ static int32_t validate_limit(const std::string &a_file, bool a_display_json)
         // -------------------------------------------------
         if(l_buf) { free(l_buf); l_buf = NULL;}
         if(l_config) { delete l_config; l_config = NULL;}
-        return STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-static int32_t validate_enfcr(const std::string &a_file, bool a_display_json)
-{
-        int32_t l_s;
-        // -------------------------------------------------
-        // read file
-        // -------------------------------------------------
-        char *l_buf = NULL;
-        uint32_t l_buf_len = 0;
-        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
-        if(l_s != STATUS_OK)
-        {
-                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // config
-        // -------------------------------------------------
-        ns_waflz::kycb_db l_kycb_db;
-        ns_waflz::challenge l_challenge;
-        ns_waflz::enforcer *l_enfcr = new ns_waflz::enforcer(true);
-        l_s = l_enfcr->load(l_buf, l_buf_len);
-        if(l_s != STATUS_OK)
-        {
-                fprintf(stderr, "%s\n", l_enfcr->get_err_msg());
-                if(l_enfcr) {delete l_enfcr; l_enfcr = NULL;}
-                if(l_buf) {free(l_buf); l_buf = NULL;}
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // display?
-        // -------------------------------------------------
-        if(a_display_json &&
-            l_enfcr->get_pb())
-        {
-                std::string l_js;
-                ns_waflz::convert_to_json(l_js, *(l_enfcr->get_pb()));
-                NDBG_OUTPUT("%s\n", l_js.c_str());
-        }
-        // -------------------------------------------------
-        // cleanup
-        // -------------------------------------------------
-        if(l_buf) { free(l_buf); l_buf = NULL;}
-        if(l_enfcr) {delete l_enfcr; l_enfcr = NULL;}
         return STATUS_OK;
 }
 #endif
@@ -421,8 +491,8 @@ void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
         fprintf(a_stream, "waflz JSON Compiler.\n");
-        fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
-        fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
+        fprintf(a_stream, "Copyright (C) 2019 Verizon Digital Media.\n");
+        fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
 }
 //: ----------------------------------------------------------------------------
@@ -443,14 +513,16 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  -r, --ruleset-dir  WAF Ruleset directory [REQUIRED]\n");
         fprintf(a_stream, "  -i, --instance     WAF instance\n");
         fprintf(a_stream, "  -p, --profile      WAF profile\n");
+        fprintf(a_stream, "  -a, --acl          ACL\n");
+        fprintf(a_stream, "  -R, --rules        WAF rules\n");
 #ifdef WAFLZ_RATE_LIMITING
-        fprintf(a_stream, "  -l  --limit        Rate Limiting JSON Configuration File\n");
-        fprintf(a_stream, "  -e  --enfcr        Rate Limiting JSON Configuration File (enforcer)\n");
+        fprintf(a_stream, "  -l  --limit        Rate limit\n");
+        fprintf(a_stream, "  -L  --limits       Rate limits\n");
 #endif
         fprintf(a_stream, "  -j, --json         Display config [Default: OFF]\n");
         fprintf(a_stream, "\n");
         fprintf(a_stream, "example:\n");
-        fprintf(a_stream, "         wjc --instance=waf_instance.waf.json\n");
+        fprintf(a_stream, "  wjc --instance=waf_instance.waf.json\n");
         fprintf(a_stream, "\n");
         exit(exit_code);
 }
@@ -478,15 +550,17 @@ int main(int argc, char** argv)
                 { "ruleset-dir", 1, 0, 'r' },
                 { "instance",    1, 0, 'i' },
                 { "profile",     1, 0, 'p' },
+                { "acl",         1, 0, 'a' },
+                { "rules",       1, 0, 'R' },
 #ifdef WAFLZ_RATE_LIMITING
                 { "limit",       1, 0, 'l' },
-                { "enfcr",       1, 0, 'e' },
+                { "limits",      1, 0, 'L' },
 #endif
                 { "json",        0, 0, 'j' },
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-        while ((l_opt = getopt_long_only(argc, argv, "hvdr:i:p:l:e:j", l_long_options, &l_option_index)) != -1)
+        while ((l_opt = getopt_long_only(argc, argv, "hvdr:i:p:a:R:l:L:j", l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)
                 {
@@ -548,6 +622,24 @@ int main(int argc, char** argv)
                         l_config_mode = CONFIG_MODE_PROFILE;
                         break;
                 }
+                // -----------------------------------------
+                // acl
+                // -----------------------------------------
+                case 'a':
+                {
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_ACL;
+                        break;
+                }
+                // -----------------------------------------
+                // rules
+                // -----------------------------------------
+                case 'R':
+                {
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_RULES;
+                        break;
+                }
 #ifdef WAFLZ_RATE_LIMITING
                 // -----------------------------------------
                 // limit
@@ -559,12 +651,12 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // enfcr
+                // limits
                 // -----------------------------------------
-                case 'e':
+                case 'L':
                 {
                         l_file = optarg;
-                        l_config_mode = CONFIG_MODE_ENFCR;
+                        l_config_mode = CONFIG_MODE_LIMITS;
                         break;
                 }
 #endif
@@ -605,6 +697,18 @@ int main(int argc, char** argv)
         switch(l_config_mode)
         {
         // -------------------------------------------------
+        // instance
+        // -------------------------------------------------
+        case(CONFIG_MODE_INSTANCE):
+        {
+                l_s = validate_instance(l_file, l_ruleset_dir);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
+        }
+        // -------------------------------------------------
         // profile
         // -------------------------------------------------
         case(CONFIG_MODE_PROFILE):
@@ -617,11 +721,23 @@ int main(int argc, char** argv)
                 break;
         }
         // -------------------------------------------------
-        // profile
+        // acl
         // -------------------------------------------------
-        case(CONFIG_MODE_INSTANCE):
+        case(CONFIG_MODE_ACL):
         {
-                l_s = validate_instance(l_file, l_ruleset_dir);
+                l_s = validate_acl(l_file);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
+        }
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+        case(CONFIG_MODE_RULES):
+        {
+                l_s = validate_rules(l_file);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;
@@ -634,7 +750,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_LIMIT):
         {
-                l_s = validate_limit(l_file, l_display_json);
+                l_s = validate_limit(l_file);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;
@@ -642,11 +758,11 @@ int main(int argc, char** argv)
                 break;
         }
         // -------------------------------------------------
-        // limit
+        // limits
         // -------------------------------------------------
-        case(CONFIG_MODE_ENFCR):
+        case(CONFIG_MODE_LIMITS):
         {
-                l_s = validate_enfcr(l_file, l_display_json);
+                l_s = validate_limits(l_file, l_display_json);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;

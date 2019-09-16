@@ -57,24 +57,15 @@ find_python_module(requests REQUIRED)
 # ------------------------------------------------------------------------------
 # waflz
 # ------------------------------------------------------------------------------
-add_test(blackbox_acl
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/acl/test_bb_acl.py)
-add_test(blackbox_acl_accesslists
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/acl/test_bb_acl_accesslists.py)
-add_test(blackbox_ruleset
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/ruleset/test_ruleset.py)
-add_test(blackbox_rules
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/rules/test_bb_rules.py)
-add_test(blackbox_rtu
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/rules/test_bb_rtu.py)
-add_test(blackbox_instances
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/instances/test_instances.py)
-add_test(blackbox_profile
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/profile/test_bb_profile.py)
-add_test(blackbox_scopes
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/scopes/test_bb_scopes.py)
-add_test(blackbox_wjc
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/wjc/test_bb_wjc.py)
+add_test(blackbox_acl             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/acl/test_bb_acl.py)
+add_test(blackbox_acl_accesslists ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/acl/test_bb_acl_accesslists.py)
+add_test(blackbox_ruleset         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/ruleset/test_ruleset.py)
+add_test(blackbox_rules           ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/rules/test_bb_rules.py)
+add_test(blackbox_rtu             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/rules/test_bb_rtu.py)
+add_test(blackbox_instances       ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/instances/test_instances.py)
+add_test(blackbox_profile         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/profile/test_bb_profile.py)
+add_test(blackbox_wjc             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/wjc/test_bb_wjc.py)
+add_test(blackbox_scopes          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/scopes/test_bb_scopes.py)
 # ------------------------------------------------------------------------------
 # tests
 # ------------------------------------------------------------------------------

@@ -310,6 +310,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 int32_t l_s;
                 char *l_dcd = NULL;
                 size_t l_dcd_len = 0;
+                bool l_dcd_allocd = false;
                 if(a_enf.has_response_body())
                 {
                         l_dcd = (char *)a_enf.response_body().c_str();
@@ -324,6 +325,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                                 if(l_dcd) { free(l_dcd); l_dcd = NULL; }
                                 break;
                         }
+                        l_dcd_allocd = true;
                 }
                 // -----------------------------------------
                 // render
@@ -334,14 +336,14 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_dcd_allocd && l_dcd) { free(l_dcd); l_dcd = NULL; }
                         if(l_rndr) { free(l_rndr); l_rndr = NULL; }
                         break;
                 }
                 // -----------------------------------------
                 // set/cleanup
                 // -----------------------------------------
-                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                if(l_dcd_allocd && l_dcd) { free(l_dcd); l_dcd = NULL; }
                 // -----------------------------------------
                 // response
                 // -----------------------------------------

@@ -210,6 +210,7 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         if(m_scopes_dir)
         {
+                NDBG_PRINT("...\n");
                 l_s = m_scopes_configs->load_scopes_dir(m_config.c_str(), m_config.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {

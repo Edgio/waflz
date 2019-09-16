@@ -122,6 +122,8 @@ message condition {
 //: matches
 //: ----------------------------------------------------------------------------
 message condition_group {
+        optional string id = 1;
+        optional string name = 2;
         repeated condition conditions = 100;
 }
 //: ----------------------------------------------------------------------------

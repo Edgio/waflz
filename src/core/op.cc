@@ -826,6 +826,13 @@ OP(RX)
                 }
                 ao_match = true;
         }
+        /*cx_map_t::iterator it;
+        for(it = a_ctx->m_cx_tx_map.begin();
+            it != a_ctx->m_cx_tx_map.end(); ++it)
+        {
+                printf("Key - %s, Value - %s\n", it->first.c_str(), it->second.c_str());
+        }
+        */
         SET_IF_NEGATED();
         return WAFLZ_STATUS_OK;
 }

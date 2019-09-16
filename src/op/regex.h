@@ -32,8 +32,14 @@
 #include <string>
 #include <list>
 #include <re2/re2.h>
+#include <vector>
 namespace ns_waflz
 {
+//: ----------------------------------------------------------------------------
+//: define limits
+//: ----------------------------------------------------------------------------
+#define PCRE_MATCH_LIMIT 100
+#define PCRE_MATCH_LIMIT_RECURSION 100
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
@@ -78,6 +84,13 @@ public:
                 *a_reason = m_err_ptr;
                 a_offset = m_err_off;
         }
+
+        void set_pcre_match_limits()
+        {
+                m_regex_study->flags |= PCRE_EXTRA_MATCH_LIMIT | PCRE_EXTRA_MATCH_LIMIT_RECURSION;
+                m_regex_study->match_limit = PCRE_MATCH_LIMIT;
+                m_regex_study->match_limit_recursion = PCRE_MATCH_LIMIT_RECURSION;
+        }
         int32_t init(const char *a_buf, uint32_t a_len)
         {
                 if(!a_buf ||
@@ -101,10 +114,6 @@ public:
                 m_regex_study = pcre_study(m_regex,
                                            s_pcre_study_options,
                                            &m_err_ptr);
-                m_regex_study->flags = PCRE_EXTRA_MATCH_LIMIT | PCRE_EXTRA_MATCH_LIMIT_RECURSION;
-                m_regex_study->match_limit = 100;
-                m_regex_study->match_limit_recursion = 100;
-
                 // -----------------------------------------
                 // if regex_study NULL not compiled with JIT
                 // check m_err_ptr for error
@@ -113,9 +122,10 @@ public:
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
-                printf("pcre-flags %lu\n", m_regex_study->flags);
-                printf("pcre-matchlimit %lu\n",m_regex_study->match_limit);
-                printf("pcre-matchlimitrecursion %lu\n", m_regex_study->match_limit_recursion);
+                // -----------------------------------------
+                // set pcre match limits
+                // -----------------------------------------
+                set_pcre_match_limits();
                 // -----------------------------------------
                 // re2
                 // -----------------------------------------
@@ -136,7 +146,6 @@ public:
         // -------------------------------------------------
         int compare(const char *a_buf, uint32_t a_len, std::string *ao_captured = NULL)
         {
-                printf("Regex compare-input buffer- %s\n", a_buf);
                 // -----------------------------------------
                 // Check for NULL
                 // -----------------------------------------
@@ -170,7 +179,6 @@ public:
                 // -----------------------------------------
                 if(l_s == 0)
                 {
-                        printf("pcre match succeeded\n");
                         // ---------------------------------
                         // Number of elements in output
                         // vector, multiple of
@@ -185,16 +193,18 @@ public:
                 {
                         ao_captured->assign(a_buf + l_ovector[0],
                                             (l_ovector[1] - l_ovector[0]));
-                        printf("Regex compare- captured string %s\n", ao_captured->c_str());
                 }
-                int l_int_match;
-                std::string l_string_match;
-                int l_s_re;
-                l_s_re = RE2::FullMatch(a_buf, *m_re, &l_string_match, (void*)NULL, &l_int_match);
-                if(l_s_re > 0)
+//#if 0
+                if(m_re)
                 {
-                        printf("RE2 compare-Matched String\n");
+                    int l_s_re;
+                    l_s_re = RE2::FullMatch(a_buf, *m_re);
+                    if(l_s_re > 0)
+                    {
+                            //printf("RE2 compare-Matched String\n");
+                    }
                 }
+//#endif
                 return l_s;
         }
         /// --------------------------------------------------------------------
@@ -204,7 +214,7 @@ public:
         /// --------------------------------------------------------------------
         int compare_all(const char *a_buf, uint32_t a_len, data_list_t *ao_captured)
         {
-                //printf("regex compare all - input buf - %s\n", a_buf);
+                printf("regex compare all - input buf %s\n", a_buf);
                 // -----------------------------------------
                 // No check for empty input
                 // Input can be empty. e.g empty headers
@@ -250,20 +260,41 @@ public:
                                         l_data.m_data = a_buf + l_start;
                                         l_data.m_len = l_len;
                                         ao_captured->push_back(l_data);
-                                        printf("Regex compare all- matched str %s\n", l_data.m_data);
+                                        printf("pcre match for input - %s is matched string - %s", a_buf, l_data);
                                 }
                         }
                 }while (l_s > 0);
-                //int l_int_match;
-                std::string l_string_match;
-                int l_s_re;
-                std::string input(a_buf, a_len);
-                l_s_re = RE2::PartialMatch(input, *m_re, &l_string_match);
-                printf("Regex compare val %d\n", l_s_re);
-                if(l_s_re > 0)
+//#if 0
+                if(m_re)
                 {
-                        printf("RE2- compare all-Matched String- %s\n", l_string_match.c_str());
+                        int l_s_re;
+                        std::string input(a_buf, a_len);
+                        int l_match_size = m_re->NumberOfCapturingGroups();
+                        if(l_match_size < 0)
+                        {
+                                return l_ret_val;
+                        }
+                        if(l_match_size > PCRE_MATCH_LIMIT )
+                        {
+                                l_match_size = PCRE_MATCH_LIMIT;
+                        }
+                        std::vector<RE2::Arg> l_argv(l_match_size);
+                        std::vector<RE2::Arg*> l_args(l_match_size);
+                        std::vector<std::string> l_matches(l_match_size);
+
+                        for(int i=0 ; i < l_match_size; ++i)
+                        {
+                                l_argv[i] = &l_matches[i];
+                                l_args[i] = &l_argv[i];
+                        }
+
+                        l_s_re = RE2::FullMatchN(input, *m_re, l_args.data(), l_match_size);
+                        if(l_s_re > 0)
+                        {
+                                //printf("RE2- compare all-Matched String");
+                        }
                 }
+//#endif
                 return l_ret_val;
         }
         const std::string &get_regex_string(void)

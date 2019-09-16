@@ -206,9 +206,9 @@ int32_t scopes_configs::load_scopes_file(const char* a_file_path,
 //: ----------------------------------------------------------------------------
 int32_t scopes_configs::load_scopes(const char *a_buf, uint32_t a_buf_len)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // parse
-        // ---------------------------------------
+        // -------------------------------------------------
         rapidjson::Document *l_js = new rapidjson::Document();
         rapidjson::ParseResult l_ok;
         l_ok = l_js->Parse(a_buf, a_buf_len);
@@ -226,10 +226,9 @@ int32_t scopes_configs::load_scopes(const char *a_buf, uint32_t a_buf_len)
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // object
-        // ---------------------------------------
-        // Lock down this junk
+        // -------------------------------------------------
         if(m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
@@ -248,9 +247,9 @@ int32_t scopes_configs::load_scopes(const char *a_buf, uint32_t a_buf_len)
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // array
-        // ---------------------------------------
+        // -------------------------------------------------
         else if(l_js->IsArray())
         {
                 for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
@@ -341,9 +340,6 @@ int32_t scopes_configs::load(void* a_js)
                 i_scopes->second = l_scopes;
                 return WAFLZ_STATUS_OK;                
         }
-        //TODO: check if its ok to update instance that
-        // has not been loaded before. Introduce a_update 
-        // var if it is required
         // -------------------------------------------------
         // add to map
         // -------------------------------------------------

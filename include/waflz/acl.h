@@ -55,7 +55,8 @@ public:
         // -------------------------------------------------
         acl(void);
         ~acl();
-        int32_t compile();
+        int32_t load_config(const char *a_buf, uint32_t a_buf_len);
+        int32_t load_config(const waflz_pb::acl* a_pb);
         int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx, rqst_ctx &a_rqst_ctx);
         int32_t process_whitelist(bool &ao_match, rqst_ctx &a_ctx);
         int32_t process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
@@ -72,7 +73,7 @@ public:
         {
                 return m_err_msg;
         }
-        waflz_pb::acl *get_pb(void) { return m_pb; }
+        const waflz_pb::acl* get_pb(void) { return m_pb; }
 private:
         // -------------------------------------------------
         // private types
@@ -92,12 +93,14 @@ private:
         // -------------------------------------------------
         // private methods
         // -------------------------------------------------
+        int32_t init();
         // disallow copy/assign
         acl(const acl &);
         acl& operator=(const acl &);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
+        bool m_init;
         char m_err_msg[WAFLZ_ERR_LEN];
         waflz_pb::acl *m_pb;
         // ip

@@ -27,6 +27,7 @@
 #include "op/regex.h"
 #include "support/string_util.h"
 #include "op/nms.h"
+#include "jspb/jspb.h"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/acl.h"
@@ -35,6 +36,10 @@
 #include "acl.pb.h"
 #include <errno.h>
 #include <limits.h>
+//: ----------------------------------------------------------------------------
+//: constants
+//: ----------------------------------------------------------------------------
+#define _CONFIG_ACL_MAX_SIZE (1<<20)
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
@@ -79,6 +84,7 @@ const str_set_t g_ignore_ct_set(g_ignore_ct_set_vals,
 //: \param   None
 //: ----------------------------------------------------------------------------
 acl::acl(void):
+        m_init(false),
         m_err_msg(),
         m_pb(NULL),
         m_ip_whitelist(NULL),
@@ -141,6 +147,74 @@ acl::~acl(void)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+int32_t acl::load_config(const char *a_buf, uint32_t a_buf_len)
+{
+        if(a_buf_len > _CONFIG_ACL_MAX_SIZE)
+        {
+                WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
+                             a_buf_len,
+                             _CONFIG_ACL_MAX_SIZE);
+                return WAFLZ_STATUS_ERROR;
+        }
+        m_init = false;
+        if(m_pb)
+        {
+                delete m_pb;
+                m_pb = NULL;
+        }
+        // -------------------------------------------------
+        // load from json
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = update_from_json(*m_pb, a_buf, a_buf_len);
+        //NDBG_PRINT("whole config %s", m_pb->DebugString().c_str());
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "%s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // init
+        // -------------------------------------------------
+        l_s = init();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t acl::load_config(const waflz_pb::acl* a_pb)
+{
+        if(!a_pb)
+        {
+                WAFLZ_PERROR(m_err_msg, "a_pb == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // copy from json
+        // -------------------------------------------------
+        m_pb->CopyFrom(*a_pb);
+        // -------------------------------------------------
+        // init
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = init();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 static int32_t compile_regex_list(regex **ao_regex,
                                   const ::google::protobuf::RepeatedPtrField< ::std::string>& a_list,
                                   uint32_t a_list_len)
@@ -192,8 +266,12 @@ static int32_t compile_regex_list(regex **ao_regex,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t acl::compile()
+int32_t acl::init()
 {
+        if(m_init)
+        {
+                return WAFLZ_STATUS_OK;
+        }
         // -------------------------------------------------
         // acl: ip
         // -------------------------------------------------
@@ -375,6 +453,7 @@ int32_t acl::compile()
                         m_disallowed_headers.insert(m_pb->disallowed_headers(i_t));
                 }
         }
+        m_init = true;
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

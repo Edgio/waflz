@@ -49,7 +49,7 @@
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
-#define CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE (1<<20)
+#define _CONFIG_PROFILE_MAX_SIZE (1<<20)
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
@@ -143,11 +143,11 @@ void profile::set_pb(waflz_pb::profile *a_pb)
 //: ----------------------------------------------------------------------------
 int32_t profile::load_config(const char *a_buf, uint32_t a_buf_len)
 {
-        if(a_buf_len > CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE)
+        if(a_buf_len > _CONFIG_PROFILE_MAX_SIZE)
         {
                 WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
                              a_buf_len,
-                             CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE);
+                             _CONFIG_PROFILE_MAX_SIZE);
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
@@ -376,7 +376,7 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // compile
         // -------------------------------------------------
-        ::waflz_pb::acl *l_acl_pb = m_acl->get_pb();
+        ::waflz_pb::acl *l_acl_pb = new ::waflz_pb::acl();
         l_acl_pb->CopyFrom(l_pb.access_settings());
         // -------------------------------------------------
         // *************************************************
@@ -411,13 +411,15 @@ int32_t profile::init(void)
         {
                 l_acl_pb->set_max_file_size(l_gs.max_file_size());
         }
-        l_s = m_acl->compile();
+        l_s = m_acl->load_config(l_acl_pb);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());
+                if(l_acl_pb) { delete l_acl_pb; l_acl_pb = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = true;
+        if(l_acl_pb) { delete l_acl_pb; l_acl_pb = NULL; }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

@@ -148,6 +148,12 @@ scopes::~scopes()
                 m_pb = NULL;
         }
         // TODO clear parts...
+        for(id_rules_map_t::iterator i_rs = m_id_rules_map.begin();
+            i_rs != m_id_rules_map.end();
+            ++i_rs)
+        {
+                if(i_rs->second) { delete i_rs->second; i_rs->second = NULL; }
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO

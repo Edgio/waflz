@@ -864,6 +864,17 @@ int32_t rl_obj::convertv1(waflz_pb::config& ao_cfg,
                                 ::waflz_pb::condition& l_m = *(l_cg->add_conditions());
                                 const waflz_pb::rule& l_r = *l_rule;
                                 // -------------------------
+                                // name/id
+                                // -------------------------
+                                if(l_r.has_id())
+                                {
+                                        l_cg->set_id(l_r.id());
+                                }
+                                if(l_r.has_name())
+                                {
+                                        l_cg->set_name(l_r.name());
+                                }
+                                // -------------------------
                                 // operator
                                 // -------------------------
                                 if(l_r.has_operator_())

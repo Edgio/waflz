@@ -34,11 +34,6 @@
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
-#define PCRE_MATCH_LIMIT 100
-#define PCRE_MATCH_LIMIT_RECURSION 100
-//: ----------------------------------------------------------------------------
 //:
 //: ----------------------------------------------------------------------------
 class regex
@@ -79,9 +74,7 @@ public:
 
         void set_pcre_match_limits()
         {
-                m_regex_study->flags |= PCRE_EXTRA_MATCH_LIMIT | PCRE_EXTRA_MATCH_LIMIT_RECURSION;
-                m_regex_study->match_limit = PCRE_MATCH_LIMIT;
-                m_regex_study->match_limit_recursion = PCRE_MATCH_LIMIT_RECURSION;
+
         }
         int32_t init(const char *a_buf, uint32_t a_len)
         {
@@ -119,7 +112,9 @@ public:
                 // -----------------------------------------
                 if(!m_regex_study)
                 {
-                        set_pcre_match_limits();
+                        m_regex_study->flags |= PCRE_EXTRA_MATCH_LIMIT | PCRE_EXTRA_MATCH_LIMIT_RECURSION;
+                        m_regex_study->match_limit = s_pcre_match_limit;
+                        m_regex_study->match_limit_recursion = s_pcre_match_limit_recursion;
                 }
                 return WAFLZ_STATUS_OK;
         }
@@ -157,6 +152,15 @@ public:
                                 // vector
                                 // -------------------------
                                 l_ovecsize);
+                // -----------------------------------------
+                // Check if pcre match limit or recursion
+                // limit is reached
+                // -----------------------------------------
+                if(l_s == PCRE_ERROR_MATCHLIMIT ||
+                    l_s ==  PCRE_ERROR_RECURSIONLIMIT)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
                 // -----------------------------------------
                 // Match succeeded but ovector too small
                 // -----------------------------------------
@@ -210,6 +214,15 @@ public:
                                 // vector
                                 // -------------------------
                                 l_ovecsize);
+                        // -----------------------------------------
+                        // Check if pcre match limit or recursion
+                        // limit is reached
+                        // -----------------------------------------
+                        if(l_s == PCRE_ERROR_MATCHLIMIT ||
+                            l_s ==  PCRE_ERROR_RECURSIONLIMIT)
+                        {
+                                return WAFLZ_STATUS_ERROR;
+                        }
                         for (int i_t = 0; i_t < l_s; ++i_t)
                         {
                                 l_ret_val++;
@@ -258,6 +271,11 @@ private:
         // err info
         const char *m_err_ptr;
         int m_err_off;
+        // -------------------------------------------------
+        // Private const
+        // -------------------------------------------------
+        static const unsigned int s_pcre_match_limit = 100;
+        static const unsigned int s_pcre_match_limit_recursion = 100;
         // -------------------------------------------------
         // Private static
         // -------------------------------------------------

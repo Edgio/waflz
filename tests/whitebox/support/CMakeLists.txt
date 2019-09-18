@@ -91,22 +91,6 @@ target_link_libraries(wb_geoip2_mmdb
 SET_TARGET_PROPERTIES(wb_geoip2_mmdb PROPERTIES OUTPUT_NAME "wb_geoip2_mmdb")
 add_test(geoip2_mmdb wb_geoip2_mmdb)
 # ----------------------------------------------------------
-# wb_regex
-# ----------------------------------------------------------
-SET(SRCS
-  wb_regex.cc
-)
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/src
-)
-add_executable(wb_regex ${HDRS} ${SRCS})
-add_dependencies(wb_regex waflzcore)
-target_link_libraries(wb_regex ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
-SET_TARGET_PROPERTIES(wb_regex PROPERTIES OUTPUT_NAME "wb_regex")
-add_test(regex wb_regex)
-# ----------------------------------------------------------
 # wb_md5
 # ----------------------------------------------------------
 SET(SRCS

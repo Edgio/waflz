@@ -149,6 +149,10 @@ acl::~acl(void)
 //: ----------------------------------------------------------------------------
 int32_t acl::load_config(const char *a_buf, uint32_t a_buf_len)
 {
+        if(!a_buf)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
         if(a_buf_len > _CONFIG_ACL_MAX_SIZE)
         {
                 WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
@@ -162,6 +166,7 @@ int32_t acl::load_config(const char *a_buf, uint32_t a_buf_len)
                 delete m_pb;
                 m_pb = NULL;
         }
+        m_pb = new waflz_pb::acl();
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------

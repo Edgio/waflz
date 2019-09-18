@@ -33,7 +33,7 @@
 #include "support/ndebug.h"
 #include "jspb/jspb.h"
 #include "event.pb.h"
-#include "config.pb.h"
+#include "profile.pb.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>

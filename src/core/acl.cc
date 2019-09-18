@@ -31,7 +31,6 @@
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/acl.h"
-#include "config.pb.h"
 #include "event.pb.h"
 #include "acl.pb.h"
 #include <errno.h>

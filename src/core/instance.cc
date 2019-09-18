@@ -24,7 +24,7 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "event.pb.h"
-#include "config.pb.h"
+#include "profile.pb.h"
 #include "action.pb.h"
 #include "jspb/jspb.h"
 #include "support/ndebug.h"

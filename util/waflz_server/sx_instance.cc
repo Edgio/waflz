@@ -36,7 +36,7 @@
 #include "jspb/jspb.h"
 #include "support/file_util.h"
 #include "event.pb.h"
-#include "config.pb.h"
+#include "profile.pb.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"

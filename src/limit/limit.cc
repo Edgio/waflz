@@ -184,15 +184,6 @@ int32_t limit::init()
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // has customer id
-        // -------------------------------------------------
-        if(!m_pb->has_customer_id() ||
-            m_pb->customer_id().empty())
-        {
-                WAFLZ_PERROR(m_err_msg, "missing customer_id field or empty");
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
         // has num
         // -------------------------------------------------
         if(!m_pb->has_num() ||

@@ -19,9 +19,9 @@ add_custom_command(
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rule.proto
 )
 add_custom_command(
-    OUTPUT config_pb2.py
-    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/config.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config.proto
+    OUTPUT profile_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/profile.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/profile.proto
 )
 add_custom_command(
     OUTPUT event_pb2.py
@@ -53,7 +53,7 @@ add_custom_command(
 add_custom_target(protodata_py_out ALL DEPENDS
     ${CMAKE_BINARY_DIR}/proto/action_pb2.py
     ${CMAKE_BINARY_DIR}/proto/rule_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/config_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/profile_pb2.py
     ${CMAKE_BINARY_DIR}/proto/event_pb2.py
     ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
     ${CMAKE_BINARY_DIR}/proto/acl_pb2.py
@@ -74,9 +74,9 @@ add_custom_command(
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rule.proto
     )
 add_custom_command(
-    OUTPUT config.pb.cc config.pb.h
-    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/config.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config.proto
+    OUTPUT profile.pb.cc profile.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/profile.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/profile.proto
     )
 add_custom_command(
     OUTPUT event.pb.cc event.pb.h
@@ -111,8 +111,8 @@ add_custom_target(protobuf_cpp_out ALL DEPENDS
     ${CMAKE_BINARY_DIR}/proto/action.pb.h
     ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
     ${CMAKE_BINARY_DIR}/proto/rule.pb.h
-    ${CMAKE_BINARY_DIR}/proto/config.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/config.pb.h
+    ${CMAKE_BINARY_DIR}/proto/profile.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/profile.pb.h
     ${CMAKE_BINARY_DIR}/proto/event.pb.cc
     ${CMAKE_BINARY_DIR}/proto/event.pb.h
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
@@ -130,7 +130,7 @@ add_custom_target(protobuf_cpp_out ALL DEPENDS
 set(SRCS
     action.pb.cc
     rule.pb.cc
-    config.pb.cc
+    profile.pb.cc
     event.pb.cc
     request_info.pb.cc
     acl.pb.cc
@@ -143,7 +143,7 @@ set(SRCS
 set(HDRS
     action.pb.h
     rule.pb.h
-    config.pb.h
+    profile.pb.h
     event.pb.h
     request_info.pb.h
     acl.pb.h

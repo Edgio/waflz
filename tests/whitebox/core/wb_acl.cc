@@ -30,7 +30,7 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"
 #include "waflz/def.h"
-#include "config.pb.h"
+#include "profile.pb.h"
 #include "event.pb.h"
 #include "support/ndebug.h"
 #include <unistd.h>

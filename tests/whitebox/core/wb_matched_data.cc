@@ -30,7 +30,7 @@
 #include "waflz/profile.h"
 #include "waflz/engine.h"
 #include "jspb/jspb.h"
-#include "config.pb.h"
+#include "profile.pb.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>

@@ -25,7 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "rule.pb.h"
 #include "event.pb.h"
-#include "config.pb.h"
+#include "profile.pb.h"
 #include "waflz/def.h"
 #include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"

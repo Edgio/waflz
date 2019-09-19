@@ -112,8 +112,8 @@ message condition {
                         ARGS_GET = 7;
                         FILE_EXT = 8;
                 }
-		optional type_t type = 1;
-		optional string value = 2;
+                optional type_t type = 1;
+                optional string value = 2;
         }
         optional target_t target = 1;
         optional waflz_pb.op_t op = 2;
@@ -135,6 +135,9 @@ message limit {
                 IP = 1;
                 USER_AGENT = 2;
         }
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
         optional string id = 1;
         optional string name = 2;
         optional bool disabled = 3;
@@ -148,10 +151,11 @@ message limit {
         optional enforcement action = 200;
         optional string enabled_date = 400;
         optional string last_modified_date = 401;
-        optional string customer_id = 402;
-	//: ------------------------------------------------
-	//: ************* D E P R E C A T E D **************
-	//: ------------------------------------------------
+        optional string last_modified_by = 402;
+        optional string customer_id = 403;
+        //: ------------------------------------------------
+        //: ************* D E P R E C A T E D **************
+        //: ------------------------------------------------
         optional waflz_pb.scope scope = 1000;
         // -------------------------------------------------
         // reserved for internal use

@@ -96,7 +96,7 @@ SET(SRCS
     # ------------------------------------------------------
     # pb
     # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/config.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/profile.pb.cc
     ${CMAKE_BINARY_DIR}/proto/event.pb.cc
     ${CMAKE_BINARY_DIR}/proto/action.pb.cc
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
@@ -243,8 +243,8 @@ SET(PB_SRCS
     # ------------------------------------------------------
     # proto
     # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/config.pb.h
-    ${CMAKE_BINARY_DIR}/proto/config.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/profile.pb.h
+    ${CMAKE_BINARY_DIR}/proto/profile.pb.cc
     ${CMAKE_BINARY_DIR}/proto/action.pb.h
     ${CMAKE_BINARY_DIR}/proto/action.pb.cc
     ${CMAKE_BINARY_DIR}/proto/event.pb.h
@@ -271,7 +271,7 @@ set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
 # Python support
 # ------------------------------------------------------------------------------
 SET(PY_INST
-    ${CMAKE_BINARY_DIR}/proto/config_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/profile_pb2.py
     ${CMAKE_BINARY_DIR}/proto/action_pb2.py
     ${CMAKE_BINARY_DIR}/proto/event_pb2.py
     ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py

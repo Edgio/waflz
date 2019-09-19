@@ -23,7 +23,7 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#include "config.pb.h"
+#include "profile.pb.h"
 #include "waflz/instances.h"
 #include "waflz/instance.h"
 #include "waflz/profile.h"

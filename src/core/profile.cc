@@ -23,7 +23,7 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#include "config.pb.h"
+#include "profile.pb.h"
 #include "action.pb.h"
 #include "request_info.pb.h"
 #include "acl.pb.h"

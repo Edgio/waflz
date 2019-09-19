@@ -26,6 +26,8 @@
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "op/regex.h"
+#include "support/ndebug.h"
+#include "support/time_util.h"
 #define REGEX_PREFIX "bananas*"
 #define REGEX_IP_ADDRESS "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
 //: ----------------------------------------------------------------------------
@@ -54,5 +56,25 @@ TEST_CASE( "pcre obj test", "[regex]" ) {
                 REQUIRE((l_compare > 0));
                 l_compare = l_p.compare("monkeys aint cool", strlen("monkeys aint cool"));
                 REQUIRE((l_compare <= 0));
+        }
+        SECTION("reDoS test") {
+                ns_waflz::regex l_p;
+                int32_t l_s;
+#define _STR "^((ab)*)+$"
+#define _MATCH "ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab a"
+                l_s = l_p.init(_STR, strlen(_STR));
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                uint64_t l_t_s;
+                l_t_s = ns_waflz::get_time_ms();
+                for(int i = 0; i < 10; ++i)
+                {
+                int l_m;
+                ns_waflz::data_list_t l_d;
+                l_m = l_p.compare_all(_MATCH, strlen(_MATCH), &l_d);
+                REQUIRE((l_m <= 0));
+                }
+                uint64_t l_dt_s;
+                l_dt_s = ns_waflz::get_delta_time_ms(l_t_s);
+                REQUIRE(l_dt_s < 200);
         }
 }

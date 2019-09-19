@@ -28,6 +28,7 @@
 #include "waflz/engine.h"
 #include "waflz/geoip2_mmdb.h"
 #include "support/string_util.h"
+#include "support/ndebug.h"
 #include "op/regex.h"
 #include "op/ac.h"
 #include "op/nms.h"

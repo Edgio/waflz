@@ -291,6 +291,7 @@ static int32_t validate_acl(const std::string &a_file)
         {
                 fprintf(stderr, "failed to load acl config: %s.  Reason: %s\n", a_file.c_str(), l_acl->get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
+                if(l_acl) { delete l_acl; l_acl = NULL;}
                 return STATUS_ERROR;
         }
         // -------------------------------------------------

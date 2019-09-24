@@ -26,6 +26,7 @@
 #include "waflz/scopes.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/config_parser.h"
+#include "waflz/acl.h"
 #include "waflz/waf.h"
 #include "waflz/engine.h"
 #include "waflz/limit/rl_obj.h"
@@ -405,17 +406,31 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(l_m)
+                // -----------------------------------------
+                // no match continue to next check...
+                // -----------------------------------------
+                if(!l_m)
                 {
-                        // TODO process scope...
-                        l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, ao_rqst_ctx);
-                        goto done;
+                        continue;
                 }
+                // -----------------------------------------
+                // process scope...
+                // -----------------------------------------
+                l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO -log error???
+                        if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // break out on first scope match
+                // -----------------------------------------
+                break;
         }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-done:
         if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
@@ -431,28 +446,123 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         void *a_ctx,
                         rqst_ctx **ao_rqst_ctx)
 {
-        // TODO clear ao_* inputs
+        // -------------------------------------------------
+        // sanity checking
+        // -------------------------------------------------
+        if(!ao_enf ||
+           !ao_audit_event ||
+           !ao_prod_event)
+        {
+                // TODO reason???
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // clear ao_* inputs
+        // -------------------------------------------------
         *ao_enf = NULL;
         *ao_audit_event = NULL;
         *ao_prod_event = NULL;
         // -------------------------------------------------
         // *************************************************
-        //                  A U D I T
-        // *************************************************
-        // -------------------------------------------------
-        // TODO
-        // -------------------------------------------------
-        // *************************************************
-        //                   P R O D
+        //                   A U D I T
         // *************************************************
         // -------------------------------------------------
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-        // TODO
+        if(a_scope.has__acl_audit__reserved())
+        {
+                acl *l_acl = (acl *)a_scope._acl_audit__reserved();
+                waflz_pb::event *l_event = NULL;
+                bool l_wl = false;
+                int32_t l_s;
+                l_s = l_acl->process(&l_event, l_wl, a_ctx, **ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(!l_event)
+                {
+                        goto audit_rules;
+                }
+                *ao_audit_event = l_event;
+                if(a_scope.has_acl_audit_action())
+                {
+                        *ao_enf = &(a_scope.acl_audit_action());
+                }
+                goto prod_acl;
+        }
         // -------------------------------------------------
         // rules
         // -------------------------------------------------
+audit_rules:
+        if(a_scope.has__rules_audit__reserved())
+        {
+                waf *l_waf = (waf *)a_scope._rules_audit__reserved();
+                waflz_pb::event *l_event = NULL;
+                int32_t l_s;
+                l_s = l_waf->process(&l_event, a_ctx, ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(!l_event)
+                {
+                        goto audit_profile;
+                }
+                *ao_audit_event = l_event;
+                if(a_scope.has_rules_audit_action())
+                {
+                        *ao_enf = &(a_scope.rules_audit_action());
+                }
+                goto prod_acl;
+        }
+        // -------------------------------------------------
+        // profile
+        // -------------------------------------------------
+audit_profile:
+        // TODO
+        // -------------------------------------------------
+        // *************************************************
+        //                    P R O D
+        // *************************************************
+        // -------------------------------------------------
+        // -------------------------------------------------
+        // acl
+        // -------------------------------------------------
+prod_acl:
+        if(a_scope.has__acl_prod__reserved())
+        {
+                acl *l_acl = (acl *)a_scope._acl_prod__reserved();
+                waflz_pb::event *l_event = NULL;
+                bool l_wl = false;
+                int32_t l_s;
+                l_s = l_acl->process(&l_event, l_wl, a_ctx, **ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(!l_event)
+                {
+                        goto prod_rules;
+                }
+                *ao_prod_event = l_event;
+                if(a_scope.has_acl_prod_action())
+                {
+                        *ao_enf = &(a_scope.acl_prod_action());
+                }
+                goto done;
+        }
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+prod_rules:
         if(a_scope.has__rules_prod__reserved())
         {
                 // -----------------------------------------
@@ -465,6 +575,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
                 if(!l_event)
@@ -476,6 +587,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                 {
                         *ao_enf = &(a_scope.rules_prod_action());
                 }
+                goto done;
         }
         // -------------------------------------------------
         // profile
@@ -485,6 +597,7 @@ prod_profile:
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
+done:
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

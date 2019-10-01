@@ -492,7 +492,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                 {
                         *ao_enf = &(a_scope.acl_audit_action());
                 }
-                goto prod_acl;
+                goto prod;
         }
         // -------------------------------------------------
         // rules
@@ -519,22 +519,56 @@ audit_rules:
                 {
                         *ao_enf = &(a_scope.rules_audit_action());
                 }
-                goto prod_acl;
+                goto prod;
         }
         // -------------------------------------------------
         // profile
         // -------------------------------------------------
 audit_profile:
-        // TODO
+        if(a_scope.has__profile_audit__reserved())
+        {
+                int32_t l_s;
+                // -----------------------------------------
+                // reset phase 1 to handle ignore...
+                // -----------------------------------------
+                l_s = (*ao_rqst_ctx)->reset_phase_1();
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // profile process
+                // -----------------------------------------
+                profile *l_profile = (profile *)a_scope._profile_audit__reserved();
+                waflz_pb::event *l_event = NULL;
+                l_s = l_profile->process(&l_event, a_ctx, ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(!l_event)
+                {
+                        goto prod;
+                }
+                *ao_audit_event = l_event;
+                if(a_scope.has_profile_audit_action())
+                {
+                        *ao_enf = &(a_scope.profile_audit_action());
+                }
+                goto prod;
+        }
         // -------------------------------------------------
         // *************************************************
         //                    P R O D
         // *************************************************
         // -------------------------------------------------
+prod:
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-prod_acl:
         if(a_scope.has__acl_prod__reserved())
         {
                 acl *l_acl = (acl *)a_scope._acl_prod__reserved();
@@ -592,8 +626,42 @@ prod_rules:
         // -------------------------------------------------
         // profile
         // -------------------------------------------------
-        // TODO
 prod_profile:
+        if(a_scope.has__profile_prod__reserved())
+        {
+                int32_t l_s;
+                // -----------------------------------------
+                // reset phase 1 to handle ignore...
+                // -----------------------------------------
+                l_s = (*ao_rqst_ctx)->reset_phase_1();
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // profile process
+                // -----------------------------------------
+                profile *l_profile = (profile *)a_scope._profile_prod__reserved();
+                waflz_pb::event *l_event = NULL;
+                l_s = l_profile->process(&l_event, a_ctx, ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(!l_event)
+                {
+                        goto done;
+                }
+                *ao_prod_event = l_event;
+                if(a_scope.has_profile_prod_action())
+                {
+                        *ao_enf = &(a_scope.profile_prod_action());
+                }
+                goto done;
+        }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------

@@ -50,7 +50,10 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 class engine;
 class rqst_ctx;
-class waf;
+class acl;
+class rules;
+class profile;
+class limit;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
@@ -71,9 +74,15 @@ public:
                 }
         };
 #if defined(__APPLE__) || defined(__darwin__)
-        typedef std::unordered_map<std::string, waf*, str_hash> id_rules_map_t;
+        typedef std::unordered_map<std::string, acl*, str_hash> id_acl_map_t;
+        typedef std::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
+        typedef std::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
+        typedef std::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
 #else
-        typedef std::tr1::unordered_map<std::string, waf*, str_hash> id_rules_map_t;
+        typedef std::tr1::unordered_map<std::string, acl*, str_hash> id_acl_map_t;
+        typedef std::tr1::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
+        typedef std::tr1::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
+        typedef std::tr1::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
 #endif
         // -------------------------------------------------
         // Public methods
@@ -119,17 +128,13 @@ private:
         engine &m_engine;
         // properties
         std::string m_id;
+        // -------------------------------------------------
         // parts...
         // -------------------------------------------------
-        // acls
-        // TODO
-        // rules
-        // TODO
+        id_acl_map_t m_id_acl_map;
         id_rules_map_t m_id_rules_map;
-        // profiles
-        // TODO
-        // limits
-        // TODO
+        id_profile_map_t m_id_profile_map;
+        id_limit_map_t m_id_limit_map;
 };
 //: ----------------------------------------------------------------------------
 //: run operation

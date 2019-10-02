@@ -27,9 +27,10 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/config_parser.h"
 #include "waflz/acl.h"
-#include "waflz/waf.h"
+#include "waflz/rules.h"
 #include "waflz/engine.h"
 #include "waflz/limit/rl_obj.h"
+#include "waflz/limit/limit.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
 #include "op/nms.h"
@@ -132,8 +133,13 @@ scopes::scopes(engine &a_engine):
         m_err_msg(),
         m_engine(a_engine),
         m_id(),
-        m_id_rules_map()
+        m_id_acl_map(),
+        m_id_rules_map(),
+        m_id_profile_map(),
+        m_id_limit_map()
 {
+
+
         m_pb = new waflz_pb::scope_config();
 }
 //: ----------------------------------------------------------------------------
@@ -148,12 +154,32 @@ scopes::~scopes()
                 delete m_pb;
                 m_pb = NULL;
         }
-        // TODO clear parts...
+        // -------------------------------------------------
+        // clear parts...
+        // -------------------------------------------------
+        for(id_acl_map_t::iterator i_acl = m_id_acl_map.begin();
+            i_acl != m_id_acl_map.end();
+            ++i_acl)
+        {
+                if(i_acl->second) { delete i_acl->second; i_acl->second = NULL; }
+        }
         for(id_rules_map_t::iterator i_rs = m_id_rules_map.begin();
             i_rs != m_id_rules_map.end();
             ++i_rs)
         {
                 if(i_rs->second) { delete i_rs->second; i_rs->second = NULL; }
+        }
+        for(id_profile_map_t::iterator i_p = m_id_profile_map.begin();
+            i_p != m_id_profile_map.end();
+            ++i_p)
+        {
+                if(i_p->second) { delete i_p->second; i_p->second = NULL; }
+        }
+        for(id_limit_map_t::iterator i_l = m_id_limit_map.begin();
+            i_l != m_id_limit_map.end();
+            ++i_l)
+        {
+                if(i_l->second) { delete i_l->second; i_l->second = NULL; }
         }
 }
 //: ----------------------------------------------------------------------------
@@ -286,46 +312,168 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
         // -------------------------------------------------
         // acl audit
         // -------------------------------------------------
-        // TODO
+        if(a_scope.has_acl_audit_id())
+        {
+                // -----------------------------------------
+                // check exist
+                // -----------------------------------------
+                id_acl_map_t::iterator i_acl = m_id_acl_map.find(a_scope.acl_audit_id());
+                if(i_acl != m_id_acl_map.end())
+                {
+                        a_scope.set__rules_audit__reserved((uint64_t)i_acl->second);
+                        goto acl_audit_action;
+                }
+                // -----------------------------------------
+                // make acl obj
+                // -----------------------------------------
+                acl *l_acl = new acl();
+                // TODO !!!
+                // -----------------------------------------
+                // add to map
+                // -----------------------------------------
+                a_scope.set__acl_audit__reserved((uint64_t)l_acl);
+                m_id_acl_map[a_scope.acl_audit_id()] = l_acl;
+        }
+acl_audit_action:
         // -------------------------------------------------
-        // acl prod
+        // acl audit action
         // -------------------------------------------------
-        // TODO
+        if(a_scope.has_acl_audit_action())
+        {
+                waflz_pb::enforcement *l_a = a_scope.mutable_acl_audit_action();
+                int32_t l_s;
+                l_s = compile_action(*l_a, m_err_msg);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // acl audit
+        // -------------------------------------------------
+        if(a_scope.has_acl_prod_id())
+        {
+                // -----------------------------------------
+                // check exist
+                // -----------------------------------------
+                id_acl_map_t::iterator i_acl = m_id_acl_map.find(a_scope.acl_prod_id());
+                if(i_acl != m_id_acl_map.end())
+                {
+                        a_scope.set__rules_prod__reserved((uint64_t)i_acl->second);
+                        goto acl_prod_action;
+                }
+                // -----------------------------------------
+                // make acl obj
+                // -----------------------------------------
+                acl *l_acl = new acl();
+                // TODO !!!
+                // -----------------------------------------
+                // add to map
+                // -----------------------------------------
+                a_scope.set__acl_prod__reserved((uint64_t)l_acl);
+                m_id_acl_map[a_scope.acl_prod_id()] = l_acl;
+        }
+acl_prod_action:
+        // -------------------------------------------------
+        // acl audit action
+        // -------------------------------------------------
+        if(a_scope.has_acl_audit_action())
+        {
+                waflz_pb::enforcement *l_a = a_scope.mutable_acl_audit_action();
+                int32_t l_s;
+                l_s = compile_action(*l_a, m_err_msg);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
         // -------------------------------------------------
         // rules audit
         // -------------------------------------------------
-        // TODO
-        // -------------------------------------------------
-        // rules prod
-        // -------------------------------------------------
-        if(a_scope.has_rules_prod_id())
+        if(a_scope.has_rules_audit_id())
         {
-                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id();
                 // -----------------------------------------
-                // make waf obj
+                // check exist
                 // -----------------------------------------
-                waf* l_waf = new waf(m_engine);
+                id_rules_map_t::iterator i_rules = m_id_rules_map.find(a_scope.rules_audit_id());
+                if(i_rules != m_id_rules_map.end())
+                {
+                        a_scope.set__rules_audit__reserved((uint64_t)i_rules->second);
+                        goto rules_audit_action;
+                }
+                // -----------------------------------------
+                // make rules obj
+                // -----------------------------------------
+                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_audit_id();
+                rules *l_rules = new rules(m_engine);
                 int32_t l_s;
-                l_s = l_waf->init(config_parser::JSON, l_p, true);
+                l_s = l_rules->load_config_file(l_p.c_str(), l_p.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("error loading conf file: %s. reason: %s\n",
-                                        l_p.c_str(),
+                        NDBG_PRINT("error loading rules (audit) conf file: %s. reason: %s\n",
+                                   l_p.c_str(),
                                    "__na__");
                                    // TODO -get reason...
                                    //l_wafl->get_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
-                // set version...
+                // add to map
                 // -----------------------------------------
-                l_waf->set_owasp_ruleset_version(300);
+                a_scope.set__rules_audit__reserved((uint64_t)l_rules);
+                m_id_rules_map[a_scope.rules_audit_id()] = l_rules;
+        }
+rules_audit_action:
+        // -------------------------------------------------
+        // rules audit action
+        // -------------------------------------------------
+        if(a_scope.has_rules_audit_action())
+        {
+                waflz_pb::enforcement *l_a = a_scope.mutable_rules_audit_action();
+                int32_t l_s;
+                l_s = compile_action(*l_a, m_err_msg);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // rules prod
+        // -------------------------------------------------
+        if(a_scope.has_rules_prod_id())
+        {
+                // -----------------------------------------
+                // check exist
+                // -----------------------------------------
+                id_rules_map_t::iterator i_rules = m_id_rules_map.find(a_scope.rules_prod_id());
+                if(i_rules != m_id_rules_map.end())
+                {
+                        a_scope.set__rules_prod__reserved((uint64_t)i_rules->second);
+                        goto rules_prod_action;
+                }
+                // -----------------------------------------
+                // make rules obj
+                // -----------------------------------------
+                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id();
+                rules *l_rules = new rules(m_engine);
+                int32_t l_s;
+                l_s = l_rules->load_config_file(l_p.c_str(), l_p.length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error loading rules (prod) conf file: %s. reason: %s\n",
+                                   l_p.c_str(),
+                                   "__na__");
+                                   // TODO -get reason...
+                                   //l_wafl->get_err_msg());
+                        return WAFLZ_STATUS_ERROR;
+                }
                 // -----------------------------------------
                 // add to map
                 // -----------------------------------------
-                a_scope.set__rules_prod__reserved((uint64_t)l_waf);
-                m_id_rules_map[a_scope.rules_prod_id()] = l_waf;
+                a_scope.set__rules_prod__reserved((uint64_t)l_rules);
+                m_id_rules_map[a_scope.rules_prod_id()] = l_rules;
         }
+rules_prod_action:
         // -------------------------------------------------
         // rules prod action
         // -------------------------------------------------
@@ -350,7 +498,16 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
         // -------------------------------------------------
         // limits
         // -------------------------------------------------
-        // TODO
+        for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
+        {
+                if(!a_scope.limits(i_l).has_id())
+                {
+                        continue;
+                }
+                //const std::string &l_id = a_scope.limits(i_l).id();
+                //limit *l_limit = new limit(m_engine);
+                // TODO !!!
+        }
         //NDBG_PRINT("%s\n", a_scope.DebugString().c_str());
         return WAFLZ_STATUS_OK;
 }
@@ -500,10 +657,10 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
 audit_rules:
         if(a_scope.has__rules_audit__reserved())
         {
-                waf *l_waf = (waf *)a_scope._rules_audit__reserved();
+                rules *l_rules = (rules *)a_scope._rules_audit__reserved();
                 waflz_pb::event *l_event = NULL;
                 int32_t l_s;
-                l_s = l_waf->process(&l_event, a_ctx, ao_rqst_ctx);
+                l_s = l_rules->process(&l_event, a_ctx, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
@@ -602,10 +759,10 @@ prod_rules:
                 // -----------------------------------------
                 // process
                 // -----------------------------------------
-                waf *l_waf = (waf *)a_scope._rules_prod__reserved();
+                rules *l_rules = (rules *)a_scope._rules_audit__reserved();
                 waflz_pb::event *l_event = NULL;
                 int32_t l_s;
-                l_s = l_waf->process(&l_event, a_ctx, ao_rqst_ctx);
+                l_s = l_rules->process(&l_event, a_ctx, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }

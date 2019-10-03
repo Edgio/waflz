@@ -74,7 +74,9 @@ public:
         // -------------------------------------------------
         bool m_bg_load;
         bool m_scopes_dir;
+        std::string m_redis_host;
         ns_waflz::engine *m_engine;
+        ns_waflz::kv_db *m_db;
         update_scopes_h *m_update_scopes_h;
         ns_waflz::scopes_configs *m_scopes_configs;
         std::string m_config_path;

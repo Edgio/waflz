@@ -33,6 +33,7 @@
 #include "waflz/limit/limit.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
+#include "support/file_util.h"
 #include "op/nms.h"
 #include "op/regex.h"
 #include "scope.pb.h"
@@ -127,11 +128,12 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
 //: \return  None
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-scopes::scopes(engine &a_engine):
+scopes::scopes(engine &a_engine, kv_db &a_kv_db):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
+        m_db(a_kv_db),
         m_id(),
         m_id_acl_map(),
         m_id_rules_map(),
@@ -320,14 +322,34 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                 id_acl_map_t::iterator i_acl = m_id_acl_map.find(a_scope.acl_audit_id());
                 if(i_acl != m_id_acl_map.end())
                 {
-                        a_scope.set__rules_audit__reserved((uint64_t)i_acl->second);
+                        a_scope.set__acl_audit__reserved((uint64_t)i_acl->second);
                         goto acl_audit_action;
                 }
                 // -----------------------------------------
                 // make acl obj
                 // -----------------------------------------
                 acl *l_acl = new acl();
-                // TODO !!!
+                std::string l_p = a_conf_dir_path + "/acl/" + a_scope.acl_audit_id();
+                int32_t l_s;
+                char *l_buf = NULL;
+                uint32_t l_buf_len;
+                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_s = l_acl->load_config(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", l_acl->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 // -----------------------------------------
                 // add to map
                 // -----------------------------------------
@@ -359,14 +381,34 @@ acl_audit_action:
                 id_acl_map_t::iterator i_acl = m_id_acl_map.find(a_scope.acl_prod_id());
                 if(i_acl != m_id_acl_map.end())
                 {
-                        a_scope.set__rules_prod__reserved((uint64_t)i_acl->second);
+                        a_scope.set__acl_prod__reserved((uint64_t)i_acl->second);
                         goto acl_prod_action;
                 }
                 // -----------------------------------------
                 // make acl obj
                 // -----------------------------------------
                 acl *l_acl = new acl();
-                // TODO !!!
+                std::string l_p = a_conf_dir_path + "/acl/" + a_scope.acl_prod_id();
+                int32_t l_s;
+                char *l_buf = NULL;
+                uint32_t l_buf_len;
+                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_s = l_acl->load_config(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", l_acl->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 // -----------------------------------------
                 // add to map
                 // -----------------------------------------
@@ -377,9 +419,9 @@ acl_prod_action:
         // -------------------------------------------------
         // acl audit action
         // -------------------------------------------------
-        if(a_scope.has_acl_audit_action())
+        if(a_scope.has_acl_prod_action())
         {
-                waflz_pb::enforcement *l_a = a_scope.mutable_acl_audit_action();
+                waflz_pb::enforcement *l_a = a_scope.mutable_acl_prod_action();
                 int32_t l_s;
                 l_s = compile_action(*l_a, m_err_msg);
                 if(l_s != WAFLZ_STATUS_OK)
@@ -490,11 +532,121 @@ rules_prod_action:
         // -------------------------------------------------
         // profile audit
         // -------------------------------------------------
-        // TODO
+        if(a_scope.has_profile_audit_id())
+        {
+                // -----------------------------------------
+                // check exist
+                // -----------------------------------------
+                id_profile_map_t::iterator i_profile = m_id_profile_map.find(a_scope.profile_audit_id());
+                if(i_profile != m_id_profile_map.end())
+                {
+                        a_scope.set__profile_audit__reserved((uint64_t)i_profile->second);
+                        goto profile_audit_action;
+                }
+                // -----------------------------------------
+                // make profile obj
+                // -----------------------------------------
+                profile *l_profile = new profile(m_engine);
+                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.acl_audit_id();
+                int32_t l_s;
+                char *l_buf = NULL;
+                uint32_t l_buf_len;
+                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_s = l_profile->load_config(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                // -----------------------------------------
+                // add to map
+                // -----------------------------------------
+                a_scope.set__profile_audit__reserved((uint64_t)l_profile);
+                m_id_profile_map[a_scope.profile_audit_id()] = l_profile;
+        }
+profile_audit_action:
+        // -------------------------------------------------
+        // acl audit action
+        // -------------------------------------------------
+        if(a_scope.has_profile_audit_action())
+        {
+                waflz_pb::enforcement *l_a = a_scope.mutable_profile_audit_action();
+                int32_t l_s;
+                l_s = compile_action(*l_a, m_err_msg);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
         // -------------------------------------------------
         // profile prod
         // -------------------------------------------------
-        // TODO
+        if(a_scope.has_profile_prod_id())
+        {
+                // -----------------------------------------
+                // check exist
+                // -----------------------------------------
+                id_profile_map_t::iterator i_profile = m_id_profile_map.find(a_scope.profile_prod_id());
+                if(i_profile != m_id_profile_map.end())
+                {
+                        a_scope.set__profile_prod__reserved((uint64_t)i_profile->second);
+                        goto profile_prod_action;
+                }
+                // -----------------------------------------
+                // make profile obj
+                // -----------------------------------------
+                profile *l_profile = new profile(m_engine);
+                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.acl_audit_id();
+                int32_t l_s;
+                char *l_buf = NULL;
+                uint32_t l_buf_len;
+                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_s = l_profile->load_config(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                // -----------------------------------------
+                // add to map
+                // -----------------------------------------
+                a_scope.set__profile_prod__reserved((uint64_t)l_profile);
+                m_id_profile_map[a_scope.profile_prod_id()] = l_profile;
+        }
+profile_prod_action:
+        // -------------------------------------------------
+        // acl audit action
+        // -------------------------------------------------
+        if(a_scope.has_profile_prod_action())
+        {
+                waflz_pb::enforcement *l_a = a_scope.mutable_profile_prod_action();
+                int32_t l_s;
+                l_s = compile_action(*l_a, m_err_msg);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
         // -------------------------------------------------
         // limits
         // -------------------------------------------------
@@ -504,9 +656,62 @@ rules_prod_action:
                 {
                         continue;
                 }
-                //const std::string &l_id = a_scope.limits(i_l).id();
-                //limit *l_limit = new limit(m_engine);
-                // TODO !!!
+                const std::string& l_id = a_scope.limits(i_l).id();
+                // -----------------------------------------
+                // check exist...
+                // -----------------------------------------
+                id_limit_map_t::iterator i_limit = m_id_limit_map.find(l_id);
+                if(i_limit != m_id_limit_map.end())
+                {
+                        a_scope.mutable_limits(i_l)->set__reserved_1((uint64_t)i_limit->second);
+                        goto limit_action;
+                }
+                // -----------------------------------------
+                // make limit obj
+                // -----------------------------------------
+                {
+                limit *l_limit = new limit(m_db);
+                std::string l_p = a_conf_dir_path + "/limit/" + a_scope.acl_audit_id();
+                int32_t l_s;
+                char *l_buf = NULL;
+                uint32_t l_buf_len;
+                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_s = l_limit->load(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", l_limit->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        // TODO cleanup...
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                // -----------------------------------------
+                // add to map
+                // -----------------------------------------
+                a_scope.mutable_limits(i_l)->set__reserved_1((uint64_t)l_limit);
+                m_id_limit_map[l_id] = l_limit;
+                }
+limit_action:
+                // -----------------------------------------
+                // limit action
+                // -----------------------------------------
+                if(a_scope.limits(i_l).has_action())
+                {
+                        waflz_pb::enforcement *l_a = a_scope.mutable_limits(i_l)->mutable_action();
+                        int32_t l_s;
+                        l_s = compile_action(*l_a, m_err_msg);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                }
         }
         //NDBG_PRINT("%s\n", a_scope.DebugString().c_str());
         return WAFLZ_STATUS_OK;

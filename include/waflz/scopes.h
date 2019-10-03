@@ -54,6 +54,7 @@ class acl;
 class rules;
 class profile;
 class limit;
+class kv_db;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
@@ -87,7 +88,7 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        scopes(engine &a_engine);
+        scopes(engine &a_engine, kv_db &a_kv_db);
         ~scopes();
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
@@ -126,6 +127,7 @@ private:
         waflz_pb::scope_config *m_pb;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
+        kv_db &m_db;
         // properties
         std::string m_id;
         // -------------------------------------------------

@@ -663,8 +663,10 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
+        fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
         fprintf(a_stream, "  -i, --geoip-isp-db  geoip-isp-db\n");
+        fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Mode: choose one or none\n");
         fprintf(a_stream, "  -w, --static        static file path (for serving)\n");
@@ -699,12 +701,14 @@ int main(int argc, char** argv)
         server_mode_t l_server_mode = SERVER_MODE_NONE;
         config_mode_t l_config_mode = CONFIG_MODE_NONE;
         std::string l_conf_dir;
+        std::string l_ruleset_dir;
         std::string l_geoip_db;
         std::string l_geoip_isp_db;
         // server settings
         uint16_t l_port = 12345;
         std::string l_server_spec;
         std::string l_config_file;
+        std::string l_redis_host;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -723,8 +727,10 @@ int main(int argc, char** argv)
                 { "scopes-dir",   1, 0, 'S' },
                 { "config-dir",   1, 0, 'd' },
                 { "port",         1, 0, 'p' },
+                { "ruleset-dir",  1, 0, 'r' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 'i' },
+                { "redis-host",   1, 0, 'e' },
                 { "static",       1, 0, 'w' },
                 { "proxy",        1, 0, 'y' },
                 { "trace",        1, 0, 't' },
@@ -754,9 +760,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvs:S:d:p:g:i:w:y:t:H:C:";
+        char l_short_arg_list[] = "hvs:S:d:p:r:g:i:e:w:y:t:H:C:";
 #else
-        char l_short_arg_list[] = "hvs:S:d:p:g:i:w:y:t:";
+        char l_short_arg_list[] = "hvs:S:d:p:r:g:i:e:w:y:t:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -830,6 +836,14 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
+                // ruleset dir
+                // -----------------------------------------
+                case 'r':
+                {
+                        l_ruleset_dir = l_arg;
+                        break;
+                }
+                // -----------------------------------------
                 // geoip db
                 // -----------------------------------------
                 case 'g':
@@ -843,6 +857,14 @@ int main(int argc, char** argv)
                 case 'i':
                 {
                         l_geoip_isp_db = optarg;
+                        break;
+                }
+                // -----------------------------------------
+                // redis host
+                // -----------------------------------------
+                case 'e':
+                {
+                        l_redis_host = l_arg;
                         break;
                 }
                 // -----------------------------------------
@@ -1020,6 +1042,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
+                g_sx_scopes->m_redis_host = l_redis_host;
                 break;
         }
         case(CONFIG_MODE_SCOPES_DIR):
@@ -1032,6 +1055,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
+                g_sx_scopes->m_redis_host = l_redis_host;
                 break;
         }
         default:

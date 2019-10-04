@@ -946,6 +946,71 @@ prod:
                 }
                 if(!l_event)
                 {
+                        goto enforcements;
+                }
+                *ao_prod_event = l_event;
+                if(a_scope.has_acl_prod_action())
+                {
+                        *ao_enf = &(a_scope.acl_prod_action());
+                }
+                goto done;
+        }
+        // -------------------------------------------------
+        // enforcements
+        // -------------------------------------------------
+enforcements:
+        // TODO
+        goto limits;
+limits:
+        // -------------------------------------------------
+        // limits
+        // -------------------------------------------------
+        for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
+        {
+                if(!a_scope.limits(i_l).has__reserved_1())
+                {
+                        continue;
+                }
+                limit *l_limit = (limit *)a_scope.limits(i_l)._reserved_1();
+                bool l_exceeds = false;
+                const waflz_pb::condition_group *l_cg = NULL;
+                l_limit->process(l_exceeds, &l_cg, *ao_rqst_ctx);
+                if(!l_exceeds)
+                {
+                        continue;
+                }
+                if(!a_scope.limits(i_l).has_action())
+                {
+                        continue;
+                }
+                const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
+                // -----------------------------------------
+                // create enforcement
+                // -----------------------------------------
+                // TODO
+                // -----------------------------------------
+                // enforce...
+                // -----------------------------------------
+
+#if 0
+                if(!a_scope.limits(i_l).has_id())
+                {
+                        continue;
+                }
+                const std::string& l_id = a_scope.limits(i_l).id();
+                acl *l_acl = (acl *)a_scope._acl_prod__reserved();
+                waflz_pb::event *l_event = NULL;
+                bool l_wl = false;
+                int32_t l_s;
+                l_s = l_acl->process(&l_event, l_wl, a_ctx, **ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(!l_event)
+                {
                         goto prod_rules;
                 }
                 *ao_prod_event = l_event;
@@ -954,6 +1019,7 @@ prod:
                         *ao_enf = &(a_scope.acl_prod_action());
                 }
                 goto done;
+#endif
         }
         // -------------------------------------------------
         // rules

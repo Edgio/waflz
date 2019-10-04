@@ -31,6 +31,7 @@
 #include "waflz/engine.h"
 #include "waflz/limit/rl_obj.h"
 #include "waflz/limit/limit.h"
+#include "waflz/limit/enforcer.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
 #include "support/file_util.h"
@@ -138,11 +139,11 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db):
         m_id_acl_map(),
         m_id_rules_map(),
         m_id_profile_map(),
-        m_id_limit_map()
+        m_id_limit_map(),
+        m_enfx(NULL)
 {
-
-
         m_pb = new waflz_pb::scope_config();
+        m_enfx = new enforcer(false);
 }
 //: ----------------------------------------------------------------------------
 //: \brief   dtor
@@ -151,38 +152,20 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db):
 //: ----------------------------------------------------------------------------
 scopes::~scopes()
 {
-        if(m_pb)
-        {
-                delete m_pb;
-                m_pb = NULL;
-        }
+        if(m_pb) { delete m_pb; m_pb = NULL; }
+        if(m_enfx) { delete m_enfx; m_enfx = NULL; }
         // -------------------------------------------------
         // clear parts...
         // -------------------------------------------------
-        for(id_acl_map_t::iterator i_acl = m_id_acl_map.begin();
-            i_acl != m_id_acl_map.end();
-            ++i_acl)
-        {
-                if(i_acl->second) { delete i_acl->second; i_acl->second = NULL; }
-        }
-        for(id_rules_map_t::iterator i_rs = m_id_rules_map.begin();
-            i_rs != m_id_rules_map.end();
-            ++i_rs)
-        {
-                if(i_rs->second) { delete i_rs->second; i_rs->second = NULL; }
-        }
-        for(id_profile_map_t::iterator i_p = m_id_profile_map.begin();
-            i_p != m_id_profile_map.end();
-            ++i_p)
-        {
-                if(i_p->second) { delete i_p->second; i_p->second = NULL; }
-        }
-        for(id_limit_map_t::iterator i_l = m_id_limit_map.begin();
-            i_l != m_id_limit_map.end();
-            ++i_l)
-        {
-                if(i_l->second) { delete i_l->second; i_l->second = NULL; }
-        }
+#define _DEL_MAP(_t, _m) do { \
+        for(_t::iterator i = _m.begin(); i != _m.end(); ++i) { \
+                if(i->second) { delete i->second; i->second = NULL; } \
+        } \
+} while(0)
+        _DEL_MAP(id_acl_map_t, m_id_acl_map);
+        _DEL_MAP(id_rules_map_t, m_id_rules_map);
+        _DEL_MAP(id_profile_map_t, m_id_profile_map);
+        _DEL_MAP(id_limit_map_t, m_id_limit_map);
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -959,8 +942,21 @@ prod:
         // enforcements
         // -------------------------------------------------
 enforcements:
+        if(!m_enfx)
+        {
+                goto limits;
+        }
+        {
+        int32_t l_s;
+        const waflz_pb::enforcement *l_enfcmnt = NULL;
+        l_s = m_enfx->process(&l_enfcmnt, *ao_rqst_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "performing enforcer process");
+                return WAFLZ_STATUS_ERROR;
+        }
+        }
         // TODO
-        goto limits;
 limits:
         // -------------------------------------------------
         // limits
@@ -983,7 +979,7 @@ limits:
                 {
                         continue;
                 }
-                const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
+                //const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
                 // -----------------------------------------
                 // create enforcement
                 // -----------------------------------------
@@ -1024,7 +1020,6 @@ limits:
         // -------------------------------------------------
         // rules
         // -------------------------------------------------
-prod_rules:
         if(a_scope.has__rules_prod__reserved())
         {
                 // -----------------------------------------

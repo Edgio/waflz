@@ -13,19 +13,6 @@ message profile {
                 //: ----------------------------------------
                 //: ******** D E P R E C A T E D ***********
                 //: ----------------------------------------
-                //: settings moved to top anomaly_threshold
-                //: ----------------------------------------
-                message anomaly_settings_t {
-                        optional uint32 critical_score = 1;
-                        optional uint32 error_score = 2;
-                        optional uint32 inbound_threshold = 3;
-                        optional uint32 notice_score = 4;
-                        optional uint32 outbound_threshold = 5;
-                        optional uint32 warning_score = 6;
-                }
-                //: ----------------------------------------
-                //: ******** D E P R E C A T E D ***********
-                //: ----------------------------------------
                 //: allowed moved to acl
                 //: ----------------------------------------
                 repeated string allowed_http_methods = 100;
@@ -54,10 +41,6 @@ message profile {
                 //: ******** D E P R E C A T E D ***********
                 //: ----------------------------------------
                 optional string engine = 500;
-                //: ----------------------------------------
-                //: ******** D E P R E C A T E D ***********
-                //: ----------------------------------------
-                optional anomaly_settings_t anomaly_settings = 501;
                 optional bool validate_utf8_encoding = 502;
                 optional bool xml_parser = 503;
                 optional bool process_request_body = 504;

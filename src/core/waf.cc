@@ -819,16 +819,7 @@ int32_t waf::init(profile &a_profile)
         //Default anomaly threshold
         std::string l_anomaly_threshold = "5";
         // Use top level threshold setting
-        if(l_gs.has_anomaly_threshold())
-        {
-                l_anomaly_threshold = to_string(l_gs.anomaly_threshold());
-        }
-        else if(l_gs.has_anomaly_settings())
-        {
-                const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
-                l_anomaly_threshold = to_string(l_ax.inbound_threshold());
-                //NDBG_PRINT("setting anomaly %s\n", l_anomaly_threshold.c_str());
-        }
+        l_anomaly_threshold = to_string(l_gs.anomaly_threshold());
         if(m_owasp_ruleset_version >= 300)
         {
 

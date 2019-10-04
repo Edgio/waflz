@@ -365,8 +365,7 @@ int32_t profile::init(void)
         ::waflz_pb::profile &l_pb = *m_pb;
         if(!l_pb.has_access_settings())
         {
-                WAFLZ_PERROR(m_err_msg, "pb missing access settings");
-                return WAFLZ_STATUS_ERROR;
+                return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // compile
@@ -481,33 +480,13 @@ int32_t profile::validate(void)
         VERIFY_HAS(l_gs, total_arg_length);
         VERIFY_HAS(l_gs, max_file_size);
         VERIFY_HAS(l_gs, combined_file_sizes);
-        // set...
+        VERIFY_HAS(l_gs, anomaly_threshold);
+        // -------------------------------------------------
+        // set resp header name
+        // -------------------------------------------------
         if(l_gs.has_response_header_name())
         {
                 m_resp_header_name = l_gs.response_header_name();
-        }
-        // -------------------------------------------------
-        // access settings
-        // -------------------------------------------------
-        VERIFY_HAS(l_pb, access_settings);
-        const ::waflz_pb::acl& l_as = l_pb.access_settings();
-        VERIFY_HAS(l_as, country);
-        VERIFY_HAS(l_as, ip);
-        VERIFY_HAS(l_as, url);
-        VERIFY_HAS(l_as, referer);
-        // -------------------------------------------------
-        // anomaly settings
-        // -------------------------------------------------
-        if(!l_gs.has_anomaly_threshold())
-        {
-                VERIFY_HAS(l_gs, anomaly_settings);
-                const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
-                VERIFY_HAS(l_ax, critical_score);
-                VERIFY_HAS(l_ax, error_score);
-                VERIFY_HAS(l_ax, warning_score);
-                VERIFY_HAS(l_ax, notice_score);
-                VERIFY_HAS(l_ax, inbound_threshold);
-                VERIFY_HAS(l_ax, outbound_threshold);
         }
         // -------------------------------------------------
         // disabled rules

@@ -41,14 +41,7 @@
                 "application/x-amf",
                 "application/json"
             ],
-            "anomaly_settings": {
-                "critical_score": 5,
-                "error_score": 4,
-                "inbound_threshold": 1,
-                "notice_score": 2,
-                "outbound_threshold": 4,
-                "warning_score": 3
-            },
+            "anomaly_threshold": 1,
             "arg_length": 1000,
             "arg_name_length": 1000,
             "combined_file_sizes": 1048576,

@@ -83,13 +83,6 @@ message profile {
                 optional string rule_id = 2;                
         }
         // -------------------------------------------------
-        // customer rule
-        // -------------------------------------------------
-        message custom_rule_t {
-                optional string rule_id = 1;
-                optional string description = 2;                
-        }
-        // -------------------------------------------------
         // properties
         // -------------------------------------------------
         optional string id = 1;
@@ -107,7 +100,7 @@ message profile {
         // -------------------------------------------------
         optional string ruleset_id = 200;
         optional string ruleset_version = 201;
-        repeated custom_rule_t custom_rules = 210;
+        repeated string custom_rules = 210;
         repeated disabled_rule_t disabled_rules = 212;
         repeated rule_target_update_t rule_target_updates = 213;
         repeated string policies = 214;

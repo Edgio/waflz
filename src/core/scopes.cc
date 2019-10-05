@@ -942,6 +942,7 @@ prod:
         // enforcements
         // -------------------------------------------------
 enforcements:
+#if 0
         if(!m_enfx)
         {
                 goto limits;
@@ -1016,6 +1017,7 @@ limits:
                 goto done;
 #endif
         }
+#endif
         // -------------------------------------------------
         // rules
         // -------------------------------------------------
@@ -1024,7 +1026,7 @@ limits:
                 // -----------------------------------------
                 // process
                 // -----------------------------------------
-                rules *l_rules = (rules *)a_scope._rules_audit__reserved();
+                rules *l_rules = (rules *)a_scope._rules_prod__reserved();
                 waflz_pb::event *l_event = NULL;
                 int32_t l_s;
                 l_s = l_rules->process(&l_event, a_ctx, ao_rqst_ctx);

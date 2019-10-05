@@ -100,11 +100,12 @@ int32_t rules::load_config_file(const char *a_buf, uint32_t a_buf_len)
         // -----------------------------------------
         // make waf obj
         // -----------------------------------------
-        waf* l_waf = new waf(m_engine);
+        if(m_waf) { delete m_waf; m_waf = NULL; }
+        m_waf = new waf(m_engine);
         std::string l_p;
         l_p.assign(a_buf, a_buf_len);
         int32_t l_s;
-        l_s = l_waf->init(config_parser::JSON, l_p, true);
+        l_s = m_waf->init(config_parser::JSON, l_p, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error loading conf file: %s. reason: %s\n",
@@ -112,12 +113,13 @@ int32_t rules::load_config_file(const char *a_buf, uint32_t a_buf_len)
                            "__na__");
                            // TODO -get reason...
                            //l_wafl->get_err_msg());
+                if(m_waf) { delete m_waf; m_waf = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         // -----------------------------------------
         // set version...
         // -----------------------------------------
-        l_waf->set_owasp_ruleset_version(300);
+        m_waf->set_owasp_ruleset_version(300);
         // -----------------------------------------
         // done...
         // -----------------------------------------

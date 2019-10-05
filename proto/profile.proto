@@ -58,9 +58,9 @@ message profile {
                 repeated string ignore_cookie = 700;
                 repeated string ignore_header = 701;
                 repeated string ignore_query_args = 702;
-                //: -----------------------------------------
-                //: ******** D E P R E C A T E D ************
-                //: -----------------------------------------
+                //: ----------------------------------------
+                //: ******** D E P R E C A T E D ***********
+                //: ----------------------------------------
                 optional uint32 debug_level = 900;
                 optional string debug_log = 901;
         }

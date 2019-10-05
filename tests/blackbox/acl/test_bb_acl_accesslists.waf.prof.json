@@ -37,7 +37,6 @@
       ".asa",
       ".xsx"
     ],
-    "engine": "signature",
     "validate_utf8_encoding": true,
     "allowed_request_content_types": [
       "application/x-www-form-urlencoded",
@@ -60,8 +59,6 @@
     "combined_file_sizes": 6291456,
     "max_file_size": 6291456,
     "anomaly_threshold": 1,
-    "debug_level": 0,
-    "debug_log": "",
     "response_header_name": "X-EC-Security-Audit",
     "allowed_http_methods": [
       "GET",

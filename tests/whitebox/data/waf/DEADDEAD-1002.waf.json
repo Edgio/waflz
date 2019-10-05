@@ -49,8 +49,6 @@
             "arg_length": 1000,
             "arg_name_length": 1000,
             "combined_file_sizes": 1048576,
-            "debug_level": 1,
-            "debug_log": "/tmp/modsec-DEADDEAD-1002.tmp",
             "disallowed_extensions": [
                 ".asa",
                 ".asax",
@@ -112,7 +110,6 @@
                 "via",
                 "if"
             ],
-            "engine": "anomaly",
             "max_file_size": 1048576,
             "max_num_args": 10,
             "process_request_body": true,

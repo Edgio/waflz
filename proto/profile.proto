@@ -37,15 +37,17 @@ message profile {
                 // -----------------------------------------
                 optional string response_header_name = 400;
                 repeated string response_mime_types = 401;
-                //: ----------------------------------------
-                //: ******** D E P R E C A T E D ***********
-                //: ----------------------------------------
-                optional string engine = 500;
+                // -----------------------------------------
+                // processing
+                // -----------------------------------------
                 optional bool validate_utf8_encoding = 502;
                 optional bool xml_parser = 503;
                 optional bool process_request_body = 504;
                 optional bool process_response_body = 505;
                 optional bool json_parser = 506;
+                // -----------------------------------------
+                // scoring
+                // -----------------------------------------
                 optional uint32 paranoia_level = 550;
                 optional uint32 anomaly_threshold = 560;
                 // -----------------------------------------
@@ -58,11 +60,6 @@ message profile {
                 repeated string ignore_cookie = 700;
                 repeated string ignore_header = 701;
                 repeated string ignore_query_args = 702;
-                //: ----------------------------------------
-                //: ******** D E P R E C A T E D ***********
-                //: ----------------------------------------
-                optional uint32 debug_level = 900;
-                optional string debug_log = 901;
         }
         // -------------------------------------------------
         // rule target update

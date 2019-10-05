@@ -305,11 +305,63 @@ int32_t profile::init(void)
         //                  I G N O R E
         // *************************************************
         // -------------------------------------------------
+        const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
+        // -------------------------------------------------
+        // ignore query args
+        // -------------------------------------------------
+        for(int32_t i_q = 0;
+            i_q < l_gs.ignore_query_args_size();
+            ++i_q)
+        {
+                std::string l_query_arg = l_gs.ignore_query_args(i_q);
+                l_s = regex_list_add(l_query_arg, m_il_query);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // ignore headers
+        // -------------------------------------------------
+        for(int32_t i_h = 0;
+            i_h < l_gs.ignore_header_size();
+            ++i_h)
+        {
+                std::string l_header = l_gs.ignore_header(i_h);
+                l_s = regex_list_add(l_header, m_il_header);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // ignore cookies
+        // -------------------------------------------------
+        for(int32_t i_c = 0;
+            i_c < l_gs.ignore_cookie_size();
+            ++i_c)
+        {
+                std::string l_cookie = l_gs.ignore_cookie(i_c);
+                l_s = regex_list_add(l_cookie, m_il_cookie);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                     A C L
+        // *************************************************
+        // -------------------------------------------------
+        if(!m_pb->has_access_settings())
+        {
+                return WAFLZ_STATUS_OK;
+        }
         const ::waflz_pb::acl& l_as = m_pb->access_settings();
         // -------------------------------------------------
         // ignore query args
         // -------------------------------------------------
-        if(l_as.ignore_query_args_size())
+        if(m_il_query.empty())
         {
                 for(int32_t i_q = 0;
                     i_q < l_as.ignore_query_args_size();
@@ -326,7 +378,7 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // ignore headers
         // -------------------------------------------------
-        if(l_as.ignore_header_size())
+        if(m_il_header.empty())
         {
                 for(int32_t i_h = 0;
                     i_h < l_as.ignore_header_size();
@@ -343,7 +395,7 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // ignore cookies
         // -------------------------------------------------
-        if(l_as.ignore_cookie_size())
+        if(m_il_cookie.empty())
         {
                 for(int32_t i_c = 0;
                     i_c < l_as.ignore_cookie_size();
@@ -358,26 +410,15 @@ int32_t profile::init(void)
                 }
         }
         // -------------------------------------------------
-        // *************************************************
-        //                     A C L
-        // *************************************************
-        // -------------------------------------------------
-        ::waflz_pb::profile &l_pb = *m_pb;
-        if(!l_pb.has_access_settings())
-        {
-                return WAFLZ_STATUS_OK;
-        }
-        // -------------------------------------------------
         // compile
         // -------------------------------------------------
         ::waflz_pb::acl *l_acl_pb = new ::waflz_pb::acl();
-        l_acl_pb->CopyFrom(l_pb.access_settings());
+        l_acl_pb->CopyFrom(l_as);
         // -------------------------------------------------
         // *************************************************
         //              general settings
         // *************************************************
         // -------------------------------------------------
-        const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
 #define _SET_ACL(_field) \
         for(int32_t i_t = 0; i_t < l_gs._field##_size(); ++i_t) { \
         l_acl_pb->add_##_field(l_gs._field(i_t)); }

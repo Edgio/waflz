@@ -128,17 +128,6 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 //---------------------------------------------
-                // Disable the policy with anomaly enforce rule
-                //---------------------------------------------
-                ::waflz_pb::profile_disabled_policy_t *l_disabled_policy = l_pb->add_disabled_policies();
-                l_disabled_policy->set_policy_id("REQUEST-949-BLOCKING-EVALUATION.conf");
-                //fprintf(stdout, "%s\n", l_pb->DebugString().c_str());
-                l_s = l_profile->load_config(l_pb, false);
-                //---------------------------------------------
-                // Should fail to load config
-                //---------------------------------------------
-                REQUIRE((l_s == WAFLZ_STATUS_ERROR));
-                //---------------------------------------------
                 // Now include the anomaly rule file
                 // This would ignore the disabled policies
                 // and config should load

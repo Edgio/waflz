@@ -76,12 +76,6 @@ message profile {
                 optional string rule_id = 6;
         }
         // -------------------------------------------------
-        // disabled policy
-        // -------------------------------------------------
-        message disabled_policy_t {
-                optional string policy_id = 1;
-        }
-        // -------------------------------------------------
         // disabled rule
         // -------------------------------------------------
         message disabled_rule_t {

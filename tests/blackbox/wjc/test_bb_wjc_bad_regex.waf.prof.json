@@ -12,10 +12,6 @@
       "blacklist": [],
       "whitelist": []
     },
-    "referrer": {
-      "blacklist": [],
-      "whitelist": []
-    },
     "url": {
       "blacklist": ["*dogs[]"],
       "whitelist": []

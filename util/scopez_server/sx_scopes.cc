@@ -26,6 +26,8 @@
 #include "sx_scopes.h"
 #include "waflz/engine.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/db/kycb_db.h"
+#include "waflz/db/redis_db.h"
 #include "is2/support/trace.h"
 #include "is2/support/nbq.h"
 #include "is2/support/ndebug.h"
@@ -155,6 +157,7 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
 //: ----------------------------------------------------------------------------
 sx_scopes::sx_scopes(void):
         m_bg_load(false),
+        m_redis_host(),
         m_engine(NULL),
         m_update_scopes_h(NULL),
         m_scopes_configs(NULL),
@@ -173,6 +176,7 @@ sx_scopes::sx_scopes(void):
 sx_scopes::~sx_scopes(void)
 {
         if(m_engine) { delete m_engine; m_engine = NULL; }
+        if(m_db) { delete m_db; m_db = NULL; }
         if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
         if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
 }
@@ -184,6 +188,83 @@ sx_scopes::~sx_scopes(void)
 int32_t sx_scopes::init(void)
 {
         int32_t l_s;
+        // -------------------------------------------------
+        // redis db
+        // -------------------------------------------------
+        if(!m_redis_host.empty())
+        {
+                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::redis_db());
+                // -----------------------------------------
+                // parse host
+                // -----------------------------------------
+                std::string l_host;
+                uint16_t l_port;
+                size_t l_last = 0;
+                size_t l_next = 0;
+                while((l_next = m_redis_host.find(":", l_last)) != std::string::npos)
+                {
+                        l_host = m_redis_host.substr(l_last, l_next-l_last);
+                        l_last = l_next + 1;
+                        break;
+                }
+                std::string l_port_str;
+                l_port_str = m_redis_host.substr(l_last);
+                if(l_port_str.empty() ||
+                   l_host.empty())
+                {
+                        NDBG_OUTPUT("error parsing redis host: %s -expected <host>:<port>\n", m_redis_host.c_str());
+                        return STATUS_ERROR;
+                }
+                // TODO -error checking
+                l_port = (uint16_t)strtoul(l_port_str.c_str(), NULL, 10);
+                // TODO -check status
+                m_db->set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_host.c_str(), l_host.length());
+                m_db->set_opt(ns_waflz::redis_db::OPT_REDIS_PORT, NULL, l_port);
+                // -----------------------------------------
+                // init db
+                // -----------------------------------------
+                l_s = m_db->init();
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("error performing db init: Reason: %s\n", m_db->get_err_msg());
+                        return STATUS_ERROR;
+                }
+                NDBG_PRINT("USING REDIS\n");
+        }
+        // -------------------------------------------------
+        // kyoto
+        // -------------------------------------------------
+        else
+        {
+                char l_db_file[] = "/tmp/waflz-XXXXXX.kyoto.db";
+                //uint32_t l_db_buckets = 0;
+                //uint32_t l_db_map = 0;
+                //int l_db_options = 0;
+                //l_db_options |= kyotocabinet::HashDB::TSMALL;
+                //l_db_options |= kyotocabinet::HashDB::TLINEAR;
+                //l_db_options |= kyotocabinet::HashDB::TCOMPRESS;
+                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::kycb_db());
+                errno = 0;
+                l_s = mkstemps(l_db_file,9);
+                if(l_s == -1)
+                {
+                        NDBG_PRINT("error(%d) performing mkstemp(%s) reason[%d]: %s\n",
+                                        l_s,
+                                        l_db_file,
+                                        errno,
+                                        strerror(errno));
+                        return STATUS_ERROR;
+                }
+                unlink(l_db_file);
+                m_db->set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                //NDBG_PRINT("l_db_file: %s\n", l_db_file);
+                l_s = m_db->init();
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("error performing initialize_cb: Reason: %s\n", m_db->get_err_msg());
+                        return STATUS_ERROR;
+                }
+        }
         // -------------------------------------------------
         // engine
         // -------------------------------------------------
@@ -198,7 +279,7 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         // create scope configs
         // -------------------------------------------------
-        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, false);
+        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, *m_db, false);
         m_scopes_configs->set_conf_dir(m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {

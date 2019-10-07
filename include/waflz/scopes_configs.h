@@ -40,6 +40,7 @@ namespace ns_waflz {
 //: fwd Decl's
 //: ----------------------------------------------------------------------------
 class scopes;
+class kv_db;
 //: ----------------------------------------------------------------------------
 //: scopes_configs
 //: ----------------------------------------------------------------------------
@@ -72,7 +73,7 @@ public:
         const char *get_err_msg(void) { return m_err_msg; }
         void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }
         void set_conf_dir(const std::string& a_conf_dir) { m_conf_dir = a_conf_dir; }
-        scopes_configs(engine& a_engine, bool a_enable_locking);
+        scopes_configs(engine& a_engine, kv_db& a_db, bool a_enable_locking);
         ~scopes_configs();
 private:
         // -------------------------------------------------
@@ -88,6 +89,7 @@ private:
         cust_id_scopes_map_t m_cust_id_scopes_map;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine& m_engine;
+        kv_db& m_db;
         pthread_mutex_t m_mutex;
         bool m_enable_locking;
         std::string m_conf_dir;

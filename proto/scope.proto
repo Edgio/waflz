@@ -82,8 +82,9 @@ message scope_config {
         // -------------------------------------------------
         // meta
         // -------------------------------------------------
-        optional string id = 1;
-        optional string version = 2;
+        optional string version = 1;
+        optional string id = 2;
+        optional string name = 3;
         optional string last_modified_date = 30;
         optional string last_modified_by = 31;
         // -------------------------------------------------

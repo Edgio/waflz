@@ -56,7 +56,6 @@ static waflz_pb::profile *init_std_profile_pb(void)
         l_gx->set_process_request_body(true);
         l_gx->set_xml_parser(true);
         l_gx->set_process_response_body(false);
-        l_gx->set_engine("anomaly");
         l_gx->set_validate_utf8_encoding(true);
         l_gx->set_max_num_args(3);
         l_gx->set_arg_name_length(100);
@@ -74,14 +73,7 @@ static waflz_pb::profile *init_std_profile_pb(void)
         // -----------------------------------------
         // anomaly settings -required fields
         // -----------------------------------------
-        ::waflz_pb::profile_general_settings_t_anomaly_settings_t* l_gx_anomaly = NULL;
-        l_gx_anomaly = l_gx->mutable_anomaly_settings();
-        l_gx_anomaly->set_critical_score(5);
-        l_gx_anomaly->set_error_score(4);
-        l_gx_anomaly->set_warning_score(3);
-        l_gx_anomaly->set_notice_score(2);
-        l_gx_anomaly->set_inbound_threshold(1);
-        l_gx_anomaly->set_outbound_threshold(4);
+        l_gx->set_anomaly_threshold(1);
         // -----------------------------------------
         // access settings -required fields
         // -----------------------------------------

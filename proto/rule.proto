@@ -315,6 +315,14 @@ message sec_config_t {
                 DETECTION_ONLY = 3;
         }
         // -------------------------------------------------
+        // meta
+        // -------------------------------------------------
+        optional string version = 1;
+        optional string id = 2;
+        optional string name = 3;
+        optional string last_modified_date = 30;
+        optional string last_modified_by = 31;
+        // -------------------------------------------------
         // id
         // -------------------------------------------------
         optional string ruleset_id = 100;

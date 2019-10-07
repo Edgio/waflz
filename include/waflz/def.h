@@ -106,6 +106,7 @@ struct data_case_i_comp
         }
 };
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
-
+// version string
+const char *get_version(void);
 }
 #endif

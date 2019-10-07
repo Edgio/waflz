@@ -42,10 +42,12 @@ namespace ns_waflz {
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 scopes_configs::scopes_configs(engine &a_engine,
+                               kv_db& a_db,
                                bool a_enable_locking):
         m_cust_id_scopes_map(),
         m_err_msg(),
         m_engine(a_engine),
+        m_db(a_db),
         m_mutex(),
         m_enable_locking(a_enable_locking),
         m_conf_dir()
@@ -288,7 +290,7 @@ int32_t scopes_configs::load(void* a_js)
                 return WAFLZ_STATUS_ERROR;                
         }
 
-        scopes *l_scopes = new scopes(m_engine);
+        scopes *l_scopes = new scopes(m_engine, m_db);
         int32_t l_s;
         l_s = l_scopes->load_config(a_js, m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)

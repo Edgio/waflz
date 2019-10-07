@@ -372,4 +372,12 @@ int32_t colorize_string(std::string &ao_string)
         }
         return 0;
 }
+//: ----------------------------------------------------------------------------
+//: \details: return version string
+//: \return:  version string
+//: ----------------------------------------------------------------------------
+const char *get_version(void)
+{
+        return WAFLZ_VERSION;
+}
 }

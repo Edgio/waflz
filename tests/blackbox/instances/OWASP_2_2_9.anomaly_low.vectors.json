@@ -5,7 +5,6 @@
   "ruleset_version": "2017-08-01",
   "general_settings": 
   {
-    "engine": "anomaly",
     "anomaly_threshold" : 1
   }
 },

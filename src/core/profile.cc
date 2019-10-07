@@ -61,11 +61,6 @@
 } while(0)
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
-//: Class Variables
-//: ----------------------------------------------------------------------------
-// in an unreserved block
-uint_fast32_t profile::s_next_ec_rule_id = 430000;
-//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
@@ -310,11 +305,63 @@ int32_t profile::init(void)
         //                  I G N O R E
         // *************************************************
         // -------------------------------------------------
+        const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
+        // -------------------------------------------------
+        // ignore query args
+        // -------------------------------------------------
+        for(int32_t i_q = 0;
+            i_q < l_gs.ignore_query_args_size();
+            ++i_q)
+        {
+                std::string l_query_arg = l_gs.ignore_query_args(i_q);
+                l_s = regex_list_add(l_query_arg, m_il_query);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // ignore headers
+        // -------------------------------------------------
+        for(int32_t i_h = 0;
+            i_h < l_gs.ignore_header_size();
+            ++i_h)
+        {
+                std::string l_header = l_gs.ignore_header(i_h);
+                l_s = regex_list_add(l_header, m_il_header);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // ignore cookies
+        // -------------------------------------------------
+        for(int32_t i_c = 0;
+            i_c < l_gs.ignore_cookie_size();
+            ++i_c)
+        {
+                std::string l_cookie = l_gs.ignore_cookie(i_c);
+                l_s = regex_list_add(l_cookie, m_il_cookie);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                     A C L
+        // *************************************************
+        // -------------------------------------------------
+        if(!m_pb->has_access_settings())
+        {
+                return WAFLZ_STATUS_OK;
+        }
         const ::waflz_pb::acl& l_as = m_pb->access_settings();
         // -------------------------------------------------
         // ignore query args
         // -------------------------------------------------
-        if(l_as.ignore_query_args_size())
+        if(m_il_query.empty())
         {
                 for(int32_t i_q = 0;
                     i_q < l_as.ignore_query_args_size();
@@ -331,7 +378,7 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // ignore headers
         // -------------------------------------------------
-        if(l_as.ignore_header_size())
+        if(m_il_header.empty())
         {
                 for(int32_t i_h = 0;
                     i_h < l_as.ignore_header_size();
@@ -348,7 +395,7 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // ignore cookies
         // -------------------------------------------------
-        if(l_as.ignore_cookie_size())
+        if(m_il_cookie.empty())
         {
                 for(int32_t i_c = 0;
                     i_c < l_as.ignore_cookie_size();
@@ -363,27 +410,15 @@ int32_t profile::init(void)
                 }
         }
         // -------------------------------------------------
-        // *************************************************
-        //                     A C L
-        // *************************************************
-        // -------------------------------------------------
-        ::waflz_pb::profile &l_pb = *m_pb;
-        if(!l_pb.has_access_settings())
-        {
-                WAFLZ_PERROR(m_err_msg, "pb missing access settings");
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
         // compile
         // -------------------------------------------------
         ::waflz_pb::acl *l_acl_pb = new ::waflz_pb::acl();
-        l_acl_pb->CopyFrom(l_pb.access_settings());
+        l_acl_pb->CopyFrom(l_as);
         // -------------------------------------------------
         // *************************************************
         //              general settings
         // *************************************************
         // -------------------------------------------------
-        const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
 #define _SET_ACL(_field) \
         for(int32_t i_t = 0; i_t < l_gs._field##_size(); ++i_t) { \
         l_acl_pb->add_##_field(l_gs._field(i_t)); }
@@ -486,33 +521,13 @@ int32_t profile::validate(void)
         VERIFY_HAS(l_gs, total_arg_length);
         VERIFY_HAS(l_gs, max_file_size);
         VERIFY_HAS(l_gs, combined_file_sizes);
-        // set...
+        VERIFY_HAS(l_gs, anomaly_threshold);
+        // -------------------------------------------------
+        // set resp header name
+        // -------------------------------------------------
         if(l_gs.has_response_header_name())
         {
                 m_resp_header_name = l_gs.response_header_name();
-        }
-        // -------------------------------------------------
-        // access settings
-        // -------------------------------------------------
-        VERIFY_HAS(l_pb, access_settings);
-        const ::waflz_pb::acl& l_as = l_pb.access_settings();
-        VERIFY_HAS(l_as, country);
-        VERIFY_HAS(l_as, ip);
-        VERIFY_HAS(l_as, url);
-        VERIFY_HAS(l_as, referer);
-        // -------------------------------------------------
-        // anomaly settings
-        // -------------------------------------------------
-        if(!l_gs.has_anomaly_threshold())
-        {
-                VERIFY_HAS(l_gs, anomaly_settings);
-                const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
-                VERIFY_HAS(l_ax, critical_score);
-                VERIFY_HAS(l_ax, error_score);
-                VERIFY_HAS(l_ax, warning_score);
-                VERIFY_HAS(l_ax, notice_score);
-                VERIFY_HAS(l_ax, inbound_threshold);
-                VERIFY_HAS(l_ax, outbound_threshold);
         }
         // -------------------------------------------------
         // disabled rules

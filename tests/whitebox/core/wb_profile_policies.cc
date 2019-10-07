@@ -52,7 +52,6 @@ static waflz_pb::profile *init_std_profile_pb(void)
         l_gx->set_process_request_body(true);
         l_gx->set_xml_parser(true);
         l_gx->set_process_response_body(false);
-        l_gx->set_engine("anomaly");
         l_gx->set_validate_utf8_encoding(true);
         l_gx->set_max_num_args(3);
         l_gx->set_arg_name_length(100);
@@ -65,14 +64,7 @@ static waflz_pb::profile *init_std_profile_pb(void)
         // -----------------------------------------
         // anomaly settings -required fields
         // -----------------------------------------
-        ::waflz_pb::profile_general_settings_t_anomaly_settings_t* l_gx_anomaly = NULL;
-        l_gx_anomaly = l_gx->mutable_anomaly_settings();
-        l_gx_anomaly->set_critical_score(5);
-        l_gx_anomaly->set_error_score(4);
-        l_gx_anomaly->set_warning_score(3);
-        l_gx_anomaly->set_notice_score(2);
-        l_gx_anomaly->set_inbound_threshold(1);
-        l_gx_anomaly->set_outbound_threshold(4);
+        l_gx->set_anomaly_threshold(1);
         // -----------------------------------------
         // access settings -required fields
         // -----------------------------------------
@@ -134,17 +126,6 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 l_s = l_profile->load_config(l_pb, false);
                 //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                //---------------------------------------------
-                // Disable the policy with anomaly enforce rule
-                //---------------------------------------------
-                ::waflz_pb::profile_disabled_policy_t *l_disabled_policy = l_pb->add_disabled_policies();
-                l_disabled_policy->set_policy_id("REQUEST-949-BLOCKING-EVALUATION.conf");
-                //fprintf(stdout, "%s\n", l_pb->DebugString().c_str());
-                l_s = l_profile->load_config(l_pb, false);
-                //---------------------------------------------
-                // Should fail to load config
-                //---------------------------------------------
-                REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 //---------------------------------------------
                 // Now include the anomaly rule file
                 // This would ignore the disabled policies

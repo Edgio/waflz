@@ -50,7 +50,12 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 class engine;
 class rqst_ctx;
-class waf;
+class acl;
+class rules;
+class profile;
+class limit;
+class kv_db;
+class enforcer;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
@@ -71,14 +76,20 @@ public:
                 }
         };
 #if defined(__APPLE__) || defined(__darwin__)
-        typedef std::unordered_map<std::string, waf*, str_hash> id_rules_map_t;
+        typedef std::unordered_map<std::string, acl*, str_hash> id_acl_map_t;
+        typedef std::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
+        typedef std::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
+        typedef std::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
 #else
-        typedef std::tr1::unordered_map<std::string, waf*, str_hash> id_rules_map_t;
+        typedef std::tr1::unordered_map<std::string, acl*, str_hash> id_acl_map_t;
+        typedef std::tr1::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
+        typedef std::tr1::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
+        typedef std::tr1::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
 #endif
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        scopes(engine &a_engine);
+        scopes(engine &a_engine, kv_db &a_kv_db);
         ~scopes();
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
@@ -117,19 +128,20 @@ private:
         waflz_pb::scope_config *m_pb;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
+        kv_db &m_db;
         // properties
         std::string m_id;
+        // -------------------------------------------------
         // parts...
         // -------------------------------------------------
-        // acls
-        // TODO
-        // rules
-        // TODO
+        id_acl_map_t m_id_acl_map;
         id_rules_map_t m_id_rules_map;
-        // profiles
-        // TODO
-        // limits
-        // TODO
+        id_profile_map_t m_id_profile_map;
+        id_limit_map_t m_id_limit_map;
+        // -------------------------------------------------
+        // enforcements
+        // -------------------------------------------------
+        enforcer *m_enfx;
 };
 //: ----------------------------------------------------------------------------
 //: run operation

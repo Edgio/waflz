@@ -161,6 +161,7 @@ SET(SRCS
     core/render.cc
     core/scopes.cc
     core/scopes_configs.cc
+    core/rules.cc
     # ------------------------------------------------------
     # parsers
     # ------------------------------------------------------

@@ -12,10 +12,6 @@
       "blacklist": [],
       "whitelist": []
     },
-    "referrer": {
-      "blacklist": [],
-      "whitelist": []
-    },
     "url": {
       "blacklist": ["*dogs[]"],
       "whitelist": []
@@ -56,8 +52,6 @@
     "arg_length": 8000,
     "arg_name_length": 1024,
     "combined_file_sizes": 6291456,
-    "debug_level": 0,
-    "debug_log": "",
     "disallowed_extensions": [
       ".asa",
       ".asax",
@@ -112,7 +106,6 @@
       ".xsx"
     ],
     "disallowed_headers": [],
-    "engine": "anomaly",
     "json_parser": true,
     "max_file_size": 6291456,
     "max_num_args": 512,

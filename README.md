@@ -39,10 +39,8 @@ brew install cmake
 brew install openssl
 brew install protobuf
 brew install libxml2
-brew unlink pcre
-brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/e12be86f1cf3fbea55fa5f3dda5eb21989ae3131/Formula/pcre.rbpcre
+brew install pcre
 ```
-Note: pcre version > 8.41 is not supported currently
 
 ### Building the tools
 ```bash

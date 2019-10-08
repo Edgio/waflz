@@ -942,19 +942,25 @@ prod:
         // enforcements
         // -------------------------------------------------
 enforcements:
-#if 0
         if(!m_enfx)
         {
                 goto limits;
         }
         {
         int32_t l_s;
-        const waflz_pb::enforcement *l_enfcmnt = NULL;
-        l_s = m_enfx->process(&l_enfcmnt, *ao_rqst_ctx);
+        l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "performing enforcer process");
                 return WAFLZ_STATUS_ERROR;
+        }
+        if(ao_enf)
+        {
+                // TODO generate event...
+#if 0
+                *ao_prod_event = l_event;
+#endif
+                goto done;
         }
         }
         // TODO
@@ -980,6 +986,7 @@ limits:
                 {
                         continue;
                 }
+#if 0
                 //const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
                 // -----------------------------------------
                 // create enforcement
@@ -1016,8 +1023,8 @@ limits:
                 }
                 goto done;
 #endif
-        }
 #endif
+        }
         // -------------------------------------------------
         // rules
         // -------------------------------------------------

@@ -54,6 +54,16 @@ main() {
         esac
     done
 
+    if [ "$(uname)" == "Darwin" ]; then
+        BUILD_UBUNTU=OFF
+        BUILD_RATE_LIMITING=OFF
+        NPROC=$(sysctl -n hw.ncpu)
+    else
+        BUILD_UBUNTU=ON
+        BUILD_RATE_LIMITING=ON
+        NPROC=$(nproc)
+    fi
+
     mkdir -p build
     pushd build
 
@@ -62,19 +72,19 @@ main() {
         -DBUILD_ASAN=ON\
         -DBUILD_SYMBOLS=ON \
         -DBUILD_APPS=ON \
-        -DBUILD_UBUNTU=ON \
-        -DBUILD_RATE_LIMITING=ON \
+        -DBUILD_UBUNTU=${BUILD_UBUNTU} \
+        -DBUILD_RATE_LIMITING=${BUILD_RATE_LIMITING} \
         -DCMAKE_INSTALL_PREFIX=/usr
     else
         cmake ../ \
         -DBUILD_SYMBOLS=ON \
         -DBUILD_APPS=ON \
-        -DBUILD_UBUNTU=ON \
-        -DBUILD_RATE_LIMITING=ON \
+        -DBUILD_UBUNTU=${BUILD_UBUNTU} \
+        -DBUILD_RATE_LIMITING=${BUILD_RATE_LIMITING} \
         -DCMAKE_INSTALL_PREFIX=/usr
     fi
 
-    make -j$(nproc) && \
+    make -j${NPROC} && \
     make test && \
     umask 0022 && chmod -R a+rX . && \
     make package && \

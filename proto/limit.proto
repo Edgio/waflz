@@ -138,24 +138,34 @@ message limit {
         // -------------------------------------------------
         // properties
         // -------------------------------------------------
-        optional string id = 1;
-        optional string name = 2;
-        optional bool disabled = 3;
-        optional uint64 start_epoch_msec = 4;
-        optional uint64 end_epoch_msec = 5;
-        optional uint32 duration_sec = 6;
-        optional uint32 num = 7;
-        repeated key_t keys = 8;
-        optional bool always_on = 9;
-        repeated condition_group condition_groups = 100;
-        optional enforcement action = 200;
+        optional string version = 1;
+        optional string id = 2;
+        optional string name = 3;
+        optional string customer_id = 4;
+        optional string last_modified_date = 5;
+        optional string last_modified_by = 6;
+        // -------------------------------------------------
+        // settings
+        // -------------------------------------------------
+        optional bool disabled = 100;
+        optional uint64 start_epoch_msec = 101;
+        optional uint64 end_epoch_msec = 102;
+        optional uint32 duration_sec = 103;
+        optional uint32 num = 104;
+        repeated key_t keys = 105;
+        optional bool always_on = 106;
+        // -------------------------------------------------
+        // conditions
+        // -------------------------------------------------
+        repeated condition_group condition_groups = 200;
+        // -------------------------------------------------
+        // action
+        // -------------------------------------------------
+        optional enforcement action = 300;
         //: ------------------------------------------------
         //: ************* D E P R E C A T E D **************
         //: ------------------------------------------------
         optional string enabled_date = 400;
-        optional string last_modified_date = 401;
-        optional string last_modified_by = 402;
-        optional string customer_id = 403;
         //: ------------------------------------------------
         //: ************* D E P R E C A T E D **************
         //: ------------------------------------------------

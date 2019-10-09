@@ -115,6 +115,7 @@ public:
                         const ::waflz_pb::scope& a_scope,
                         void *a_ctx,
                         rqst_ctx **ao_rqst_ctx);
+        bool get_enf_limit(void) { return m_enf_limit;}
 private:
         // -------------------------------------------------
         // private methods
@@ -125,9 +126,9 @@ private:
         scopes& operator=(const scopes &);
         int32_t validate(void);
         int32_t add_exceed_limit(waflz_pb::config **ao_cfg,
-                                 const std::string &a_cust_id,
                                  const waflz_pb::limit& a_limit,
                                  const waflz_pb::condition_group *a_condition_group,
+                                 const waflz_pb::enforcement &a_action,
                                  rqst_ctx *a_ctx);
         // -------------------------------------------------
         // private members
@@ -139,6 +140,7 @@ private:
         kv_db &m_db;
         // properties
         std::string m_id;
+        std::string m_cust_id;
         // -------------------------------------------------
         // parts...
         // -------------------------------------------------
@@ -150,6 +152,10 @@ private:
         // enforcements
         // -------------------------------------------------
         enforcer *m_enfx;
+        // -------------------------------------------------
+        // flag new enforcement
+        // -------------------------------------------------
+        bool m_enf_limit;
 };
 //: ----------------------------------------------------------------------------
 //: run operation

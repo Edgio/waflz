@@ -315,20 +315,21 @@ message sec_config_t {
                 DETECTION_ONLY = 3;
         }
         // -------------------------------------------------
-        // meta
+        // properties
         // -------------------------------------------------
         optional string version = 1;
         optional string id = 2;
         optional string name = 3;
-        optional string last_modified_date = 30;
-        optional string last_modified_by = 31;
+        optional string customer_id = 4;
+        optional string last_modified_date = 5;
+        optional string last_modified_by = 6;
         // -------------------------------------------------
         // id
         // -------------------------------------------------
         optional string ruleset_id = 100;
         optional string ruleset_version = 101;
         // -------------------------------------------------
-        // properties...
+        // settings
         // -------------------------------------------------
         optional engine_type_t rule_engine = 1000;
         optional uint32 argument_separator = 1001;

@@ -278,11 +278,13 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db):
         m_engine(a_engine),
         m_db(a_kv_db),
         m_id(),
+        m_cust_id(),
         m_id_acl_map(),
         m_id_rules_map(),
         m_id_profile_map(),
         m_id_limit_map(),
-        m_enfx(NULL)
+        m_enfx(NULL),
+        m_enf_limit(false)
 {
         m_pb = new waflz_pb::scope_config();
         m_enfx = new enforcer(false);
@@ -325,8 +327,19 @@ int32_t scopes::validate(void)
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
+        if(!m_pb->has_id())
+        {
+                WAFLZ_PERROR(m_err_msg, "missing id field");
+                return WAFLZ_STATUS_ERROR;
+        }
         m_id = m_pb->id();
+        // -------------------------------------------------
         // TODO -add validation...
+        // -------------------------------------------------
+        if(m_pb->has_customer_id())
+        {
+                m_cust_id = m_pb->customer_id();
+        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -857,7 +870,10 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
-        int32_t l_s;
+        // -------------------------------------------------
+        // unset
+        // -------------------------------------------------
+        m_enf_limit = false;
         // -------------------------------------------------
         // create rqst_ctx
         // -------------------------------------------------
@@ -872,6 +888,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------
+        int32_t l_s;
         l_s = l_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), NULL, NULL, NULL);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -1098,25 +1115,21 @@ enforcements:
         }
         if(ao_enf)
         {
-                // TODO generate event...
-#if 0
-                *ao_prod_event = l_event;
-#endif
                 goto done;
         }
         }
-        // TODO
 limits:
         // -------------------------------------------------
         // limits
         // -------------------------------------------------
         for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
         {
-                if(!a_scope.limits(i_l).has__reserved_1())
+                const ::waflz_pb::scope_limit_config& l_slc = a_scope.limits(i_l);
+                if(!l_slc.has__reserved_1())
                 {
                         continue;
                 }
-                limit *l_limit = (limit *)a_scope.limits(i_l)._reserved_1();
+                limit *l_limit = (limit *)l_slc._reserved_1();
                 bool l_exceeds = false;
                 const waflz_pb::condition_group *l_cg = NULL;
                 l_limit->process(l_exceeds, &l_cg, *ao_rqst_ctx);
@@ -1124,21 +1137,20 @@ limits:
                 {
                         continue;
                 }
-                if(!a_scope.limits(i_l).has_action())
+                if(!l_slc.has_action())
                 {
                         continue;
                 }
+                const waflz_pb::enforcement& l_axn = l_slc.action();
                 // -----------------------------------------
                 // add new exceeds
                 // -----------------------------------------
                 int32_t l_s;
-                // TODO FIX!!!
-                std::string l_cust_id = "AAFD";
                 waflz_pb::config *l_cfg = NULL;
                 l_s = add_exceed_limit(&l_cfg,
-                                       l_cust_id,
                                        *(l_limit->get_pb()),
                                        l_cg,
+                                       l_axn,
                                        *ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -1147,42 +1159,36 @@ limits:
                 }
                 //const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
                 // -----------------------------------------
-                // create enforcement
+                // merge enforcement
                 // -----------------------------------------
-                // TODO
-                // -----------------------------------------
-                // enforce...
-                // -----------------------------------------
-#if 0
-#if 0
-                if(!a_scope.limits(i_l).has_id())
-                {
-                        continue;
-                }
-                const std::string& l_id = a_scope.limits(i_l).id();
-                acl *l_acl = (acl *)a_scope._acl_prod__reserved();
-                waflz_pb::event *l_event = NULL;
-                bool l_wl = false;
-                int32_t l_s;
-                l_s = l_acl->process(&l_event, l_wl, a_ctx, **ao_rqst_ctx);
+                //NDBG_OUTPUT("l_enfx: %s\n", l_enfcr->ShortDebugString().c_str());
+                l_s = m_enfx->merge(*l_cfg);
+                // TODO -return enforcer...
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_event) { delete l_event; l_event = NULL; }
-                        // TODO reason???
+                        WAFLZ_PERROR(m_err_msg, "%s", m_enfx->get_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(!l_event)
+                if(l_cfg) { delete l_cfg; l_cfg = NULL; }
+                // -----------------------------------------
+                // process enforcer
+                // -----------------------------------------
+                l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
                 {
-                        goto prod_rules;
+                        return WAFLZ_STATUS_ERROR;
                 }
-                *ao_prod_event = l_event;
-                if(a_scope.has_acl_prod_action())
+                // -----------------------------------------
+                // enforced???
+                // -----------------------------------------
+                if(ao_enf)
                 {
-                        *ao_enf = &(a_scope.acl_prod_action());
+                        // ---------------------------------
+                        // mark as new enf
+                        // ---------------------------------
+                        m_enf_limit = true;
+                        goto done;
                 }
-                goto done;
-#endif
-#endif
         }
         // -------------------------------------------------
         // rules
@@ -1264,9 +1270,9 @@ done:
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
-                                 const std::string &a_cust_id,
                                  const waflz_pb::limit& a_limit,
                                  const waflz_pb::condition_group *a_condition_group,
+                                 const waflz_pb::enforcement &a_action,
                                  rqst_ctx *a_ctx)
 {
         if(!ao_cfg)
@@ -1275,22 +1281,18 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // create enforcer if null
+        // create enforcement
         // -------------------------------------------------
-        if(*ao_cfg == NULL)
-        {
-                waflz_pb::config *l_cfg = new waflz_pb::config();
-                l_cfg->set_id("NA");
-                l_cfg->set_name("NA");
-                l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
-                l_cfg->set_customer_id(a_cust_id);
-                l_cfg->set_enabled_date(get_date_short_str());
-                *ao_cfg = l_cfg;
-        }
+        waflz_pb::config *l_cfg = new waflz_pb::config();
+        l_cfg->set_id("NA");
+        l_cfg->set_name("NA");
+        l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
+        l_cfg->set_customer_id(m_cust_id);
+        l_cfg->set_enabled_date(get_date_short_str());
         // -------------------------------------------------
         // populate limit info
         // -------------------------------------------------
-        waflz_pb::limit* l_limit = (*ao_cfg)->add_limits();
+        waflz_pb::limit* l_limit = l_cfg->add_limits();
         l_limit->set_id(a_limit.id());
         if(a_limit.has_name())
         { l_limit->set_name(a_limit.name()); }
@@ -1318,24 +1320,24 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
                                          a_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
+                        // TODO cleanup
                         return WAFLZ_STATUS_ERROR;
                 }
         }
         // -------------------------------------------------
-        // copy enforcement(s)
+        // copy action(s)
         // -------------------------------------------------
-        // TODO -code assumes single enforcement currently...
-        if(!a_limit.has_action())
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
         uint64_t l_cur_time_ms = get_time_ms();
         uint32_t l_e_duration_s = 0;
         waflz_pb::enforcement *l_e = l_limit->mutable_action();
-        l_e->CopyFrom(a_limit.action());
+        l_e->CopyFrom(a_action);
+        // -------------------------------------------------
         // only id/name/type might be set
+        // -------------------------------------------------
         l_e->set_start_time_ms(l_cur_time_ms);
+        // -------------------------------------------------
         // TODO set percentage to 100 for now
+        // -------------------------------------------------
         l_e->set_percentage(100.0);
         // -------------------------------------------------
         // duration calculation
@@ -1349,8 +1351,15 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
                 l_e_duration_s = a_limit.duration_sec();
         }
         l_e->set_duration_sec(l_e_duration_s);
+        // -------------------------------------------------
+        // set duration
+        // -------------------------------------------------
         l_limit->set_start_epoch_msec(l_cur_time_ms);
         l_limit->set_end_epoch_msec(l_cur_time_ms + l_e_duration_s*1000);
+        // -------------------------------------------------
+        // set
+        // -------------------------------------------------
+        *ao_cfg = l_cfg;
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

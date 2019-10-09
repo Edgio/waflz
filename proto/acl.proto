@@ -7,11 +7,12 @@ message acl {
         // -------------------------------------------------
         // properties
         // -------------------------------------------------
-        optional string id = 1;
-        optional string name = 2;
-        optional string customer_id = 3;
-        optional string last_modified_date = 4;
-        optional string last_modified_by = 5;
+        optional string version = 1;
+        optional string id = 2;
+        optional string name = 3;
+        optional string customer_id = 4;
+        optional string last_modified_date = 5;
+        optional string last_modified_by = 6;
         // -------------------------------------------------
         // lists
         // -------------------------------------------------

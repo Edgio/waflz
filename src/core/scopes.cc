@@ -35,11 +35,13 @@
 #include "support/ndebug.h"
 #include "support/base64.h"
 #include "support/file_util.h"
+#include "support/time_util.h"
 #include "op/nms.h"
 #include "op/regex.h"
 #include "scope.pb.h"
 #include "jspb/jspb.h"
 #include "event.pb.h"
+#include "limit.pb.h"
 #include <fnmatch.h>
 //: ----------------------------------------------------------------------------
 //: constants
@@ -54,6 +56,16 @@
                 return WAFLZ_STATUS_ERROR; \
         } \
 } while(0)
+#define _GET_HEADER(_header) do { \
+    l_d.m_data = _header; \
+    l_d.m_len = sizeof(_header); \
+    data_map_t::const_iterator i_h = a_ctx->m_header_map.find(l_d); \
+    if(i_h != a_ctx->m_header_map.end()) \
+    { \
+            l_v.m_data = i_h->second.m_data; \
+            l_v.m_len = i_h->second.m_len; \
+    } \
+    } while(0)
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: utils
@@ -121,6 +133,136 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
                 }
                 ao_axn.mutable_response_body()->assign(l_body, l_body_len);
                 if(l_body) { free(l_body); l_body = NULL; }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details return short date in form "<mm>/<dd>/<YYYY>"
+//: \return  None
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static const char *get_date_short_str(void)
+{
+        // TODO thread caching???
+        static char s_date_str[128];
+        time_t l_time = time(NULL);
+        struct tm* l_tm = localtime(&l_time);
+        if(0 == strftime(s_date_str, sizeof(s_date_str), "%m/%d/%Y", l_tm))
+        {
+                return "1/1/1970";
+        }
+        else
+        {
+                return s_date_str;
+        }
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  None
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
+                                  uint16_t a_key,
+                                  rqst_ctx *a_ctx)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // Set operator to streq for all
+        // -------------------------------------------------
+        const char *l_data = NULL;
+        uint32_t l_len = 0;
+        switch(a_key)
+        {
+        // -------------------------------------------------
+        // ip
+        // -------------------------------------------------
+        case waflz_pb::limit_key_t_IP:
+        {
+                l_data = a_ctx->m_src_addr.m_data;
+                l_len = a_ctx->m_src_addr.m_len;
+                break;
+        }
+        // -------------------------------------------------
+        // user-agent
+        // -------------------------------------------------
+        case waflz_pb::limit_key_t_USER_AGENT:
+        {
+                if(!a_ctx)
+                {
+                        break;
+                }
+                data_t l_d;
+                data_t l_v;
+                _GET_HEADER("User-Agent");
+                l_data = l_v.m_data;
+                l_len = l_v.m_len;
+                break;
+        }
+        // -------------------------------------------------
+        // ???
+        // -------------------------------------------------
+        default:
+        {
+                //WAFLZ_PERROR(m_err_msg, "unrecognized dimension type: %u", a_key);
+                return WAFLZ_STATUS_ERROR;
+        }
+        }
+        // if no data -no limit
+        if(!l_data ||
+           (l_len == 0))
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // Add limit for any data
+        waflz_pb::condition *l_c = NULL;
+        if(ao_limit.condition_groups_size() > 0)
+        {
+                l_c = ao_limit.mutable_condition_groups(0)->add_conditions();
+        }
+        else
+        {
+                l_c = ao_limit.add_condition_groups()->add_conditions();
+        }
+        // -------------------------------------------------
+        // set operator
+        // -------------------------------------------------
+        // always STREQ
+        waflz_pb::op_t* l_operator = l_c->mutable_op();
+        l_operator->set_type(waflz_pb::op_t_type_t_STREQ);
+        l_operator->set_value(l_data, l_len);
+        // -------------------------------------------------
+        // set var
+        // -------------------------------------------------
+        waflz_pb::condition_target_t* l_var = l_c->mutable_target();
+        switch(a_key)
+        {
+        // -------------------------------------------------
+        // ip
+        // -------------------------------------------------
+        case waflz_pb::limit_key_t_IP:
+        {
+                l_var->set_type(waflz_pb::condition_target_t_type_t_REMOTE_ADDR);
+                break;
+        }
+        // -------------------------------------------------
+        // user-agent
+        // -------------------------------------------------
+        case waflz_pb::limit_key_t_USER_AGENT:
+        {
+                l_var->set_type(waflz_pb::condition_target_t_type_t_REQUEST_HEADERS);
+                l_var->mutable_value()->assign("User-Agent");
+                break;
+        }
+        // -------------------------------------------------
+        // ???
+        // -------------------------------------------------
+        default:
+        {
+                break;
+        }
         }
         return WAFLZ_STATUS_OK;
 }
@@ -986,7 +1128,23 @@ limits:
                 {
                         continue;
                 }
-#if 0
+                // -----------------------------------------
+                // add new exceeds
+                // -----------------------------------------
+                int32_t l_s;
+                // TODO FIX!!!
+                std::string l_cust_id = "AAFD";
+                waflz_pb::config *l_cfg = NULL;
+                l_s = add_exceed_limit(&l_cfg,
+                                       l_cust_id,
+                                       *(l_limit->get_pb()),
+                                       l_cg,
+                                       *ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "performing add_exceed_limit");
+                        return WAFLZ_STATUS_ERROR;
+                }
                 //const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
                 // -----------------------------------------
                 // create enforcement
@@ -995,6 +1153,7 @@ limits:
                 // -----------------------------------------
                 // enforce...
                 // -----------------------------------------
+#if 0
 #if 0
                 if(!a_scope.limits(i_l).has_id())
                 {
@@ -1097,6 +1256,101 @@ prod_profile:
         // cleanup
         // -------------------------------------------------
 done:
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
+                                 const std::string &a_cust_id,
+                                 const waflz_pb::limit& a_limit,
+                                 const waflz_pb::condition_group *a_condition_group,
+                                 rqst_ctx *a_ctx)
+{
+        if(!ao_cfg)
+        {
+                WAFLZ_PERROR(m_err_msg, "enforcer ptr NULL.");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // create enforcer if null
+        // -------------------------------------------------
+        if(*ao_cfg == NULL)
+        {
+                waflz_pb::config *l_cfg = new waflz_pb::config();
+                l_cfg->set_id("NA");
+                l_cfg->set_name("NA");
+                l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
+                l_cfg->set_customer_id(a_cust_id);
+                l_cfg->set_enabled_date(get_date_short_str());
+                *ao_cfg = l_cfg;
+        }
+        // -------------------------------------------------
+        // populate limit info
+        // -------------------------------------------------
+        waflz_pb::limit* l_limit = (*ao_cfg)->add_limits();
+        l_limit->set_id(a_limit.id());
+        if(a_limit.has_name())
+        { l_limit->set_name(a_limit.name()); }
+        else
+        {
+                l_limit->set_name("NA");
+        }
+        l_limit->set_disabled(false);
+        // -------------------------------------------------
+        // copy "the limit"
+        // -------------------------------------------------
+        if(a_condition_group)
+        {
+                waflz_pb::condition_group *l_cg = l_limit->add_condition_groups();
+                l_cg->CopyFrom(*a_condition_group);
+        }
+        // -------------------------------------------------
+        // create limits for dimensions
+        // -------------------------------------------------
+        for(int i_k = 0; i_k < a_limit.keys_size(); ++i_k)
+        {
+                int32_t l_s;
+                l_s = add_limit_with_key(*l_limit,
+                                         a_limit.keys(i_k),
+                                         a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // copy enforcement(s)
+        // -------------------------------------------------
+        // TODO -code assumes single enforcement currently...
+        if(!a_limit.has_action())
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        uint64_t l_cur_time_ms = get_time_ms();
+        uint32_t l_e_duration_s = 0;
+        waflz_pb::enforcement *l_e = l_limit->mutable_action();
+        l_e->CopyFrom(a_limit.action());
+        // only id/name/type might be set
+        l_e->set_start_time_ms(l_cur_time_ms);
+        // TODO set percentage to 100 for now
+        l_e->set_percentage(100.0);
+        // -------------------------------------------------
+        // duration calculation
+        // -------------------------------------------------
+        if(l_e->has_duration_sec())
+        {
+                l_e_duration_s = l_e->duration_sec();
+        }
+        else
+        {
+                l_e_duration_s = a_limit.duration_sec();
+        }
+        l_e->set_duration_sec(l_e_duration_s);
+        l_limit->set_start_epoch_msec(l_cur_time_ms);
+        l_limit->set_end_epoch_msec(l_cur_time_ms + l_e_duration_s*1000);
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

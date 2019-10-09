@@ -43,6 +43,9 @@ namespace waflz_pb {
         class event;
         class scope;
         class op_t;
+        class config;
+        class limit;
+        class condition_group;
 }
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
@@ -121,6 +124,11 @@ private:
         scopes(const scopes &);
         scopes& operator=(const scopes &);
         int32_t validate(void);
+        int32_t add_exceed_limit(waflz_pb::config **ao_cfg,
+                                 const std::string &a_cust_id,
+                                 const waflz_pb::limit& a_limit,
+                                 const waflz_pb::condition_group *a_condition_group,
+                                 rqst_ctx *a_ctx);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

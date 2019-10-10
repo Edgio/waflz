@@ -1,5 +1,5 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
+//: Copyright (C) 2019 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
 //: \file:    scopes.cc
@@ -1113,7 +1113,7 @@ enforcements:
                 WAFLZ_PERROR(m_err_msg, "performing enforcer process");
                 return WAFLZ_STATUS_ERROR;
         }
-        if(ao_enf)
+        if(*ao_enf)
         {
                 goto done;
         }

@@ -1,0 +1,55 @@
+{
+	"id": "0050-ZrLf2KkQ",
+	"name": "my cool acl",
+	"url": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"asn": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"ip": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"user_agent": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": ["gizoogle"]
+	},
+	"referer": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"country": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+    "allowed_http_methods": [
+      "GET",
+      "HEAD",
+      "POST",
+      "PROPFIND",
+      "PUT"
+    ],
+    "allowed_request_content_types": [
+      "application/json",
+      "application/x-amf",
+      "application/x-www-form-urlencoded",
+      "application/xml",
+      "multipart/form-data",
+      "text/xml",
+      "text/plain"
+    ],
+    "allowed_http_versions": [
+      "HTTP/1.0",
+      "HTTP/1.1",
+      "HTTP/2.0"
+    ]
+}

@@ -82,11 +82,16 @@ message profile {
         // -------------------------------------------------
         // properties
         // -------------------------------------------------
-        optional string id = 1;
-        optional string name = 2;
-        optional string enabled_date = 5;
-        optional string created_date = 6;
-        optional string last_modified_date = 7;
+        optional string version = 1;
+        optional string id = 2;
+        optional string name = 3;
+        optional string customer_id = 4;
+        optional string last_modified_date = 5;
+        optional string last_modified_by = 6;
+        // -------------------------------------------------
+        //: ************ D E P R E C A T E D ***************
+        // -------------------------------------------------
+        optional string created_date = 7;
         // -------------------------------------------------
         // settings
         // -------------------------------------------------

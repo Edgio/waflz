@@ -58,6 +58,7 @@ public:
         const std::string& get_last_modified_date();
         int32_t process(bool &ao_exceeds, const waflz_pb::condition_group** ao_cg, rqst_ctx* a_ctx);
         const char *get_err_msg(void) { return m_err_msg; }
+        waflz_pb::limit *get_pb(void) { return m_pb; }
 private:
         // -------------------------------------------------
         // Private methods

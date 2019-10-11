@@ -80,13 +80,14 @@ message scope {
 //: ----------------------------------------------------------------------------
 message scope_config {
         // -------------------------------------------------
-        // meta
+        // properties
         // -------------------------------------------------
         optional string version = 1;
         optional string id = 2;
         optional string name = 3;
-        optional string last_modified_date = 30;
-        optional string last_modified_by = 31;
+        optional string customer_id = 4;
+        optional string last_modified_date = 5;
+        optional string last_modified_by = 6;
         // -------------------------------------------------
         // scopes
         // -------------------------------------------------

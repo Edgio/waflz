@@ -990,6 +990,15 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         srand(time(NULL));
         // -------------------------------------------------
+        // Force directory string to end with '/'
+        // -------------------------------------------------
+        if(!l_ruleset_dir.empty() &&
+           ('/' != l_ruleset_dir[l_ruleset_dir.length() - 1]))
+        {
+                // Append
+                l_ruleset_dir += "/";
+        }
+        // -------------------------------------------------
         // *************************************************
         // server setup
         // *************************************************
@@ -1039,6 +1048,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_config = l_config_file;
                 g_sx_scopes->m_bg_load = false;
                 g_sx_scopes->m_scopes_dir = false;
+                g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
@@ -1052,6 +1062,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_config = l_config_file;
                 g_sx_scopes->m_bg_load = false;
                 g_sx_scopes->m_scopes_dir = true;
+                g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;

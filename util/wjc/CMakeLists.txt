@@ -26,6 +26,7 @@ cmake_minimum_required(VERSION 2.6.0)
 if (POLICY CMP0050)
     cmake_policy(SET CMP0050 OLD)
 endif()
+set(CMAKE_CXX_FLAGS "-Wall -Weffc++ -Werror -std=c++11")
 # ------------------------------------------------------------------------------
 # header files to install
 # ------------------------------------------------------------------------------

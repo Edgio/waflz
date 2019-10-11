@@ -138,7 +138,7 @@ message limit {
         // -------------------------------------------------
         // properties
         // -------------------------------------------------
-        optional string version = 1;
+        optional uint32 version = 1;
         optional string id = 2;
         optional string name = 3;
         optional string customer_id = 4;

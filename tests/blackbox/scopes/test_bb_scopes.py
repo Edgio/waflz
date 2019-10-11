@@ -191,3 +191,14 @@ def test_single_scope(setup_scopez_server_single):
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
+    # ------------------------------------------------------
+    # test acl
+    # ------------------------------------------------------
+    l_headers['user-agent'] = 'gizoogle'
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'audit_profile' in l_r_json
+    assert l_r_json['audit_profile'] == None
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist User-Agent match'

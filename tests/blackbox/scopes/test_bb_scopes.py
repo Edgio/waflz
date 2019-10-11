@@ -35,14 +35,16 @@ def setup_scopez_server():
     # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
+    l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
+    l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
     l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
     l_subproc = subprocess.Popen([l_scopez_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
+                                  '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path])
     time.sleep(1)
@@ -68,13 +70,21 @@ def setup_scopez_server_single():
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
+    l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopez_file = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes/0050.scopes.json'))
     l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
     l_subproc = subprocess.Popen([l_scopez_server_path,
                                   '-d', l_conf_dir,
                                   '-s', l_scopez_file,
+                                  '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path])
+    print('cmd: {}'.format(' '.join([l_scopez_server_path,
+                                  '-d', l_conf_dir,
+                                  '-s', l_scopez_file,
+                                  '-r', l_ruleset_path,
+                                  '-g', l_geoip2city_path,
+                                  '-i', l_geoip2ISP_path])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
@@ -202,3 +212,15 @@ def test_single_scope(setup_scopez_server_single):
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist User-Agent match'
+    # ------------------------------------------------------
+    # test acl
+    # ------------------------------------------------------
+    l_headers['user-agent'] = 'curl'
+    l_uri = G_TEST_HOST + '/?a=%27select%20*%20from%20testing%27'
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'audit_profile' in l_r_json
+    assert l_r_json['audit_profile'] == None
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'

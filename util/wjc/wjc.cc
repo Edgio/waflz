@@ -31,6 +31,7 @@
 #include "support/time_util.h"
 #include "waflz/engine.h"
 #include "jspb/jspb.h"
+#include "profile.pb.h"
 #ifdef WAFLZ_RATE_LIMITING
 #include "waflz/limit/config.h"
 #include "waflz/limit/enforcer.h"
@@ -102,6 +103,10 @@ typedef enum {
 #ifdef WAFLZ_RATE_LIMITING
 static void strip_fields(waflz_pb::config& ao_config)
 {
+        if(ao_config.has__customer_id_int())
+        {
+                ao_config.clear__customer_id_int();
+        }
         for(int i_l = 0; i_l < ao_config.limits_size(); ++i_l)
         {
                 ::waflz_pb::limit* l_lim = ao_config.mutable_limits(i_l);
@@ -209,7 +214,7 @@ static int32_t validate_ruleset_dir(std::string &a_ruleset_dir)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-static int32_t validate_profile(const std::string &a_file, std::string &a_ruleset_dir)
+static int32_t validate_profile(const std::string &a_file, std::string &a_ruleset_dir, bool a_display_json)
 {
         int32_t l_s;
         // -------------------------------------------------
@@ -253,6 +258,18 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
                 if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_profile) { delete l_profile; l_profile = NULL; }
                 return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // display?
+        // -------------------------------------------------
+        if(a_display_json &&
+           l_profile->get_pb())
+        {
+
+                std::string l_js;
+                const waflz_pb::profile& l_pb = *(l_profile->get_pb());
+                ns_waflz::convert_to_json(l_js, l_pb);
+                NDBG_OUTPUT("%s\n", l_js.c_str());
         }
         // -------------------------------------------------
         // cleanup
@@ -471,7 +488,7 @@ static int32_t validate_limits(const std::string &a_file, bool a_display_json)
                 waflz_pb::config* l_pb = l_config->get_pb();
                 strip_fields(*l_pb);
                 std::string l_js;
-                ns_waflz::convert_to_json(l_js, *(l_config->get_pb()));
+                ns_waflz::convert_to_json(l_js, *(l_pb));
                 NDBG_OUTPUT("%s\n", l_js.c_str());
         }
         // -------------------------------------------------
@@ -510,7 +527,6 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "Options:\n");
         fprintf(a_stream, "  -h, --help         Display this help and exit.\n");
         fprintf(a_stream, "  -v, --version      Display the version number and exit.\n");
-        fprintf(a_stream, "  -d, --verbose      Verbose messages [Default: OFF]\n");
         fprintf(a_stream, "  -r, --ruleset-dir  WAF Ruleset directory [REQUIRED]\n");
         fprintf(a_stream, "  -i, --instance     WAF instance\n");
         fprintf(a_stream, "  -p, --profile      WAF profile\n");
@@ -541,13 +557,11 @@ int main(int argc, char** argv)
         std::string l_ruleset_dir;
         bool l_display_json = false;
         int l_option_index = 0;
-        bool l_verbose = false;
         config_mode_t l_config_mode = CONFIG_MODE_NONE;
         struct option l_long_options[] =
         {
                 { "help",        0, 0, 'h' },
                 { "version",     0, 0, 'v' },
-                { "verbose",     0, 0, 'd' },
                 { "ruleset-dir", 1, 0, 'r' },
                 { "instance",    1, 0, 'i' },
                 { "profile",     1, 0, 'p' },
@@ -561,7 +575,7 @@ int main(int argc, char** argv)
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-        while ((l_opt = getopt_long_only(argc, argv, "hvdr:i:p:a:R:l:L:j", l_long_options, &l_option_index)) != -1)
+        while ((l_opt = getopt_long_only(argc, argv, "hvr:i:p:a:R:l:L:j", l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)
                 {
@@ -587,14 +601,6 @@ int main(int argc, char** argv)
                 case 'v':
                 {
                         print_version(stdout, 0);
-                        break;
-                }
-                // -----------------------------------------
-                //
-                // -----------------------------------------
-                case 'd':
-                {
-                        l_verbose = 1;
                         break;
                 }
                 // -----------------------------------------
@@ -714,7 +720,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_PROFILE):
         {
-                l_s = validate_profile(l_file, l_ruleset_dir);
+                l_s = validate_profile(l_file, l_ruleset_dir, l_display_json);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;

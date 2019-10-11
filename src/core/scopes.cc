@@ -685,7 +685,7 @@ rules_prod_action:
                 // make profile obj
                 // -----------------------------------------
                 profile *l_profile = new profile(m_engine);
-                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.acl_audit_id();
+                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.profile_audit_id();
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
@@ -744,7 +744,7 @@ profile_audit_action:
                 // make profile obj
                 // -----------------------------------------
                 profile *l_profile = new profile(m_engine);
-                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.acl_audit_id();
+                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.profile_prod_id();
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
@@ -1225,10 +1225,10 @@ limits:
 prod_profile:
         if(a_scope.has__profile_prod__reserved())
         {
-                int32_t l_s;
                 // -----------------------------------------
                 // reset phase 1 to handle ignore...
                 // -----------------------------------------
+                int32_t l_s;
                 l_s = (*ao_rqst_ctx)->reset_phase_1();
                 if(l_s != WAFLZ_STATUS_OK)
                 {

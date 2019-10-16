@@ -47,6 +47,24 @@
       "status": 403,
       "type": "custom-response"
     }
+  },
+  {
+    "host": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "test.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "acl_audit_id":"",
+    "acl_prod_action":{},
+    "rules_prod_id":"",
+    "rules_prod_action":"",
+    "profile_prod_id":"",
+    "profile_prod_action":""
   }
 ]
 }

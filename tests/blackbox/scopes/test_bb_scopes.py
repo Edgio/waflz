@@ -224,3 +224,92 @@ def test_single_scope(setup_scopez_server_single):
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'
+# ------------------------------------------------------------------------------
+# test audit and prod alert for an 0050
+# and ordering of acl, rules, and profile
+# ------------------------------------------------------------------------------
+def test_audit_and_prod_for_scope(setup_scopez_server_single):
+    # ------------------------------------------------------
+    # test audit and prod acl
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'host': 'test.com',
+                 'user-agent':'gizoogle',
+                 'waf-scopes-id': '0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'audit_profile' in l_r_json
+    assert l_r_json['audit_profile'] ['sub_event'][0]['rule_msg'] == 'Blacklist User-Agent match'
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist User-Agent match'
+    # ------------------------------------------------------
+    # test audit acl only
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST + '/audit.html'
+    l_headers = {'host': 'test.com',
+                 'waf-scopes-id': '0050'}
+    l_r = requests.get(l_uri , headers = l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'audit_profile' in l_r_json
+    assert l_r_json['audit_profile'] ['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile'] == None
+    # ------------------------------------------------------
+    # test prod acl only
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST + '/prod.html'
+    l_headers = {'host': 'test.com',
+                 'waf-scopes-id': '0050'}
+    l_r = requests.get(l_uri , headers = l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'audit_profile' in l_r_json
+    assert l_r_json['audit_profile'] == None
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile'] ['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
+    # ------------------------------------------------------
+    # test audit and prod profile
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST + '/?a=%27select%20*%20from%20testing%27'
+    l_headers = { 'host': 'test.com',
+                  'waf-scopes-id': '0050',
+                  'user-agent': 'curl'}
+    l_r = requests.get(l_uri, headers = l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'audit_profile' in l_r_json
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'
+    # ------------------------------------------------------
+    # test prod rule
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'host':'test.com',
+                 'waf-scopes-id': '0050',
+                 'user-agent': 'monkeez' 
+                }
+    l_r = requests.get(l_uri, headers = l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()    
+    assert 'audit_profile' in l_r_json
+    assert l_r_json['audit_profile'] == None
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile'] ['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
+    # ------------------------------------------------------
+    # test audit rule
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'host':'test.com',
+                 'waf-scopes-id': '0050',
+                 'user-agent': 'bananas' 
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'audit_profile' in l_r_json
+    assert l_r_json['audit_profile'] ['sub_event'][0]['rule_msg'] == 'Request User-Agent is bananas'
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile'] == None

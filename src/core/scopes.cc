@@ -809,7 +809,7 @@ profile_prod_action:
                 // -----------------------------------------
                 {
                 limit *l_limit = new limit(m_db);
-                std::string l_p = a_conf_dir_path + "/limit/" + i_l.id() + ".limit.json";
+                std::string l_p = a_conf_dir_path + "/limit/" + l_id + ".limit.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;

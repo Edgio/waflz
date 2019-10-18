@@ -226,7 +226,6 @@ def test_single_scope(setup_scopez_server_single):
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'
 # ------------------------------------------------------------------------------
 # test audit and prod alert for an 0050
-# and ordering of acl, rules, and profile
 # ------------------------------------------------------------------------------
 def test_audit_and_prod_for_scope(setup_scopez_server_single):
     # ------------------------------------------------------
@@ -313,3 +312,75 @@ def test_audit_and_prod_for_scope(setup_scopez_server_single):
     assert l_r_json['audit_profile'] ['sub_event'][0]['rule_msg'] == 'Request User-Agent is bananas'
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile'] == None
+# ------------------------------------------------------------------------------
+# test acl, rules and profile alert ordering for an 0050
+# ------------------------------------------------------------------------------
+def test_alert_order(setup_scopez_server_single):
+    # ------------------------------------------------------
+    # acl alert should kick in for prod (URL blacklist) 
+    # acl alert should kick in for audit(User-Agent blacklist)
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/prod.html?a=%27select%20*%20from%20testing%27'
+    l_headers = { 'host': 'test.com',
+                  'user-agent': 'gizoogle',
+                  'waf-scopes-id':'0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile']['sub_event'][0]['rule_msg'] == 'Blacklist User-Agent match' 
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
+    # ------------------------------------------------------
+    # acl alert should kick in for prod(URL blacklist)
+    # custom rule alert should kick in audit (User-agent match)
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/prod.html?a=%27select%20*%20from%20testing%27'
+    l_headers = { 'host': 'test.com',
+                  'user-agent': 'bananas',
+                  'waf-scopes-id':'0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is bananas' 
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
+    # ------------------------------------------------------
+    # acl alert should kick in for prod(URL blacklist)
+    # waf profile alert should kick in for audit (SQL injection)
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/prod.html?a=%27select%20*%20from%20testing%27'
+    l_headers = { 'host': 'test.com',
+                  'waf-scopes-id':'0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection' 
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
+    # ------------------------------------------------------
+    # acl alert should kick in for audit(URL blacklist)
+    # waf profile alert should kick in for prod (SQL injection)
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/audit.html?a=%27select%20*%20from%20testing%27'
+    l_headers = { 'host': 'test.com',
+                  'waf-scopes-id':'0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile']['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] =='SQL Injection Attack Detected via libinjection'
+    # ------------------------------------------------------
+    # acl alert should kick in for audit(URL blacklist)
+    # custom rule alert should kick in for prod (SQL injection)
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/audit.html?a=%27select%20*%20from%20testing%27'
+    l_headers = { 'host': 'test.com',
+                  'user-agent':'monkeez',
+                  'waf-scopes-id':'0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile']['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] =='Request User-Agent is monkeez'
+
+
+
+
+

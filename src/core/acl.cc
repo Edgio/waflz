@@ -960,7 +960,6 @@ done:
 //: ----------------------------------------------------------------------------
 int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
-        printf("process_blacklist");
         if(!ao_event)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1101,19 +1100,16 @@ asn_check:
                 return WAFLZ_STATUS_OK;
         }
 url_check:
-        printf("url_check");
         // -------------------------------------------------
         // url
         // -------------------------------------------------
         if(!m_url_rx_blacklist)
         {
-            printf("moving to user_agent check");
                 goto user_agent_check;
         }
         // set buf to uri
         l_buf = a_ctx.m_uri.m_data;
         l_buf_len = a_ctx.m_uri.m_len;
-        printf("url %s\n", l_buf);
         if(m_url_rx_blacklist &&
            l_buf &&
            l_buf_len)

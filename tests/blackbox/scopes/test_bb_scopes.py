@@ -380,7 +380,9 @@ def test_alert_order(setup_scopez_server_single):
     assert l_r_json['audit_profile']['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] =='Request User-Agent is monkeez'
 
-
-
+# ------------------------------------------------------------------------------
+# test limit with scopes
+# ------------------------------------------------------------------------------
+#def test_limit_with_scopes(self):
 
 

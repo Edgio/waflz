@@ -499,12 +499,10 @@ public:
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
-#if 0
                 if(l_enf)
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
-#endif
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response

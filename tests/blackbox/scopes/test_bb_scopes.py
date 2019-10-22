@@ -383,6 +383,17 @@ def test_alert_order(setup_scopez_server_single):
 # ------------------------------------------------------------------------------
 # test limit with scopes
 # ------------------------------------------------------------------------------
-#def test_limit_with_scopes(self):
+def test_limit_with_scopes(setup_scopez_server_single):
+    # ------------------------------------------------------------------------------
+    # shoot 5 request in 1 min
+    # ------------------------------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host':'limit.com'}
+    for x in range(5):
+        l_r = requests.get(l_uri, headers=l_headers)
+        #assert l_r.status_code == 200
+    
+    l_r = requests.get(l_uri, headers=l_headers)
+    #assert l_r.status_code == 403
 
 

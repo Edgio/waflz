@@ -388,6 +388,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
                                                 &l_event_prod,
                                                 &a_session,
                                                 l_cust_id,
+                                                ns_waflz::PART_MK_ALL,
                                                 &l_ctx);
                 // -----------------------------------------
                 // process
@@ -414,7 +415,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
                 // -----------------------------------------
                 // process
                 // -----------------------------------------
-                l_s = l_scopes->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, &l_ctx);
+                l_s = l_scopes->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, ns_waflz::PART_MK_ALL, &l_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason: %s\n",

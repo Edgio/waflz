@@ -67,6 +67,7 @@ public:
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
                         uint64_t a_id,
+                        part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
         scopes* get_scopes(uint64_t a_id);
         scopes* get_first_scopes();

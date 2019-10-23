@@ -108,12 +108,7 @@ public:
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
-                        rqst_ctx **ao_rqst_ctx);
-        int32_t process(const waflz_pb::enforcement** ao_enf,
-                        waflz_pb::event** ao_audit_event,
-                        waflz_pb::event** ao_prod_event,
-                        const ::waflz_pb::scope& a_scope,
-                        void *a_ctx,
+                        part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
         bool get_enf_limit(void) { return m_enf_limit;}
 private:
@@ -130,6 +125,13 @@ private:
                                  const waflz_pb::condition_group *a_condition_group,
                                  const waflz_pb::enforcement &a_action,
                                  rqst_ctx *a_ctx);
+        int32_t process(const waflz_pb::enforcement** ao_enf,
+                        waflz_pb::event** ao_audit_event,
+                        waflz_pb::event** ao_prod_event,
+                        const ::waflz_pb::scope& a_scope,
+                        void *a_ctx,
+                        part_mk_t a_part_mk,
+                        rqst_ctx **ao_rqst_ctx);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

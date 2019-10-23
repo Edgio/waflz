@@ -358,6 +358,7 @@ int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
                                 waflz_pb::event **ao_prod_event,
                                 void *a_ctx,
                                 uint64_t a_id,
+                                part_mk_t a_part_mk,
                                 rqst_ctx **ao_rqst_ctx)
 {
         if(m_enable_locking)
@@ -375,7 +376,7 @@ int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
                 return WAFLZ_STATUS_OK;
         }
         int32_t l_s;
-        l_s = l_scopes->process(ao_enf, ao_audit_event, ao_prod_event, a_ctx, ao_rqst_ctx);
+        l_s = l_scopes->process(ao_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, ao_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)

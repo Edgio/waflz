@@ -863,6 +863,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
+                        part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx)
 {
         if(!m_pb)
@@ -920,7 +921,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 // -----------------------------------------
                 // process scope...
                 // -----------------------------------------
-                l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, ao_rqst_ctx);
+                l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, a_part_mk, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO -log error???
@@ -948,6 +949,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         waflz_pb::event** ao_prod_event,
                         const ::waflz_pb::scope& a_scope,
                         void *a_ctx,
+                        part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx)
 {
         // -------------------------------------------------
@@ -974,7 +976,8 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-        if(a_scope.has__acl_audit__reserved())
+        if((a_part_mk & PART_MK_ACL) &&
+           a_scope.has__acl_audit__reserved())
         {
                 acl *l_acl = (acl *)a_scope._acl_audit__reserved();
                 waflz_pb::event *l_event = NULL;
@@ -1002,7 +1005,8 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         // rules
         // -------------------------------------------------
 audit_rules:
-        if(a_scope.has__rules_audit__reserved())
+        if((a_part_mk & PART_MK_RULES) &&
+           a_scope.has__rules_audit__reserved())
         {
                 rules *l_rules = (rules *)a_scope._rules_audit__reserved();
                 waflz_pb::event *l_event = NULL;
@@ -1029,7 +1033,8 @@ audit_rules:
         // profile
         // -------------------------------------------------
 audit_profile:
-        if(a_scope.has__profile_audit__reserved())
+        if((a_part_mk & PART_MK_WAF) &&
+           a_scope.has__profile_audit__reserved())
         {
                 int32_t l_s;
                 // -----------------------------------------
@@ -1073,7 +1078,8 @@ prod:
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-        if(a_scope.has__acl_prod__reserved())
+        if((a_part_mk & PART_MK_ACL) &&
+           a_scope.has__acl_prod__reserved())
         {
                 acl *l_acl = (acl *)a_scope._acl_prod__reserved();
                 waflz_pb::event *l_event = NULL;
@@ -1105,23 +1111,26 @@ enforcements:
         {
                 goto limits;
         }
+        if(a_part_mk & PART_MK_LIMITS)
         {
-        int32_t l_s;
-        l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing enforcer process");
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(*ao_enf)
-        {
-                goto done;
-        }
+                int32_t l_s;
+                l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "performing enforcer process");
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(*ao_enf)
+                {
+                        goto done;
+                }
         }
 limits:
         // -------------------------------------------------
         // limits
         // -------------------------------------------------
+        if(a_part_mk & PART_MK_LIMITS)
+        {
         for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
         {
                 const ::waflz_pb::scope_limit_config& l_slc = a_scope.limits(i_l);
@@ -1190,10 +1199,12 @@ limits:
                         goto done;
                 }
         }
+        }
         // -------------------------------------------------
         // rules
         // -------------------------------------------------
-        if(a_scope.has__rules_prod__reserved())
+        if((a_part_mk & PART_MK_RULES) &&
+           a_scope.has__rules_prod__reserved())
         {
                 // -----------------------------------------
                 // process
@@ -1223,7 +1234,8 @@ limits:
         // profile
         // -------------------------------------------------
 prod_profile:
-        if(a_scope.has__profile_prod__reserved())
+        if((a_part_mk & PART_MK_WAF) &&
+           a_scope.has__profile_prod__reserved())
         {
                 // -----------------------------------------
                 // reset phase 1 to handle ignore...

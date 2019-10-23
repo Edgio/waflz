@@ -62,7 +62,7 @@ def setup_scopez_server():
 # ------------------------------------------------------------------------------
 @pytest.fixture(scope='module')
 def setup_scopez_server_single():
-     # ------------------------------------------------------
+    # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
     l_cwd = os.getcwd()
@@ -95,6 +95,47 @@ def setup_scopez_server_single():
     # ------------------------------------------------------
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
+# ------------------------------------------------------------------------------
+# setup scopez server in action mode
+# ------------------------------------------------------------------------------
+@pytest.fixture(scope='module')
+def setup_scopez_server_action():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
+    l_cwd = os.getcwd()
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
+    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
+    l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
+    l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
+    l_scopez_file = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes/0050.scopes.json'))
+    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
+    l_action_mode = "true"
+    l_subproc = subprocess.Popen([l_scopez_server_path,
+                                  '-d', l_conf_dir,
+                                  '-s', l_scopez_file,
+                                  '-r', l_ruleset_path,
+                                  '-g', l_geoip2city_path,
+                                  '-i', l_geoip2ISP_path])
+    print('cmd: {}'.format(' '.join([l_scopez_server_path,
+                                  '-d', l_conf_dir,
+                                  '-s', l_scopez_file,
+                                  '-r', l_ruleset_path,
+                                  '-g', l_geoip2city_path,
+                                  '-i', l_geoip2ISP_path,
+                                  '-a', l_action_mode])))
+    time.sleep(1)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_scopez_server_action
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
+
 # ------------------------------------------------------------------------------
 # an 0050
 # ------------------------------------------------------------------------------
@@ -383,17 +424,17 @@ def test_alert_order(setup_scopez_server_single):
 # ------------------------------------------------------------------------------
 # test limit with scopes
 # ------------------------------------------------------------------------------
-def test_limit_with_scopes(setup_scopez_server_single):
+def test_limit_with_scopes(setup_scopez_server_action):
     # ------------------------------------------------------------------------------
-    # shoot 5 request in 1 min
+    # shoot 3 request in 5 sec Third request should get rate limited
     # ------------------------------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host':'limit.com'}
-    for x in range(5):
+    for x in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
-        #assert l_r.status_code == 200
+        assert l_r.status_code == 200
     
     l_r = requests.get(l_uri, headers=l_headers)
-    #assert l_r.status_code == 403
+    assert l_r.status_code == 403
 
 

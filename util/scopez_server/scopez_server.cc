@@ -485,15 +485,18 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
+                printf("do_default\n");
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 const waflz_pb::enforcement *l_enf = NULL;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
+                printf("handle_rqst\n");
                 l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx_scopes, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
+                        printf("response not none\n");
                         return l_resp_t;
                 }
                 // -----------------------------------------
@@ -501,6 +504,7 @@ public:
                 // -----------------------------------------
                 if(g_sx_scopes->m_action_mode)
                 {
+                        printf("actionmode is set\n");
                         if(!l_enf)
                         {
                                 std::string l_resp_str;
@@ -513,6 +517,7 @@ public:
                                                             a_session.get_server_name());
                                 l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
                                 ns_is2::queue_api_resp(a_session, l_api_resp);
+                                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
                                 return ns_is2::H_RESP_DONE;
                         }
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
@@ -672,7 +677,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -S, --scopes-dir    scopes directory (select either -c or -C)\n");
         fprintf(a_stream, "  -d  --config-dir    configuration directory\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
-        fprintf(a_stream, "  -a, --action-mode   server will apply scope actions instead of reporting\n");
+        fprintf(a_stream, "  -m, --action-mode   server will apply scope actions instead of reporting\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
@@ -774,9 +779,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvs:S:d:p:a:r:g:i:e:w:y:t:H:C:";
+        char l_short_arg_list[] = "hvs:S:d:p:r:g:i:e:w:y:t:H:C:a";
 #else
-        char l_short_arg_list[] = "hvs:S:d:p:a:r:g:i:e:w:y:t:";
+        char l_short_arg_list[] = "hvs:S:d:p:r:g:i:e:w:y:t:a";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -826,7 +831,7 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // enforcement mode
+                // action mode
                 // -----------------------------------------
                 case 'a':
                 {
@@ -1086,7 +1091,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_config = l_config_file;
                 g_sx_scopes->m_bg_load = false;
                 g_sx_scopes->m_scopes_dir = true;
-                g_sx_scopes->m_action_mode = false;
+                g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;

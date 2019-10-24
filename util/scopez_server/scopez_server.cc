@@ -485,18 +485,15 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                printf("do_default\n");
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 const waflz_pb::enforcement *l_enf = NULL;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                printf("handle_rqst\n");
                 l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx_scopes, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
-                        printf("response not none\n");
                         return l_resp_t;
                 }
                 // -----------------------------------------
@@ -504,7 +501,6 @@ public:
                 // -----------------------------------------
                 if(g_sx_scopes->m_action_mode)
                 {
-                        printf("actionmode is set\n");
                         if(!l_enf)
                         {
                                 std::string l_resp_str;
@@ -677,7 +673,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -S, --scopes-dir    scopes directory (select either -c or -C)\n");
         fprintf(a_stream, "  -d  --config-dir    configuration directory\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
-        fprintf(a_stream, "  -m, --action-mode   server will apply scope actions instead of reporting\n");
+        fprintf(a_stream, "  -a, --action-mode   server will apply scope actions instead of reporting\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");

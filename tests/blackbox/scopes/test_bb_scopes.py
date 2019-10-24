@@ -433,24 +433,24 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host':'limit.com',
                  'waf-scopes-id':'0050'}
-    for x in range(2):
-        #print x
+    for x in range(10):
+        print x
         l_r = requests.get(l_uri, headers=l_headers)
-        #data = dump.dump_all(l_r)
-        #print data
         assert l_r.status_code == 200
     
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
+    assert l_r.text == 'This is ddos custom response\n'
     # ------------------------------------------------------------------------------
-    # enforcement should be active for 10 seconds. Shoot another request
-    # it should still show 403
+    # shoot SQL injection request during the enforcement window. Should still
+    # get a ddos custom response
     # ------------------------------------------------------------------------------
-    l_uri = G_TEST_HOST+'/test.html'
+    l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'limit.com',
                   'waf-scopes-id':'0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
+    assert l_r.text == 'This is ddos custom response\n'
     # ------------------------------------------------------------------------------
     # shoot acl request during enforcement period. should see acl action
     # ------------------------------------------------------------------------------
@@ -459,18 +459,16 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
-    l_r_json = l_r.json()
+    assert l_r.text == 'This is acl custom response\n'
     # ------------------------------------------------------------------------------
-    # sleep for 10 seconds during the enforcement period. Shoot a request that would trigger waf alert.
-    # can't verify the audit and profile content since server is running in
-    # action mode
+    # sleep for 10 seconds enforcement period. 
+    # Shoot SQL injection request again. should see waf action
     # ------------------------------------------------------------------------------
     time.sleep(10)
-    l_uri = G_TEST_HOST+'/test.html'
+    l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'limit.com',
                   'waf-scopes-id':'0050'}
     l_r = requests.get(l_uri, headers=l_headers)
-    assert l_r.status_code == 200
-
-
+    assert l_r.status_code == 403
+    assert l_r.text == 'This is profile custom response\n'
 

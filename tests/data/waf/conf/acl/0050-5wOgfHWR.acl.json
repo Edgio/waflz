@@ -1,10 +1,10 @@
 {
-	"id": "ZrLf2KkQ",
+	"id": "5wOgfHWR",
 	"name": "my cool acl",
 	"url": {
 		"whitelist": [],
 		"accesslist": [],
-		"blacklist": ["/prod.html"]
+		"blacklist": ["/audit.html"]
 	},
 	"asn": {
 		"whitelist": [],

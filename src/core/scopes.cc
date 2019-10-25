@@ -467,7 +467,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                 // make acl obj
                 // -----------------------------------------
                 acl *l_acl = new acl();
-                std::string l_p = a_conf_dir_path + "/acl/" + a_scope.acl_audit_id();
+                std::string l_p = a_conf_dir_path + "/acl/" + a_scope.acl_audit_id() + ".acl.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
@@ -526,7 +526,7 @@ acl_audit_action:
                 // make acl obj
                 // -----------------------------------------
                 acl *l_acl = new acl();
-                std::string l_p = a_conf_dir_path + "/acl/" + a_scope.acl_prod_id();
+                std::string l_p = a_conf_dir_path + "/acl/" + a_scope.acl_prod_id()+ ".acl.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
@@ -584,7 +584,7 @@ acl_prod_action:
                 // -----------------------------------------
                 // make rules obj
                 // -----------------------------------------
-                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_audit_id();
+                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_audit_id() + ".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
                 l_s = l_rules->load_config_file(l_p.c_str(), l_p.length());
@@ -634,7 +634,7 @@ rules_audit_action:
                 // -----------------------------------------
                 // make rules obj
                 // -----------------------------------------
-                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id();
+                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id() + ".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
                 l_s = l_rules->load_config_file(l_p.c_str(), l_p.length());
@@ -685,7 +685,7 @@ rules_prod_action:
                 // make profile obj
                 // -----------------------------------------
                 profile *l_profile = new profile(m_engine);
-                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.profile_audit_id();
+                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.profile_audit_id() + ".wafprof.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
@@ -744,7 +744,7 @@ profile_audit_action:
                 // make profile obj
                 // -----------------------------------------
                 profile *l_profile = new profile(m_engine);
-                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.profile_prod_id();
+                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.profile_prod_id() + ".wafprof.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
@@ -809,7 +809,7 @@ profile_prod_action:
                 // -----------------------------------------
                 {
                 limit *l_limit = new limit(m_db);
-                std::string l_p = a_conf_dir_path + "/limit/" + a_scope.acl_audit_id();
+                std::string l_p = a_conf_dir_path + "/limit/" + l_id + ".limit.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;

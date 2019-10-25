@@ -831,7 +831,6 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'a':
                 {
-                        printf("setting action mode\n");
                         l_action_mode = true;
                         break;
                 }

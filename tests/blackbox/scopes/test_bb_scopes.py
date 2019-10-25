@@ -11,7 +11,6 @@ import json
 from pprint import pprint
 import time
 import requests
-from requests_toolbelt.utils import dump
 from urllib2 import urlopen
 from urllib2 import Request
 import base64
@@ -30,7 +29,7 @@ def run_command(command):
 # ------------------------------------------------------------------------------
 # setup scopez server with scopes dir
 # ------------------------------------------------------------------------------
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def setup_scopez_server():
     # ------------------------------------------------------
     # setup
@@ -62,7 +61,7 @@ def setup_scopez_server():
 # ------------------------------------------------------------------------------
 # setup scopez server with single scope
 # ------------------------------------------------------------------------------
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def setup_scopez_server_single():
     # ------------------------------------------------------
     # setup
@@ -100,7 +99,7 @@ def setup_scopez_server_single():
 # ------------------------------------------------------------------------------
 # setup scopez server in action mode
 # ------------------------------------------------------------------------------
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def setup_scopez_server_action():
     # ------------------------------------------------------
     # setup
@@ -433,8 +432,7 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host':'limit.com',
                  'waf-scopes-id':'0050'}
-    for x in range(10):
-        print x
+    for x in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
     

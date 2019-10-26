@@ -486,7 +486,7 @@ public:
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
-                const waflz_pb::enforcement *l_enf = NULL;
+                waflz_pb::enforcement *l_enf = NULL;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
@@ -517,6 +517,7 @@ public:
                                 return ns_is2::H_RESP_DONE;
                         }
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
+                        if(l_enf) { delete l_enf; l_enf = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return l_resp_t;
                 }
@@ -553,7 +554,7 @@ public:
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
-                const waflz_pb::enforcement *l_enf = NULL;
+                waflz_pb::enforcement *l_enf = NULL;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
@@ -570,6 +571,7 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(l_enf) { delete l_enf; l_enf = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // default
@@ -598,7 +600,7 @@ public:
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
-                const waflz_pb::enforcement *l_enf = NULL;
+                waflz_pb::enforcement *l_enf = NULL;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
@@ -615,6 +617,7 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(l_enf) { delete l_enf; l_enf = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // default
@@ -673,7 +676,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -S, --scopes-dir    scopes directory (select either -c or -C)\n");
         fprintf(a_stream, "  -d  --config-dir    configuration directory\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
-        fprintf(a_stream, "  -a, --action-mode   server will apply scope actions instead of reporting\n");
+        fprintf(a_stream, "  -a, --action        server will apply scope actions instead of reporting\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
@@ -741,7 +744,7 @@ int main(int argc, char** argv)
                 { "scopes-dir",   1, 0, 'S' },
                 { "config-dir",   1, 0, 'd' },
                 { "port",         1, 0, 'p' },
-                { "action-mode",  0, 0, 'a' },
+                { "action",       0, 0, 'a' },
                 { "ruleset-dir",  1, 0, 'r' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 'i' },
@@ -775,9 +778,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvs:S:d:p:r:g:i:e:w:y:t:H:C:a";
+        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:H:C:";
 #else
-        char l_short_arg_list[] = "hvs:S:d:p:r:g:i:e:w:y:t:a";
+        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -827,14 +830,6 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // action mode
-                // -----------------------------------------
-                case 'a':
-                {
-                        l_action_mode = true;
-                        break;
-                }
-                // -----------------------------------------
                 // conf dir
                 // -----------------------------------------
                 case 'd':
@@ -856,6 +851,14 @@ int main(int argc, char** argv)
                                 print_usage(stdout, STATUS_ERROR);
                         }
                         l_port = (uint16_t)l_port_val;
+                        break;
+                }
+                // -----------------------------------------
+                // action mode
+                // -----------------------------------------
+                case 'a':
+                {
+                        l_action_mode = true;
                         break;
                 }
                 // -----------------------------------------

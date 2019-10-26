@@ -69,10 +69,10 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         // TODO get status
         //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
         int32_t l_s;
-        l_s = m_profile->load_config(l_buf, l_buf_len);
+        l_s = m_profile->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_ERROR("performing g_profile->load_config: reason: %s\n", m_profile->get_err_msg());
+                TRC_ERROR("performing g_profile->load: reason: %s\n", m_profile->get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -161,7 +161,7 @@ int32_t sx_profile::init(void)
         // -------------------------------------------------
         m_profile = new ns_waflz::profile(*m_engine);
         //NDBG_PRINT("load profile: %s\n", l_profile_file.c_str());
-        l_s = m_profile->load_config(l_buf, l_buf_len);
+        l_s = m_profile->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error loading config: %s. reason: %s\n",
@@ -193,7 +193,7 @@ int32_t sx_profile::init(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_profile::handle_rqst(waflz_pb::enforcement **ao_enf,
                                          ns_waflz::rqst_ctx **ao_ctx,
                                          ns_is2::session &a_session,
                                          ns_is2::rqst &a_rqst,
@@ -212,7 +212,7 @@ ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // process profile
         // -------------------------------------------------
-        l_s = m_profile->process(&l_event, &a_session, &l_ctx);
+        l_s = m_profile->process(&l_event, &a_session, ns_waflz::PART_MK_ALL, &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error processing config. reason: %s\n",

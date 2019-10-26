@@ -255,7 +255,7 @@ TEST_CASE( "instances test", "[instances]" ) {
                 l_ix = new ns_waflz::instances(*l_engine);
                 REQUIRE((l_ix != NULL));
                 NDBG_OUTPUT("%s\n", WAF_CONF_1001_JSON);
-                l_s = l_ix->load_config(&l_i, WAF_CONF_1001_JSON, sizeof(WAF_CONF_1001_JSON), true);
+                l_s = l_ix->load(&l_i, WAF_CONF_1001_JSON, sizeof(WAF_CONF_1001_JSON), true);
                 NDBG_PRINT("err_msg: %s\n", l_ix->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
 #if 0
@@ -271,12 +271,12 @@ TEST_CASE( "instances test", "[instances]" ) {
                 // -----------------------------------------
                 // verify update fail
                 // -----------------------------------------
-                l_s = l_ix->load_config(&l_i, WAF_CONF_1002_JSON, sizeof(WAF_CONF_1002_JSON), true, true);
+                l_s = l_ix->load(&l_i, WAF_CONF_1002_JSON, sizeof(WAF_CONF_1002_JSON), true, true);
                 REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 // -----------------------------------------
                 // verify update success
                 // -----------------------------------------
-                l_s = l_ix->load_config(&l_i, WAF_CONF_1001_JSON, sizeof(WAF_CONF_1001_JSON), true, true);
+                l_s = l_ix->load(&l_i, WAF_CONF_1001_JSON, sizeof(WAF_CONF_1001_JSON), true, true);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // process
@@ -320,7 +320,7 @@ TEST_CASE( "instances test", "[instances]" ) {
                 // -----------------------------------------
                 // load with last_modified_date
                 // -----------------------------------------
-                l_s = l_ix->load_config(&l_i, WAF_CONF_1001_W_LM_DATE_JSON, sizeof(WAF_CONF_1001_W_LM_DATE_JSON), true, false);
+                l_s = l_ix->load(&l_i, WAF_CONF_1001_W_LM_DATE_JSON, sizeof(WAF_CONF_1001_W_LM_DATE_JSON), true, false);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_i != NULL));
                 REQUIRE((l_i->get_id() == "1001"));
@@ -328,7 +328,7 @@ TEST_CASE( "instances test", "[instances]" ) {
                 // -----------------------------------------
                 // load with new last_modified_date
                 // -----------------------------------------
-                l_s = l_ix->load_config(&l_i, WAF_CONF_1001_W_NEW_LM_DATE_JSON, sizeof(WAF_CONF_1001_W_NEW_LM_DATE_JSON), true, true);
+                l_s = l_ix->load(&l_i, WAF_CONF_1001_W_NEW_LM_DATE_JSON, sizeof(WAF_CONF_1001_W_NEW_LM_DATE_JSON), true, true);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_i != NULL));
                 REQUIRE((l_i->get_id() == "1001"));
@@ -336,7 +336,7 @@ TEST_CASE( "instances test", "[instances]" ) {
                 // -----------------------------------------
                 // load with old last_modified_date
                 // -----------------------------------------
-                l_s = l_ix->load_config(&l_i, WAF_CONF_1001_W_LM_DATE_JSON, sizeof(WAF_CONF_1001_W_LM_DATE_JSON), true, true);
+                l_s = l_ix->load(&l_i, WAF_CONF_1001_W_LM_DATE_JSON, sizeof(WAF_CONF_1001_W_LM_DATE_JSON), true, true);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_i != NULL));
                 REQUIRE((l_i->get_id() == "1001"));

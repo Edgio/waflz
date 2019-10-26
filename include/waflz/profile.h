@@ -66,10 +66,9 @@ public:
         // -------------------------------------------------
         profile(engine &a_engine);
         ~profile();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
-        int32_t process_part(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);
-        int32_t load_config(const char *a_buf, uint32_t a_buf_len);
-        int32_t load_config(const waflz_pb::profile *a_pb);
+        int32_t process(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t load(const char *a_buf, uint32_t a_buf_len);
+        int32_t load(const waflz_pb::profile *a_pb);
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------

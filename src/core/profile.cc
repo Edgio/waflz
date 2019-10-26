@@ -136,7 +136,7 @@ void profile::set_pb(waflz_pb::profile *a_pb)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t profile::load_config(const char *a_buf, uint32_t a_buf_len)
+int32_t profile::load(const char *a_buf, uint32_t a_buf_len)
 {
         if(a_buf_len > _CONFIG_PROFILE_MAX_SIZE)
         {
@@ -184,7 +184,7 @@ int32_t profile::load_config(const char *a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t profile::load_config(const waflz_pb::profile *a_pb)
+int32_t profile::load(const waflz_pb::profile *a_pb)
 {
         if(!a_pb)
         {
@@ -446,7 +446,7 @@ int32_t profile::init(void)
         {
                 l_acl_pb->set_max_file_size(l_gs.max_file_size());
         }
-        l_s = m_acl->load_config(l_acl_pb);
+        l_s = m_acl->load(l_acl_pb);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());
@@ -571,19 +571,8 @@ int32_t profile::validate(void)
 //: ----------------------------------------------------------------------------
 int32_t profile::process(waflz_pb::event **ao_event,
                          void *a_ctx,
+                         part_mk_t a_part_mk,
                          rqst_ctx **ao_rqst_ctx)
-{
-        return process_part(ao_event, a_ctx, PART_MK_ALL, ao_rqst_ctx);
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t profile::process_part(waflz_pb::event **ao_event,
-                              void *a_ctx,
-                              part_mk_t a_part_mk,
-                              rqst_ctx **ao_rqst_ctx)
 {
         if(!ao_event)
         {

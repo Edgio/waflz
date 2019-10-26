@@ -146,7 +146,7 @@ acl::~acl(void)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t acl::load_config(const char *a_buf, uint32_t a_buf_len)
+int32_t acl::load(const char *a_buf, uint32_t a_buf_len)
 {
         if(!a_buf)
         {
@@ -192,7 +192,7 @@ int32_t acl::load_config(const char *a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t acl::load_config(const waflz_pb::acl* a_pb)
+int32_t acl::load(const waflz_pb::acl* a_pb)
 {
         if(!a_pb)
         {

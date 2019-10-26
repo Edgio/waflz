@@ -72,7 +72,9 @@ namespace ns_waflz {
 typedef enum {
 	PART_MK_ACL = 1,
 	PART_MK_WAF = 2,
-	PART_MK_ALL = 3,
+        PART_MK_RULES = 4,
+        PART_MK_LIMITS = 8,
+	PART_MK_ALL = 15,
 } part_mk_t;
 // callbacks
 typedef int32_t (*get_rqst_data_size_cb_t)(uint32_t &, void *);

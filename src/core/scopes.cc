@@ -347,9 +347,7 @@ int32_t scopes::validate(void)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::load_config(const char *a_buf,
-                            uint32_t a_buf_len,
-                            const std::string& a_conf_dir_path)
+int32_t scopes::load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path)
 {
         if(a_buf_len > _SCOPES_MAX_SIZE)
         {
@@ -401,7 +399,7 @@ int32_t scopes::load_config(const char *a_buf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::load_config(void *a_js, const std::string& a_conf_dir_path)
+int32_t scopes::load(void *a_js, const std::string& a_conf_dir_path)
 {
         m_init = false;
         // -------------------------------------------------
@@ -479,7 +477,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
-                l_s = l_acl->load_config(l_buf, l_buf_len);
+                l_s = l_acl->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_acl->get_err_msg());
@@ -538,7 +536,7 @@ acl_audit_action:
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
-                l_s = l_acl->load_config(l_buf, l_buf_len);
+                l_s = l_acl->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_acl->get_err_msg());
@@ -587,7 +585,7 @@ acl_prod_action:
                 std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_audit_id() + ".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
-                l_s = l_rules->load_config_file(l_p.c_str(), l_p.length());
+                l_s = l_rules->load_file(l_p.c_str(), l_p.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading rules (audit) conf file: %s. reason: %s\n",
@@ -637,7 +635,7 @@ rules_audit_action:
                 std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id() + ".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
-                l_s = l_rules->load_config_file(l_p.c_str(), l_p.length());
+                l_s = l_rules->load_file(l_p.c_str(), l_p.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading rules (prod) conf file: %s. reason: %s\n",
@@ -697,7 +695,7 @@ rules_prod_action:
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
-                l_s = l_profile->load_config(l_buf, l_buf_len);
+                l_s = l_profile->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
@@ -756,7 +754,7 @@ profile_audit_action:
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
-                l_s = l_profile->load_config(l_buf, l_buf_len);
+                l_s = l_profile->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
@@ -863,6 +861,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
+                        part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx)
 {
         if(!m_pb)
@@ -920,7 +919,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 // -----------------------------------------
                 // process scope...
                 // -----------------------------------------
-                l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, ao_rqst_ctx);
+                l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, a_part_mk, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO -log error???
@@ -948,6 +947,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         waflz_pb::event** ao_prod_event,
                         const ::waflz_pb::scope& a_scope,
                         void *a_ctx,
+                        part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx)
 {
         // -------------------------------------------------
@@ -974,7 +974,8 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-        if(a_scope.has__acl_audit__reserved())
+        if((a_part_mk & PART_MK_ACL) &&
+           a_scope.has__acl_audit__reserved())
         {
                 acl *l_acl = (acl *)a_scope._acl_audit__reserved();
                 waflz_pb::event *l_event = NULL;
@@ -1002,7 +1003,8 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         // rules
         // -------------------------------------------------
 audit_rules:
-        if(a_scope.has__rules_audit__reserved())
+        if((a_part_mk & PART_MK_RULES) &&
+           a_scope.has__rules_audit__reserved())
         {
                 rules *l_rules = (rules *)a_scope._rules_audit__reserved();
                 waflz_pb::event *l_event = NULL;
@@ -1029,7 +1031,8 @@ audit_rules:
         // profile
         // -------------------------------------------------
 audit_profile:
-        if(a_scope.has__profile_audit__reserved())
+        if((a_part_mk & PART_MK_WAF) &&
+           a_scope.has__profile_audit__reserved())
         {
                 int32_t l_s;
                 // -----------------------------------------
@@ -1046,7 +1049,7 @@ audit_profile:
                 // -----------------------------------------
                 profile *l_profile = (profile *)a_scope._profile_audit__reserved();
                 waflz_pb::event *l_event = NULL;
-                l_s = l_profile->process(&l_event, a_ctx, ao_rqst_ctx);
+                l_s = l_profile->process(&l_event, a_ctx, PART_MK_WAF, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
@@ -1073,7 +1076,8 @@ prod:
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-        if(a_scope.has__acl_prod__reserved())
+        if((a_part_mk & PART_MK_ACL) &&
+           a_scope.has__acl_prod__reserved())
         {
                 acl *l_acl = (acl *)a_scope._acl_prod__reserved();
                 waflz_pb::event *l_event = NULL;
@@ -1105,23 +1109,26 @@ enforcements:
         {
                 goto limits;
         }
+        if(a_part_mk & PART_MK_LIMITS)
         {
-        int32_t l_s;
-        l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing enforcer process");
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(*ao_enf)
-        {
-                goto done;
-        }
+                int32_t l_s;
+                l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "performing enforcer process");
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(*ao_enf)
+                {
+                        goto done;
+                }
         }
 limits:
         // -------------------------------------------------
         // limits
         // -------------------------------------------------
+        if(a_part_mk & PART_MK_LIMITS)
+        {
         for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
         {
                 const ::waflz_pb::scope_limit_config& l_slc = a_scope.limits(i_l);
@@ -1190,10 +1197,12 @@ limits:
                         goto done;
                 }
         }
+        }
         // -------------------------------------------------
         // rules
         // -------------------------------------------------
-        if(a_scope.has__rules_prod__reserved())
+        if((a_part_mk & PART_MK_RULES) &&
+           a_scope.has__rules_prod__reserved())
         {
                 // -----------------------------------------
                 // process
@@ -1223,7 +1232,8 @@ limits:
         // profile
         // -------------------------------------------------
 prod_profile:
-        if(a_scope.has__profile_prod__reserved())
+        if((a_part_mk & PART_MK_WAF) &&
+           a_scope.has__profile_prod__reserved())
         {
                 // -----------------------------------------
                 // reset phase 1 to handle ignore...
@@ -1240,7 +1250,7 @@ prod_profile:
                 // -----------------------------------------
                 profile *l_profile = (profile *)a_scope._profile_prod__reserved();
                 waflz_pb::event *l_event = NULL;
-                l_s = l_profile->process(&l_event, a_ctx, ao_rqst_ctx);
+                l_s = l_profile->process(&l_event, a_ctx, PART_MK_WAF, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }

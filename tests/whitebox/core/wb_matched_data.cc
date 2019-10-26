@@ -267,7 +267,7 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
                 char l_raw_config[l_stat.st_size];
                 REQUIRE((read(l_fd, l_raw_config, l_stat.st_size) != -1));
                 ns_waflz::profile l_profile;
-                l_ret = l_profile.load_config(l_raw_config, l_stat.st_size);
+                l_ret = l_profile.load(l_raw_config, l_stat.st_size);
                 INFO(l_profile.get_err_msg());
                 REQUIRE((l_ret == WAFLZ_STATUS_OK));
                 REQUIRE((!l_profile.get_pb()->general_settings().dont_log_matched_data()));
@@ -290,7 +290,7 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
                 char l_raw_config[l_stat.st_size];
                 REQUIRE((read(l_fd, l_raw_config, l_stat.st_size) != -1));
                 ns_waflz::profile l_profile;
-                l_ret = l_profile.load_config(l_raw_config, l_stat.st_size);
+                l_ret = l_profile.load(l_raw_config, l_stat.st_size);
                 INFO(l_profile.get_err_msg());
                 REQUIRE((l_ret == WAFLZ_STATUS_OK));
                 REQUIRE((l_profile.get_pb()->general_settings().dont_log_matched_data()));
@@ -313,7 +313,7 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
                 char l_raw_config[l_stat.st_size];
                 REQUIRE((read(l_fd, l_raw_config, l_stat.st_size) != -1));
                 ns_waflz::profile l_profile;
-                l_ret = l_profile.load_config(l_raw_config, l_stat.st_size);
+                l_ret = l_profile.load(l_raw_config, l_stat.st_size);
                 INFO(l_profile.get_err_msg());
                 REQUIRE((l_ret == WAFLZ_STATUS_OK));
                 REQUIRE((!l_profile.get_pb()->general_settings().dont_log_matched_data()));
@@ -366,7 +366,7 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
                 REQUIRE((read(l_fd, l_raw_config, l_stat.st_size) != -1));
                 ns_waflz::profile l_profile;
                 l_profile.set_msx_server((server_rec*)l_ix->get_msx_server());
-                l_ret = l_profile.load_config(l_raw_config, l_stat.st_size);
+                l_ret = l_profile.load(l_raw_config, l_stat.st_size);
                 INFO(l_profile.get_err_msg());
                 REQUIRE((l_ret == WAFLZ_STATUS_OK));
                 REQUIRE((!l_profile.get_pb()->general_settings().dont_log_matched_data()));
@@ -446,7 +446,7 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
                 REQUIRE((read(l_fd, l_raw_config, l_stat.st_size) != -1));
                 ns_waflz::profile l_profile;
                 l_profile.set_msx_server((server_rec*)l_ix->get_msx_server());
-                l_ret = l_profile.load_config(l_raw_config, l_stat.st_size);
+                l_ret = l_profile.load(l_raw_config, l_stat.st_size);
                 INFO(l_profile.get_err_msg());
                 REQUIRE((l_ret == WAFLZ_STATUS_OK));
                 REQUIRE((l_profile.get_pb()->general_settings().dont_log_matched_data()));
@@ -526,7 +526,7 @@ TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
                 REQUIRE((read(l_fd, l_raw_config, l_stat.st_size) != -1));
                 ns_waflz::profile l_profile;
                 l_profile.set_msx_server((server_rec*)l_ix->get_msx_server());
-                l_ret = l_profile.load_config(l_raw_config, l_stat.st_size);
+                l_ret = l_profile.load(l_raw_config, l_stat.st_size);
                 INFO(l_profile.get_err_msg());
                 REQUIRE((l_ret == WAFLZ_STATUS_OK));
                 REQUIRE((!l_profile.get_pb()->general_settings().dont_log_matched_data()));

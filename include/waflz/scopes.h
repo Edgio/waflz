@@ -97,23 +97,13 @@ public:
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
         std::string& get_id(void) { return m_id; }
-        int32_t load_config(const char *a_buf,
-                            uint32_t a_buf_len,
-                            const std::string& a_conf_dir_path);
-        int32_t load_config(void *a_js,
-                            const std::string& a_conf_dir_path);
-        int32_t load_parts(waflz_pb::scope& a_scope,
-                           const std::string& a_conf_dir_path);
+        int32_t load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path);
+        int32_t load(void *a_js, const std::string& a_conf_dir_path);
         int32_t process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
-                        rqst_ctx **ao_rqst_ctx);
-        int32_t process(const waflz_pb::enforcement** ao_enf,
-                        waflz_pb::event** ao_audit_event,
-                        waflz_pb::event** ao_prod_event,
-                        const ::waflz_pb::scope& a_scope,
-                        void *a_ctx,
+                        part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
         bool get_enf_limit(void) { return m_enf_limit;}
 private:
@@ -124,12 +114,20 @@ private:
         // disallow copy/assign
         scopes(const scopes &);
         scopes& operator=(const scopes &);
+        int32_t load_parts(waflz_pb::scope& a_scope, const std::string& a_conf_dir_path);
         int32_t validate(void);
         int32_t add_exceed_limit(waflz_pb::config **ao_cfg,
                                  const waflz_pb::limit& a_limit,
                                  const waflz_pb::condition_group *a_condition_group,
                                  const waflz_pb::enforcement &a_action,
                                  rqst_ctx *a_ctx);
+        int32_t process(const waflz_pb::enforcement** ao_enf,
+                        waflz_pb::event** ao_audit_event,
+                        waflz_pb::event** ao_prod_event,
+                        const ::waflz_pb::scope& a_scope,
+                        void *a_ctx,
+                        part_mk_t a_part_mk,
+                        rqst_ctx **ao_rqst_ctx);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

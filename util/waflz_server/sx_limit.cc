@@ -214,7 +214,7 @@ int32_t sx_limit::init(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_limit::handle_rqst(const waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_limit::handle_rqst(waflz_pb::enforcement **ao_enf,
                                        ns_waflz::rqst_ctx **ao_ctx,
                                        ns_is2::session &a_session,
                                        ns_is2::rqst &a_rqst,
@@ -270,7 +270,7 @@ ns_is2::h_resp_t sx_limit::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         if(ao_enf)
         {
-                *ao_enf = l_enfcmnt;
+                *ao_enf = const_cast<waflz_pb::enforcement *>(l_enfcmnt);
         }
         // -------------------------------------------------
         // cleanup

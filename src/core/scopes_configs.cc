@@ -83,12 +83,12 @@ scopes_configs::~scopes_configs()
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::load_scopes_dir(const char* a_dir_path, uint32_t a_dir_path_len)
+int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len)
 {
         // -----------------------------------------------------------
         // this function should look through the given directory and
         // look for all ddos.json files, open them and call
-        // load_configfile() on it
+        // load_file() on it
         // -----------------------------------------------------------
         class is_conf_file
         {
@@ -159,7 +159,7 @@ int32_t scopes_configs::load_scopes_dir(const char* a_dir_path, uint32_t a_dir_p
                 l_full_path.append("/");
                 l_full_path.append(l_conf_list[i_f]->d_name);
                 int32_t l_s;
-                l_s = load_scopes_file(l_full_path.c_str(),l_full_path.length());
+                l_s = load_file(l_full_path.c_str(),l_full_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // failed to load a config file
@@ -177,7 +177,7 @@ int32_t scopes_configs::load_scopes_dir(const char* a_dir_path, uint32_t a_dir_p
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::load_scopes_file(const char* a_file_path,
+int32_t scopes_configs::load_file(const char* a_file_path,
                                          uint32_t a_file_path_len)
 {
         int32_t l_s;
@@ -192,7 +192,7 @@ int32_t scopes_configs::load_scopes_file(const char* a_file_path,
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }
-        l_s = load_scopes(l_buf, l_buf_len);
+        l_s = load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
@@ -206,7 +206,7 @@ int32_t scopes_configs::load_scopes_file(const char* a_file_path,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::load_scopes(const char *a_buf, uint32_t a_buf_len)
+int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len)
 {
         // -------------------------------------------------
         // parse
@@ -292,7 +292,7 @@ int32_t scopes_configs::load(void* a_js)
 
         scopes *l_scopes = new scopes(m_engine, m_db);
         int32_t l_s;
-        l_s = l_scopes->load_config(a_js, m_conf_dir);
+        l_s = l_scopes->load(a_js, m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_AERROR(m_err_msg, "%s", l_scopes->get_err_msg());
@@ -353,17 +353,21 @@ int32_t scopes_configs::load(void* a_js)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
+int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
                                 waflz_pb::event **ao_audit_event,
                                 waflz_pb::event **ao_prod_event,
                                 void *a_ctx,
                                 uint64_t a_id,
+                                part_mk_t a_part_mk,
                                 rqst_ctx **ao_rqst_ctx)
 {
         if(m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
+        // -------------------------------------------------
+        // get scopes for id
+        // -------------------------------------------------
         ns_waflz::scopes *l_scopes = NULL;
         l_scopes = get_scopes(a_id);
         if(!l_scopes)
@@ -374,8 +378,12 @@ int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
                 }
                 return WAFLZ_STATUS_OK;
         }
+        // -------------------------------------------------
+        // process
+        // -------------------------------------------------
+        const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
-        l_s = l_scopes->process(ao_enf, ao_audit_event, ao_prod_event, a_ctx, ao_rqst_ctx);
+        l_s = l_scopes->process(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, ao_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)
@@ -383,6 +391,14 @@ int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
                         pthread_mutex_unlock(&m_mutex);
                 }
                 return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // create enforcement copy...
+        // -------------------------------------------------
+        if(l_enf)
+        {
+                *ao_enf = new waflz_pb::enforcement();
+                (*ao_enf)->CopyFrom(*l_enf);
         }
         if(m_enable_locking)
         {
@@ -395,27 +411,84 @@ int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-scopes* scopes_configs::get_scopes(uint64_t a_id)
+void scopes_configs::get_first_id(uint64_t &ao_id)
 {
-        cust_id_scopes_map_t::iterator l_it;
-
-        l_it = m_cust_id_scopes_map.find(a_id);
-        if(l_it != m_cust_id_scopes_map.end())
+        if(m_enable_locking)
         {
-                return l_it->second;
+                pthread_mutex_lock(&m_mutex);
         }
-        return NULL;
+        ao_id = 0;
+        if(m_cust_id_scopes_map.size())
+        {
+                ao_id = m_cust_id_scopes_map.begin()->first;
+        }
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-scopes* scopes_configs::get_first_scopes()
+void scopes_configs::get_rand_id(uint64_t &ao_id)
 {
-        if(m_cust_id_scopes_map.size())
+        if(m_enable_locking)
         {
-                return m_cust_id_scopes_map.begin()->second;
+                pthread_mutex_lock(&m_mutex);
+        }
+        ao_id = 0;
+        uint32_t l_len = (uint32_t)m_cust_id_scopes_map.size();
+        uint32_t l_idx = 0;
+        l_idx = ((uint32_t)rand()) % (l_len + 1);
+        cust_id_scopes_map_t::const_iterator i_i = m_cust_id_scopes_map.begin();
+        std::advance(i_i, l_idx);
+        ao_id = i_i->first;
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+bool scopes_configs::id_exists(uint64_t a_id)
+{
+        bool l_ret = false;
+        if(m_enable_locking)
+        {
+                pthread_mutex_lock(&m_mutex);
+        }
+        // -------------------------------------------------
+        // find id...
+        // -------------------------------------------------
+        cust_id_scopes_map_t::iterator i_i;
+        i_i = m_cust_id_scopes_map.find(a_id);
+        if (i_i != m_cust_id_scopes_map.end())
+        {
+                l_ret = true;
+        }
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
+        return l_ret;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+scopes* scopes_configs::get_scopes(uint64_t a_id)
+{
+        cust_id_scopes_map_t::iterator i_i;
+        i_i = m_cust_id_scopes_map.find(a_id);
+        if (i_i != m_cust_id_scopes_map.end())
+        {
+                return i_i->second;
         }
         return NULL;
 }

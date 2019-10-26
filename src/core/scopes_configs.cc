@@ -381,7 +381,7 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // process
         // -------------------------------------------------
-        const waflz_pb::enforcement *l_enf;
+        const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
         l_s = l_scopes->process(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, ao_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)

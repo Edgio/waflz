@@ -81,10 +81,10 @@ public:
                         part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
         void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }
-        const char *get_err_msg(void) { return m_err_msg; }
         void get_first_id(std::string &ao_id);
         void get_rand_id(std::string &ao_id);
         bool id_exists(bool& ao_audit, bool &ao_prod, const std::string& a_id);
+        const char *get_err_msg(void) { return m_err_msg; }
 private:
         // -------------------------------------------------
         // private types

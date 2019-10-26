@@ -73,6 +73,7 @@ public:
         // public members
         // -------------------------------------------------
         bool m_bg_load;
+        bool m_is_rand;
         bool m_scopes_dir;
         bool m_action_mode;
         std::string m_redis_host;

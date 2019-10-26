@@ -209,6 +209,7 @@ int32_t sx_instance::init(void)
                 // TODO log reason
                 return STATUS_ERROR;
         }
+        m_instances->set_locking(true);
         // -------------------------------------------------
         // load dir
         // -------------------------------------------------
@@ -287,10 +288,6 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         waflz_pb::event *l_event_prod = NULL;
         waflz_pb::event *l_event_audit = NULL;
         ns_waflz::rqst_ctx *l_ctx  = NULL;
-        // -------------------------------------------------
-        // instances
-        // -------------------------------------------------
-        m_instances->set_locking(true);
         std::string l_id = "";
         // -------------------------------------------------
         // get id from header if exists

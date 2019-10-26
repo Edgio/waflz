@@ -59,9 +59,9 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        int32_t load_scopes_dir(const char *a_dir_path, uint32_t a_dir_path_len);
-        int32_t load_scopes_file(const char *a_file_path, uint32_t a_file_path_len);
-        int32_t load_scopes(const char *a_buf, uint32_t a_buf_len);
+        int32_t load_dir(const char *a_dir_path, uint32_t a_dir_path_len);
+        int32_t load_file(const char *a_file_path, uint32_t a_file_path_len);
+        int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t process(waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
@@ -69,11 +69,12 @@ public:
                         uint64_t a_id,
                         part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
-        scopes* get_scopes(uint64_t a_id);
-        scopes* get_first_scopes();
         const char *get_err_msg(void) { return m_err_msg; }
         void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }
         void set_conf_dir(const std::string& a_conf_dir) { m_conf_dir = a_conf_dir; }
+        void get_first_id(uint64_t &ao_id);
+        void get_rand_id(uint64_t &ao_id);
+        bool id_exists(uint64_t a_id);
         scopes_configs(engine& a_engine, kv_db& a_db, bool a_enable_locking);
         ~scopes_configs();
 private:
@@ -84,6 +85,7 @@ private:
         scopes_configs(const scopes_configs &);
         scopes_configs& operator=(const scopes_configs &);
         int32_t load(void *a_js);
+        scopes* get_scopes(uint64_t a_id);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------

@@ -157,6 +157,7 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
 //: ----------------------------------------------------------------------------
 sx_scopes::sx_scopes(void):
         m_bg_load(false),
+        m_is_rand(false),
         m_redis_host(),
         m_engine(NULL),
         m_update_scopes_h(NULL),
@@ -288,12 +289,13 @@ int32_t sx_scopes::init(void)
                 // TODO log error
                 return STATUS_ERROR;
         }
+        m_scopes_configs->set_locking(true);
         // -------------------------------------------------
         // load scopes dir
         // -------------------------------------------------
         if(m_scopes_dir)
         {
-                l_s = m_scopes_configs->load_scopes_dir(m_config.c_str(), m_config.length());
+                l_s = m_scopes_configs->load_dir(m_config.c_str(), m_config.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error read dir %s\n", m_config.c_str());
@@ -314,7 +316,7 @@ int32_t sx_scopes::init(void)
                         NDBG_PRINT("error read_file: %s\n", m_config.c_str());
                         return STATUS_ERROR;
                 }
-                l_s = m_scopes_configs->load_scopes(l_buf, l_buf_len);
+                l_s = m_scopes_configs->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_scopes_configs->get_err_msg());
@@ -356,84 +358,63 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
         waflz_pb::event *l_event_audit = NULL;
         ns_waflz::rqst_ctx *l_ctx  = NULL;
         m_resp = "{\"status\": \"ok\"}";
+        uint64_t l_id = 0;
         // -------------------------------------------------
-        // process scopes dir/single scopes file
+        // get id from header if exists
         // -------------------------------------------------
-        if(m_scopes_dir)
+        const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
+        ns_is2::mutable_data_t i_hdr;
+        if(ns_is2::find_first(i_hdr, l_headers, _SCOPEZ_SERVER_SCOPES_ID, sizeof(_SCOPEZ_SERVER_SCOPES_ID)))
         {
-                // -----------------------------------------
-                // get cust an
-                // -----------------------------------------
-                std::string l_id;
-                const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
-                ns_is2::mutable_data_t i_hdr;
-                if(!ns_is2::find_first(i_hdr,
-                                       l_headers,
-                                       _SCOPEZ_SERVER_SCOPES_ID,
-                                       sizeof(_SCOPEZ_SERVER_SCOPES_ID)))
-                {
-                        NDBG_PRINT("an was not provided in the header waf-scopes-id\n");
-                        return ns_is2::H_RESP_SERVER_ERROR; 
-                }
-                l_id.assign(i_hdr.m_data, i_hdr.m_len);
-                uint64_t l_cust_id;
-                l_s = ns_waflz::convert_hex_to_uint(l_cust_id, l_id.c_str());
+                std::string l_hex;
+                l_hex.assign(i_hdr.m_data, i_hdr.m_len);
+                l_s = ns_waflz::convert_hex_to_uint(l_id, l_hex.c_str());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("an provided is not a provided hex\n");
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
-                l_s = m_scopes_configs->process(ao_enf,
-                                                &l_event_audit,
-                                                &l_event_prod,
-                                                &a_session,
-                                                l_cust_id,
-                                                ns_waflz::PART_MK_ALL,
-                                                &l_ctx);
-                // -----------------------------------------
-                // process
-                // -----------------------------------------
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error processing config. reason: %s\n",
-                                    m_scopes_configs->get_err_msg());
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
         }
-        else
+        // -------------------------------------------------
+        // pick rand if id empty
+        // -------------------------------------------------
+        if(!l_id &&
+           m_is_rand)
         {
-                ns_waflz::scopes* l_scopes = NULL;
-                l_scopes = m_scopes_configs->get_first_scopes();
-                if(l_scopes == NULL)
-                {
-                        NDBG_PRINT("No scopes to process\n");
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                // -----------------------------------------
-                // process
-                // -----------------------------------------
-                const waflz_pb::enforcement* l_enf = NULL;
-                l_s = l_scopes->process(&l_enf, &l_event_audit, &l_event_prod, &a_session, ns_waflz::PART_MK_ALL, &l_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error processing config. reason: %s\n",
-                                    l_scopes->get_err_msg());
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                // -----------------------------------------
-                // create copy if exists...
-                // -----------------------------------------
-                if(l_enf)
-                {
-                        *ao_enf = new waflz_pb::enforcement();
-                        (*ao_enf)->CopyFrom(*l_enf);
-                }
+                m_scopes_configs->get_rand_id(l_id);
+        }
+        // -------------------------------------------------
+        // get first
+        // -------------------------------------------------
+        else if(!l_id)
+        {
+                m_scopes_configs->get_first_id(l_id);
+        }
+        if(!l_id)
+        {
+                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
+                if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+                return ns_is2::H_RESP_SERVER_ERROR;
+        }
+        // -------------------------------------------------
+        // process
+        // -------------------------------------------------
+        l_s = m_scopes_configs->process(ao_enf,
+                                        &l_event_audit,
+                                        &l_event_prod,
+                                        &a_session,
+                                        l_id,
+                                        ns_waflz::PART_MK_ALL,
+                                        &l_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                NDBG_PRINT("error processing config. reason: %s\n",
+                            m_scopes_configs->get_err_msg());
+                if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
+                if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+                return ns_is2::H_RESP_SERVER_ERROR;
         }
         // -------------------------------------------------
         // *************************************************

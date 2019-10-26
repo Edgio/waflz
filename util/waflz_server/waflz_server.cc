@@ -112,7 +112,7 @@ config_mode_t g_config_mode = CONFIG_MODE_NONE;
 static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                                    ns_is2::session &a_session,
                                    ns_is2::rqst &a_rqst,
-                                   const waflz_pb::enforcement &a_enf)
+                                   waflz_pb::enforcement &a_enf)
 {
         if(!a_ctx)
         {
@@ -502,7 +502,7 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                const waflz_pb::enforcement *l_enf = NULL;
+                waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
@@ -525,6 +525,7 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response
@@ -560,7 +561,7 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                const waflz_pb::enforcement *l_enf = NULL;
+                waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
@@ -578,6 +579,7 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // default
@@ -605,7 +607,7 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                const waflz_pb::enforcement *l_enf = NULL;
+                waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
@@ -623,6 +625,7 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // default

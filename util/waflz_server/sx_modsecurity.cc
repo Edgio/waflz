@@ -212,7 +212,7 @@ int32_t sx_modsecurity::init(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_modsecurity::handle_rqst(const waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_modsecurity::handle_rqst(waflz_pb::enforcement **ao_enf,
                                              ns_waflz::rqst_ctx **ao_ctx,
                                              ns_is2::session &a_session,
                                              ns_is2::rqst &a_rqst,

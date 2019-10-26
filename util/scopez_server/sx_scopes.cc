@@ -75,10 +75,10 @@ static void *t_load_instance(void *a_context)
         }
         int32_t l_s;
         ns_waflz::instance *l_instance = NULL;
-        l_s = l_i->m_instances->load_config(&l_instance, l_i->m_buf, l_i->m_buf_len, true);
+        l_s = l_i->m_instances->load(&l_instance, l_i->m_buf, l_i->m_buf_len, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_ERROR("performing m_profile->load_config\n");
+                TRC_ERROR("performing m_profile->load\n");
                 if(l_i->m_buf) { free(l_i->m_buf); l_i->m_buf = NULL;}
                 return NULL;
         }
@@ -110,10 +110,10 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
                 //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
                 int32_t l_s;
                 ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len, true);
+                l_s = m_instances->load(&l_instance, l_buf, l_buf_len, true);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        TRC_ERROR("performing m_profile->load_config\n");
+                        TRC_ERROR("performing m_profile->load\n");
                         if(l_buf) { free(l_buf); l_buf = NULL;}
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
@@ -336,7 +336,7 @@ int32_t sx_scopes::init(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                                         ns_waflz::rqst_ctx **ao_ctx,
                                         ns_is2::session &a_session,
                                         ns_is2::rqst &a_rqst,
@@ -415,7 +415,8 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
                 // -----------------------------------------
                 // process
                 // -----------------------------------------
-                l_s = l_scopes->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, ns_waflz::PART_MK_ALL, &l_ctx);
+                const waflz_pb::enforcement* l_enf = NULL;
+                l_s = l_scopes->process(&l_enf, &l_event_audit, &l_event_prod, &a_session, ns_waflz::PART_MK_ALL, &l_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error processing config. reason: %s\n",
@@ -424,6 +425,14 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(const waflz_pb::enforcement **ao_enf,
                         if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
+                }
+                // -----------------------------------------
+                // create copy if exists...
+                // -----------------------------------------
+                if(l_enf)
+                {
+                        *ao_enf = new waflz_pb::enforcement();
+                        (*ao_enf)->CopyFrom(*l_enf);
                 }
         }
         // -------------------------------------------------

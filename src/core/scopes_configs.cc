@@ -88,7 +88,7 @@ int32_t scopes_configs::load_scopes_dir(const char* a_dir_path, uint32_t a_dir_p
         // -----------------------------------------------------------
         // this function should look through the given directory and
         // look for all ddos.json files, open them and call
-        // load_configfile() on it
+        // load_file() on it
         // -----------------------------------------------------------
         class is_conf_file
         {
@@ -292,7 +292,7 @@ int32_t scopes_configs::load(void* a_js)
 
         scopes *l_scopes = new scopes(m_engine, m_db);
         int32_t l_s;
-        l_s = l_scopes->load_config(a_js, m_conf_dir);
+        l_s = l_scopes->load(a_js, m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_AERROR(m_err_msg, "%s", l_scopes->get_err_msg());
@@ -353,7 +353,7 @@ int32_t scopes_configs::load(void* a_js)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
+int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
                                 waflz_pb::event **ao_audit_event,
                                 waflz_pb::event **ao_prod_event,
                                 void *a_ctx,
@@ -365,6 +365,9 @@ int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
         {
                 pthread_mutex_lock(&m_mutex);
         }
+        // -------------------------------------------------
+        // get scopes for id
+        // -------------------------------------------------
         ns_waflz::scopes *l_scopes = NULL;
         l_scopes = get_scopes(a_id);
         if(!l_scopes)
@@ -375,8 +378,12 @@ int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
                 }
                 return WAFLZ_STATUS_OK;
         }
+        // -------------------------------------------------
+        // process
+        // -------------------------------------------------
+        const waflz_pb::enforcement *l_enf;
         int32_t l_s;
-        l_s = l_scopes->process(ao_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, ao_rqst_ctx);
+        l_s = l_scopes->process(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, ao_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)
@@ -384,6 +391,14 @@ int32_t scopes_configs::process(const waflz_pb::enforcement **ao_enf,
                         pthread_mutex_unlock(&m_mutex);
                 }
                 return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // create enforcement copy...
+        // -------------------------------------------------
+        if(l_enf)
+        {
+                *ao_enf = new waflz_pb::enforcement();
+                (*ao_enf)->CopyFrom(*l_enf);
         }
         if(m_enable_locking)
         {

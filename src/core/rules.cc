@@ -29,23 +29,6 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/waf.h"
 #include "event.pb.h"
-#if 0
-#include "profile.pb.h"
-#include "action.pb.h"
-#include "request_info.pb.h"
-#include "acl.pb.h"
-#include "jspb/jspb.h"
-#include "support/file_util.h"
-#include "support/string_util.h"
-#include "support/time_util.h"
-#include "waflz/def.h"
-#include "waflz/engine.h"
-#include "waflz/rules.h"
-#include "waflz/config_parser.h"
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#endif
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
@@ -87,7 +70,7 @@ rules::~rules()
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t rules::load_config_file(const char *a_buf, uint32_t a_buf_len)
+int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
 {
         if(a_buf_len > _CONFIG_PROFILE_MAX_SIZE)
         {

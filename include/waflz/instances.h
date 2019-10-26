@@ -37,6 +37,7 @@
 #endif
 namespace waflz_pb {
         class event;
+        class enforcement;
 }
 namespace ns_waflz
 {
@@ -56,7 +57,37 @@ class instances
 {
 public:
         // -------------------------------------------------
-        // public types
+        // Public methods
+        // -------------------------------------------------
+        instances(engine &a_engine,
+                  bool a_enable_locking = false);
+        ~instances();
+        int32_t load_file(instance **ao_instance,
+                          const char *a_file_path,
+                          uint32_t a_file_path_len,
+                          bool a_update = false);
+        int32_t load(instance **ao_instance,
+                     const char *a_buf,
+                     uint32_t a_buf_len,
+                     bool a_update = false);
+        int32_t load_dir(const char *a_dir_path,
+                         uint32_t a_dir_path_len,
+                         bool a_update = false);
+        int32_t process(waflz_pb::enforcement **ao_enf,
+                        waflz_pb::event **ao_audit_event,
+                        waflz_pb::event **ao_prod_event,
+                        void *a_ctx,
+                        const std::string &a_id,
+                        part_mk_t a_part_mk,
+                        rqst_ctx **ao_rqst_ctx);
+        void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }
+        const char *get_err_msg(void) { return m_err_msg; }
+        void get_first_id(std::string &ao_id);
+        void get_rand_id(std::string &ao_id);
+        bool id_exists(bool& ao_audit, bool &ao_prod, const std::string& a_id);
+private:
+        // -------------------------------------------------
+        // private types
         // -------------------------------------------------
         typedef std::vector <std::string> id_vector_t;
         // -------------------------------------------------
@@ -75,47 +106,13 @@ public:
         typedef std::tr1::unordered_map<std::string, instance*, str_hash> id_instance_map_t;
 #endif
         // -------------------------------------------------
-        // Public methods
-        // -------------------------------------------------
-        instances(engine &a_engine,
-                  bool a_enable_locking = false);
-        ~instances();
-        int32_t load_config_file(instance **ao_instance,
-                                 const char *a_file_path,
-                                 uint32_t a_file_path_len,
-                                 bool a_update = false);
-        int32_t load_config(instance **ao_instance,
-                            const char *a_buf,
-                            uint32_t a_buf_len,
-                            bool a_update = false);
-        int32_t load_config_dir(const char *a_dir_path,
-                                uint32_t a_dir_path_len,
-                                bool a_update = false);
-        int32_t process(waflz_pb::event **ao_audit_event,
-                        waflz_pb::event **ao_prod_event,
-                        void *a_ctx,
-                        const std::string &a_id,
-                        rqst_ctx **ao_rqst_ctx);
-        int32_t process_part(waflz_pb::event **ao_audit_event,
-                             waflz_pb::event **ao_prod_event,
-                             void *a_ctx,
-                             const std::string &a_id,
-                             part_mk_t a_part_mk,
-                             rqst_ctx **ao_rqst_ctx);
-        void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }
-        const char *get_err_msg(void) { return m_err_msg; }
-        instance *get_instance(const std::string &a_id);
-        instance *get_first_instance(void);
-private:
-        // -------------------------------------------------
         // Private methods
         // -------------------------------------------------
         // Disallow copy/assign
         instances(const instances &);
         instances& operator=(const instances &);
-        int32_t load_config(instance **ao_instance,
-                            void *a_js,
-                            bool a_update = false);
+        int32_t load(instance **ao_instance, void *a_js, bool a_update = false);
+        instance *get_instance(const std::string &a_id);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------

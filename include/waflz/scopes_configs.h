@@ -62,7 +62,7 @@ public:
         int32_t load_scopes_dir(const char *a_dir_path, uint32_t a_dir_path_len);
         int32_t load_scopes_file(const char *a_file_path, uint32_t a_file_path_len);
         int32_t load_scopes(const char *a_buf, uint32_t a_buf_len);
-        int32_t process(const waflz_pb::enforcement **ao_enf,
+        int32_t process(waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,

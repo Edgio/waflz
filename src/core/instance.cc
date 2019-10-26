@@ -147,7 +147,7 @@ instance::~instance()
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instance::load_config(const char *a_buf,
+int32_t instance::load(const char *a_buf,
                               uint32_t a_buf_len)
 {
         if(a_buf_len > CONFIG_SECURITY_WAF_INSTANCE_MAX_SIZE)
@@ -179,7 +179,7 @@ int32_t instance::load_config(const char *a_buf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instance::load_config(void *a_js)
+int32_t instance::load(void *a_js)
 {
         m_init = false;
         const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
@@ -277,7 +277,7 @@ int32_t instance::validate(void)
                 m_profile_audit = new profile(m_engine);
                 m_profile_audit->m_action = l_action;
                 int32_t l_s;
-                l_s = m_profile_audit->load_config(&(l_pb.audit_profile()));
+                l_s = m_profile_audit->load(&(l_pb.audit_profile()));
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", m_profile_audit->get_err_msg());
@@ -325,7 +325,7 @@ int32_t instance::validate(void)
                 m_profile_prod = new profile(m_engine);
                 m_profile_prod->m_action = l_action;
                 int32_t l_s;
-                l_s = m_profile_prod->load_config(&(l_pb.prod_profile()));
+                l_s = m_profile_prod->load(&(l_pb.prod_profile()));
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", m_profile_prod->get_err_msg());
@@ -364,15 +364,25 @@ void instance::set_event_properties(waflz_pb::event &ao_event, profile &a_profil
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instance::process(waflz_pb::event **ao_audit_event,
+int32_t instance::process(const waflz_pb::enforcement **ao_enf,
+                          waflz_pb::event **ao_audit_event,
                           waflz_pb::event **ao_prod_event,
                           void *a_ctx,
+                          part_mk_t a_part_mk,
                           rqst_ctx **ao_rqst_ctx)
 {
+        // sanity checking...
+        if(!ao_enf ||
+           !ao_audit_event ||
+           !ao_prod_event)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_enf = NULL;
+        *ao_audit_event = NULL;
+        *ao_prod_event = NULL;
         int32_t l_s;
         rqst_ctx *l_rqst_ctx = NULL;
-        waflz_pb::event *l_audit_event = NULL;
-        waflz_pb::event *l_prod_event = NULL;
         // -------------------------------------------------
         // *************************************************
         //                    A U D I T
@@ -382,81 +392,7 @@ int32_t instance::process(waflz_pb::event **ao_audit_event,
         {
                 goto process_prod;
         }
-        l_s = m_profile_audit->process(&l_audit_event, a_ctx, &l_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(l_audit_event)
-        {
-                set_event_properties(*l_audit_event, *m_profile_audit);
-        }
-        // -------------------------------------------------
-        // reset phase 1
-        // -------------------------------------------------
-        if(l_rqst_ctx)
-        {
-                l_s = l_rqst_ctx->reset_phase_1();
-        }
-        // -------------------------------------------------
-        // *************************************************
-        //                     P R O D
-        // *************************************************
-        // -------------------------------------------------
-process_prod:
-        if(!m_profile_prod)
-        {
-                goto done;
-        }
-        l_s = m_profile_prod->process(&l_prod_event, a_ctx, &l_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(l_prod_event)
-        {
-                set_event_properties(*l_prod_event, *m_profile_prod);
-        }
-done:
-        *ao_audit_event = l_audit_event;
-        *ao_prod_event = l_prod_event;
-        if(ao_rqst_ctx)
-        {
-                *ao_rqst_ctx = l_rqst_ctx;
-        }
-        else
-        {
-                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-        }
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t instance::process_part(waflz_pb::event **ao_audit_event,
-                               waflz_pb::event **ao_prod_event,
-                               void *a_ctx,
-                               part_mk_t a_part_mk,
-                               rqst_ctx **ao_rqst_ctx)
-{
-        int32_t l_s;
-        rqst_ctx *l_rqst_ctx = NULL;
-        waflz_pb::event *l_audit_event = NULL;
-        waflz_pb::event *l_prod_event = NULL;
-        // -------------------------------------------------
-        // *************************************************
-        //                    A U D I T
-        // *************************************************
-        // -------------------------------------------------
-        if(!m_profile_audit)
-        {
-                goto process_prod;
-        }
-        l_s = m_profile_audit->process_part(&l_audit_event, a_ctx, a_part_mk, &l_rqst_ctx);
+        l_s = m_profile_audit->process(ao_audit_event, a_ctx, a_part_mk, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -467,9 +403,9 @@ int32_t instance::process_part(waflz_pb::event **ao_audit_event,
         // -------------------------------------------------
         // set properties
         // -------------------------------------------------
-        if(l_audit_event)
+        if(*ao_audit_event)
         {
-                set_event_properties(*l_audit_event, *m_profile_audit);
+                set_event_properties(**ao_audit_event, *m_profile_audit);
         }
         // -------------------------------------------------
         // reset phase 1
@@ -488,7 +424,7 @@ process_prod:
         {
                 goto done;
         }
-        l_s = m_profile_prod->process_part(&l_prod_event, a_ctx, a_part_mk, &l_rqst_ctx);
+        l_s = m_profile_prod->process(ao_prod_event, a_ctx, a_part_mk, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -499,13 +435,18 @@ process_prod:
         // -------------------------------------------------
         // set properties
         // -------------------------------------------------
-        if(l_prod_event)
+        if(*ao_prod_event)
         {
-                set_event_properties(*l_prod_event, *m_profile_prod);
+                set_event_properties(**ao_prod_event, *m_profile_prod);
+                // -----------------------------------------
+                // copy out enforcement if exist
+                // -----------------------------------------
+                if(m_pb->prod_profile_enforcements_size())
+                {
+                        *ao_enf = &(m_pb->prod_profile_enforcements(0));
+                }
         }
 done:
-        *ao_audit_event = l_audit_event;
-        *ao_prod_event = l_prod_event;
         if(ao_rqst_ctx)
         {
                 *ao_rqst_ctx = l_rqst_ctx;

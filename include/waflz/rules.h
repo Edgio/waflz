@@ -60,7 +60,7 @@ public:
         rules(engine &a_engine);
         ~rules();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
-        int32_t load_config_file(const char *a_buf, uint32_t a_buf_len);
+        int32_t load_file(const char *a_buf, uint32_t a_buf_len);
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------

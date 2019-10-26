@@ -123,7 +123,7 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 //-------------------------------------------
                 // Load config with default policies
                 //-------------------------------------------
-                l_s = l_profile->load_config(l_pb, false);
+                l_s = l_profile->load(l_pb, false);
                 //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 //---------------------------------------------
@@ -133,7 +133,7 @@ TEST_CASE( "profile policies test", "[profile_policies]" )
                 //---------------------------------------------
                 ::waflz_pb::profile_policy_t *l_policy = l_pb->add_policies();
                 l_policy->set_policy_id("REQUEST-949-BLOCKING-EVALUATION.conf");
-                l_s = l_profile->load_config(l_pb, false);
+                l_s = l_profile->load(l_pb, false);
                 //---------------------------------------------
                 // Should fail to load config
                 //---------------------------------------------

@@ -248,8 +248,7 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // profile
         // -------------------------------------------------
         ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-        l_s = l_profile->load_config(l_buf,
-                                     l_buf_len);
+        l_s = l_profile->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid
@@ -303,7 +302,7 @@ static int32_t validate_acl(const std::string &a_file)
         // load
         // -------------------------------------------------
         ns_waflz::acl *l_acl = new ns_waflz::acl();
-        l_s = l_acl->load_config(l_buf, l_buf_len);
+        l_s = l_acl->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 fprintf(stderr, "failed to load acl config: %s.  Reason: %s\n", a_file.c_str(), l_acl->get_err_msg());
@@ -388,7 +387,7 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // instantiate the compiler and validate it
         // -------------------------------------------------
         ns_waflz::instance *l_instance = new ns_waflz::instance(*l_engine);
-        l_s = l_instance->load_config(l_buf, l_buf_len);
+        l_s = l_instance->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // instance is invalid

@@ -347,9 +347,7 @@ int32_t scopes::validate(void)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::load_config(const char *a_buf,
-                            uint32_t a_buf_len,
-                            const std::string& a_conf_dir_path)
+int32_t scopes::load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path)
 {
         if(a_buf_len > _SCOPES_MAX_SIZE)
         {
@@ -401,7 +399,7 @@ int32_t scopes::load_config(const char *a_buf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::load_config(void *a_js, const std::string& a_conf_dir_path)
+int32_t scopes::load(void *a_js, const std::string& a_conf_dir_path)
 {
         m_init = false;
         // -------------------------------------------------
@@ -479,7 +477,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
-                l_s = l_acl->load_config(l_buf, l_buf_len);
+                l_s = l_acl->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_acl->get_err_msg());
@@ -538,7 +536,7 @@ acl_audit_action:
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
-                l_s = l_acl->load_config(l_buf, l_buf_len);
+                l_s = l_acl->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_acl->get_err_msg());
@@ -587,7 +585,7 @@ acl_prod_action:
                 std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_audit_id() + ".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
-                l_s = l_rules->load_config_file(l_p.c_str(), l_p.length());
+                l_s = l_rules->load_file(l_p.c_str(), l_p.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading rules (audit) conf file: %s. reason: %s\n",
@@ -637,7 +635,7 @@ rules_audit_action:
                 std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id() + ".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
-                l_s = l_rules->load_config_file(l_p.c_str(), l_p.length());
+                l_s = l_rules->load_file(l_p.c_str(), l_p.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading rules (prod) conf file: %s. reason: %s\n",
@@ -697,7 +695,7 @@ rules_prod_action:
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
-                l_s = l_profile->load_config(l_buf, l_buf_len);
+                l_s = l_profile->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
@@ -756,7 +754,7 @@ profile_audit_action:
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
-                l_s = l_profile->load_config(l_buf, l_buf_len);
+                l_s = l_profile->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
@@ -1051,7 +1049,7 @@ audit_profile:
                 // -----------------------------------------
                 profile *l_profile = (profile *)a_scope._profile_audit__reserved();
                 waflz_pb::event *l_event = NULL;
-                l_s = l_profile->process(&l_event, a_ctx, ao_rqst_ctx);
+                l_s = l_profile->process(&l_event, a_ctx, PART_MK_WAF, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
@@ -1252,7 +1250,7 @@ prod_profile:
                 // -----------------------------------------
                 profile *l_profile = (profile *)a_scope._profile_prod__reserved();
                 waflz_pb::event *l_event = NULL;
-                l_s = l_profile->process(&l_event, a_ctx, ao_rqst_ctx);
+                l_s = l_profile->process(&l_event, a_ctx, PART_MK_WAF, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }

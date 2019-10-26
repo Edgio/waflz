@@ -48,7 +48,7 @@ public:
         sx_limit(void);
         ~sx_limit(void);
         int32_t init(void);
-        ns_is2::h_resp_t handle_rqst(const waflz_pb::enforcement **ao_enf,
+        ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
                                      ns_waflz::rqst_ctx **ao_ctx,
                                      ns_is2::session &a_session,
                                      ns_is2::rqst &a_rqst,

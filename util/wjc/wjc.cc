@@ -26,13 +26,14 @@
 #include "waflz/instance.h"
 #include "waflz/profile.h"
 #include "waflz/acl.h"
+#include "waflz/engine.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/time_util.h"
-#include "waflz/engine.h"
 #include "jspb/jspb.h"
 #include "profile.pb.h"
 #ifdef WAFLZ_RATE_LIMITING
+#include "waflz/scopes.h"
 #include "waflz/limit/config.h"
 #include "waflz/limit/enforcer.h"
 #include "waflz/limit/rl_obj.h"
@@ -92,6 +93,7 @@ typedef enum {
 #ifdef WAFLZ_RATE_LIMITING
         CONFIG_MODE_LIMIT,
         CONFIG_MODE_LIMITS,
+        CONFIG_MODE_SCOPES,
 #endif
         CONFIG_MODE_NONE
 } config_mode_t;
@@ -497,6 +499,60 @@ static int32_t validate_limits(const std::string &a_file, bool a_display_json)
         if(l_config) { delete l_config; l_config = NULL;}
         return STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset_dir, const std::string &a_conf_dir)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // ruleset_dir
+        // -------------------------------------------------
+        l_s = validate_ruleset_dir(a_ruleset_dir);
+        if(l_s != STATUS_OK)
+        {
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // engine
+        // -------------------------------------------------
+        ns_waflz::engine *l_engine = new ns_waflz::engine();
+        l_engine->set_ruleset_dir(a_ruleset_dir);
+        l_engine->init();
+        // -------------------------------------------------
+        // config
+        // -------------------------------------------------
+        ns_waflz::kycb_db l_kycb_db;
+        ns_waflz::scopes *l_scopes = new ns_waflz::scopes(*l_engine, l_kycb_db);
+        l_s = l_scopes->load(l_buf, l_buf_len, a_conf_dir);
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "%s\n", l_scopes->get_err_msg());
+                if(l_scopes) {delete l_scopes; l_scopes = NULL;}
+                if(l_buf) {free(l_buf); l_buf = NULL;}
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_buf) { free(l_buf); l_buf = NULL;}
+        if(l_engine) { delete l_engine; l_engine = NULL; }
+        if(l_scopes) { delete l_scopes; l_scopes = NULL;}
+        return STATUS_OK;
+}
 #endif
 //: ----------------------------------------------------------------------------
 //: \details Print Version info to a_stream with exit code
@@ -534,6 +590,8 @@ void print_usage(FILE* a_stream, int exit_code)
 #ifdef WAFLZ_RATE_LIMITING
         fprintf(a_stream, "  -l  --limit        Rate limit\n");
         fprintf(a_stream, "  -L  --limits       Rate limits\n");
+        fprintf(a_stream, "  -d  --config-dir   Configuration directory\n");
+        fprintf(a_stream, "  -s  --scopes       Scopes config\n");
 #endif
         fprintf(a_stream, "  -j, --json         Display config [Default: OFF]\n");
         fprintf(a_stream, "\n");
@@ -554,6 +612,7 @@ int main(int argc, char** argv)
         std::string l_argument;
         std::string l_file;
         std::string l_ruleset_dir;
+        std::string l_conf_dir;
         bool l_display_json = false;
         int l_option_index = 0;
         config_mode_t l_config_mode = CONFIG_MODE_NONE;
@@ -569,12 +628,14 @@ int main(int argc, char** argv)
 #ifdef WAFLZ_RATE_LIMITING
                 { "limit",       1, 0, 'l' },
                 { "limits",      1, 0, 'L' },
+                { "config-dir",  1, 0, 'd' },
+                { "scopes",      1, 0, 's' },
 #endif
                 { "json",        0, 0, 'j' },
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-        while ((l_opt = getopt_long_only(argc, argv, "hvr:i:p:a:R:l:L:j", l_long_options, &l_option_index)) != -1)
+        while ((l_opt = getopt_long_only(argc, argv, "hvr:i:p:a:R:l:L:d:s:j", l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)
                 {
@@ -663,6 +724,23 @@ int main(int argc, char** argv)
                 {
                         l_file = optarg;
                         l_config_mode = CONFIG_MODE_LIMITS;
+                        break;
+                }
+                // -----------------------------------------
+                // conf dir
+                // -----------------------------------------
+                case 'd':
+                {
+                        l_conf_dir = optarg;
+                        break;
+                }
+                // -----------------------------------------
+                // scopes
+                // -----------------------------------------
+                case 's':
+                {
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_SCOPES;
                         break;
                 }
 #endif
@@ -769,6 +847,18 @@ int main(int argc, char** argv)
         case(CONFIG_MODE_LIMITS):
         {
                 l_s = validate_limits(l_file, l_display_json);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
+        }
+        // -------------------------------------------------
+        // scopes
+        // -------------------------------------------------
+        case(CONFIG_MODE_SCOPES):
+        {
+                l_s = validate_scopes(l_file, l_ruleset_dir, l_conf_dir);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;

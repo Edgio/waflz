@@ -498,7 +498,9 @@ scopes* scopes_configs::get_scopes(uint64_t a_id)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert, rqst_ctx* a_ctx)
+int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
+                                       rqst_ctx* a_ctx,
+                                       uint64_t a_cust_id)
 {
         waflz_pb::alert* l_at = new waflz_pb::alert();
         // -------------------------------------------------
@@ -592,7 +594,7 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert, rqst_ctx* a_c
         // -------------------------------------------------
         // set customer id...
         // -------------------------------------------------
-        l_at->mutable_req_info()->set_customer_id(m_pb->_customer_id_int());
+        l_at->mutable_req_info()->set_customer_id(a_cust_id);
         // -------------------------------------------------
         // done...
         // -------------------------------------------------

@@ -112,7 +112,7 @@ int32_t redis_db::init(void)
                 return WAFLZ_STATUS_ERROR;
         }
         //NDBG_PRINT("PING: %s\n", l_r->str);
-        if(strncasecmp(l_r->str, "PONG", strlen("PONG") != 0))
+        if(strncasecmp(l_r->str, "PONG", strlen("PONG")) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "pinging redis");
                 if(m_ctx) { redisFree(m_ctx); m_ctx = NULL;}

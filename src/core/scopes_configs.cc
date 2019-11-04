@@ -492,4 +492,113 @@ scopes* scopes_configs::get_scopes(uint64_t a_id)
         }
         return NULL;
 }
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
+                                       rqst_ctx* a_ctx,
+                                       uint64_t a_cust_id)
+{
+        waflz_pb::alert* l_at = new waflz_pb::alert();
+        // -------------------------------------------------
+        // Get the matched limit
+        // -------------------------------------------------
+        if(a_ctx->m_limit)
+        {
+                waflz_pb::limit *l_ev_limit = l_at->mutable_limit();
+                // TODO -only copy in meta -ie exclude enforcement body info...
+                l_ev_limit->CopyFrom(*(a_ctx->m_limit));
+                // -----------------------------------------
+                // copy in first enf
+                // -----------------------------------------
+                if(a_ctx->m_limit->has_action())
+                {
+                        l_at->mutable_action()->CopyFrom(a_ctx->m_limit->action());
+                }
+        }
+        // -------------------------------------------------
+        // Get the matched limit
+        // -------------------------------------------------
+        if(a_ctx->m_limit)
+        {
+                waflz_pb::limit *l_ev_limit = l_at->mutable_limit();
+                l_ev_limit->CopyFrom(*(a_ctx->m_limit));
+        }
+        // -------------------------------------------------
+        // Get request specific info
+        // -------------------------------------------------
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        waflz_pb::request_info *l_request_info = l_at->mutable_req_info();
+        // -------------------------------------------------
+        // Epoch time
+        // -------------------------------------------------
+        uint32_t l_now_s = get_time_s();
+        uint32_t l_now_ms = get_time_ms();
+        waflz_pb::request_info_timespec_t *l_epoch = l_request_info->mutable_epoch_time();
+        l_epoch->set_sec(l_now_s);
+        l_epoch->set_nsec(l_now_ms);
+        // -------------------------------------------------
+        // common headers
+        // -------------------------------------------------
+        //TRC_DEBUG("setting headers\n");
+#define _SET_HEADER(_header, _val) do { \
+        l_d.m_data = _header; \
+        l_d.m_len = sizeof(_header); \
+        data_map_t::const_iterator i_h = l_hm.find(l_d); \
+        if(i_h != l_hm.end()) \
+        { \
+                l_headers->set_##_val(i_h->second.m_data, i_h->second.m_len); \
+        } \
+} while(0)
+#define _SET_IF_EXIST_STR(_field, _proto) do { \
+        if(a_ctx->_field.m_data && \
+           a_ctx->_field.m_len) { \
+                l_request_info->set_##_proto(a_ctx->_field.m_data, a_ctx->_field.m_len); \
+        } } while(0)
+#define _SET_IF_EXIST_INT(_field, _proto) do { \
+                l_request_info->set_##_proto(a_ctx->_field); \
+        } while(0)
+        // -------------------------------------------------
+        // headers...
+        // -------------------------------------------------
+        waflz_pb::request_info::common_header_t* l_headers = l_request_info->mutable_common_header();
+        const data_map_t &l_hm = a_ctx->m_header_map;
+        data_t l_d;
+        _SET_HEADER("Referer", referer);
+        _SET_HEADER("User-Agent", user_agent);
+        _SET_HEADER("Host", host);
+        _SET_HEADER("X-Forwarded-For", x_forwarded_for);
+        // -------------------------------------------------
+        // others...
+        // -------------------------------------------------
+        _SET_IF_EXIST_STR(m_src_addr, virt_remote_host);
+        _SET_IF_EXIST_STR(m_local_addr, local_addr);
+        _SET_IF_EXIST_INT(m_port, server_canonical_port);
+        _SET_IF_EXIST_STR(m_uri, orig_url);
+        _SET_IF_EXIST_STR(m_url, url);
+        _SET_IF_EXIST_STR(m_query_str, query_string);
+        _SET_IF_EXIST_STR(m_method, request_method);
+        _SET_IF_EXIST_STR(m_req_uuid, req_uuid);
+        _SET_IF_EXIST_INT(m_bytes_out, bytes_out);
+        _SET_IF_EXIST_INT(m_bytes_in, bytes_in);
+        // -------------------------------------------------
+        // TODO -apologies for enum casting...
+        // -------------------------------------------------
+        l_request_info->set_apparent_cache_log_status(static_cast <waflz_pb::request_info::log_status_t>(a_ctx->m_apparent_cache_status));
+        // -------------------------------------------------
+        // set customer id...
+        // -------------------------------------------------
+        l_at->mutable_req_info()->set_customer_id(a_cust_id);
+        // -------------------------------------------------
+        // done...
+        // -------------------------------------------------
+        *ao_alert = l_at;
+        return WAFLZ_STATUS_OK;
+
+}
 }

@@ -28,7 +28,6 @@
 #include "waflz/def.h"
 #include "waflz/scopes.h"
 #include "waflz/limit/limit.h"
-#include "waflz/rqst_ctx.h"
 #include "limit.pb.h"
 #include <pthread.h>
 #include <string>

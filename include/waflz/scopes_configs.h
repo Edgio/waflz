@@ -28,7 +28,6 @@
 #include "waflz/def.h"
 #include "waflz/scopes.h"
 #include "waflz/limit/limit.h"
-#include "limit.pb.h"
 #include <pthread.h>
 #include <string>
 #if defined(__APPLE__) || defined(__darwin__)

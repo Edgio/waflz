@@ -28,7 +28,6 @@
 #include "waflz/def.h"
 #include "waflz/scopes.h"
 #include "waflz/limit/limit.h"
-#include "limit.pb.h"
 #include <pthread.h>
 #include <string>
 #if defined(__APPLE__) || defined(__darwin__)
@@ -36,6 +35,12 @@
 #else
     #include <tr1/unordered_map>
 #endif
+//: ----------------------------------------------------------------------------
+//: fwd Decl's
+//: ----------------------------------------------------------------------------
+namespace waflz_pb {
+        class alert;
+}
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: fwd Decl's

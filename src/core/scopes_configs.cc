@@ -35,6 +35,7 @@
 #include "support/string_util.h"
 #include <dirent.h>
 #include "scope.pb.h"
+#include "limit.pb.h"
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: \details TODO

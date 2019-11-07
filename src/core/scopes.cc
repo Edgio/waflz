@@ -283,8 +283,7 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db):
         m_id_rules_map(),
         m_id_profile_map(),
         m_id_limit_map(),
-        m_enfx(NULL),
-        m_enf_limit(false)
+        m_enfx(NULL)
 {
         m_pb = new waflz_pb::scope_config();
         m_enfx = new enforcer(false);
@@ -870,10 +869,6 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // unset
-        // -------------------------------------------------
-        m_enf_limit = false;
-        // -------------------------------------------------
         // create rqst_ctx
         // -------------------------------------------------
         rqst_ctx *l_ctx = NULL;
@@ -1148,10 +1143,14 @@ limits:
                 {
                         continue;
                 }
-                const waflz_pb::enforcement& l_axn = l_slc.action();
+                // -----------------------------------------
+                // signal new enforcemnt
+                // -----------------------------------------
+                (*ao_rqst_ctx)->m_condition_group = l_cg;
                 // -----------------------------------------
                 // add new exceeds
                 // -----------------------------------------
+                const waflz_pb::enforcement& l_axn = l_slc.action();
                 int32_t l_s;
                 waflz_pb::config *l_cfg = NULL;
                 l_s = add_exceed_limit(&l_cfg,
@@ -1190,10 +1189,6 @@ limits:
                 // -----------------------------------------
                 if(ao_enf)
                 {
-                        // ---------------------------------
-                        // mark as new enf
-                        // ---------------------------------
-                        m_enf_limit = true;
                         goto done;
                 }
         }

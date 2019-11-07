@@ -411,7 +411,6 @@ int32_t enforcer::process(const waflz_pb::enforcement** ao_axn, rqst_ctx *a_ctx)
                         {
                                 *ao_axn = &(i_limit.action());
                                 a_ctx->m_limit = i_r_ptr;
-                                a_ctx->m_condition_group = &(i_limit.condition_groups(i_cg));
                                 //TRC_DEBUG("print enforcement%s\n", (*ao_axn)->DebugString().c_str());
                                 goto done;
                         }

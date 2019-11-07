@@ -1274,7 +1274,7 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit();
                 l_sx_limit->m_lsnr = l_lsnr;
                 l_sx_limit->m_config = l_config_file;
-                // TODO ...
+                l_sx_limit->m_redis_host = l_redis_host;
                 g_sx = l_sx_limit;
                 break;
         }

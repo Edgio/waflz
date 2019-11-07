@@ -105,7 +105,6 @@ public:
                         void *a_ctx,
                         part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
-        bool get_enf_limit(void) { return m_enf_limit;}
 private:
         // -------------------------------------------------
         // private methods
@@ -150,10 +149,6 @@ private:
         // enforcements
         // -------------------------------------------------
         enforcer *m_enfx;
-        // -------------------------------------------------
-        // flag new enforcement
-        // -------------------------------------------------
-        bool m_enf_limit;
 };
 //: ----------------------------------------------------------------------------
 //: run operation

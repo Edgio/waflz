@@ -29,6 +29,8 @@
 #include "cityhash/city.h"
 #include <string>
 #include <inttypes.h>
+#include <list>
+#include <set>
 #if defined(__APPLE__) || defined(__darwin__)
     #include <unordered_map>
 #else
@@ -59,6 +61,7 @@ class profile;
 class limit;
 class kv_db;
 class enforcer;
+class regex;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
@@ -78,6 +81,28 @@ public:
                         return CityHash64(a_key.c_str(), a_key.length());
                 }
         };
+        // ----------------------------------------------------------------------------
+        // comparison operators
+        // ----------------------------------------------------------------------------
+        struct data_comp
+        {
+                bool operator()(const data_t& lhs, const data_t& rhs) const
+                {
+                        uint32_t l_len = lhs.m_len > rhs.m_len ? rhs.m_len : lhs.m_len;
+                        return strncmp(lhs.m_data, rhs.m_data, l_len) < 0;
+                }
+        };
+        // ----------------------------------------------------------------------------
+        // types
+        // ----------------------------------------------------------------------------
+        typedef std::set<data_t, data_comp> data_set_t;
+        typedef std::set<data_t, data_case_i_comp> data_case_i_set_t;
+        // ----------------------------------------------------------------------------
+        // compiled operators
+        // ----------------------------------------------------------------------------
+        typedef std::list<regex *> regex_list_t;
+        typedef std::list<data_set_t *> data_set_list_t;
+        typedef std::list<data_case_i_set_t *> data_case_i_set_list_t;
 #if defined(__APPLE__) || defined(__darwin__)
         typedef std::unordered_map<std::string, acl*, str_hash> id_acl_map_t;
         typedef std::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
@@ -114,7 +139,8 @@ private:
         scopes(const scopes &);
         scopes& operator=(const scopes &);
         int32_t load_parts(waflz_pb::scope& a_scope, const std::string& a_conf_dir_path);
-        int32_t validate(void);
+        int32_t compile_and_load_parts(const std::string& a_conf_dir_path);
+        int32_t compile_op(::waflz_pb::op_t& ao_op);
         int32_t add_exceed_limit(waflz_pb::config **ao_cfg,
                                  const waflz_pb::limit& a_limit,
                                  const waflz_pb::condition_group *a_condition_group,
@@ -135,6 +161,9 @@ private:
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
         kv_db &m_db;
+        regex_list_t m_regex_list;
+        data_set_list_t m_data_set_list;
+        data_case_i_set_list_t m_data_case_i_set_list;
         // properties
         std::string m_id;
         std::string m_cust_id;

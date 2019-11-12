@@ -469,4 +469,17 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is profile custom response\n'
-
+# ------------------------------------------------------------------------------
+# test scopes operator
+# ------------------------------------------------------------------------------
+def test_scopes_operators(setup_scopez_server_action):
+    # ------------------------------------------------------
+    # test for EM 
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'bananas.com',
+                 'user-agent':'bananas',
+                 'waf-scopes-id': '0051'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    #assert l_r.status_code == 403
+    print l_r.text

@@ -312,6 +312,30 @@ scopes::~scopes()
         _DEL_MAP(id_rules_map_t, m_id_rules_map);
         _DEL_MAP(id_profile_map_t, m_id_profile_map);
         _DEL_MAP(id_limit_map_t, m_id_limit_map);
+        // -------------------------------------------------
+        // destruct m_regex_list
+        // -------------------------------------------------
+        for(regex_list_t::iterator i_p = m_regex_list.begin();
+            i_p != m_regex_list.end();
+            ++i_p)
+        {
+                if(*i_p) { delete *i_p; *i_p = NULL;}
+        }
+        // -------------------------------------------------
+        // destruct str_ptr_set_list
+        // -------------------------------------------------
+        for(data_set_list_t::iterator i_n = m_data_set_list.begin();
+            i_n != m_data_set_list.end();
+            ++i_n)
+        {
+                if(*i_n) { delete *i_n; *i_n = NULL;}
+        }
+        for(data_case_i_set_list_t::iterator i_n = m_data_case_i_set_list.begin();
+            i_n != m_data_case_i_set_list.end();
+            ++i_n)
+        {
+                if(*i_n) { delete *i_n; *i_n = NULL;}
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details compile_op
@@ -320,6 +344,7 @@ scopes::~scopes()
 //: ----------------------------------------------------------------------------
 int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
 {
+        printf("compile op\n");
         // -------------------------------------------------
         // check if exist...
         // -------------------------------------------------
@@ -361,6 +386,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
         // -------------------------------------------------
         case ::waflz_pb::op_t_type_t_EM:
         {
+                printf("EM operator\n");
                 if(!ao_op.has_value() &&
                    !ao_op.values_size())
                 {
@@ -386,6 +412,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
                                         data_t l_d;
                                         l_d.m_data = ao_op.values(i_v).c_str();
                                         l_d.m_len = ao_op.values(i_v).length();
+                                        printf("EM value - %s\n", l_d.m_data);
                                         l_ds->insert(l_d);
                                 }
                         }
@@ -419,6 +446,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
                                         data_t l_d;
                                         l_d.m_data = ao_op.values(i_v).c_str();
                                         l_d.m_len = ao_op.values(i_v).length();
+                                        printf("EM value - %s\n", l_d.m_data);
                                         l_ds->insert(l_d);
                                 }
                         }
@@ -1025,6 +1053,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
+                printf("scopes loop - %d\n", i_s);
                 const ::waflz_pb::scope& l_sc = m_pb->scopes(i_s);
                 bool l_m;
                 l_s = in_scope(l_m, l_sc, l_ctx);
@@ -1039,11 +1068,13 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 // -----------------------------------------
                 if(!l_m)
                 {
+                        printf("not matched -%d\n", i_s);
                         continue;
                 }
                 // -----------------------------------------
                 // process scope...
                 // -----------------------------------------
+                printf("processing scope\n");
                 l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, a_part_mk, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -1723,6 +1754,7 @@ int32_t in_scope(bool &ao_match,
         {
                 return WAFLZ_STATUS_ERROR;
         }
+        printf("in scope\n");
         // -------------------------------------------------
         // host
         // -------------------------------------------------
@@ -1731,14 +1763,17 @@ int32_t in_scope(bool &ao_match,
            (a_scope.host().has_value() ||
             a_scope.host().values_size()))
         {
+                printf("scope has host\n");
                 const data_t &l_d = a_ctx->m_host;
                 if(!l_d.m_data ||
                    !l_d.m_len)
                 {
+                        printf("returning without process\n");
                         return WAFLZ_STATUS_OK;
                 }
                 bool l_matched = false;
                 int32_t l_s;
+                printf("hostname - %s\n", l_d.m_data);
                 l_s = rl_run_op(l_matched,
                                 a_scope.host(),
                                 l_d.m_data,
@@ -1761,12 +1796,15 @@ int32_t in_scope(bool &ao_match,
            (a_scope.path().has_value() ||
             a_scope.path().values_size()))
         {
+                printf("scope has path\n");
                 data_t l_d = a_ctx->m_uri;
                 if(!l_d.m_data ||
                    !l_d.m_len)
                 {
+                        printf("retuning without process\n");
                         return WAFLZ_STATUS_OK;
                 }
+                printf("path -%s\n", l_d.m_data);
                 // use length w/o q string
                 // use length w/o q string
                 if(a_ctx->m_uri_path_len)

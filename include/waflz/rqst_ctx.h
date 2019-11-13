@@ -157,11 +157,11 @@ public:
         uint32_t m_bytes_in;
         mutable_data_t m_token;
         uint32_t m_resp_status;
+        bool m_signal_enf;
         // -------------------------------------------------
         // TODO FIX!!! -not thread safe...
         // -------------------------------------------------
         const waflz_pb::limit* m_limit;
-        const waflz_pb::condition_group* m_condition_group;
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------

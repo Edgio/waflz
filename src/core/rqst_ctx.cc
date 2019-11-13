@@ -217,8 +217,8 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_bytes_in(0),
         m_token(),
         m_resp_status(0),
+        m_signal_enf(0),
         m_limit(NULL),
-        m_condition_group(NULL),
         m_body_parser(),
         // -------------------------------------------------
         // collections

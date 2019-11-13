@@ -6,7 +6,7 @@
   {
     "host": {
       "is_negated": false,
-      "type": "GLOB",
+      "type": "EM",
       "value": "monkeez.com"
     },
     "path": {
@@ -51,7 +51,7 @@
   {
     "host": {
       "is_negated": false,
-      "type": "GLOB",
+      "type": "EM",
       "value": "test.com"
     },
     "path": {
@@ -104,7 +104,7 @@
   {
     "host": {
       "is_negated": false,
-      "type": "GLOB",
+      "type": "EM",
       "value": "limit.com"
     },
     "path": {

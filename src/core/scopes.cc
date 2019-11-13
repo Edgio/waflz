@@ -277,6 +277,9 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db):
         m_err_msg(),
         m_engine(a_engine),
         m_db(a_kv_db),
+        m_regex_list(),
+        m_data_set_list(),
+        m_data_case_i_set_list(),
         m_id(),
         m_cust_id(),
         m_id_acl_map(),
@@ -309,13 +312,168 @@ scopes::~scopes()
         _DEL_MAP(id_rules_map_t, m_id_rules_map);
         _DEL_MAP(id_profile_map_t, m_id_profile_map);
         _DEL_MAP(id_limit_map_t, m_id_limit_map);
+        // -------------------------------------------------
+        // destruct m_regex_list
+        // -------------------------------------------------
+        for(regex_list_t::iterator i_p = m_regex_list.begin();
+            i_p != m_regex_list.end();
+            ++i_p)
+        {
+                if(*i_p) { delete *i_p; *i_p = NULL;}
+        }
+        // -------------------------------------------------
+        // destruct str_ptr_set_list
+        // -------------------------------------------------
+        for(data_set_list_t::iterator i_n = m_data_set_list.begin();
+            i_n != m_data_set_list.end();
+            ++i_n)
+        {
+                if(*i_n) { delete *i_n; *i_n = NULL;}
+        }
+        for(data_case_i_set_list_t::iterator i_n = m_data_case_i_set_list.begin();
+            i_n != m_data_case_i_set_list.end();
+            ++i_n)
+        {
+                if(*i_n) { delete *i_n; *i_n = NULL;}
+        }
+}
+//: ----------------------------------------------------------------------------
+//: \details compile_op
+//: \return  0/-1
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
+{
+        // -------------------------------------------------
+        // check if exist...
+        // -------------------------------------------------
+        if(!ao_op.has_type())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // for type...
+        // -------------------------------------------------
+        switch(ao_op.type())
+        {
+        // -------------------------------------------------
+        // regex
+        // -------------------------------------------------
+        case ::waflz_pb::op_t_type_t_RX:
+        {
+                if(!ao_op.has_value())
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+                const std::string &l_val = ao_op.value();
+                regex* l_rx = new regex();
+                int32_t l_s;
+                l_s = l_rx->init(l_val.c_str(), l_val.length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "failed to compile regex: '%s'.", l_val.c_str());
+                        delete l_rx;
+                        l_rx = NULL;
+                        return WAFLZ_STATUS_ERROR;
+                }
+                ao_op.set__reserved_1((uint64_t)(l_rx));
+                m_regex_list.push_back(l_rx);
+                break;
+        }
+        // -------------------------------------------------
+        // exact condition list
+        // -------------------------------------------------
+        case ::waflz_pb::op_t_type_t_EM:
+        {
+                if(!ao_op.has_value() &&
+                   !ao_op.values_size())
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // case insensitive
+                // -----------------------------------------
+                if(ao_op.is_case_insensitive())
+                {
+                        data_case_i_set_t *l_ds = new data_case_i_set_t();
+                        // ---------------------------------
+                        // prefer values to value
+                        // ---------------------------------
+                        if(ao_op.values_size())
+                        {
+                                for(int32_t i_v = 0; i_v < ao_op.values_size(); ++i_v)
+                                {
+                                        if(ao_op.values(i_v).empty())
+                                        {
+                                                continue;
+                                        }
+                                        data_t l_d;
+                                        l_d.m_data = ao_op.values(i_v).c_str();
+                                        l_d.m_len = ao_op.values(i_v).length();
+                                        l_ds->insert(l_d);
+                                }
+                        }
+                        else if(!ao_op.value().empty())
+                        {
+                                data_t l_d;
+                                l_d.m_data = ao_op.value().c_str();
+                                l_d.m_len = ao_op.value().length();
+                                l_ds->insert(l_d);
+                        }
+                        ao_op.set__reserved_1((uint64_t)(l_ds));
+                        m_data_case_i_set_list.push_back(l_ds);
+                }
+                // -----------------------------------------
+                // case sensitive
+                // -----------------------------------------
+                else
+                {
+                        data_set_t *l_ds = new data_set_t();
+                        // ---------------------------------
+                        // prefer values to value
+                        // ---------------------------------
+                        if(ao_op.values_size())
+                        {
+                                for(int32_t i_v = 0; i_v < ao_op.values_size(); ++i_v)
+                                {
+                                        if(ao_op.values(i_v).empty())
+                                        {
+                                                continue;
+                                        }
+                                        data_t l_d;
+                                        l_d.m_data = ao_op.values(i_v).c_str();
+                                        l_d.m_len = ao_op.values(i_v).length();
+                                        l_ds->insert(l_d);
+                                }
+                        }
+                        else if(!ao_op.value().empty())
+                        {
+                                data_t l_d;
+                                l_d.m_data = ao_op.value().c_str();
+                                l_d.m_len = ao_op.value().length();
+                                l_ds->insert(l_d);
+                        }
+                        ao_op.set__reserved_1((uint64_t)(l_ds));
+                        m_data_set_list.push_back(l_ds);
+                }
+                break;
+        }
+        // -------------------------------------------------
+        // default
+        // -------------------------------------------------
+        default:
+        {
+                break;
+        }
+        }
+        return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  0/-1
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::validate(void)
+int32_t scopes::compile(const std::string& a_conf_dir_path)
 {
         if(m_init)
         {
@@ -332,12 +490,38 @@ int32_t scopes::validate(void)
                 return WAFLZ_STATUS_ERROR;
         }
         m_id = m_pb->id();
-        // -------------------------------------------------
-        // TODO -add validation...
-        // -------------------------------------------------
         if(m_pb->has_customer_id())
         {
                 m_cust_id = m_pb->customer_id();
+        }
+        // -------------------------------------------------
+        // for each scope - compile op and load parts
+        // -------------------------------------------------
+        int32_t l_s;
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+                if(l_sc.has_host())
+                {
+                        l_s = compile_op(*(l_sc.mutable_host()));
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                }
+                if(l_sc.has_path())
+                {
+                        l_s = compile_op(*(l_sc.mutable_path()));
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                }
+                l_s = load_parts(l_sc, a_conf_dir_path);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
         }
         return WAFLZ_STATUS_OK;
 }
@@ -368,28 +552,13 @@ int32_t scopes::load(const char *a_buf, uint32_t a_buf_len, const std::string& a
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // validate
+        // compile and load parts
         // -------------------------------------------------
-        l_s = validate();
+        l_s = compile(a_conf_dir_path);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // for each scope...
-        // -------------------------------------------------
-        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
-        {
-                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-                l_s = load_parts(l_sc, a_conf_dir_path);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // done...
-        // -------------------------------------------------
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
@@ -413,28 +582,13 @@ int32_t scopes::load(void *a_js, const std::string& a_conf_dir_path)
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // validate
+        // compile and load parts
         // -------------------------------------------------
-        l_s = validate();
+        l_s = compile(a_conf_dir_path);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // for each scope...
-        // -------------------------------------------------
-        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
-        {
-                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-                l_s = load_parts(l_sc, a_conf_dir_path);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // done...
-        // -------------------------------------------------
         m_init = true;
         return WAFLZ_STATUS_OK;
 }

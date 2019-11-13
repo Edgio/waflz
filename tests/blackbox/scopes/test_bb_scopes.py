@@ -97,7 +97,7 @@ def setup_scopez_server_single():
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 # ------------------------------------------------------------------------------
-# setup scopez server in action mode
+# setup scopez server in action mode for an 0050
 # ------------------------------------------------------------------------------
 @pytest.fixture()
 def setup_scopez_server_action():
@@ -110,18 +110,18 @@ def setup_scopez_server_action():
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
-    l_scopez_file = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes/0050.scopes.json'))
+    l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
     l_subproc = subprocess.Popen([l_scopez_server_path,
                                   '-d', l_conf_dir,
-                                  '-s', l_scopez_file,
+                                  '-S', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
                                   '-a'])
     print('cmd: {}'.format(' '.join([l_scopez_server_path,
                                   '-d', l_conf_dir,
-                                  '-s', l_scopez_file,
+                                  '-S', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
@@ -481,5 +481,25 @@ def test_scopes_operators(setup_scopez_server_action):
                  'user-agent':'bananas',
                  'waf-scopes-id': '0051'}
     l_r = requests.get(l_uri, headers=l_headers)
-    #assert l_r.status_code == 403
-    print l_r.text
+    assert l_r.status_code == 403
+    assert l_r.text == "This is from EM scope\n"
+    # ------------------------------------------------------
+    # test for RX
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test/path.html'
+    l_headers = {'host': 'test.regexhost.com',
+                 'user-agent':'bananas',
+                 'waf-scopes-id': '0051'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == "This is from RX scope\n"
+    # ------------------------------------------------------
+    # test for GLOB - random hostname and path
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/somepath.html'
+    l_headers = {'host': 'somedomain.com',
+                 'user-agent':'bananas',
+                 'waf-scopes-id': '0051'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == "This is from GLOB scope\n"

@@ -7,18 +7,38 @@
     "host": {
       "is_negated": false,
       "type": "EM",
-      "values": "bananas.com"
+      "value": "bananas.com"
     },
     "path": {
       "is_negated": false,
       "type": "EM",
-      "values": "/test.html"
+      "value": "/test.html"
     },
     "rules_prod_id": "0051-4fsYnj9c",
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
       "response_body_base64":"VGhpcyBpcyBmcm9tIEVNIHNjb3BlCg==",
+      "status": 403,
+      "type": "custom-response"
+    }
+  },
+  {
+    "host": {
+      "is_negated": false,
+      "type": "RX",
+      "value": ".*.regexhost.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "RX",
+      "value": ".*/path.html"
+    },
+    "rules_prod_id": "0051-4fsYnj9c",
+    "rules_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64":"VGhpcyBpcyBmcm9tIFJYIHNjb3BlCg==",
       "status": 403,
       "type": "custom-response"
     }
@@ -38,7 +58,7 @@
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
-      "response_body_base64":"VGhpcyBpcyBmcm9tIFJYIHNjb3BlCg==",
+      "response_body_base64":"VGhpcyBpcyBmcm9tIEdMT0Igc2NvcGUK",
       "status": 403,
       "type": "custom-response"
     }

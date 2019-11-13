@@ -362,6 +362,7 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
                                 part_mk_t a_part_mk,
                                 rqst_ctx **ao_rqst_ctx)
 {
+        printf("scopes_configs::process\n");
         if(m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
@@ -377,6 +378,7 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
                 {
                         pthread_mutex_unlock(&m_mutex);
                 }
+                printf("waflz scopes not present\n");
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------

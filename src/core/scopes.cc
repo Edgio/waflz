@@ -473,7 +473,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
 //: \return  0/-1
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::compile_and_load_parts(const std::string& a_conf_dir_path)
+int32_t scopes::compile(const std::string& a_conf_dir_path)
 {
         if(m_init)
         {

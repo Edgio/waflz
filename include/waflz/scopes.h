@@ -139,7 +139,7 @@ private:
         scopes(const scopes &);
         scopes& operator=(const scopes &);
         int32_t load_parts(waflz_pb::scope& a_scope, const std::string& a_conf_dir_path);
-        int32_t compile_and_load_parts(const std::string& a_conf_dir_path);
+        int32_t compile(const std::string& a_conf_dir_path);
         int32_t compile_op(::waflz_pb::op_t& ao_op);
         int32_t add_exceed_limit(waflz_pb::config **ao_cfg,
                                  const waflz_pb::limit& a_limit,

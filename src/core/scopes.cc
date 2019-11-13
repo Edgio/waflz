@@ -554,7 +554,7 @@ int32_t scopes::load(const char *a_buf, uint32_t a_buf_len, const std::string& a
         // -------------------------------------------------
         // compile and load parts
         // -------------------------------------------------
-        l_s = compile_and_load_parts(a_conf_dir_path);
+        l_s = compile(a_conf_dir_path);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -584,7 +584,7 @@ int32_t scopes::load(void *a_js, const std::string& a_conf_dir_path)
         // -------------------------------------------------
         // compile and load parts
         // -------------------------------------------------
-        l_s = compile_and_load_parts(a_conf_dir_path);
+        l_s = compile(a_conf_dir_path);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;

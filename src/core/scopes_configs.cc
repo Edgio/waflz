@@ -600,6 +600,20 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         // -------------------------------------------------
         *ao_alert = l_at;
         return WAFLZ_STATUS_OK;
-
+}
+//: ----------------------------------------------------------------------------
+//: \details check if customer has scopes
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+bool scopes_configs::check_id(uint64_t a_cust_id)
+{
+        cust_id_scopes_map_t::iterator i_scopes;
+        i_scopes = m_cust_id_scopes_map.find(a_cust_id);
+        if(i_scopes == m_cust_id_scopes_map.end())
+        {
+                return false;
+        }
+        return true;
 }
 }

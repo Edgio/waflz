@@ -75,6 +75,7 @@ public:
                         uint64_t a_id,
                         part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
+        bool check_id(uint64_t a_cust_id);
         const char *get_err_msg(void) { return m_err_msg; }
         int32_t generate_alert(waflz_pb::alert** ao_alert, rqst_ctx* a_ctx, uint64_t a_cust_id);
         void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }

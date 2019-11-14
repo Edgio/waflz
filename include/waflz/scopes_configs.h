@@ -106,5 +106,4 @@ private:
         std::string m_conf_dir;
 };
 }
-
 #endif

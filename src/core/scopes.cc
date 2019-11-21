@@ -1137,6 +1137,10 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
+                if(l_wl)
+                {
+                        goto prod;
+                }
                 if(!l_event)
                 {
                         goto audit_rules;
@@ -1238,6 +1242,10 @@ prod:
                         if(l_event) { delete l_event; l_event = NULL; }
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
+                }
+                if(l_wl)
+                {
+                        return WAFLZ_STATUS_OK;
                 }
                 if(!l_event)
                 {

@@ -1245,7 +1245,7 @@ prod:
                 }
                 if(l_wl)
                 {
-                        return WAFLZ_STATUS_OK;
+                        goto done;
                 }
                 if(!l_event)
                 {

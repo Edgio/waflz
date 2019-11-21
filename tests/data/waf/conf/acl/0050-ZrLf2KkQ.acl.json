@@ -2,7 +2,7 @@
 	"id": "ZrLf2KkQ",
 	"name": "my cool acl",
 	"url": {
-		"whitelist": [],
+		"whitelist": ["robots.txt"],
 		"accesslist": [],
 		"blacklist": ["/prod.html"]
 	},

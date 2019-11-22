@@ -4,6 +4,8 @@
   "last_modified_by": "Mr. Monkeez",
   "scopes": [
   {
+    "id": "monkeez_id",
+    "name": "monkeez scope",
     "host": {
       "is_negated": false,
       "type": "EM",
@@ -49,6 +51,8 @@
     }
   },
   {
+    "id": "test_id",
+    "name": "test.com scope",
     "host": {
       "is_negated": false,
       "type": "EM",
@@ -102,6 +106,8 @@
     "profile_audit_action":{}
   },
   {
+    "id": "limit_id",
+    "name": "limit.com scope",
     "host": {
       "is_negated": false,
       "type": "EM",

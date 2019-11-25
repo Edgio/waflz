@@ -1146,10 +1146,6 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         goto audit_rules;
                 }
                 *ao_audit_event = l_event;
-                if(a_scope.has_acl_audit_action())
-                {
-                        *ao_enf = &(a_scope.acl_audit_action());
-                }
                 goto prod;
         }
         // -------------------------------------------------
@@ -1174,10 +1170,6 @@ audit_rules:
                         goto audit_profile;
                 }
                 *ao_audit_event = l_event;
-                if(a_scope.has_rules_audit_action())
-                {
-                        *ao_enf = &(a_scope.rules_audit_action());
-                }
                 goto prod;
         }
         // -------------------------------------------------
@@ -1214,10 +1206,6 @@ audit_profile:
                         goto prod;
                 }
                 *ao_audit_event = l_event;
-                if(a_scope.has_profile_audit_action())
-                {
-                        *ao_enf = &(a_scope.profile_audit_action());
-                }
                 goto prod;
         }
         // -------------------------------------------------

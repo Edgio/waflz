@@ -1243,6 +1243,10 @@ prod:
                 if(a_scope.has_acl_prod_action())
                 {
                         *ao_enf = &(a_scope.acl_prod_action());
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                 }
                 goto done;
         }
@@ -1379,6 +1383,10 @@ limits:
                 if(a_scope.has_rules_prod_action())
                 {
                         *ao_enf = &(a_scope.rules_prod_action());
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                 }
                 goto done;
         }
@@ -1419,6 +1427,10 @@ prod_profile:
                 if(a_scope.has_profile_prod_action())
                 {
                         *ao_enf = &(a_scope.profile_prod_action());
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                 }
                 goto done;
         }

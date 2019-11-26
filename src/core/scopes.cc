@@ -1342,8 +1342,12 @@ limits:
                 // -----------------------------------------
                 // enforced???
                 // -----------------------------------------
-                if(ao_enf)
+                if(*ao_enf)
                 {
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                         goto done;
                 }
         }

@@ -1265,6 +1265,11 @@ enforcements:
                 }
                 if(*ao_enf)
                 {
+                        //TODO: handle browser challenge validation
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                         goto done;
                 }
         }

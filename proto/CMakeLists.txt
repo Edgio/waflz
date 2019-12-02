@@ -2,6 +2,11 @@
 # TODO boilerplate
 # ------------------------------------------------------------------------------
 project (waflz)
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
+cmake_minimum_required(VERSION 3.5)
+
+message("Doing Proto stuff probably in waflz: bindir: ${CMAKE_CURRENT_BINARY_DIR}")
+
 # ------------------------------------------------------------------------------
 # TODO Create PROTOBUF_GENERATE_PYTHON command
 # for cmake...
@@ -51,14 +56,14 @@ add_custom_command(
 
 # custom target for protobuf output
 add_custom_target(protodata_py_out ALL DEPENDS
-    ${CMAKE_BINARY_DIR}/proto/action_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/rule_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/profile_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/event_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/acl_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/scope_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/limit_pb2.py
+    ${CMAKE_CURRENT_BINARY_DIR}/action_pb2.py
+    ${CMAKE_CURRENT_BINARY_DIR}/rule_pb2.py
+    ${CMAKE_CURRENT_BINARY_DIR}/profile_pb2.py
+    ${CMAKE_CURRENT_BINARY_DIR}/event_pb2.py
+    ${CMAKE_CURRENT_BINARY_DIR}/request_info_pb2.py
+    ${CMAKE_CURRENT_BINARY_DIR}/acl_pb2.py
+    ${CMAKE_CURRENT_BINARY_DIR}/scope_pb2.py
+    ${CMAKE_CURRENT_BINARY_DIR}/limit_pb2.py
 )
 # ------------------------------------------------------------------------------
 # protoc generation
@@ -107,27 +112,27 @@ add_custom_command(
 # custom target for protobuf output
 # ------------------------------------------------------------------------------
 add_custom_target(protobuf_cpp_out ALL DEPENDS
-    ${CMAKE_BINARY_DIR}/proto/action.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/action.pb.h
-    ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/rule.pb.h
-    ${CMAKE_BINARY_DIR}/proto/profile.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/profile.pb.h
-    ${CMAKE_BINARY_DIR}/proto/event.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/event.pb.h
-    ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/request_info.pb.h
-    ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/acl.pb.h
-    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/scope.pb.h
-    ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/limit.pb.h
+    ${CMAKE_CURRENT_BINARY_DIR}/action.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/action.pb.h
+    ${CMAKE_CURRENT_BINARY_DIR}/rule.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/rule.pb.h
+    ${CMAKE_CURRENT_BINARY_DIR}/profile.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/profile.pb.h
+    ${CMAKE_CURRENT_BINARY_DIR}/event.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/event.pb.h
+    ${CMAKE_CURRENT_BINARY_DIR}/request_info.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/request_info.pb.h
+    ${CMAKE_CURRENT_BINARY_DIR}/acl.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/acl.pb.h
+    ${CMAKE_CURRENT_BINARY_DIR}/scope.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/scope.pb.h
+    ${CMAKE_CURRENT_BINARY_DIR}/limit.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/limit.pb.h
 )
 # ------------------------------------------------------------------------------
 # Source files
 # ------------------------------------------------------------------------------
-set(SRCS
+set(WAFLZ_PROTOBUF_SOURCES
     action.pb.cc
     rule.pb.cc
     profile.pb.cc
@@ -140,7 +145,7 @@ set(SRCS
 # ------------------------------------------------------------------------------
 # Header files
 # ------------------------------------------------------------------------------
-set(HDRS
+set(WAFLZ_PROTOBUF_HEADERS
     action.pb.h
     rule.pb.h
     profile.pb.h
@@ -154,4 +159,4 @@ set(HDRS
 # Set INST_HDRS to ensure the build-time generated
 # headers are included
 # ------------------------------------------------------------------------------
-SET(INST_HDRS ${HDRS})
+SET(INST_HDRS ${WAFLZ_PROTOBUF_HEADERS})

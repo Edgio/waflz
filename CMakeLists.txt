@@ -22,7 +22,7 @@
 # Project setup
 # ------------------------------------------------------------------------------
 project(waflz)
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.5)
 # ------------------------------------------------------------------------------
 # Build options
 # ------------------------------------------------------------------------------
@@ -353,7 +353,13 @@ INCLUDE(CPack)
 # ------------------------------------------------------------------------------
 # include source/test directories
 # ------------------------------------------------------------------------------
-add_subdirectory(proto)
+if(TARGET protobuf_cpp_out)
+    message ("protobuf_cpp_out already defined.")
+else()
+    add_subdirectory(proto)
+endif()
+
+
 add_subdirectory(src)
 if (BUILD_APPS)
   add_subdirectory(util)

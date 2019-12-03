@@ -65,6 +65,11 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
   #message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++0x support. Please use a different C++ compiler.")
 endif()
+
+
+find_package(Protobuf REQUIRED)
+
+
 # ------------------------------------------------------------------------------
 # Display the current settings
 # ------------------------------------------------------------------------------
@@ -353,12 +358,7 @@ INCLUDE(CPack)
 # ------------------------------------------------------------------------------
 # include source/test directories
 # ------------------------------------------------------------------------------
-if(TARGET protobuf_cpp_out)
-    message ("protobuf_cpp_out already defined.")
-else()
-    add_subdirectory(proto)
-endif()
-
+add_subdirectory(proto)
 
 add_subdirectory(src)
 if (BUILD_APPS)

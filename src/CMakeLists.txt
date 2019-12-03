@@ -233,25 +233,7 @@ SET(HDRS
 # Tell the build system protobuf files are automatically generated
 # ------------------------------------------------------------------------------
 SET(PB_SRCS
-    # ------------------------------------------------------
-    # proto
-    # ------------------------------------------------------
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/profile.pb.h
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/profile.pb.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/action.pb.h
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/action.pb.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/event.pb.h
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/event.pb.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/request_info.pb.h
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/request_info.pb.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/rule.pb.h
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/rule.pb.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/acl.pb.h
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/acl.pb.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/scope.pb.h
-    ${CMAKE_CURRENT_BINARY_DIR}/../proto/scope.pb.cc
-
-
+    ${SF_WAFLZ_PROTO_HDRS} ${SF_WAFLZ_PROTO_SRCS}
     # ------------------------------------------------------
     # rate-limiting proto
     # ------------------------------------------------------

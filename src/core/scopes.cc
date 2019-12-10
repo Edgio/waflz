@@ -1137,15 +1137,15 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
+                if(l_wl)
+                {
+                        goto prod;
+                }
                 if(!l_event)
                 {
                         goto audit_rules;
                 }
                 *ao_audit_event = l_event;
-                if(a_scope.has_acl_audit_action())
-                {
-                        *ao_enf = &(a_scope.acl_audit_action());
-                }
                 goto prod;
         }
         // -------------------------------------------------
@@ -1170,10 +1170,6 @@ audit_rules:
                         goto audit_profile;
                 }
                 *ao_audit_event = l_event;
-                if(a_scope.has_rules_audit_action())
-                {
-                        *ao_enf = &(a_scope.rules_audit_action());
-                }
                 goto prod;
         }
         // -------------------------------------------------
@@ -1210,10 +1206,6 @@ audit_profile:
                         goto prod;
                 }
                 *ao_audit_event = l_event;
-                if(a_scope.has_profile_audit_action())
-                {
-                        *ao_enf = &(a_scope.profile_audit_action());
-                }
                 goto prod;
         }
         // -------------------------------------------------
@@ -1239,6 +1231,10 @@ prod:
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
+                if(l_wl)
+                {
+                        goto done;
+                }
                 if(!l_event)
                 {
                         goto enforcements;
@@ -1247,6 +1243,10 @@ prod:
                 if(a_scope.has_acl_prod_action())
                 {
                         *ao_enf = &(a_scope.acl_prod_action());
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                 }
                 goto done;
         }
@@ -1269,6 +1269,11 @@ enforcements:
                 }
                 if(*ao_enf)
                 {
+                        //TODO: handle browser challenge validation
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                         goto done;
                 }
         }
@@ -1341,8 +1346,12 @@ limits:
                 // -----------------------------------------
                 // enforced???
                 // -----------------------------------------
-                if(ao_enf)
+                if(*ao_enf)
                 {
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                         goto done;
                 }
         }
@@ -1374,6 +1383,10 @@ limits:
                 if(a_scope.has_rules_prod_action())
                 {
                         *ao_enf = &(a_scope.rules_prod_action());
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                 }
                 goto done;
         }
@@ -1414,6 +1427,10 @@ prod_profile:
                 if(a_scope.has_profile_prod_action())
                 {
                         *ao_enf = &(a_scope.profile_prod_action());
+                        if((*ao_enf)->has_status())
+                        {
+                                (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
                 }
                 goto done;
         }

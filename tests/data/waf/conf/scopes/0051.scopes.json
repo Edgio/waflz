@@ -4,6 +4,8 @@
   "last_modified_by": "Mr. bananas",
   "scopes": [
   {
+    "id": "bananas_id",
+    "name": "bananas.com scope",
     "host": {
       "is_negated": false,
       "type": "EM",
@@ -24,6 +26,8 @@
     }
   },
   {
+    "id": "regex_host_id",
+    "name": ".*.regexhost.com scope",
     "host": {
       "is_negated": false,
       "type": "RX",
@@ -44,6 +48,8 @@
     }
   },
   {
+    "id": "any_host_id",
+    "name": "any host scope",
     "host": {
       "is_negated": false,
       "type": "GLOB",

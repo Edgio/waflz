@@ -37,7 +37,7 @@
       "application/x-amf",
       "application/json"
     ],
-    "max_num_args": 512,
+    "max_num_args": 3,
     "total_arg_length": 64000,
     "process_response_body": false,
     "allowed_http_versions": [

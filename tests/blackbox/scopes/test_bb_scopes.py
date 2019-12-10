@@ -503,3 +503,26 @@ def test_scopes_operators(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == "This is from GLOB scope\n"
+# ------------------------------------------------------------------------------
+# test acl whitelist
+# ------------------------------------------------------------------------------
+def test_acl_whitelist(setup_scopez_server_action):
+    # ------------------------------------------------------
+    # Request with more than number of args configured in
+    # profile. waf should alert
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html?arg1&arg2&arg3&arg4'
+    l_headers = {'host': 'monkeez.com',
+                 'waf-scopes-id': '0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == "This is profile custom response\n"
+    # ------------------------------------------------------
+    # Request with lot of args in whitelisted url
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/robots.txt?arg1&arg2&arg3&arg4'
+    l_header = {'host': 'monkeez.com',
+                 'waf-scopes-id': '0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+

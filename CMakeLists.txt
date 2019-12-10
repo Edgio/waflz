@@ -359,7 +359,6 @@ INCLUDE(CPack)
 # include source/test directories
 # ------------------------------------------------------------------------------
 add_subdirectory(proto)
-
 add_subdirectory(src)
 if (BUILD_APPS)
   add_subdirectory(util)

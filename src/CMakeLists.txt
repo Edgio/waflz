@@ -165,15 +165,12 @@ SET(SRCS
 # ------------------------------------------------------------------------------
 if(BUILD_RATE_LIMITING)
 list(APPEND SRCS
-    # ------------------------------------------------------
-    # pb
-    # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
+
     #---------------------------------------------
     # ectoken
     #---------------------------------------------
-    ${CMAKE_SOURCE_DIR}/ext/ectoken/ectoken_v3.cc
-    ${CMAKE_SOURCE_DIR}/ext/ectoken/base64.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/ectoken/ectoken_v3.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/ectoken/base64.cc
     # ------------------------------------------------------
     # db
     # ------------------------------------------------------
@@ -233,14 +230,7 @@ SET(HDRS
 # Tell the build system protobuf files are automatically generated
 # ------------------------------------------------------------------------------
 SET(PB_SRCS
-    ${SF_WAFLZ_PROTO_HDRS} ${SF_WAFLZ_PROTO_SRCS}
-    # ------------------------------------------------------
-    # rate-limiting proto
-    # ------------------------------------------------------
-    if(BUILD_RATE_LIMITING)
-        ${CMAKE_CURRENT_BINARY_DIR}/../proto/limit.pb.h
-        ${CMAKE_CURRENT_BINARY_DIR}/../proto/limit.pb.cc
-    endif()
+    ${WAFLZ_PROTO_HDRS} ${WAFLZ_PROTO_SRCS}
 )
 set_source_files_properties(${PB_SRCS} PROPERTIES GENERATED TRUE)
 set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
@@ -271,7 +261,7 @@ install(FILES ${PY_INST}
 # ------------------------------------------------------------------------------
 # library
 # ------------------------------------------------------------------------------
-add_library(waflzcore STATIC ${HDRS} ${SRCS} ${PB_SRCS})
+add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
 
 target_include_directories(waflzcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/../proto/ ${CMAKE_CURRENT_BINARY_DIR}/../)
 

@@ -1293,7 +1293,7 @@ limits:
                 limit *l_limit = (limit *)l_slc._reserved_1();
                 bool l_exceeds = false;
                 const waflz_pb::condition_group *l_cg = NULL;
-                l_limit->process(l_exceeds, &l_cg, *ao_rqst_ctx);
+                l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
                 if(!l_exceeds)
                 {
                         continue;
@@ -1316,6 +1316,7 @@ limits:
                                        *(l_limit->get_pb()),
                                        l_cg,
                                        l_axn,
+                                       a_scope,
                                        *ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -1449,6 +1450,7 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
                                  const waflz_pb::limit& a_limit,
                                  const waflz_pb::condition_group *a_condition_group,
                                  const waflz_pb::enforcement &a_action,
+                                 const waflz_pb::scope& a_scope,
                                  rqst_ctx *a_ctx)
 {
         if(!ao_cfg)
@@ -1485,6 +1487,21 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
                 waflz_pb::condition_group *l_cg = l_limit->add_condition_groups();
                 l_cg->CopyFrom(*a_condition_group);
         }
+        // -------------------------------------------------
+        // copy host and path from scopes
+        // This is not a optimised way to pass scopes
+        // to enforcer. TODO - fix later
+        // -------------------------------------------------
+        waflz_pb::scope* l_s = new waflz_pb::scope();
+        if(a_scope.has_host())
+        {
+                l_s->mutable_host()->CopyFrom(a_scope.host());
+        }
+        if(a_scope.has_path())
+        {
+                l_s->mutable_path()->CopyFrom(a_scope.path());
+        }
+        l_limit->mutable_scope()->CopyFrom(*l_s);
         // -------------------------------------------------
         // create limits for dimensions
         // -------------------------------------------------

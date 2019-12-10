@@ -145,6 +145,7 @@ private:
                                  const waflz_pb::limit& a_limit,
                                  const waflz_pb::condition_group *a_condition_group,
                                  const waflz_pb::enforcement &a_action,
+                                 const ::waflz_pb::scope& a_scope,
                                  rqst_ctx *a_ctx);
         int32_t process(const waflz_pb::enforcement** ao_enf,
                         waflz_pb::event** ao_audit_event,

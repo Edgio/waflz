@@ -106,7 +106,7 @@
     "profile_audit_action":{}
   },
   {
-    "id": "limit_id",
+    "id": "limit_id_1",
     "name": "limit.com scope",
     "host": {
       "is_negated": false,
@@ -143,6 +143,31 @@
           "type":"custom-response",
           "response_body_base64":"VGhpcyBpcyBwcm9maWxlIGN1c3RvbSByZXNwb25zZQo="
     }
+  },
+  {
+    "id": "limit_id_2",
+    "name": "another scope for limits",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "test.limit.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "limits":[{
+       "id":"0050-MjMhNXMR",
+       "action":{
+          "id":"lllllll",
+          "name":"ddos-action",
+          "status": 403,
+          "duration_sec": 10,
+          "type": "custom-response",
+          "response_body_base64": "Y3VzdG9tIHJlc3BvbnNlIGZvciBsaW1pdHMgZnJvbSBsaW1pdF9pZF8yCg=="
+       }
+    }]
   }
 ]
 }

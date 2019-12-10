@@ -525,4 +525,56 @@ def test_acl_whitelist(setup_scopez_server_action):
                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
+# ------------------------------------------------------------------------------
+# test mutiple scopes for ratelimiting
+# ------------------------------------------------------------------------------
+def test_multiple_scopes_for_limit(setup_scopez_server_action):
+    # ------------------------------------------------------------------------------
+    # Make 3 request in 5 sec. Third request should get rate limited
+    # ------------------------------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host':'limit.com',
+                 'waf-scopes-id':'0050'}
+    for x in range(2):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'This is ddos custom response\n'
+    # ------------------------------------------------------------------------------
+    # Make another request for different scope during the enf window
+    # of first request. should get 200 and followed by
+    # enforcement for that scope
+    # ------------------------------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host':'test.limit.com',
+                 'waf-scopes-id':'0050'}
+    for x in range(2):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == "custom response for limits from limit_id_2\n"
+    # ------------------------------------------------------------------------------
+    # sleep for 10 seconds. Enforcements should expire for both scopes
+    # ------------------------------------------------------------------------------
+    time.sleep(10)
+    # ------------------------------------------------------------------------------
+    # making single request for each scope should give 200
+    # ------------------------------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host':'limit.com',
+                 'waf-scopes-id':'0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host':'test.limit.com',
+                 'waf-scopes-id':'0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+
+
 

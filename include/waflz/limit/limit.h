@@ -56,7 +56,10 @@ public:
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t load(void *a_js);
         const std::string& get_last_modified_date();
-        int32_t process(bool &ao_exceeds, const waflz_pb::condition_group** ao_cg, rqst_ctx* a_ctx);
+        int32_t process(bool &ao_exceeds,
+                        const waflz_pb::condition_group** ao_cg,
+                        const std::string& a_scope_id,
+                        rqst_ctx* a_ctx);
         const char *get_err_msg(void) { return m_err_msg; }
         waflz_pb::limit *get_pb(void) { return m_pb; }
 private:
@@ -67,8 +70,8 @@ private:
         limit(const limit &);
         limit& operator=(const limit &);
         int32_t init(void);
-        int32_t incr_key(bool &ao_exceeds, rqst_ctx* a_ctx);
-        int32_t get_key(char* ao_key, rqst_ctx *a_ctx);
+        int32_t incr_key(bool &ao_exceeds, const std::string& a_scope_id, rqst_ctx* a_ctx);
+        int32_t get_key(char* ao_key, const std::string& a_scope_id, rqst_ctx *a_ctx);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------

@@ -197,7 +197,7 @@ static int yajl_start_map_cb(void *a_ctx)
                 }
                 if(l_max_cat_len)
                 {
-                        strncat((char *)l_parser->m_prefix, (char *)l_parser->m_current_key, l_max_cat_len);
+                       // strncat((char *)l_parser->m_prefix, (char *)l_parser->m_current_key, l_max_cat_len);
                 }
         }
         else

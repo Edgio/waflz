@@ -296,7 +296,7 @@ int32_t scopes_configs::load(void* a_js)
         l_s = l_scopes->load(a_js, m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_AERROR(m_err_msg, "%s", l_scopes->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", l_scopes->get_err_msg());
                 if(l_scopes) { delete l_scopes; l_scopes = NULL;}
                 return WAFLZ_STATUS_ERROR;                
         }

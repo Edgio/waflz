@@ -298,6 +298,51 @@ uint64_t strntoull(const char *a_str, size_t a_size, char **ao_end, int a_base)
         return l_ret;
 }
 //: ----------------------------------------------------------------------------
+//: \details Appends src to string dst of size dsize
+//:          (unlike strncat, dsize is full size of dst, not space left).
+//:          At most dsize-1 characters will be copied.
+//:          Always NULL terminates (unless dsize <= strlen(dst)).
+//: \return  strlen(src) + MIN(dsize, strlen(initial dst)).
+//:          If retval >= dsize, truncation occurred.
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+size_t strlcat(char *a_dst, const char *a_src, size_t a_dsize)
+{
+        const char *l_odst = a_dst;
+        const char *l_osrc = a_src;
+        size_t l_n = a_dsize;
+        size_t l_dlen;
+        // -------------------------------------------------
+        // Find the end of a_dst and adjust bytes left but
+        /// don't go past end.
+        // -------------------------------------------------
+        while(l_n-- != 0 &&
+              *a_dst != '\0')
+        {
+                ++a_dst;
+        }
+        l_dlen = a_dst - l_odst;
+        l_n = a_dsize - l_dlen;
+        if (l_n-- == 0)
+        {
+                return(l_dlen + strlen(a_src));
+        }
+        while (*a_src != '\0')
+        {
+                if (l_n != 0)
+                {
+                        *a_dst++ = *a_src;
+                        l_n--;
+                }
+                ++a_src;
+        }
+        *a_dst = '\0';
+        // -------------------------------------------------
+        // count does not include NULL
+        // -------------------------------------------------
+        return(l_dlen + (a_src - l_osrc));
+}
+//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO

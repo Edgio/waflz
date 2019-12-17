@@ -27,6 +27,7 @@
 #include "waflz/rqst_ctx.h"
 #include "parser/parser_json.h"
 #include "support/ndebug.h"
+#include "support/string_util.h"
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
@@ -83,51 +84,6 @@ int json_add_argument(arg_list_t &ao_arg_list,
         //NDBG_PRINT("ADD_ARG [%d]%.*s: [%d]%.*s\n", l_arg.m_key_len, l_arg.m_key_len, l_arg.m_key, l_arg.m_val_len, l_arg.m_val_len, l_arg.m_val);
         ao_arg_list.push_back(l_arg);
         return 1;
-}
-//: ----------------------------------------------------------------------------
-//: \details Appends src to string dst of size dsize
-//:          (unlike strncat, dsize is full size of dst, not space left).
-//:          At most dsize-1 characters will be copied.
-//:          Always NULL terminates (unless dsize <= strlen(dst)).
-//: \return  strlen(src) + MIN(dsize, strlen(initial dst)).
-//:          If retval >= dsize, truncation occurred.
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-static size_t strlcat(char *a_dst, const char *a_src, size_t a_dsize)
-{
-        const char *l_odst = a_dst;
-        const char *l_osrc = a_src;
-        size_t l_n = a_dsize;
-        size_t l_dlen;
-        // -------------------------------------------------
-        // Find the end of a_dst and adjust bytes left but
-        /// don't go past end.
-        // -------------------------------------------------
-        while(l_n-- != 0 &&
-              *a_dst != '\0')
-        {
-                ++a_dst;
-        }
-        l_dlen = a_dst - l_odst;
-        l_n = a_dsize - l_dlen;
-        if (l_n-- == 0)
-        {
-                return(l_dlen + strlen(a_src));
-        }
-        while (*a_src != '\0')
-        {
-                if (l_n != 0)
-                {
-                        *a_dst++ = *a_src;
-                        l_n--;
-                }
-                ++a_src;
-        }
-        *a_dst = '\0';
-        // -------------------------------------------------
-        // count does not include NULL
-        // -------------------------------------------------
-        return(l_dlen + (a_src - l_osrc));
 }
 //: ----------------------------------------------------------------------------
 //: \details callback for hash a_key values; use to define var names under ARGS.

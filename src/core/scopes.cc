@@ -1145,6 +1145,12 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                 {
                         goto audit_rules;
                 }
+                l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
+                        return WAFLZ_STATUS_ERROR;
+                }
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1238,6 +1244,12 @@ prod:
                 if(!l_event)
                 {
                         goto enforcements;
+                }
+                l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
+                        return WAFLZ_STATUS_ERROR;
                 }
                 *ao_prod_event = l_event;
                 if(a_scope.has_acl_prod_action())

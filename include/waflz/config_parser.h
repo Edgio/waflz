@@ -28,6 +28,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include "waflz/def.h"
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
@@ -93,6 +94,7 @@ public:
         int32_t parse_config(waflz_pb::sec_config_t &ao_config, format_t a_format, const std::string &a_path);
         int32_t parse_line(waflz_pb::sec_config_t &ao_config, format_t a_format, const std::string &a_line);
         void show_status(void);
+        const char *get_err_msg(void) { return m_err_msg; }
         // -------------------------------------------------
         // public static methods
         // -------------------------------------------------
@@ -170,6 +172,10 @@ private:
         count_map_t m_unimplemented_actions;
         count_map_t m_unimplemented_transformations;
         count_map_t m_unimplemented_ctls;
+        // -------------------------------------------------
+        // err msg
+        // -------------------------------------------------
+        char m_err_msg[WAFLZ_ERR_LEN];
 };
 //: ----------------------------------------------------------------------------
 //: Prototypes

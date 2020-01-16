@@ -27,6 +27,7 @@
 #include "waflz/profile.h"
 #include "waflz/acl.h"
 #include "waflz/engine.h"
+#include "waflz/rules.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/time_util.h"
@@ -333,16 +334,16 @@ static int32_t validate_rules(const std::string &a_file)
         ns_waflz::engine *l_engine = new ns_waflz::engine();
         l_engine->init();
         // -------------------------------------------------
-        // read file
+        // load file
         // -------------------------------------------------
-        char *l_buf = NULL;
-        uint32_t l_buf_len = 0;
-        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
+        ns_waflz::rules* l_rules = new ns_waflz::rules(*l_engine);
+        l_s =l_rules->load_file(a_file.c_str(), a_file.length());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
-                if(l_buf) { free(l_buf); l_buf = NULL;}
-                return STATUS_ERROR;
+                fprintf(stderr, "failed to load rules config:%s. Reason: %s\n", a_file.c_str(),
+                                                                                l_rules->get_err_msg());
+                if(l_engine) { delete l_engine; l_engine = NULL;}
+                if(l_rules)  { delete l_rules; l_rules = NULL;}
         }
         // -------------------------------------------------
         // cleanup

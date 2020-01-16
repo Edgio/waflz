@@ -630,6 +630,7 @@ int32_t waf::init(config_parser::format_t a_format,
                 l_s = set_defaults();
                 if(l_s != WAFLZ_STATUS_OK)
                 {
+                        WAFLZ_PERROR(m_err_msg, "%s", "set_defaults failed");
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -641,7 +642,9 @@ int32_t waf::init(config_parser::format_t a_format,
         l_s = l_parser->parse_config(*l_pb, a_format, a_path);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                WAFLZ_PERROR(m_err_msg, "%s", "set_defaults failed");
                 if(l_parser) { delete l_parser; l_parser = NULL;}
+                if(l_pb) { delete l_pb; l_pb = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         if(m_pb)

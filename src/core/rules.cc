@@ -91,11 +91,9 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
         l_s = m_waf->init(config_parser::JSON, l_p, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("error loading conf file: %s. reason: %s\n",
-                                l_p.c_str(),
-                           "__na__");
-                           // TODO -get reason...
-                           //l_wafl->get_err_msg());
+                WAFLZ_PERROR("error loading conf file: %s. reason: %s\n",
+                             l_p.c_str(),
+                             m_waf->get_err_msg());
                 if(m_waf) { delete m_waf; m_waf = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }

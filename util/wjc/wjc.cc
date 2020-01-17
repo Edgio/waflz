@@ -337,11 +337,11 @@ static int32_t validate_rules(const std::string &a_file)
         // load file
         // -------------------------------------------------
         ns_waflz::rules* l_rules = new ns_waflz::rules(*l_engine);
-        l_s =l_rules->load_file(a_file.c_str(), a_file.length());
+        l_s = l_rules->load_file(a_file.c_str(), a_file.length());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                fprintf(stderr, "failed to load rules config:%s. Reason: %s\n", a_file.c_str(),
-                                                                                l_rules->get_err_msg());
+                fprintf(stderr, "failed to load rules config file - Reason: %s\n",
+                                                           l_rules->get_err_msg());
                 if(l_engine) { delete l_engine; l_engine = NULL;}
                 if(l_rules)  { delete l_rules; l_rules = NULL;}
         }

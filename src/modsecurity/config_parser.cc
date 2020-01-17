@@ -3555,7 +3555,7 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
         l_s = update_from_json(ao_config, l_buf, l_size);
         if(l_s != JSPB_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                WAFLZ_AERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
@@ -3791,7 +3791,7 @@ int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
         l_s = stat(a_path.c_str(), &l_stat);
         if(l_s != 0)
         {
-                WAFLZ_PERROR(m_err_msg, "error performing stat on file: %s.  Reason: %s\n", a_path.c_str(), strerror(errno));
+                WAFLZ_AERROR(m_err_msg, "error performing stat on file: %s.  Reason: %s\n", a_path.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -3869,7 +3869,8 @@ config_parser::config_parser(void):
         m_unimplemented_operators(),
         m_unimplemented_actions(),
         m_unimplemented_transformations(),
-        m_unimplemented_ctls()
+        m_unimplemented_ctls(),
+        m_err_msg()
 {
 }
 //: ----------------------------------------------------------------------------

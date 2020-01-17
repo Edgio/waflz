@@ -50,6 +50,7 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 rules::rules(engine &a_engine):
         m_init(false),
+        m_err_msg(),
         m_engine(a_engine),
         m_waf(NULL),
         m_id(),
@@ -91,7 +92,7 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
         l_s = m_waf->init(config_parser::JSON, l_p, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "error loading conf file-reason: %s",
+                WAFLZ_AERROR(m_err_msg, "error loading conf file-reason: %s",
                              m_waf->get_err_msg());
                 if(m_waf) { delete m_waf; m_waf = NULL; }
                 return WAFLZ_STATUS_ERROR;

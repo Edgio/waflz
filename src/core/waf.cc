@@ -67,6 +67,7 @@ waf::waf(engine &a_engine):
         ,m_anomaly_score_cur(0),
 #endif
         m_is_initd(false),
+        m_err_msg(),
         m_engine(a_engine),
         m_id("NA"),
         m_name("NA"),
@@ -630,6 +631,7 @@ int32_t waf::init(config_parser::format_t a_format,
                 l_s = set_defaults();
                 if(l_s != WAFLZ_STATUS_OK)
                 {
+                        WAFLZ_PERROR(m_err_msg, "set_defaults failed");
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -641,7 +643,9 @@ int32_t waf::init(config_parser::format_t a_format,
         l_s = l_parser->parse_config(*l_pb, a_format, a_path);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                WAFLZ_PERROR(m_err_msg, "%s", l_parser->get_err_msg());
                 if(l_parser) { delete l_parser; l_parser = NULL;}
+                if(l_pb) { delete l_pb; l_pb = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         if(m_pb)
@@ -668,6 +672,7 @@ int32_t waf::init(config_parser::format_t a_format,
         l_s = compile();
         if(l_s != WAFLZ_STATUS_OK)
         {
+                WAFLZ_PERROR(m_err_msg, "compilation failed");
                 return WAFLZ_STATUS_ERROR;
         }
         m_is_initd = true;

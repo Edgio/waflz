@@ -344,6 +344,7 @@ static int32_t validate_rules(const std::string &a_file)
                                                            l_rules->get_err_msg());
                 if(l_engine) { delete l_engine; l_engine = NULL;}
                 if(l_rules)  { delete l_rules; l_rules = NULL;}
+                return STATUS_ERROR;
         }
         // -------------------------------------------------
         // cleanup

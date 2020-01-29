@@ -1,0 +1,35 @@
+{
+  "id": "iKFDGi4i",
+  "directive": [
+    {
+      "sec_rule": {
+        "action": {
+          "action_type": "PASS",
+          "id": "hY41qM7f",
+          "msg": "Request User-Agent is ruletest",
+          "phase": 2
+        },
+        "hidden": false,
+        "operator": {
+          "is_negated": false,
+          "is_regex": false,
+          "type": "CONTAINS",
+          "value": "rulestest"
+        },
+        "variable": [
+          {
+            "is_count": false,
+            "match": [
+              {
+                "is_negated": false,
+                "is_regex": false,
+                "value": "User-Agent"
+              }
+            ],
+            "type": "REQUEST_HEADERS"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -576,18 +576,32 @@ def test_multiple_scopes_for_limit(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
 
-def test_custom_rules_scopes(setup_scopez_server):
+def test_custom_rules_in_scopes(setup_scopez_server):
     # ------------------------------------------------------
     # 
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'rulestest.com',
-                 'user-agent':'rulestest',
+                 'user-agent':'RULESTEST',
                  'waf-scopes-id': '0052'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     #assert l_r.text == "basic custom rule triggered\n"
 
+    l_r_json = l_r.json()
+    print l_r_json['prod_profile']
+
+def test_chained_custom_rules_in_scopes(setup_scopez_server):
+    # ------------------------------------------------------
+    # 
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'chainedrulestest.com',
+                 'waf-scopes-id': '0052',
+                 'Pragma':'NO-CACHE'
+                 }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
     l_r_json = l_r.json()
     print l_r_json['prod_profile']
 

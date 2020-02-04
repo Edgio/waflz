@@ -26,5 +26,29 @@
       "status": 403,
       "type": "custom-response"
     }
+  },
+  {
+    "id": "1yhbrgGx",
+    "name": "scope with basic chained rule",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "chainedrulestest.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "/test.html"
+    },
+    "rules_prod_id": "0052-7eWjgqLK",
+    "rules_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64":"YmFzaWMgY3VzdG9tIHJ1bGUgdHJpZ2dlcmVkCg==",
+      "status": 403,
+      "type": "custom-response"
+    }
+
+  
   }]
 }

@@ -25,6 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
+#include "waflz/arg.h"
 #include "core/decode.h"
 #include "support/ndebug.h"
 #include "support/string_util.h"
@@ -43,6 +44,36 @@ typedef struct _entry {
         const char *m_out;
         const uint32_t m_size;
 } entry_t;
+typedef struct _kv_struct {
+        const char *m_k;
+        const char *m_v;
+} _kv_t;
+//: ----------------------------------------------------------------------------
+//: support
+//: ----------------------------------------------------------------------------
+void check_cookie_list(const char *a_ck, const _kv_t* a_ck_exp)
+{
+#define CHECK_KEY_EQ(_str) \
+        REQUIRE((strncmp(i_h->m_key, (_str), i_h->m_key_len) == 0))
+#define CHECK_VAL_EQ(_str) \
+        REQUIRE((strncmp(i_h->m_val, (_str), i_h->m_val_len) == 0))
+        int32_t l_s;
+        ns_waflz::const_arg_list_t l_cookie_list;
+        l_s = ns_waflz::parse_cookies(l_cookie_list, a_ck, strlen(a_ck));
+        REQUIRE((l_s == WAFLZ_STATUS_OK));
+        int i_idx = 0;
+        for(ns_waflz::const_arg_list_t::const_iterator i_h = l_cookie_list.begin();
+            i_h != l_cookie_list.end();
+            ++i_h, ++i_idx)
+        {
+                //NDBG_PRINT("[%d] [%d]%.*s: [%d]%.*s\n",
+                //        i_idx,
+                //        (int)i_h->m_key_len, i_h->m_key_len, i_h->m_key,
+                //        (int)i_h->m_val_len, i_h->m_val_len, i_h->m_val);
+                CHECK_KEY_EQ(a_ck_exp[i_idx].m_k);
+                CHECK_VAL_EQ(a_ck_exp[i_idx].m_v);
+        }
+}
 //: ----------------------------------------------------------------------------
 //: parse
 //: ----------------------------------------------------------------------------
@@ -138,6 +169,43 @@ TEST_CASE( "test parse", "[parse]" ) {
                         REQUIRE((l_arg_list.size() == l_vec[i_p].m_size));
                         REQUIRE((strncmp(l_out.c_str(), l_vec[i_p].m_out, l_out.length()) == 0));
                         if(l_buf) { free(l_buf); l_buf = NULL;}
+                }
+        }
+        SECTION("parse cookies"){
+                // -----------------------------------------
+                // vector
+                // -----------------------------------------
+                {
+                const char *l_ck = "aaa=bbb;abc=def  ";
+                _kv_t l_ck_exp[] = {
+                        {"aaa", "bbb"},
+                        {"abc", "def"}
+                };
+                check_cookie_list(l_ck, l_ck_exp);
+                }
+                // -----------------------------------------
+                // vector
+                // -----------------------------------------
+                {
+                const char *l_ck = "a=b; b=c; c=d";
+                _kv_t l_ck_exp[] = {
+                        {"a", "b"},
+                        {"b", "c"},
+                        {"c", "d"}
+                };
+                check_cookie_list(l_ck, l_ck_exp);
+                }
+                // -----------------------------------------
+                // vector
+                // -----------------------------------------
+                {
+                const char *l_ck = " a=b; b=c; c=ddddddd";
+                _kv_t l_ck_exp[] = {
+                        {"a", "b"},
+                        {"b", "c"},
+                        {"c", "ddddddd"}
+                };
+                check_cookie_list(l_ck, l_ck_exp);
                 }
         }
 }

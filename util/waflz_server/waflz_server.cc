@@ -516,15 +516,15 @@ public:
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
-                if(l_enf
 #ifdef WAFLZ_RATE_LIMITING
+                if(l_enf
                    // only enforcements for limit mode
                    && (g_config_mode == CONFIG_MODE_LIMIT)
-#endif
                    )
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+#endif
                 if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------

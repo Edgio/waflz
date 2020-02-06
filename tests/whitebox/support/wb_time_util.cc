@@ -84,7 +84,7 @@ TEST_CASE( "time util test", "[time_util]" ) {
         }
         SECTION("validate time string to epoch") {
                 std::string l_time_string("2016-07-20T00:44:20.744583Z");
-                std::string l_format("%Y-%m-%dT%H:%M:%S%Z");
+                std::string l_format("%Y-%m-%dT%H:%M:%S");
                 uint64_t l_epoch1 = ns_waflz::get_epoch_seconds(l_time_string.c_str(), l_format.c_str());
                 //increasing one min
                 l_time_string.assign("2016-07-20T00:45:20.744583Z");

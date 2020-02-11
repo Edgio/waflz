@@ -350,6 +350,7 @@ static int32_t validate_rules(const std::string &a_file)
         // cleanup
         // -------------------------------------------------
         if(l_engine) { delete l_engine; l_engine = NULL; }
+        if(l_rules)  { delete l_rules; l_rules = NULL; }
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

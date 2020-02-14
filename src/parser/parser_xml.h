@@ -57,7 +57,6 @@ private:
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
-        xmlSAXHandler *m_sax_handler;
         xmlParserCtxtPtr m_parsing_ctx;
         bool m_well_formed;
 };

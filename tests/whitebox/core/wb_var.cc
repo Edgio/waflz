@@ -134,6 +134,7 @@ static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t &a_len, void 
 //: ----------------------------------------------------------------------------
 #define _RQST_BODY_JSON "{\"monkeys\": \"bananas\", \"koalas\": \"fruitloops\", \"seamonkeys\": \"plankton\"}"
 #define _RQST_BODY_XML "<monkeys><gorilla>coco</gorilla><mandrill>dooby</mandrill><baboon>groovy</baboon></monkeys>"
+//#define _RQST_BODY_XML "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <!DOCTYPE foo [ <!ENTITY writer \"Donald Duck.\"> <!ENTITY copyright \"Copyright W3Schools.\"> <!ENTITY xxe SYSTEM \"file:///etc/passwd\"> ]> <body>   <type>default</type>   <way>my_cool_method</way>   <person>     <name>joeblow</name>     <email>who@what.com</email>     <!-- <hash>abc1234</hash> -->   </person>   <thing>BONKERS</thing>   <thang>EATATJOES</thang>   <reference>BANANAS</reference> </body>"
 static const char *g_body_str = _RQST_BODY_JSON;
 static int32_t get_rqst_body_str_cb(char *ao_data,
                                     uint32_t &ao_data_len,

@@ -126,22 +126,38 @@ int32_t parser_xml::process_chunk(const char *a_buf, uint32_t a_len)
 //: ----------------------------------------------------------------------------
 static void print_element_names(xmlNode * a_node)
 {
-        xmlNode *i_n = NULL;
-        for (i_n = a_node; i_n; i_n = i_n->next)
+        xmlNode *i_n = a_node;
+        while(i_n != NULL)
         {
+                // -----------------------------------------
+                // NODE
+                // -----------------------------------------
                 if (i_n->type == XML_ELEMENT_NODE)
                 {
                         NDBG_PRINT("[ELEMENT] name: %s\n", i_n->name);
                 }
+                // -----------------------------------------
+                // ENTITY
+                // -----------------------------------------
                 else if (i_n->type == XML_ENTITY_DECL)
                 {
                         NDBG_PRINT("[%sENTITY %s] name: %s\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, i_n->name);
                 }
+                // -----------------------------------------
+                // OTHER
+                // -----------------------------------------
                 else
                 {
                         NDBG_PRINT("[OTHER  ] name: %s\n", i_n->name);
                 }
+                // -----------------------------------------
+                // recurse if children...
+                // -----------------------------------------
                 print_element_names(i_n->children);
+                // -----------------------------------------
+                // iterate
+                // -----------------------------------------
+                i_n = i_n->next;
         }
 }
 //: ----------------------------------------------------------------------------
@@ -167,7 +183,7 @@ int32_t parser_xml::finish(void)
         // -------------------------------------------------
         // dump
         // -------------------------------------------------
-#if 1
+#if 0
         char *l_buf;
         int l_buf_len;
         NDBG_PRINT("type: %d\n", m_doc->type);
@@ -181,28 +197,44 @@ int32_t parser_xml::finish(void)
         }
 #endif
         // -------------------------------------------------
+        // print
+        // -------------------------------------------------
+        //xmlNode *l_root = NULL;
+        //l_root = xmlDocGetRootElement(m_doc);
+        //print_element_names(m_doc->children);
+        // -------------------------------------------------
         // find entity name value and add
         // -------------------------------------------------
-#if 1
+#if 0
+        if(!m_doc->children)
+        {
+                goto cleanup;
+        }
         xmlEntityPtr l_xmle;
         l_xmle = ((xmlEntityPtr)(((*(m_doc->children)).children)));
-        NDBG_PRINT("xmlE name:     %s\n", (char *)l_xmle->name);
-        NDBG_PRINT("xmlE URI:      %s\n", (char *)l_xmle->URI);
-        NDBG_PRINT("xmlE SystemID: %s\n", (char *)l_xmle->SystemID);
+        if(!l_xmle)
+        {
+                goto cleanup;
+        }
+        if(!(l_xmle->name)
+           ||
+           !(l_xmle->URI)
+           )
+        {
+                goto cleanup;
+        }
+        //NDBG_PRINT("xmlE name:     %s\n", (char *)l_xmle->name);
+        //NDBG_PRINT("xmlE URI:      %s\n", (char *)l_xmle->URI);
+        //NDBG_PRINT("xmlE SystemID: %s\n", (char *)l_xmle->SystemID);
         arg_t l_arg;
         l_arg.m_key_len = asprintf(&(l_arg.m_key), "%s", l_xmle->name);
         l_arg.m_val_len = asprintf(&(l_arg.m_val), "%s", l_xmle->URI);
         m_rqst_ctx->m_body_arg_list.push_back(l_arg);
 #endif
         // -------------------------------------------------
-        // print
-        // -------------------------------------------------
-        //xmlNode *l_root = NULL;
-        //l_root = xmlDocGetRootElement(m_doc);
-        //print_element_names(l_root);
-        // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
+//cleanup:
         xmlFreeParserCtxt(m_parsing_ctx);
         m_parsing_ctx = NULL;
         // -------------------------------------------------

@@ -50,6 +50,7 @@
 #include "is2/srvr/default_rqst_h.h"
 #include "is2/handler/proxy_h.h"
 #include "is2/handler/file_h.h"
+#include "event.pb.h"
 #include "action.pb.h"
 #include <errno.h>
 #include <string>
@@ -511,6 +512,8 @@ public:
                 l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
+                        if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return l_resp_t;
                 }
                 // -----------------------------------------
@@ -526,6 +529,7 @@ public:
                 }
 #endif
                 if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
+                if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response
@@ -570,6 +574,8 @@ public:
                 l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
+                        if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return l_resp_t;
                 }
                 // -----------------------------------------
@@ -580,6 +586,7 @@ public:
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
                 if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
+                if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // default
@@ -626,6 +633,7 @@ public:
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
                 if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
+                if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // default

@@ -253,6 +253,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_src_asn(0),
         m_src_asn_str(),
         m_geo_cn2(),
+        m_xml_capture_xxe(false),
         m_ctx(a_ctx)
 {
 }
@@ -993,7 +994,12 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                         m_init_phase_2 = true;
                         return WAFLZ_STATUS_OK;
                 }
-                m_body_parser = new parser_xml(this);
+                parser_xml* l_parser_xml = new parser_xml(this);
+                // -----------------------------------------
+                // optional set capture xxe
+                // -----------------------------------------
+                l_parser_xml->set_capture_xxe(m_xml_capture_xxe);
+                m_body_parser = l_parser_xml;
                 break;
         }
         // -------------------------------------------------

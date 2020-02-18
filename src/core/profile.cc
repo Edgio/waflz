@@ -645,6 +645,16 @@ int32_t profile::process(waflz_pb::event **ao_event,
                 }
         }
         // -------------------------------------------------
+        // optionally set xml capture xxe
+        // TODO remove or move this elsewhere later
+        // -------------------------------------------------
+        if(m_pb->has_general_settings() &&
+           m_pb->general_settings().has_xml_capture_xxe() &&
+           m_pb->general_settings().xml_capture_xxe())
+        {
+                l_rqst_ctx->m_xml_capture_xxe = true;
+        }
+        // -------------------------------------------------
         // process waf...
         // -------------------------------------------------
         if(a_part_mk & PART_MK_WAF)

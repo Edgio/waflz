@@ -196,6 +196,7 @@ public:
         // TODO use uint32???
         mutable_data_t m_src_asn_str;
         data_t m_geo_cn2;
+        bool m_xml_capture_xxe;
 private:
         // -------------------------------------------------
         // private methods

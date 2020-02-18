@@ -33,6 +33,75 @@ namespace ns_waflz {
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+void xml_doc_dump(xmlDocPtr a_doc)
+{
+        char *l_buf;
+        int l_buf_len;
+        NDBG_PRINT("type: %d\n", a_doc->type);
+        xmlDocDumpMemory(a_doc, (xmlChar **)&l_buf, &l_buf_len);
+        NDBG_PRINT("l_buf: %p\n", l_buf);
+        NDBG_PRINT("l_len: %d\n", l_buf_len);
+        if(l_buf_len &&
+           l_buf)
+        {
+                NDBG_OUTPUT("%.*s\n", l_buf_len, l_buf);
+        }
+}
+//: ----------------------------------------------------------------------------
+//: \details print all xml element names (debug)
+//: \return  NA
+//: \param   xmlNode a_node: xml node object
+//: ----------------------------------------------------------------------------
+void print_element_names(xmlNode * a_node)
+{
+        xmlNode *i_n = a_node;
+        // -------------------------------------------------
+        // recurse until no children...
+        // -------------------------------------------------
+        while(i_n != NULL)
+        {
+                switch(i_n->type)
+                {
+                // -----------------------------------------
+                // NODE
+                // -----------------------------------------
+                case XML_ELEMENT_NODE:
+                {
+                        NDBG_PRINT("[ELEMENT] name: %s\n", i_n->name);
+                        break;
+                }
+                // -----------------------------------------
+                // ENTITY
+                // -----------------------------------------
+                case XML_ENTITY_DECL:
+                {
+                        NDBG_PRINT("[%sENTITY %s] name: %s\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, i_n->name);
+                        break;
+                }
+                // -----------------------------------------
+                // OTHER
+                // -----------------------------------------
+                default:
+                {
+                        NDBG_PRINT("[OTHER  ] name: %s\n", i_n->name);
+                        break;
+                }
+                }
+                // -----------------------------------------
+                // recurse if children...
+                // -----------------------------------------
+                print_element_names(i_n->children);
+                // -----------------------------------------
+                // iterate
+                // -----------------------------------------
+                i_n = i_n->next;
+        }
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 static xmlParserInputBufferPtr unload_entity(const char *a_uri,
                                              xmlCharEncoding a_enc)
 {
@@ -47,7 +116,8 @@ parser_xml::parser_xml(rqst_ctx *a_rqst_ctx):
         parser(a_rqst_ctx),
         m_doc(),
         m_parsing_ctx(),
-        m_well_formed(false)
+        m_well_formed(false),
+        m_capture_xxe(false)
 {
 }
 //: ----------------------------------------------------------------------------
@@ -120,47 +190,6 @@ int32_t parser_xml::process_chunk(const char *a_buf, uint32_t a_len)
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details print all xml element names (debug)
-//: \return  NA
-//: \param   xmlNode a_node: xml node object
-//: ----------------------------------------------------------------------------
-static void print_element_names(xmlNode * a_node)
-{
-        xmlNode *i_n = a_node;
-        while(i_n != NULL)
-        {
-                // -----------------------------------------
-                // NODE
-                // -----------------------------------------
-                if (i_n->type == XML_ELEMENT_NODE)
-                {
-                        NDBG_PRINT("[ELEMENT] name: %s\n", i_n->name);
-                }
-                // -----------------------------------------
-                // ENTITY
-                // -----------------------------------------
-                else if (i_n->type == XML_ENTITY_DECL)
-                {
-                        NDBG_PRINT("[%sENTITY %s] name: %s\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, i_n->name);
-                }
-                // -----------------------------------------
-                // OTHER
-                // -----------------------------------------
-                else
-                {
-                        NDBG_PRINT("[OTHER  ] name: %s\n", i_n->name);
-                }
-                // -----------------------------------------
-                // recurse if children...
-                // -----------------------------------------
-                print_element_names(i_n->children);
-                // -----------------------------------------
-                // iterate
-                // -----------------------------------------
-                i_n = i_n->next;
-        }
-}
-//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
@@ -181,60 +210,24 @@ int32_t parser_xml::finish(void)
         m_well_formed = m_parsing_ctx->wellFormed;
         m_doc = m_parsing_ctx->myDoc;
         // -------------------------------------------------
-        // dump
+        // capture entities?
         // -------------------------------------------------
-#if 0
-        char *l_buf;
-        int l_buf_len;
-        NDBG_PRINT("type: %d\n", m_doc->type);
-        xmlDocDumpMemory(m_doc, (xmlChar **)&l_buf, &l_buf_len);
-        NDBG_PRINT("l_buf: %p\n", l_buf);
-        NDBG_PRINT("l_len: %d\n", l_buf_len);
-        if(l_buf_len &&
-           l_buf)
+        if(m_capture_xxe &&
+           m_doc &&
+           m_doc->children)
         {
-                NDBG_OUTPUT("%.*s\n", l_buf_len, l_buf);
+                int32_t l_s;
+                l_s = capture_xxe(m_doc->children);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO -log error???
+                        goto cleanup;
+                }
         }
-#endif
-        // -------------------------------------------------
-        // print
-        // -------------------------------------------------
-        //xmlNode *l_root = NULL;
-        //l_root = xmlDocGetRootElement(m_doc);
-        //print_element_names(m_doc->children);
-        // -------------------------------------------------
-        // find entity name value and add
-        // -------------------------------------------------
-#if 0
-        if(!m_doc->children)
-        {
-                goto cleanup;
-        }
-        xmlEntityPtr l_xmle;
-        l_xmle = ((xmlEntityPtr)(((*(m_doc->children)).children)));
-        if(!l_xmle)
-        {
-                goto cleanup;
-        }
-        if(!(l_xmle->name)
-           ||
-           !(l_xmle->URI)
-           )
-        {
-                goto cleanup;
-        }
-        //NDBG_PRINT("xmlE name:     %s\n", (char *)l_xmle->name);
-        //NDBG_PRINT("xmlE URI:      %s\n", (char *)l_xmle->URI);
-        //NDBG_PRINT("xmlE SystemID: %s\n", (char *)l_xmle->SystemID);
-        arg_t l_arg;
-        l_arg.m_key_len = asprintf(&(l_arg.m_key), "%s", l_xmle->name);
-        l_arg.m_val_len = asprintf(&(l_arg.m_val), "%s", l_xmle->URI);
-        m_rqst_ctx->m_body_arg_list.push_back(l_arg);
-#endif
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-//cleanup:
+cleanup:
         xmlFreeParserCtxt(m_parsing_ctx);
         m_parsing_ctx = NULL;
         // -------------------------------------------------
@@ -243,6 +236,85 @@ int32_t parser_xml::finish(void)
         if(!m_well_formed)
         {
                 return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t parser_xml::capture_xxe(struct _xmlNode *a_xmlNode)
+{
+        xmlNode *i_n = a_xmlNode;
+        // -------------------------------------------------
+        // find XML_DTD_NODE
+        // -------------------------------------------------
+        while(i_n != NULL)
+        {
+                switch(i_n->type)
+                {
+                // -----------------------------------------
+                // XML_DTD_NODE
+                // -----------------------------------------
+                case XML_DTD_NODE:
+                {
+                        // TODO? only capture xxe in DTD???
+                        break;
+                }
+                // -----------------------------------------
+                // XML_ENTITY_DECL
+                // -----------------------------------------
+                case XML_ENTITY_DECL:
+                {
+                        xmlEntityPtr l_xmle;
+                        l_xmle = (xmlEntityPtr)i_n;
+                        if(!l_xmle ||
+                           !l_xmle->name)
+                        {
+                                break;
+                        }
+                        arg_t l_arg;
+                        l_arg.m_key_len = asprintf(&(l_arg.m_key), "%s", l_xmle->name);
+                        if(l_xmle->SystemID)
+                        {
+                                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%s", l_xmle->SystemID);
+                        }
+                        else if(l_xmle->URI)
+                        {
+                                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%s", l_xmle->URI);
+                        }
+                        else if(l_xmle->content)
+                        {
+                                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%.*s", l_xmle->length, l_xmle->content);
+                        }
+                        else if(l_xmle->orig)
+                        {
+                                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%.*s", l_xmle->length, l_xmle->orig);
+                        }
+                        else
+                        {
+                                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%s", "__na__");
+                        }
+                        m_rqst_ctx->m_body_arg_list.push_back(l_arg);
+                        break;
+                }
+                // -----------------------------------------
+                // OTHER
+                // -----------------------------------------
+                default:
+                {
+                        break;
+                }
+                }
+                // -----------------------------------------
+                // recurse if children...
+                // -----------------------------------------
+                capture_xxe(i_n->children);
+                // -----------------------------------------
+                // iterate
+                // -----------------------------------------
+                i_n = i_n->next;
         }
         return WAFLZ_STATUS_OK;
 }

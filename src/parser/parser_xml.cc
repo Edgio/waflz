@@ -274,24 +274,21 @@ int32_t parser_xml::capture_xxe(struct _xmlNode *a_xmlNode)
                         {
                                 break;
                         }
+                        if(l_xmle->length < 0)
+                        {
+                                break;
+                        }
+                        uint32_t l_max_len;
+                        l_max_len = rqst_ctx::s_body_arg_len_cap > (uint32_t)l_xmle->length ? (uint32_t)l_xmle->length: rqst_ctx::s_body_arg_len_cap;
                         arg_t l_arg;
-                        l_arg.m_key_len = asprintf(&(l_arg.m_key), "%s", l_xmle->name);
-                        if(l_xmle->SystemID)
-                        {
-                                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%s", l_xmle->SystemID);
-                        }
-                        else if(l_xmle->URI)
-                        {
-                                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%s", l_xmle->URI);
-                        }
-                        else if(l_xmle->content)
-                        {
-                                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%.*s", l_xmle->length, l_xmle->content);
-                        }
-                        else if(l_xmle->orig)
-                        {
-                                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%.*s", l_xmle->length, l_xmle->orig);
-                        }
+                        l_arg.m_key_len = asprintf(&(l_arg.m_key), "%.*s", (int)rqst_ctx::s_body_arg_len_cap, l_xmle->name);
+#define _ASSIGN_IF(_item) else if(l_xmle->_item) { \
+                l_arg.m_val_len = asprintf(&(l_arg.m_val), "%.*s", (int)l_max_len, l_xmle->_item); }
+                        if(0){}
+                        _ASSIGN_IF(SystemID)
+                        _ASSIGN_IF(URI)
+                        _ASSIGN_IF(content)
+                        _ASSIGN_IF(orig)
                         else
                         {
                                 l_arg.m_val_len = asprintf(&(l_arg.m_val), "%s", "__na__");

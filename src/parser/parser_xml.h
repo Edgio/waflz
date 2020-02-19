@@ -46,6 +46,7 @@ public:
         parser_t get_type(void) { return PARSER_XML; }
         void set_capture_xxe(bool a_flag) { m_capture_xxe = a_flag; }
         int32_t capture_xxe(struct _xmlNode *a_xmlNode);
+        bool well_formed(void) { return m_well_formed; }
         // -------------------------------------------------
         // public members
         // -------------------------------------------------

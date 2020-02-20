@@ -45,6 +45,7 @@ message profile {
                 optional bool process_request_body = 504;
                 optional bool process_response_body = 505;
                 optional bool json_parser = 506;
+                optional bool xml_capture_xxe = 520;
                 // -----------------------------------------
                 // scoring
                 // -----------------------------------------

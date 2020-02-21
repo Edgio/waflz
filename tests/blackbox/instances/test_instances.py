@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 '''Test WAF instances with Policies'''
 #TODO: make so waflz_server only runs once and then can post to it 
 # ------------------------------------------------------------------------------
@@ -9,12 +9,11 @@ import subprocess
 import os
 import sys
 import json
-from pprint import pprint
 import time
 import requests
-from urllib2 import urlopen
-from urllib2 import Request
 import base64
+from urllib.request import urlopen
+from urllib.request import Request
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -60,42 +59,44 @@ def setup_waflz_server():
 # check_rqst
 # ------------------------------------------------------------------------------
 def check_rqst(a_host, a_id, a_rqst):
-    #print 'get_rqst: a_idx: %d'%(a_idx)
-    #time.sleep(1.0)
+    # print('get_rqst: a_idx: %d'%(a_idx))
+    # time.sleep(1.0)
     l_url = a_host
     l_headers = {'x-ec-waf-instance-id': str(a_id)}
     l_body = ''
-    #l_headers = {'x-ec-waf-instance-id': str(1)}
+    # l_headers = {'x-ec-waf-instance-id': str(1)}
     if 'uri' in a_rqst:
-        l_url = '%s/%s'%(a_host, a_rqst['uri'])
+        l_url = '%s/%s' % (a_host, a_rqst['uri'])
     if 'query_str' in a_rqst:
         l_url += '?'
         l_url += a_rqst['query_str']
-    if 'headers' in a_rqst and len(a_rqst['headers']):
+    if 'headers' in a_rqst and a_rqst['headers']:
         l_headers.update(a_rqst['headers'])
     if 'body' in a_rqst:
         l_body = base64.b64decode(a_rqst['body'])
-    l_r = None  
-    #print '*************************************************'
-    #print 'l_url:     %s'%(l_url)
-    #print 'l_headers: %s'%(l_headers)
-    #print '*************************************************'
+    else:
+        l_body = l_body.encode()
+    l_r = None
+    # print('*************************************************')
+    # print('l_url:     %s'%(l_url))
+    # print('l_headers: %s'%(l_headers))
+    # print('*************************************************')
     try:
         l_rq = Request(url=l_url,
                        data=l_body,
                        headers=l_headers)
         l_r = urlopen(l_rq, timeout=20.0)
     except Exception as l_e:
-        print 'error requesting.  Reason: %s error: %s, doc: %s, message: %s'%(
-            type(l_e), l_e, l_e.__doc__, l_e.message)
+        print('error requesting.  Reason: %s error: %s, doc: %s, message: %s' % (
+            type(l_e), l_e, l_e.__doc__, l_e))
         pass
     # ------------------------------------------------------
     # verify response exists
     # ------------------------------------------------------
     if not l_r:
-        assert False, 'no response for request: %s'%(json.dumps(a_rqst))
-    assert l_r.getcode() == 200, 'non-200 for request: %s'%(json.dumps(a_rqst))
-    assert l_r.info().getheader('Content-Type') == 'application/json', 'wrong content-type: %s'%(l_r.info().getheader('Content-Type'))
+        assert False, 'no response for request: %s' % (json.dumps(a_rqst))
+    assert l_r.getcode() == 200, 'non-200 for request: %s' % (json.dumps(a_rqst))
+    assert l_r.info().get('Content-Type') == 'application/json', 'wrong content-type: %s' % (l_r.info().get('Content-Type'))
     l_body = l_r.read()
     l_r_json = None
     try:
@@ -104,49 +105,49 @@ def check_rqst(a_host, a_id, a_rqst):
         assert False, 'error parsing body'
     if not l_r_json:
         assert False, 'json body empty'
-    print json.dumps(l_r_json, indent=4)
+    print(json.dumps(l_r_json, indent=4))
     if 'response' not in a_rqst:
         assert False, 'no response data in vector to verify: \n%s'%(json.dumps(a_rqst))
     # ------------------------------------------------------
     # check fields
     # ------------------------------------------------------
     l_v_r = a_rqst['response']
-    print a_rqst
-    for l_k, l_v in l_v_r.iteritems():
+    print(a_rqst)
+    for l_k, l_v in l_v_r.items():
         if l_k == 'sub_event':
             l_num_to_match = len(l_v_r[l_k])
             for i_idx, i_s in enumerate(l_v_r[l_k]):
-                print '-------------SUB_EVENT--------------'
+                print('-------------SUB_EVENT--------------')
                 l_match = False
-                print '++||||||||||| TESTING EACH |||||||||||||||||++'
+                print('++||||||||||| TESTING EACH |||||||||||||||||++')
                 for i_actual_s in l_r_json['prod_profile'][l_k]:
-                    print 'i_actual_s: %s'%(json.dumps(i_actual_s))
+                    print('i_actual_s: %s'%(json.dumps(i_actual_s)))
                     # Find subevent matching since
                     # events could appear in any order
                     l_diff = False
 
-                    for l_k_s, l_v_s in i_s.iteritems():
-                        print 'XPECTD: %s: %s'%(l_k_s, l_v_s)
+                    for l_k_s, l_v_s in i_s.items():
+                        print('XPECTD: %s: %s'%(l_k_s, l_v_s))
                         if l_k_s not in i_actual_s:
                             l_diff = True
                             continue;
-                        print 'ACTUAL: %s: %s'%(l_k_s, i_actual_s[l_k_s])
+                        print('ACTUAL: %s: %s'%(l_k_s, i_actual_s[l_k_s]))
                         if l_v_s != i_actual_s[l_k_s]:
                             l_diff = True
                             continue;
                     if not l_diff:
-                        print '+FOUND*********************'
+                        print('+FOUND*********************')
                         l_match = True
                         break
                 if l_match:
-                    print 'FOUND*********************'
+                    print('FOUND*********************')
                     l_num_to_match -= 1
-                print '------------------------------------'
+                print('------------------------------------')
             assert l_num_to_match == 0, 'missing subevents'
         else:
-            print 'XPECTD: %s --> %s'%(l_k, l_v)
+            print('XPECTD: %s --> %s'%(l_k, l_v))
             assert l_k in l_r_json['prod_profile']
-            print 'ACTUAL: %s --> %s'%(l_k, l_r_json['prod_profile'][l_k])
+            print('ACTUAL: %s --> %s'%(l_k, l_r_json['prod_profile'][l_k]))
             assert l_r_json['prod_profile'][l_k] == l_v
     assert 'X-EC-Security' in l_r_json['prod_profile']['response_header_name']
 # ------------------------------------------------------------------------------
@@ -164,8 +165,8 @@ def check_vectors(a_file):
         with open(l_vector_path) as l_f:
             l_vectors = json.load(l_f)
     except Exception as l_e:
-        print 'error opening vector file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
-            l_vector_path, type(l_e), l_e, l_e.__doc__, l_e.message)
+        print('error opening vector file: %s.  Reason: %s error: %s, doc: %s, message: %s' % (
+            l_vector_path, type(l_e), l_e, l_e.__doc__, l_e.message))
         assert False
     # ------------------------------------------------------
     # update template
@@ -176,14 +177,14 @@ def check_vectors(a_file):
         with open(l_conf_path) as l_f:
             l_conf = json.load(l_f)
     except Exception as l_e:
-        print 'error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
-            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message)
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s' % (
+            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message))
         assert False
     if 'config' in l_vectors:
         l_config_overrides = l_vectors['config']
-        for l_k, l_v in l_config_overrides.iteritems():
+        for l_k, l_v in l_config_overrides.items():
             if isinstance(l_v, dict):
-                for l_k_1, l_v_1 in l_v.iteritems():
+                for l_k_1, l_v_1 in l_v.items():
                     l_conf['prod_profile'][l_k][l_k_1] = l_v_1
             else:
                 l_conf['prod_profile'][l_k] = l_v
@@ -196,13 +197,13 @@ def check_vectors(a_file):
     # urlopen (POST)
     # ------------------------------------------------------
     try:
-        #print 'l_url:  %s'%(l_url)
-        #print 'l_body: %s'%(l_body)
+        # print('l_url:  %s'%(l_url))
+        # print('l_body: %s'%(l_body))
         l_rq = Request(l_url)
-        l_rq.add_header('Content-Type','application/json')
-        l_r = urlopen(l_rq, l_body, timeout=2)
+        l_rq.add_header('Content-Type', 'application/json')
+        l_r = urlopen(l_rq, l_body.encode(), timeout=2)
     except Exception as l_e:
-        print 'error: performing POST to %s. Exception: %s'% (l_url, l_e)
+        print('error: performing POST to %s. Exception: %s'% (l_url, l_e))
         assert False, ''
     assert l_r.getcode() == 200, 'non-200 for request: %s'%(json.dumps(l_url))
     # ------------------------------------------------------
@@ -243,7 +244,7 @@ def test_bb_instances_acl_first_before_waf(setup_waflz_server):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    #print json.dumps(l_r_json,indent=4)
+    # print(json.dumps(l_r_json,indent=4))
     assert l_r_json['prod_profile']['rule_intercept_status'] == 403
     assert l_r_json['audit_profile']['rule_intercept_status'] == 403
     # Both profiles should catch with acl
@@ -263,11 +264,11 @@ def test_bb_instances_acl_audit_waf_prod(setup_waflz_server):
         with open(l_conf_path) as l_f:
             l_conf = json.load(l_f)
     except Exception as l_e:
-        print 'error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
-            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message)
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
+            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message))
         assert False
-    
-    l_conf['audit_profile']['general_settings']['disallowed_extensions'] =[
+
+    l_conf['audit_profile']['general_settings']['disallowed_extensions'] = [
         "html"
     ]
     # ------------------------------------------------------
@@ -279,10 +280,10 @@ def test_bb_instances_acl_audit_waf_prod(setup_waflz_server):
     # ------------------------------------------------------
     l_headers = {"Content-Type": "application/json"}
     l_r = requests.post(l_url,
-                            headers=l_headers,
-                            data=json.dumps(l_conf))
+                        headers=l_headers,
+                        data=json.dumps(l_conf))
     assert l_r.status_code == 200
-    # test with a url that can be catched by waf. But ACL should catch it 
+    # test with a url that can be catched by waf. But ACL should catch it
     # and event should be acl
     l_uri = G_TEST_HOST + '/mytest.asa?' + 'a=%27select%20*%20from%20testing%27'
     l_headers = {"host": "myhost.com"}
@@ -290,7 +291,7 @@ def test_bb_instances_acl_audit_waf_prod(setup_waflz_server):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    #print json.dumps(l_r_json,indent=4)
+    # print(json.dumps(l_r_json,indent=4))
     assert l_r_json['prod_profile']['rule_intercept_status'] == 403
     assert l_r_json['audit_profile']['rule_intercept_status'] == 403
     # same request but prod prodile should catch with acl
@@ -311,25 +312,25 @@ def test_bb_instances_whitelist_audit_waf_prod(setup_waflz_server):
         with open(l_conf_path) as l_f:
             l_conf = json.load(l_f)
     except Exception as l_e:
-        print 'error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
-            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message)
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
+            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message))
         assert False
-    
-    l_conf['audit_profile']['access_settings']['url'] ['whitelist']=["mycooltest/bleep"]
+
+    l_conf['audit_profile']['access_settings']['url']['whitelist'] = ["mycooltest/bleep"]
     # ------------------------------------------------------
     # post conf
     # ------------------------------------------------------
-    l_url = '%s/update_instance'%(G_TEST_HOST)
-    print l_conf['audit_profile']['general_settings']
+    l_url = '%s/update_instance' % (G_TEST_HOST)
+    print(l_conf['audit_profile']['general_settings'])
     # ------------------------------------------------------
     # urlopen (POST)
     # ------------------------------------------------------
     l_headers = {"Content-Type": "application/json"}
     l_r = requests.post(l_url,
-                            headers=l_headers,
-                            data=json.dumps(l_conf))
+                        headers=l_headers,
+                        data=json.dumps(l_conf))
     assert l_r.status_code == 200
-    # test with a url that can be catched by waf. But ACL should catch it 
+    # test with a url that can be catched by waf. But ACL should catch it
     # and event should be acl
     l_uri = G_TEST_HOST + '/mycooltest/bleep?' + 'a=%27select%20*%20from%20testing%27'
     l_headers = {"host": "myhost.com"}
@@ -337,7 +338,7 @@ def test_bb_instances_whitelist_audit_waf_prod(setup_waflz_server):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    #print json.dumps(l_r_json,indent=4)
+    # print(json.dumps(l_r_json,indent=4))
     # check that audit profile returns null because of whitelisted url
     assert l_r_json['audit_profile'] == None
     assert l_r_json['prod_profile']['rule_intercept_status'] == 403

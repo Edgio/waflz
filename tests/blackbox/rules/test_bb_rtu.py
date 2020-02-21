@@ -83,8 +83,8 @@ def test_bb_rtu_request_body(setup_waflz_server):
         with open(l_conf_path) as l_f:
             l_conf = json.load(l_f)
     except Exception as l_e:
-        print('error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s' % (
-            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message))
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
+            l_conf_path, type(l_e), l_e, l_e.__doc__))
         assert False
     #-------------------------------------------------------
     # Add a rule target update

@@ -220,8 +220,8 @@ def test_bb_acl_10_bypass_empty_allowed_settings(setup_waflz_server):
         with open(l_conf_path) as l_f:
             l_conf = json.load(l_f)
     except Exception as l_e:
-        print('error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
-            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message))
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
+            l_conf_path, type(l_e), l_e, l_e.__doc__))
         assert False
     l_conf['general_settings']['allowed_request_content_types'] = []
     l_conf['general_settings']['allowed_http_methods'] = []

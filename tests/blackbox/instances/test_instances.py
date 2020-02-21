@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''Test WAF instances with Policies'''
-#TODO: make so waflz_server only runs once and then can post to it 
+#TODO: make so waflz_server only runs once and then can post to it
 # ------------------------------------------------------------------------------
 # Imports
 # ------------------------------------------------------------------------------
@@ -12,8 +12,13 @@ import json
 import time
 import requests
 import base64
-from urllib.request import urlopen
-from urllib.request import Request
+try:
+    from urllib.request import urlopen
+    from urllib.request import Request
+except ImportError:
+    # python2 fallback
+    from urllib2 import urlopen
+    from urllib2 import Request
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------

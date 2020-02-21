@@ -11,8 +11,13 @@ import sys
 import json
 import time
 import base64
-from urllib.request import urlopen
-from urllib.request import Request
+try:
+    from urllib.request import urlopen
+    from urllib.request import Request
+except ImportError:
+    # python2 fallback
+    from urllib2 import urlopen
+    from urllib2 import Request
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------

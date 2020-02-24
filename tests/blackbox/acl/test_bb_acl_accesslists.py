@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 '''Test WAF Access settings'''
-#TODO: make so waflz_server only runs once and then can post to it 
+#TODO: make so waflz_server only runs once and then can post to it
 # ------------------------------------------------------------------------------
 # Imports
 # ------------------------------------------------------------------------------
@@ -9,7 +9,6 @@ import subprocess
 import os
 import sys
 import json
-from pprint import pprint
 import time
 import requests
 # ------------------------------------------------------------------------------
@@ -65,8 +64,8 @@ def test_bb_acl_accesslists_01_interactions(setup_waflz_server):
     # whitelist
     # ------------------------------------------------------
     l_uri = G_TEST_HOST
-    l_headers = {'host' : 'myhost.com',
-                 'User-Agent' : 'dogs are cool'
+    l_headers = {'host': 'myhost.com',
+                 'User-Agent': 'dogs are cool'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -77,8 +76,8 @@ def test_bb_acl_accesslists_01_interactions(setup_waflz_server):
     # accesslist allow
     # ------------------------------------------------------
     l_uri = G_TEST_HOST
-    l_headers = {'host' : 'myhost.com',
-                 'User-Agent' : 'monkeys are cool'
+    l_headers = {'host': 'myhost.com',
+                 'User-Agent': 'monkeys are cool'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -89,8 +88,8 @@ def test_bb_acl_accesslists_01_interactions(setup_waflz_server):
     # accesslist block
     # ------------------------------------------------------
     l_uri = G_TEST_HOST
-    l_headers = {'host' : 'myhost.com',
-                 'User-Agent' : 'monkeys are bad'
+    l_headers = {'host': 'myhost.com',
+                 'User-Agent': 'monkeys are bad'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -101,8 +100,8 @@ def test_bb_acl_accesslists_01_interactions(setup_waflz_server):
     # blacklist block
     # ------------------------------------------------------
     l_uri = G_TEST_HOST
-    l_headers = {'host' : 'myhost.com',
-                 'User-Agent' : 'cats are cool'
+    l_headers = {'host': 'myhost.com',
+                 'User-Agent': 'cats are cool'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200

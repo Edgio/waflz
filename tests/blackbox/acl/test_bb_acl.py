@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 '''Test WAF Access settings'''
-#TODO: make so waflz_server only runs once and then can post to it 
+#TODO: make so waflz_server only runs once and then can post to it
 # ------------------------------------------------------------------------------
 # Imports
 # ------------------------------------------------------------------------------
@@ -9,7 +9,6 @@ import subprocess
 import os
 import sys
 import json
-from pprint import pprint
 import time
 import requests
 # ------------------------------------------------------------------------------
@@ -68,7 +67,7 @@ def test_bb_modsec_ec_acl_01_block_not_in_ignore_args(setup_waflz_server):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    #print json.dumps(l_r_json,indent=4)
+    # print(json.dumps(l_r_json,indent=4))
     assert l_r_json['rule_intercept_status'] == 403
     #assert 'modsecurity_crs_23_request_limits.conf' in l_r_json['sub_event'][0]['rule_file']
     # ensure 403 because exceeded max_num_args
@@ -98,8 +97,8 @@ def test_bb_acl_03_block_headers_not_in_ignore_header_list(setup_waflz_server):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    #print l_r_json
-    #We got an event
+    # print(l_r_json)
+    # We got an event
     assert len(l_r_json) > 0
     # detect a bash shellshock
     assert 'Bash shellshock attack detected' in l_r_json['sub_event'][0]['rule_msg']
@@ -221,8 +220,8 @@ def test_bb_acl_10_bypass_empty_allowed_settings(setup_waflz_server):
         with open(l_conf_path) as l_f:
             l_conf = json.load(l_f)
     except Exception as l_e:
-        print 'error opening config file: %s.  Reason: %s error: %s, doc: %s, message: %s'%(
-            l_conf_path, type(l_e), l_e, l_e.__doc__, l_e.message)
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
+            l_conf_path, type(l_e), l_e, l_e.__doc__))
         assert False
     l_conf['general_settings']['allowed_request_content_types'] = []
     l_conf['general_settings']['allowed_http_methods'] = []
@@ -230,7 +229,7 @@ def test_bb_acl_10_bypass_empty_allowed_settings(setup_waflz_server):
     # ------------------------------------------------------
     # urlopen (POST)
     # ------------------------------------------------------
-    #print l_url
+    # print(l_url)
     l_headers = {"Content-Type": "application/json"}
     l_r = requests.post(l_url,
                         headers=l_headers,
@@ -242,7 +241,7 @@ def test_bb_acl_10_bypass_empty_allowed_settings(setup_waflz_server):
     # ------------------------------------------------------
     # test method and content is bypassed
     # ------------------------------------------------------
-    l_headers = {"host" : "myhost.com",
+    l_headers = {"host": "myhost.com",
                  "Content-Type" : "select * from banana"
                 }
     l_r = requests.put(l_uri, headers=l_headers)
@@ -262,6 +261,6 @@ def test_bb_acl_11_geoip2_lookup_softfail(setup_waflz_server):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    print l_r_json
+    print(l_r_json)
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'

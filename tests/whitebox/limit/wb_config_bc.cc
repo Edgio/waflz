@@ -49,52 +49,96 @@ static std::string g_ec_cookie_val = "";
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define CONFIG_W_BROWSER_CHALLENGE_ENFORCEMENT_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"last_modified_date\":\"2016-08-25T00:45:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"GLOB\",\"is_negated\":false,\"value\":\"*.cats.*.com\"},"\
-              "\"path\": {\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"/cats.html\"}"\
-          "},"\
-          "\"enforcements\":[{\"type\":\"browser-challenge\",\"name\":\"bc-enforcement\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\",\"status\":403, \"duration_sec\":3, \"valid_for_sec\": 1}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define CONFIG_W_BROWSER_CHALLENGE_ENFORCEMENT_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"last_modified_date\": \"2016-08-25T00:45:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"bc-enforcement\","\
+"        \"type\": \"browser-challenge\","\
+"        \"duration_sec\": 3,"\
+"        \"enf_type\": \"BROWSER_CHALLENGE\","\
+"        \"status\": 403,"\
+"        \"valid_for_sec\": 1"\
+"      },"\
+"      \"scope\": {"\
+"        \"host\": {"\
+"          \"type\": \"GLOB\","\
+"          \"value\": \"*.cats.*.com\","\
+"          \"is_negated\": false"\
+"        },"\
+"        \"path\": {"\
+"          \"type\": \"STREQ\","\
+"          \"value\": \"/cats.html\","\
+"          \"is_negated\": false"\
+"        }"\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define CONFIG_W_ALWAYS_ON_MODE_BROWSER_CHALLENGE_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"last_modified_date\":\"2016-08-25T00:45:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"GLOB\",\"is_negated\":false,\"value\":\"*.cats.*.com\"},"\
-              "\"path\": {\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"/cats.html\"}"\
-          "},"\
-          "\"always_on\":true,"\
-          "\"enforcements\":[{\"type\":\"browser-challenge\",\"name\":\"bc-enforcement\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\",\"status\":403, \"duration_sec\":10, \"valid_for_sec\": 1}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define CONFIG_W_ALWAYS_ON_MODE_BROWSER_CHALLENGE_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"last_modified_date\": \"2016-08-25T00:45:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"always_on\": true,"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"bc-enforcement\","\
+"        \"type\": \"browser-challenge\","\
+"        \"duration_sec\": 10,"\
+"        \"enf_type\": \"BROWSER_CHALLENGE\","\
+"        \"status\": 403,"\
+"        \"valid_for_sec\": 1"\
+"      },"\
+"      \"scope\": {"\
+"        \"host\": {"\
+"          \"type\": \"GLOB\","\
+"          \"value\": \"*.cats.*.com\","\
+"          \"is_negated\": false"\
+"        },"\
+"        \"path\": {"\
+"          \"type\": \"STREQ\","\
+"          \"value\": \"/cats.html\","\
+"          \"is_negated\": false"\
+"        }"\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! sample challenge json
 //! ----------------------------------------------------------------------------

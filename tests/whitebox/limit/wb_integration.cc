@@ -38,22 +38,36 @@
 //: ----------------------------------------------------------------------------
 //: Config
 //: ----------------------------------------------------------------------------
-#define COORDINATOR_CONFIG_JSON_NO_RULES "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"tuples\":["\
-         "{\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\", \"USER_AGENT\"],"\
-          "\"rules\":[],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":7,"\
-          "\"id\":\"080c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define COORDINATOR_CONFIG_JSON_NO_RULES \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"080c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 7,"\
+"      \"keys\": ["\
+"        \"IP\","\
+"        \"USER_AGENT\""\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
+"}"\
+
 //: ----------------------------------------------------------------------------
 //: get_rqst_header_size_cb
 //: ----------------------------------------------------------------------------

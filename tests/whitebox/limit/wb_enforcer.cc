@@ -49,7 +49,6 @@
 "      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
 "      \"disabled\": false,"\
 "      \"start_epoch_msec\": 1582764295072,"\
-"      \"end_epoch_msec\": 1582764435072,"\
 "      \"condition_groups\": ["\
 "        {"\
 "          \"conditions\": ["\
@@ -105,7 +104,6 @@
 "      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
 "      \"disabled\": false,"\
 "      \"start_epoch_msec\": 1582764317918,"\
-"      \"end_epoch_msec\": 1582764319918,"\
 "      \"condition_groups\": ["\
 "        {"\
 "          \"conditions\": ["\
@@ -150,7 +148,6 @@
 "      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
 "      \"disabled\": false,"\
 "      \"start_epoch_msec\": 1582764338177,"\
-"      \"end_epoch_msec\": 1582764478177,"\
 "      \"condition_groups\": ["\
 "        {"\
 "          \"conditions\": ["\
@@ -209,7 +206,6 @@
 "      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
 "      \"disabled\": false,"\
 "      \"start_epoch_msec\": 1582764358577,"\
-"      \"end_epoch_msec\": 1582764498577,"\
 "      \"condition_groups\": ["\
 "        {"\
 "          \"conditions\": ["\
@@ -271,7 +267,6 @@
 //: enforcer
 //: ----------------------------------------------------------------------------
 TEST_CASE( "enforcer test", "[enforcer]" ) {
-#if 0
         // -------------------------------------------------
         // bad config
         // -------------------------------------------------
@@ -442,7 +437,6 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_enfx == NULL));
         }
-#endif
         // -------------------------------------------------
         // No rules
         // -------------------------------------------------
@@ -450,23 +444,20 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 int32_t l_s;
                 ns_waflz::enforcer l_e;
                 l_s = l_e.load(MATCH_NO_RULES_CONFIG, sizeof(MATCH_NO_RULES_CONFIG));
-                NDBG_PRINT("err: %s\n", l_e.get_err_msg());
+                //NDBG_PRINT("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                NDBG_PRINT("l_e.get_pb(): %s\n", l_e.get_pb()->ShortDebugString().c_str());
+                //NDBG_PRINT("l_e.get_pb(): %s\n", l_e.get_pb()->ShortDebugString().c_str());
                 const waflz_pb::enforcement* l_enfx = NULL;
                 ns_waflz::rqst_ctx l_ctx(NULL, 0);
                 l_s = l_e.process(&l_enfx, &l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_enfx != NULL));
                 REQUIRE((l_enfx->id() == "caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD"));
-#if 0
                 l_s = l_e.process(&l_enfx, &l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_enfx != NULL));
                 REQUIRE((l_enfx->id() == "caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD"));
-#endif
         }
-#if 0
         // -------------------------------------------------
         // verify expiration
         // -------------------------------------------------
@@ -507,7 +498,6 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_enfx == NULL));
         }
-#endif
         // TODO negated
 }
 

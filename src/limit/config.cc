@@ -289,49 +289,13 @@ int32_t config::load(void *a_js)
         int32_t l_s;
         const rapidjson::Value &l_js = *((rapidjson::Value *)a_js);
         // -------------------------------------------------
-        // handle v1 configs...
-        // -------------------------------------------------
-        if(!l_js.HasMember("version") ||
-           (l_js["version"].GetInt() < 2))
-        {
-                // -----------------------------------------
-                // create v1 pbuf...
-                // -----------------------------------------
-                waflz_pb::enforcer *l_v1_pb = NULL;
-                l_v1_pb = new waflz_pb::enforcer();
-                l_s = update_from_json(*l_v1_pb, l_js);
-                if(l_s != JSPB_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "parsing v1 json. Reason: %s", get_jspb_err_msg());
-                        if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // convert types...
-                // -----------------------------------------
-                if(m_pb) { delete m_pb; m_pb = NULL; }
-                m_pb = new waflz_pb::config();
-                l_s = convertv1(*m_pb, *l_v1_pb);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "convertv1: converting v1 format to v2");
-                        if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-                        if(m_pb) { delete m_pb; m_pb = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-        }
-        // -------------------------------------------------
         // create pbuf...
         // -------------------------------------------------
-        else
+        l_s = update_from_json(*m_pb, l_js);
+        if(l_s != JSPB_OK)
         {
-                l_s = update_from_json(*m_pb, l_js);
-                if(l_s != JSPB_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
-                        return WAFLZ_STATUS_ERROR;
-                }
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // load and validate

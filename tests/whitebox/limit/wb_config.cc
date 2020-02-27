@@ -45,237 +45,499 @@
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define VALID_COORDINATOR_CONFIG_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"tuples\":["\
-         "{\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"rules\":["\
-              "{\"variable\":[{\"type\":\"REQUEST_HEADERS\",\"match\":[{\"value\":\"Referer\"}]}],"\
-               "\"operator\":{\"type\":\"EM\",\"is_negated\":false,\"values\":[\"mycooltestwithreferelengthgreaterthantheonepassedinthetest\", \"http://gp1.can.transactcdn.com/0016715\"]},"\
-               "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
-               "\"name\":\"CONDITIONZZZZZZZEYAY\","\
-               "\"chained_rule\":[]}],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"080c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define VALID_COORDINATOR_CONFIG_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"080c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"id\": \"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
+"          \"name\": \"CONDITIONZZZZZZZEYAY\","\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_HEADERS\","\
+"                \"value\": \"Referer\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"EM\","\
+"                \"values\": ["\
+"                  \"mycooltestwithreferelengthgreaterthantheonepassedinthetest\","\
+"                  \"http://gp1.can.transactcdn.com/0016715\""\
+"                ],"\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! Config
 //! ----------------------------------------------------------------------------
-#define NO_RULES_CONFIG_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"tuples\":["\
-         "{\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"29b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\",\"USER_AGENT\"],"\
-          "\"rules\":[],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":10,"\
-          "\"id\":\"090c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define NO_RULES_CONFIG_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"090c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 10,"\
+"      \"keys\": ["\
+"        \"IP\","\
+"        \"USER_AGENT\""\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"29b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! Config
 //! ----------------------------------------------------------------------------
-#define VALID_COORDINATOR_CONFIG_JSON_FILE_EXT "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"tuples\":["\
-         "{\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"rules\":["\
-              "{\"variable\":[{\"type\":\"REQUEST_HEADERS\",\"match\":[{\"value\":\"Referer\"}]}],"\
-               "\"operator\":{\"type\":\"EM\",\"is_negated\":false,\"values\":[\"mycooltestwithreferelengthgreaterthantheonepassedinthetest\", \"http://gp1.can.transactcdn.com/0016715\"]},"\
-               "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
-               "\"name\":\"CONDITIONZZZZZZZEYAY\","\
-               "\"chained_rule\":[{\"id\" : \"4d0bba8d-837b-48db-806e-9415457ee0f119AE6\", \"operator\": {\"value\":\"js\",\"is_negated\":true,\"type\":\"STREQ\"},\"variable\":[{\"type\":\"FILE_EXT\"}]}]}],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"080c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define VALID_COORDINATOR_CONFIG_JSON_FILE_EXT \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"080c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"id\": \"4d0bba8d-837b-48db-806e-9415457ee0f119AE6\","\
+"          \"name\": \"CONDITIONZZZZZZZEYAY\","\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_HEADERS\","\
+"                \"value\": \"Referer\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"EM\","\
+"                \"values\": ["\
+"                  \"mycooltestwithreferelengthgreaterthantheonepassedinthetest\","\
+"                  \"http://gp1.can.transactcdn.com/0016715\""\
+"                ],"\
+"                \"is_negated\": false"\
+"              }"\
+"            },"\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"FILE_EXT\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"js\","\
+"                \"is_negated\": true"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define REQUEST_METHOD_CONFIG_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"tuples\":["\
-         "{\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"rules\":["\
-              "{\"variable\":[{\"type\":\"REQUEST_METHOD\"}],"\
-               "\"operator\":{\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"HACK_THE_PLANET\"},"\
-               "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
-               "\"name\":\"CONDITIONZZZZZZZEYAY\","\
-               "\"chained_rule\":[]}],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define REQUEST_METHOD_CONFIG_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"id\": \"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
+"          \"name\": \"CONDITIONZZZZZZZEYAY\","\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_METHOD\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"HACK_THE_PLANET\","\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define REQUEST_METHOD_CONFIG_W_SCOPE_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"GLOB\",\"is_negated\":false,\"value\":\"*.cats.*.com\"},"\
-              "\"path\": {\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"/cats.html\"}"\
-          "},"\
-          "\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"rules\":["\
-              "{\"variable\":[{\"type\":\"REQUEST_METHOD\"}],"\
-               "\"operator\":{\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"HACK_THE_PLANET\"},"\
-               "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
-               "\"name\":\"CONDITIONZZZZZZZEYAY\","\
-               "\"chained_rule\":[]}],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define REQUEST_METHOD_CONFIG_W_SCOPE_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"id\": \"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
+"          \"name\": \"CONDITIONZZZZZZZEYAY\","\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_METHOD\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"HACK_THE_PLANET\","\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      },"\
+"      \"scope\": {"\
+"        \"host\": {"\
+"          \"type\": \"GLOB\","\
+"          \"value\": \"*.cats.*.com\","\
+"          \"is_negated\": false"\
+"        },"\
+"        \"path\": {"\
+"          \"type\": \"STREQ\","\
+"          \"value\": \"/cats.html\","\
+"          \"is_negated\": false"\
+"        }"\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define CONFIG_W_SAME_LAST_MODIFIED_DATE_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"last_modified_date\":\"2016-07-20T00:45:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"GLOB\",\"is_negated\":false,\"value\":\"*.cats.*.com\"},"\
-              "\"path\": {\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"/cats.html\"}"\
-          "},"\
-          "\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"rules\":["\
-              "{\"variable\":[{\"type\":\"REQUEST_METHOD\"}],"\
-               "\"operator\":{\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"HACK_THE_PLANET\"},"\
-               "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
-               "\"name\":\"CONDITIONZZZZZZZEYAY\","\
-               "\"chained_rule\":[]}],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define CONFIG_W_SAME_LAST_MODIFIED_DATE_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"last_modified_date\": \"2016-07-20T00:45:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"id\": \"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
+"          \"name\": \"CONDITIONZZZZZZZEYAY\","\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_METHOD\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"HACK_THE_PLANET\","\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      },"\
+"      \"scope\": {"\
+"        \"host\": {"\
+"          \"type\": \"GLOB\","\
+"          \"value\": \"*.cats.*.com\","\
+"          \"is_negated\": false"\
+"        },"\
+"        \"path\": {"\
+"          \"type\": \"STREQ\","\
+"          \"value\": \"/cats.html\","\
+"          \"is_negated\": false"\
+"        }"\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define CONFIG_W_LARGER_LAST_MODIFIED_DATE_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"last_modified_date\":\"2016-08-25T00:45:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"GLOB\",\"is_negated\":false,\"value\":\"*.cats.*.com\"},"\
-              "\"path\": {\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"/cats.html\"}"\
-          "},"\
-          "\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"rules\":["\
-              "{\"variable\":[{\"type\":\"REQUEST_METHOD\"}],"\
-               "\"operator\":{\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"HACK_THE_PLANET\"},"\
-               "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
-               "\"name\":\"CONDITIONZZZZZZZEYAY\","\
-               "\"chained_rule\":[]}],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define CONFIG_W_LARGER_LAST_MODIFIED_DATE_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"last_modified_date\": \"2016-08-25T00:45:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"id\": \"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
+"          \"name\": \"CONDITIONZZZZZZZEYAY\","\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_METHOD\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"HACK_THE_PLANET\","\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      },"\
+"      \"scope\": {"\
+"        \"host\": {"\
+"          \"type\": \"GLOB\","\
+"          \"value\": \"*.cats.*.com\","\
+"          \"is_negated\": false"\
+"        },"\
+"        \"path\": {"\
+"          \"type\": \"STREQ\","\
+"          \"value\": \"/cats.html\","\
+"          \"is_negated\": false"\
+"        }"\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! config dd
 //! ----------------------------------------------------------------------------
-#define CONFIG_W_ALWAYS_ON_MODE_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"last_modified_date\":\"2016-08-25T00:45:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"GLOB\",\"is_negated\":false,\"value\":\"*.cats.*.com\"},"\
-              "\"path\": {\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"/cats.html\"}"\
-          "},"\
-          "\"always_on\":true,"\
-          "\"enforcements\":[{\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\", \"duration_sec\":3}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define CONFIG_W_ALWAYS_ON_MODE_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"last_modified_date\": \"2016-08-25T00:45:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"always_on\": true,"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"duration_sec\": 3,"\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      },"\
+"      \"scope\": {"\
+"        \"host\": {"\
+"          \"type\": \"GLOB\","\
+"          \"value\": \"*.cats.*.com\","\
+"          \"is_negated\": false"\
+"        },"\
+"        \"path\": {"\
+"          \"type\": \"STREQ\","\
+"          \"value\": \"/cats.html\","\
+"          \"is_negated\": false"\
+"        }"\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define REQUEST_METHOD_CONFIG_W_SCOPE_EM_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"EM\",\"is_negated\":false,\"values\":[\"www.cats.dogs.com\", \"www.cats1.dogs1.com\", \"\"]},"\
-              "\"path\": {\"type\":\"EM\",\"is_negated\":false,\"is_case_insensitive\":true,\"values\":[\"/cats.html\", \"/dogs.html\"]}"\
-          "},"\
-          "\"enforcements\":[{\"url\":\"https://www.google.com\",\"type\":\"redirect-302\",\"name\":\"STUFF\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\"}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"rules\":["\
-              "{\"variable\":[{\"type\":\"REQUEST_METHOD\"}],"\
-               "\"operator\":{\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"HACK_THE_PLANET\"},"\
-               "\"id\":\"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
-               "\"name\":\"CONDITIONZZZZZZZEYAY\","\
-               "\"chained_rule\":[]}],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define REQUEST_METHOD_CONFIG_W_SCOPE_EM_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"id\": \"6071519b-0349-4488-9cc9-35084f25e7e416715\","\
+"          \"name\": \"CONDITIONZZZZZZZEYAY\","\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_METHOD\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"HACK_THE_PLANET\","\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"STUFF\","\
+"        \"type\": \"redirect-302\","\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      },"\
+"      \"scope\": {"\
+"        \"host\": {"\
+"          \"type\": \"EM\","\
+"          \"values\": ["\
+"            \"www.cats.dogs.com\","\
+"            \"www.cats1.dogs1.com\","\
+"            \"\""\
+"          ],"\
+"          \"is_negated\": false"\
+"        },"\
+"        \"path\": {"\
+"          \"type\": \"EM\","\
+"          \"values\": ["\
+"            \"/cats.html\","\
+"            \"/dogs.html\""\
+"          ],"\
+"          \"is_negated\": false,"\
+"          \"is_case_insensitive\": true"\
+"        }"\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! callbacks
 //! ----------------------------------------------------------------------------

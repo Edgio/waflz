@@ -23,6 +23,8 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "support/ndebug.h"
 #include "jspb/jspb.h"
 #include "waflz/limit/limit.h"
@@ -465,11 +467,11 @@ int32_t limit::get_key(char* ao_key,
         if(m_pb->has__reserved_1() &&
            !m_pb->_reserved_1().empty())
         {
-                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%s:%llX", m_pb->customer_id().c_str(), a_scope_id.c_str(), m_pb->_reserved_1().c_str(), l_dim_hash);
+                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%s:%" PRIX64 "", m_pb->customer_id().c_str(), a_scope_id.c_str(), m_pb->_reserved_1().c_str(), l_dim_hash);
         }
         else
         {
-                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%s:%llX", m_pb->customer_id().c_str(), a_scope_id.c_str(), m_pb->id().c_str(), l_dim_hash);
+                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%s:%" PRIX64 "", m_pb->customer_id().c_str(), a_scope_id.c_str(), m_pb->id().c_str(), l_dim_hash);
         }
         return WAFLZ_STATUS_OK;
 }

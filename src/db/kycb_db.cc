@@ -36,6 +36,8 @@
 
 #include <kchashdb.h>
 #pragma GCC diagnostic pop
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "support/time_util.h"
 #include "support/ndebug.h"
 #include "waflz/db/kycb_db.h"
@@ -346,7 +348,7 @@ int32_t kycb_db::print_all_keys(void)
         {
                 // :(
                 int64_t i_val = static_cast <const int64_t>(be64toh(static_cast <const uint64_t>(*reinterpret_cast <const int64_t*>(l_val.data()))));
-                NDBG_OUTPUT("| %s: %lld\n", l_key.c_str(), i_val);
+                NDBG_OUTPUT("| %s: %" PRId64 "\n", l_key.c_str(), i_val);
         }
         NDBG_OUTPUT("+-------------------------------------+\n");
         return WAFLZ_STATUS_OK;

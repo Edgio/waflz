@@ -20,6 +20,8 @@
 //!   limitations under the License.
 ///
 //! ----------------------------------------------------------------------------
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "waflz/limit/challenge.h"
 #include "waflz/render.h"
 #include "jspb/jspb.h"
@@ -364,7 +366,7 @@ int32_t challenge::set_ectoken(int32_t a_prob_id,
         char *l_token_clr = NULL;
         int l_token_clr_len = 0;
         l_token_clr_len = asprintf(&l_token_clr,
-                                   "ip=%.*s&ua=%.*s&time=%llu&prob_id=%d",
+                                   "ip=%.*s&ua=%.*s&time=%" PRIu64 "&prob_id=%d",
                                    a_ctx->m_src_addr.m_len,
                                    a_ctx->m_src_addr.m_data,
                                    l_v.m_len,

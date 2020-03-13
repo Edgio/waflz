@@ -49,7 +49,11 @@
 #endif
 
 #ifndef CONFIG_DATE_FORMAT
-  #define CONFIG_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
+  #if defined(__APPLE__) || defined(__darwin__)
+    #define CONFIG_DATE_FORMAT "%Y-%m-%dT%H:%M:%S"
+  #else
+    #define CONFIG_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
+  #endif
 #endif 
 //: ----------------------------------------------------------------------------
 //: macros

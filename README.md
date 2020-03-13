@@ -40,6 +40,8 @@ brew install openssl
 brew install protobuf
 brew install libxml2
 brew install pcre
+brew install kyoto-cabinet
+brew install hiredis
 ```
 
 ### Building the tools

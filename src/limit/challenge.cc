@@ -364,7 +364,7 @@ int32_t challenge::set_ectoken(int32_t a_prob_id,
         char *l_token_clr = NULL;
         int l_token_clr_len = 0;
         l_token_clr_len = asprintf(&l_token_clr,
-                                   "ip=%.*s&ua=%.*s&time=%lu&prob_id=%d",
+                                   "ip=%.*s&ua=%.*s&time=%llu&prob_id=%d",
                                    a_ctx->m_src_addr.m_len,
                                    a_ctx->m_src_addr.m_data,
                                    l_v.m_len,

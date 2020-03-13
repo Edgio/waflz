@@ -1227,11 +1227,11 @@ int32_t config::get_limit_key_value(char *ao_key,
         if(a_limit.has__reserved_1() &&
            !a_limit._reserved_1().empty())
         {
-                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%lX", a_cust_id.c_str(), a_limit._reserved_1().c_str(), l_dim_hash);
+                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%llX", a_cust_id.c_str(), a_limit._reserved_1().c_str(), l_dim_hash);
         }
         else
         {
-                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%lX", a_cust_id.c_str(), a_limit.id().c_str(), l_dim_hash);
+                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%llX", a_cust_id.c_str(), a_limit.id().c_str(), l_dim_hash);
         }
         return WAFLZ_STATUS_OK;
 }

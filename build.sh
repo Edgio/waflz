@@ -56,7 +56,7 @@ main() {
 
     if [ "$(uname)" == "Darwin" ]; then
         BUILD_UBUNTU=OFF
-        BUILD_RATE_LIMITING=OFF
+        BUILD_RATE_LIMITING=ON
         NPROC=$(sysctl -n hw.ncpu)
     else
         BUILD_UBUNTU=ON

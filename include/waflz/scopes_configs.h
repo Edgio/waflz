@@ -68,6 +68,7 @@ public:
         int32_t load_dir(const char *a_dir_path, uint32_t a_dir_path_len);
         int32_t load_file(const char *a_file_path, uint32_t a_file_path_len);
         int32_t load(const char *a_buf, uint32_t a_buf_len);
+        int32_t update_acl(const char* a_buf, uint32_t a_buf_len, uint64_t a_cust_id);
         int32_t process(waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,

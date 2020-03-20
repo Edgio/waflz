@@ -616,4 +616,25 @@ bool scopes_configs::check_id(uint64_t a_cust_id)
         }
         return true;
 }
+//: ----------------------------------------------------------------------------
+//: \details update acl config
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes_configs::update_acl(const char *a_buf, uint32_t a_buf_len, uint64_t a_cust_id)
+{
+        cust_id_scopes_map_t::iterator i_scopes;
+        i_scopes = m_cust_id_scopes_map.find(a_cust_id);
+        if(i_scopes == m_cust_id_scopes_map.end())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        int32_t l_s;
+        l_s = i_scopes->second->update_acl(a_buf, a_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
 }

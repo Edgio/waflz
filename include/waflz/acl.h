@@ -65,6 +65,7 @@ public:
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------
+        const std::string& get_id(void) { return m_id; }
         //: ------------------------------------------------
         //: \details Get last error message string
         //: \return  last error message (in buffer)
@@ -103,6 +104,7 @@ private:
         bool m_init;
         char m_err_msg[WAFLZ_ERR_LEN];
         waflz_pb::acl *m_pb;
+        std::string m_id;
         // ip
         nms *m_ip_whitelist;
         nms *m_ip_accesslist;

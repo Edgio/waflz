@@ -1091,6 +1091,47 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
+{
+        int32_t l_s;
+        acl* l_acl = new acl();
+        l_s = l_acl->load(a_buf, a_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                delete l_acl;
+                l_acl = NULL;
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -----------------------------------------
+        // update map
+        // return if id is not found in map.
+        // -----------------------------------------
+        id_acl_map_t::iterator i_acl = m_id_acl_map.find(l_acl->get_id());
+        if(i_acl == m_id_acl_map.end())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        i_acl->second = l_acl;
+        //-------------------------------------------
+        // update scope's reserved fields
+        //-------------------------------------------
+        if(m_pb->has_acl_audit_id() &&
+            m_pb->acl_audit_id() == l_acl->get_id())
+        {
+                m_pb->set__acl_audit__reserved(l_acl);
+        }
+        if(m_pb->has_acl_prod_id() &&
+            m_pb->acl_prod_id() == l_acl->get_id())
+        {
+                m_pb->set__acl_prod__reserved(l_acl);
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         waflz_pb::event** ao_audit_event,
                         waflz_pb::event** ao_prod_event,

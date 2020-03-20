@@ -86,6 +86,7 @@ acl::acl(void):
         m_init(false),
         m_err_msg(),
         m_pb(NULL),
+        m_id(),
         m_ip_whitelist(NULL),
         m_ip_accesslist(NULL),
         m_ip_blacklist(NULL),
@@ -285,6 +286,7 @@ int32_t acl::init()
         //     "blacklist": ["8.8.8.8"]
         // },
         // -------------------------------------------------
+        m_id = m_pb->id();
         if(m_pb->has_ip())
         {
 #define _COMPILE_IP_LIST(_type) do { \

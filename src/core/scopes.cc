@@ -1098,8 +1098,7 @@ int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
         l_s = l_acl->load(a_buf, a_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                delete l_acl;
-                l_acl = NULL;
+                if(l_acl) { delete l_acl;l_acl = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         // -----------------------------------------
@@ -1115,15 +1114,20 @@ int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
         //-------------------------------------------
         // update scope's reserved fields
         //-------------------------------------------
-        if(m_pb->has_acl_audit_id() &&
-            m_pb->acl_audit_id() == l_acl->get_id())
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
-                m_pb->set__acl_audit__reserved(l_acl);
-        }
-        if(m_pb->has_acl_prod_id() &&
-            m_pb->acl_prod_id() == l_acl->get_id())
-        {
-                m_pb->set__acl_prod__reserved(l_acl);
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+
+                if(l_sc.has_acl_audit_id() &&
+                    l_sc.acl_audit_id() == l_acl->get_id())
+                {
+                        l_sc.set__acl_audit__reserved((uint64_t)l_acl);
+                }
+                if(l_sc.has_acl_prod_id() &&
+                    l_sc.acl_prod_id() == l_acl->get_id())
+                {
+                        l_sc.set__acl_prod__reserved((uint64_t)l_acl);
+                }
         }
         return WAFLZ_STATUS_OK;
 }

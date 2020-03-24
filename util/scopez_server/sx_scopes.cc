@@ -54,92 +54,91 @@
 #endif
 #define _SCOPEZ_SERVER_SCOPES_ID "waf-scopes-id"
 namespace ns_scopez_server {
-#if 0
-//: ----------------------------------------------------------------------------
-//: type
-//: ----------------------------------------------------------------------------
-typedef struct _waf_instance_update {
-        char *m_buf;
-        uint32_t m_buf_len;
-        ns_waflz::instances *m_instances;
-} waf_instance_update_t;
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-static void *t_load_instance(void *a_context)
-{
-        waf_instance_update_t *l_i = reinterpret_cast<waf_instance_update_t *>(a_context);
-        if(!l_i)
-        {
-                return NULL;
-        }
-        int32_t l_s;
-        ns_waflz::instance *l_instance = NULL;
-        l_s = l_i->m_instances->load(&l_instance, l_i->m_buf, l_i->m_buf_len, true);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                TRC_ERROR("performing m_profile->load\n");
-                if(l_i->m_buf) { free(l_i->m_buf); l_i->m_buf = NULL;}
-                return NULL;
-        }
-        if(l_i->m_buf) { free(l_i->m_buf); l_i->m_buf = NULL;}
-        delete l_i;
-        return NULL;
-}
-#endif
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
-                                             ns_is2::rqst &a_rqst,
-                                             const ns_is2::url_pmap_t &a_url_pmap)
+                                          ns_is2::rqst &a_rqst,
+                                          const ns_is2::url_pmap_t &a_url_pmap)
 {
-#if 0
+        if(!m_scopes_configs)
+        {
+                TRC_ERROR("m_scopes_configs == NULL");
+                return ns_is2::H_RESP_SERVER_ERROR;
+        }
         uint64_t l_buf_len = a_rqst.get_body_len();
         ns_is2::nbq *l_q = a_rqst.get_body_q();
         // copy to buffer
         char *l_buf;
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
-        m_instances->set_locking(true);
-        if(!m_bg_load)
+        int32_t l_s;
+        //l_s = m_scopes_configs->update_scopes(l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
         {
-                // TODO get status
-                //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
-                int32_t l_s;
-                ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load(&l_instance, l_buf, l_buf_len, true);
+                TRC_ERROR("update scopes failed %s\n", m_scopes_configs->get_err_msg());
+                if(l_buf) { free(l_buf); l_buf = NULL; }
+                return ns_is2::H_RESP_SERVER_ERROR;
+        }
+        if(l_buf) { free(l_buf); l_buf = NULL; }
+        std::string l_resp_str = "{\"status\": \"success\"}";
+        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                   "application/json",
+                                   l_resp_str.length(),
+                                   a_rqst.m_supports_keep_alives,
+                                   a_session.get_server_name());
+        l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
+        l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
+        ns_is2::queue_api_resp(a_session, l_api_resp);
+        return ns_is2::H_RESP_DONE;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
+                                          ns_is2::rqst &a_rqst,
+                                          const ns_is2::url_pmap_t &a_url_pmap)
+{
+        if(!m_scopes_configs)
+        {
+                TRC_ERROR("m_scopes_configs == NULL");
+                return ns_is2::H_RESP_SERVER_ERROR;
+        }
+        uint64_t l_buf_len = a_rqst.get_body_len();
+        ns_is2::nbq *l_q = a_rqst.get_body_q();
+        // copy to buffer
+        char *l_buf;
+        l_buf = (char *)malloc(l_buf_len);
+        l_q->read(l_buf, l_buf_len);
+        // get cust id from header
+        uint64_t l_id;
+        int32_t l_s;
+        const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
+        ns_is2::mutable_data_t i_hdr;
+        if(ns_is2::find_first(i_hdr, l_headers, _SCOPEZ_SERVER_SCOPES_ID, sizeof(_SCOPEZ_SERVER_SCOPES_ID)))
+        {
+                std::string l_hex;
+                l_hex.assign(i_hdr.m_data, i_hdr.m_len);
+                l_s = ns_waflz::convert_hex_to_uint(l_id, l_hex.c_str());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        TRC_ERROR("performing m_profile->load\n");
-                        if(l_buf) { free(l_buf); l_buf = NULL;}
+                        TRC_ERROR("an provided is not a provided hex\n");
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
-                if(l_buf) { free(l_buf); l_buf = NULL;}
         }
-        else
+        l_s = m_scopes_configs->update_acl(l_buf, l_buf_len, l_id);
+        if(l_s != WAFLZ_STATUS_OK)
         {
-                waf_instance_update_t *l_instance_update = NULL;
-                l_instance_update = new waf_instance_update_t();
-                l_instance_update->m_buf = l_buf;
-                l_instance_update->m_buf_len = l_buf_len;
-                l_instance_update->m_instances = m_instances;
-                pthread_t l_t_thread;
-                int32_t l_pthread_error = 0;
-                l_pthread_error = pthread_create(&l_t_thread,
-                                                 NULL,
-                                                 t_load_instance,
-                                                 l_instance_update);
-                if (l_pthread_error != 0)
-                {
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
+                TRC_ERROR("update scopes failed %s\n", m_scopes_configs->get_err_msg());
+                if(l_buf) { free(l_buf); l_buf = NULL; }
+                return ns_is2::H_RESP_SERVER_ERROR;
         }
-#endif
+        if(l_buf) { free(l_buf); l_buf = NULL; }
         std::string l_resp_str = "{\"status\": \"success\"}";
         ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
         l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
@@ -163,6 +162,7 @@ sx_scopes::sx_scopes(void):
         m_redis_host(),
         m_engine(NULL),
         m_update_scopes_h(NULL),
+        m_update_acl_h(NULL),
         m_scopes_configs(NULL),
         m_config_path(),
         m_ruleset_dir(),
@@ -182,6 +182,7 @@ sx_scopes::~sx_scopes(void)
         if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_db) { delete m_db; m_db = NULL; }
         if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
+        if(m_update_acl_h) { delete m_update_acl_h; m_update_acl_h = NULL; }
         if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
 }
 //: ----------------------------------------------------------------------------
@@ -328,11 +329,16 @@ int32_t sx_scopes::init(void)
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         }
         // -------------------------------------------------
-        // update 
+        // update end points
         // -------------------------------------------------
         m_update_scopes_h = new update_scopes_h();
-        m_update_scopes_h->m_bg_load = m_bg_load;
-        m_lsnr->add_route("/update_instance", m_update_scopes_h);
+        m_update_scopes_h->m_scopes_configs = m_scopes_configs;
+        m_lsnr->add_route("/update_scopes", m_update_scopes_h);
+
+        m_update_acl_h = new update_acl_h();
+        m_update_acl_h->m_scopes_configs = m_scopes_configs;
+        m_lsnr->add_route("/update_acl", m_update_acl_h);
+
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

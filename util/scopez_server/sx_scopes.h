@@ -44,14 +44,31 @@ class update_scopes_h: public ns_is2::default_rqst_h
 public:
         update_scopes_h():
                 default_rqst_h(),
-                m_bg_load(false)
+                m_scopes_configs(NULL)
         {}
         ~update_scopes_h()
         {}
         ns_is2::h_resp_t do_post(ns_is2::session &a_session,
                                  ns_is2::rqst &a_rqst,
                                  const ns_is2::url_pmap_t &a_url_pmap);
-        bool m_bg_load;
+        ns_waflz::scopes_configs* m_scopes_configs;
+};
+//: ----------------------------------------------------------------------------
+//: update_acl_h
+//: ----------------------------------------------------------------------------
+class update_acl_h: public ns_is2::default_rqst_h
+{
+public:
+        update_acl_h():
+                default_rqst_h(),
+                m_scopes_configs(NULL)
+        {}
+        ~update_acl_h()
+        {}
+        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
+                                 ns_is2::rqst &a_rqst,
+                                 const ns_is2::url_pmap_t &a_url_pmap);
+        ns_waflz::scopes_configs* m_scopes_configs;
 };
 //: ----------------------------------------------------------------------------
 //: sx_scopes
@@ -80,6 +97,7 @@ public:
         ns_waflz::engine *m_engine;
         ns_waflz::kv_db *m_db;
         update_scopes_h *m_update_scopes_h;
+        update_acl_h* m_update_acl_h;
         ns_waflz::scopes_configs *m_scopes_configs;
         std::string m_config_path;
         std::string m_ruleset_dir;

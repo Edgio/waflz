@@ -26,10 +26,30 @@
 #include "catch/catch.hpp"
 #include "waflz/scopes_configs.h"
 #include "waflz/scopes.h"
+#include "waflz/engine.h"
+#include "waflz/db/kycb_db.h"
+//: ----------------------------------------------------------------------------
+//: config
+//: ----------------------------------------------------------------------------
+#define SCOPE_ACL_JSON
 //: ----------------------------------------------------------------------------
 //: Test to update acl config
 //: ----------------------------------------------------------------------------
 TEST_CASE( "acl config update", "[acl config]" )
 {
-		
+	    // -----------------------------------------
+        // init
+        // -----------------------------------------
+		ns_waflz::engine* l_engine = new ns_waflz::engine();
+		std::string l_geoip2_city_file("/../../../../tests/data/waf/db/GeoLite2-City.mmdb");
+		std::string l_geoip2_asn_file("/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb");
+		l_engine->set_geoip2_dbs(l_geoip2_city_file, l_geoip2_asn_file);
+		l_engine->set_ruleset_dir("../../../../tests/data/waf/ruleset/");
+		l_engine->init();
+		ns_waflz::kv_db* l_db = reinterpret_cast<ns_waflz::kv_db*>(new ns_waflz::kycb_db());
+		ns_waflz::scopes_configs* l_scopes_configs = new ns_waflz::scopes_configs(*l_engine, *l_db, false);
+		l_scopes_configs->set_conf_dir("../../../../tests/data/waf/conf/");
+
+
+
 }

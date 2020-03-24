@@ -138,12 +138,4 @@ add_dependencies(wb_scopes waflzcore)
 target_link_libraries(wb_scopes ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
 SET_TARGET_PROPERTIES(wb_scopes PROPERTIES OUTPUT_NAME "wb_scopes")
 add_test(scopes wb_scopes)
-# ------------------------------------------------------------------------------
-# wb_scopes_update
-# ------------------------------------------------------------------------------
-SET(SRCS wb_scopes_update.cc)
-add_executable(wb_scopes_update ${HDRS} ${SRCS})
-add_dependencies(wb_scopes_update waflzcore)
-target_link_libraries(wb_scopes_update ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
-SET_TARGET_PROPERTIES(wb_scopes_update PROPERTIES OUTPUT_NAME "wb_scopes_update")
-add_test(scopes wb_scopes_update)
+

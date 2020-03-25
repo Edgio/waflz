@@ -104,6 +104,7 @@ ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
                                           ns_is2::rqst &a_rqst,
                                           const ns_is2::url_pmap_t &a_url_pmap)
 {
+        printf("update_acl_h\n");
         if(!m_scopes_configs)
         {
                 TRC_ERROR("m_scopes_configs == NULL");
@@ -131,6 +132,7 @@ ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
         }
+        printf("cust id - %lu\n", l_id);
         l_s = m_scopes_configs->update_acl(l_buf, l_buf_len, l_id);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -192,6 +194,7 @@ sx_scopes::~sx_scopes(void)
 //: ----------------------------------------------------------------------------
 int32_t sx_scopes::init(void)
 {
+        NDBG_PRINT("sx_scopes::init called\n");
         int32_t l_s;
         // -------------------------------------------------
         // redis db
@@ -338,6 +341,7 @@ int32_t sx_scopes::init(void)
         m_update_acl_h = new update_acl_h();
         m_update_acl_h->m_scopes_configs = m_scopes_configs;
         m_lsnr->add_route("/update_acl", m_update_acl_h);
+        printf("listeners added\n");
 
         return STATUS_OK;
 }

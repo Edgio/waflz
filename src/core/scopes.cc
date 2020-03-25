@@ -1093,6 +1093,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
 //: ----------------------------------------------------------------------------
 int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
 {
+        printf("scopes::update_acl\n");
         int32_t l_s;
         acl* l_acl = new acl();
         l_s = l_acl->load(a_buf, a_buf_len);
@@ -1105,9 +1106,11 @@ int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
         // update map
         // return if id is not found in map.
         // -----------------------------------------
-        id_acl_map_t::iterator i_acl = m_id_acl_map.find(l_acl->get_id());
+        std::string l_id = m_cust_id +'-'+ l_acl->get_id();
+        id_acl_map_t::iterator i_acl = m_id_acl_map.find(l_id);
         if(i_acl == m_id_acl_map.end())
         {
+                printf("acl id is not found in map-%s\n", l_id.c_str());
                 return WAFLZ_STATUS_OK;
         }
         i_acl->second = l_acl;
@@ -1119,12 +1122,12 @@ int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
 
                 if(l_sc.has_acl_audit_id() &&
-                    l_sc.acl_audit_id() == l_acl->get_id())
+                    l_sc.acl_audit_id() == l_id)
                 {
                         l_sc.set__acl_audit__reserved((uint64_t)l_acl);
                 }
                 if(l_sc.has_acl_prod_id() &&
-                    l_sc.acl_prod_id() == l_acl->get_id())
+                    l_sc.acl_prod_id() == l_id)
                 {
                         l_sc.set__acl_prod__reserved((uint64_t)l_acl);
                 }

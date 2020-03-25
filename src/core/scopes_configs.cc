@@ -623,13 +623,16 @@ bool scopes_configs::check_id(uint64_t a_cust_id)
 //: ----------------------------------------------------------------------------
 int32_t scopes_configs::update_acl(const char *a_buf, uint32_t a_buf_len, uint64_t a_cust_id)
 {
+        printf("scopes_configs::update_acl\n");
         cust_id_scopes_map_t::iterator i_scopes;
         i_scopes = m_cust_id_scopes_map.find(a_cust_id);
         if(i_scopes == m_cust_id_scopes_map.end())
         {
+                printf("cust id not found- %lu\n",a_cust_id);
                 return WAFLZ_STATUS_OK;
         }
         int32_t l_s;
+        printf("cust id found\n");
         l_s = i_scopes->second->update_acl(a_buf, a_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {

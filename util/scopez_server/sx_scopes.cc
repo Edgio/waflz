@@ -104,7 +104,6 @@ ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
                                           ns_is2::rqst &a_rqst,
                                           const ns_is2::url_pmap_t &a_url_pmap)
 {
-        printf("update_acl_h\n");
         if(!m_scopes_configs)
         {
                 TRC_ERROR("m_scopes_configs == NULL");
@@ -132,7 +131,6 @@ ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
         }
-        printf("cust id - %lu\n", l_id);
         l_s = m_scopes_configs->update_acl(l_buf, l_buf_len, l_id);
         if(l_s != WAFLZ_STATUS_OK)
         {

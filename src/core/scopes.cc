@@ -1093,12 +1093,12 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
 //: ----------------------------------------------------------------------------
 int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
 {
-        printf("scopes::update_acl\n");
         int32_t l_s;
         acl* l_acl = new acl();
         l_s = l_acl->load(a_buf, a_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                WAFLZ_PERROR(m_err_msg, "acl loading failed");
                 if(l_acl) { delete l_acl;l_acl = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -1110,8 +1110,8 @@ int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
         id_acl_map_t::iterator i_acl = m_id_acl_map.find(l_id);
         if(i_acl == m_id_acl_map.end())
         {
-                printf("acl id is not found in map-%s\n", l_id.c_str());
-                return WAFLZ_STATUS_OK;
+                WAFLZ_PERROR(m_err_msg, "acl id is not found in map - %s\n", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
         }
         i_acl->second = l_acl;
         //-------------------------------------------

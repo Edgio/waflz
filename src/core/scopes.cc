@@ -1106,7 +1106,7 @@ int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
         // update map
         // return if id is not found in map.
         // -----------------------------------------
-        std::string l_id = m_cust_id +'-'+ l_acl->get_id();
+        std::string l_id = m_cust_id +"-"+ l_acl->get_id();
         id_acl_map_t::iterator i_acl = m_id_acl_map.find(l_id);
         if(i_acl == m_id_acl_map.end())
         {
@@ -1130,6 +1130,54 @@ int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
                     l_sc.acl_prod_id() == l_id)
                 {
                         l_sc.set__acl_prod__reserved((uint64_t)l_acl);
+                }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::update_rules(const char* a_buf, uint32_t a_buf_len)
+{
+        int32_t l_s;
+        rules* l_rules = new rules(m_engine);
+        l_s = l_rules->load_buf(a_buf, a_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "rules loading failed");
+                if(l_rules) { delete l_rules;l_rules = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -----------------------------------------
+        // update map
+        // return if id is not found in map.
+        // -----------------------------------------
+        std::string l_id = m_cust_id +"-"+ l_rules->get_id();
+        id_rules_map_t::iterator i_rules = m_id_rules_map.find(l_id);
+        if(i_rules == m_id_rules_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "rules id is not found in map: %s\n", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        i_rules->second = l_rules;
+        //-------------------------------------------
+        // update scope's reserved fields
+        //-------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+
+                if(l_sc.has_rules_audit_id() &&
+                    l_sc.rules_audit_id() == l_id)
+                {
+                        l_sc.set__rules_audit__reserved((uint64_t)l_rules);
+                }
+                if(l_sc.has_rules_prod_id() &&
+                    l_sc.rules_prod_id() == l_id)
+                {
+                        l_sc.set__rules_prod__reserved((uint64_t)l_rules);
                 }
         }
         return WAFLZ_STATUS_OK;

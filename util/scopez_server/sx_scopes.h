@@ -71,6 +71,23 @@ public:
         ns_waflz::scopes_configs* m_scopes_configs;
 };
 //: ----------------------------------------------------------------------------
+//: update_rules_h
+//: ----------------------------------------------------------------------------
+class update_rules_h: public ns_is2::default_rqst_h
+{
+public:
+        update_rules_h():
+                default_rqst_h(),
+                m_scopes_configs(NULL)
+        {}
+        ~update_rules_h()
+        {}
+        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
+                                 ns_is2::rqst &a_rqst,
+                                 const ns_is2::url_pmap_t &a_url_pmap);
+        ns_waflz::scopes_configs* m_scopes_configs;
+};
+//: ----------------------------------------------------------------------------
 //: sx_scopes
 //: ----------------------------------------------------------------------------
 class sx_scopes: public ns_waflz_server::sx {
@@ -98,6 +115,7 @@ public:
         ns_waflz::kv_db *m_db;
         update_scopes_h *m_update_scopes_h;
         update_acl_h* m_update_acl_h;
+        update_rules_h* m_update_rules_h;
         ns_waflz::scopes_configs *m_scopes_configs;
         std::string m_config_path;
         std::string m_ruleset_dir;

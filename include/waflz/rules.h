@@ -61,9 +61,7 @@ public:
         ~rules();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t load_file(const char *a_buf, uint32_t a_buf_len);
-        //: ------------------------------------------------
-        //:               G E T T E R S
-        //: ------------------------------------------------
+        int32_t load_buf(const char* a_buf, uint32_t a_buf_len);
         //: ------------------------------------------------
         //: \details Get last error message string
         //: \return  last error message (in buffer)

@@ -101,11 +101,52 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
         // set version...
         // -----------------------------------------
         m_waf->set_owasp_ruleset_version(300);
+        m_id = m_waf->get_id();
         // -----------------------------------------
         // done...
         // -----------------------------------------
         m_init = true;
         return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t rules::load_buf(const char* a_buf, uint32_t a_buf_len)
+{
+        if(a_buf_len > _CONFIG_PROFILE_MAX_SIZE)
+        {
+                WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
+                             a_buf_len,
+                             _CONFIG_PROFILE_MAX_SIZE);
+                return WAFLZ_STATUS_ERROR;
+        }
+        m_init = false;
+        // -----------------------------------------
+        // make waf obj
+        // -----------------------------------------
+        if(m_waf) { delete m_waf; m_waf = NULL; }
+        m_waf = new waf(m_engine);
+        int32_t l_s;
+        l_s = m_waf->init(config_parser::JSON, a_buf, a_buf_len, true);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_AERROR(m_err_msg, "error loading conf file-reason: %s",
+                             m_waf->get_err_msg());
+                if(m_waf) { delete m_waf; m_waf = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -----------------------------------------
+        // set version...
+        // -----------------------------------------
+        m_waf->set_owasp_ruleset_version(300);
+        m_id = m_waf->get_id();
+        // -----------------------------------------
+        // done...
+        // -----------------------------------------
+        m_init = true;
+        return WAFLZ_STATUS_OK;     
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO

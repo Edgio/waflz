@@ -1187,6 +1187,55 @@ int32_t scopes::update_rules(const char* a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+int32_t scopes::update_profile(const char* a_buf, uint32_t a_buf_len)
+{
+        int32_t l_s;
+        profile *l_profile = new profile(m_engine);
+        l_s = l_profile->load(a_buf, a_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "profile loading failed");
+                printf("scopes:update-profile:%s\n", l_profile->get_err_msg());
+                if(l_profile) { delete l_profile;l_profile = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -----------------------------------------
+        // update map
+        // return if id is not found in map.
+        // -----------------------------------------
+        std::string l_id = m_cust_id +"-"+ l_profile->get_id();
+        id_profile_map_t::iterator i_profile = m_id_profile_map.find(l_id);
+        if(i_profile == m_id_profile_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "profile id is not found in map: %s\n", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        i_profile->second = l_profile;
+        //-------------------------------------------
+        // update scope's reserved fields
+        //-------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+
+                if(l_sc.has_profile_audit_id() &&
+                    l_sc.profile_audit_id() == l_id)
+                {
+                        l_sc.set__profile_audit__reserved((uint64_t)l_profile);
+                }
+                if(l_sc.has_profile_prod_id() &&
+                    l_sc.profile_prod_id() == l_id)
+                {
+                        l_sc.set__profile_prod__reserved((uint64_t)l_profile);
+                }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         waflz_pb::event** ao_audit_event,
                         waflz_pb::event** ao_prod_event,

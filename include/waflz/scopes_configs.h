@@ -70,6 +70,7 @@ public:
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t update_acl(const char* a_buf, uint32_t a_buf_len, uint64_t a_cust_id);
         int32_t update_rules(const char* a_buf, uint32_t a_buf_len, uint64_t a_cust_id);
+        int32_t update_profile(const char* a_buf, uint32_t a_buf_len, uint64_t a_cust_id);
         int32_t process(waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,

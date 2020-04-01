@@ -70,6 +70,7 @@ waf::waf(engine &a_engine):
         m_err_msg(),
         m_engine(a_engine),
         m_id("NA"),
+        m_cust_id("NA"),
         m_name("NA"),
         m_ruleset_dir(),
         m_owasp_ruleset_version(0),

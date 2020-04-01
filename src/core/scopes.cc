@@ -39,6 +39,7 @@
 #include "op/nms.h"
 #include "op/regex.h"
 #include "scope.pb.h"
+#include "profile.pb.h"
 #include "jspb/jspb.h"
 #include "event.pb.h"
 #include "limit.pb.h"
@@ -1087,6 +1088,26 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
+//: \details if a_loaded_date is >= a_new_Date
+//: \return  False
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
+{
+    if(a_loaded_date == NULL ||
+       a_new_date == NULL)
+    {
+            return false;
+    }
+    uint64_t l_loaded_epoch = get_epoch_seconds(a_loaded_date, CONFIG_DATE_FORMAT);
+    uint64_t l_new_epoch = get_epoch_seconds(a_new_date, CONFIG_DATE_FORMAT);
+    if(l_loaded_epoch >= l_new_epoch)
+    {
+            return false;
+    }
+    return true;
+}
+//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
@@ -1205,12 +1226,43 @@ int32_t scopes::update_profile(ns_waflz::profile* a_profile)
                 if(l_sc.has_profile_audit_id() &&
                     l_sc.profile_audit_id() == l_id)
                 {
-                        l_sc.set__profile_audit__reserved((uint64_t)a_profile);
                         l_found = true;
-                }
+                        profile *l_profile = (profile *)l_sc._profile_audit__reserved();
+                        const waflz_pb::profile* l_old_pb = l_profile->get_pb();
+                        const waflz_pb::profile* l_new_pb = a_profile->get_pb();
+                        if((l_old_pb != NULL) &&
+                            (l_new_pb != NULL) &&
+                            (l_old_pb->has_last_modified_date()) &&
+                            (l_new_pb->has_last_modified_date()))
+                        {
+                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                                  l_new_pb->last_modified_date().c_str()))
+                                {
+                                        if(a_profile) { delete a_profile; a_profile = NULL;}
+                                        return WAFLZ_STATUS_OK;
+                                }
+                        }
+                        l_sc.set__profile_audit__reserved((uint64_t)a_profile);
+                }       
                 if(l_sc.has_profile_prod_id() &&
                     l_sc.profile_prod_id() == l_id)
                 {
+                        l_found = true;
+                        profile *l_profile = (profile *)l_sc._profile_prod__reserved();
+                        const waflz_pb::profile* l_old_pb = l_profile->get_pb();
+                        const waflz_pb::profile* l_new_pb = a_profile->get_pb();
+                        if((l_old_pb != NULL) &&
+                            (l_new_pb != NULL) &&
+                            (l_old_pb->has_last_modified_date()) &&
+                            (l_new_pb->has_last_modified_date()))
+                        {
+                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                                  l_new_pb->last_modified_date().c_str()))
+                                {
+                                        if(a_profile) { delete a_profile; a_profile = NULL;}
+                                        return WAFLZ_STATUS_OK;
+                                }
+                        }
                         l_sc.set__profile_prod__reserved((uint64_t)a_profile);
                         l_found = true;
                 }

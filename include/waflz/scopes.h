@@ -158,6 +158,7 @@ private:
                         void *a_ctx,
                         part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
+        bool compare_dates(const char* a_loaded_date, const char* a_new_date);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

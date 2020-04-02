@@ -126,7 +126,7 @@ public:
         int32_t load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path);
         int32_t load(void *a_js, const std::string& a_conf_dir_path);
         int32_t update_acl(const char* a_buf, uint32_t a_buf_len);
-        int32_t update_rules(const char* a_buf, uint32_t a_buf_len);
+        int32_t update_rules(ns_waflz::rules* a_rules);
         int32_t update_profile(ns_waflz::profile* a_profile);
         int32_t process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,

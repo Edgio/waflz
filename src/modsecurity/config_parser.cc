@@ -3849,46 +3849,15 @@ int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
-                                    format_t a_format,
-                                    const char* a_buf,
-                                    uint64_t a_buf_len)
+                                    void* a_js)
 {
-        int l_s;
-        switch(a_format)
+        int32_t l_s;
+        const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
+        l_s = update_from_json(ao_config, l_js);
+        if(l_s != JSPB_OK)
         {
-        // -------------------------------------------------
-        // MODSECURITY
-        // -------------------------------------------------
-        case MODSECURITY:
-        {
-               // TODO -add read_buf_modsecurity;
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // JSON
-        // -------------------------------------------------
-        case JSON:
-        {
-                // TODO -share data with engine!!!!
-                l_s = read_buf_json(ao_config, a_buf, a_buf_len);
-                return l_s;
-        }
-        // -------------------------------------------------
-        // PROTOBUF
-        // -------------------------------------------------
-        case PROTOBUF:
-        {
-                // TODO -add read_buf_protobuf;
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // ???
-        // -------------------------------------------------
-        default:
-        {
-                // TODO Add message
-                return WAFLZ_STATUS_ERROR;
-        }
         }
         return WAFLZ_STATUS_OK;
 }

@@ -43,6 +43,7 @@
 #include "jspb/jspb.h"
 #include "event.pb.h"
 #include "limit.pb.h"
+#include "rule.pb.h"
 #include <fnmatch.h>
 //: ----------------------------------------------------------------------------
 //: constants
@@ -1160,46 +1161,65 @@ int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::update_rules(const char* a_buf, uint32_t a_buf_len)
+int32_t scopes::update_rules(ns_waflz::rules* a_rules)
 {
-        int32_t l_s;
-        rules* l_rules = new rules(m_engine);
-        l_s = l_rules->load_buf(a_buf, a_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+        if(!a_rules)
         {
-                WAFLZ_PERROR(m_err_msg, "rules loading failed");
-                if(l_rules) { delete l_rules;l_rules = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-        // -----------------------------------------
-        // update map
-        // return if id is not found in map.
-        // -----------------------------------------
-        std::string l_id = m_cust_id +"-"+ l_rules->get_id();
-        id_rules_map_t::iterator i_rules = m_id_rules_map.find(l_id);
-        if(i_rules == m_id_rules_map.end())
-        {
-                WAFLZ_PERROR(m_err_msg, "rules id is not found in map: %s\n", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
-        }
-        i_rules->second = l_rules;
+        const std::string& l_id = a_rules->get_cust_id()+'-'+a_rules->get_id();
+        bool l_found = false;
         //-------------------------------------------
         // update scope's reserved fields
         //-------------------------------------------
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-
                 if(l_sc.has_rules_audit_id() &&
-                    l_sc.rules_audit_id() == l_id)
+                   l_sc.rules_audit_id() == l_id)
                 {
-                        l_sc.set__rules_audit__reserved((uint64_t)l_rules);
+                        l_found = true;
+                        rules* l_rules = (rules*)l_sc._rules_audit__reserved();
+                        const waflz_pb::sec_config_t* l_old_pb = l_rules->get_pb();
+                        const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
+                        if((l_old_pb != NULL) &&
+                           (l_new_pb != NULL) &&
+                           (l_old_pb->has_last_modified_date()) &&
+                           (l_new_pb->has_last_modified_date()))
+                        {
+                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                                  l_new_pb->last_modified_date().c_str()))
+                                {
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                        }
+                        l_sc.set__rules_audit__reserved((uint64_t)a_rules);
                 }
                 if(l_sc.has_rules_prod_id() &&
-                    l_sc.rules_prod_id() == l_id)
+                   l_sc.rules_prod_id() == l_id)
                 {
-                        l_sc.set__rules_prod__reserved((uint64_t)l_rules);
+                        l_found = true;
+                        rules* l_rules = (rules*)l_sc._rules_prod__reserved();
+                        const waflz_pb::sec_config_t* l_old_pb = l_rules->get_pb();
+                        const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
+                        if((l_old_pb != NULL) &&
+                           (l_new_pb != NULL) &&
+                           (l_old_pb->has_last_modified_date()) &&
+                           (l_new_pb->has_last_modified_date()))
+                        {
+                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                                  l_new_pb->last_modified_date().c_str()))
+                                {
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                        }
+                        l_sc.set__rules_prod__reserved((uint64_t)a_rules);
                 }
+        }
+        if(!l_found)
+        {
+                WAFLZ_PERROR(m_err_msg, "rule id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
 }
@@ -1239,7 +1259,7 @@ int32_t scopes::update_profile(ns_waflz::profile* a_profile)
                                                   l_new_pb->last_modified_date().c_str()))
                                 {
                                         if(a_profile) { delete a_profile; a_profile = NULL;}
-                                        return WAFLZ_STATUS_OK;
+                                        return WAFLZ_STATUS_ERROR;
                                 }
                         }
                         l_sc.set__profile_audit__reserved((uint64_t)a_profile);
@@ -1260,11 +1280,10 @@ int32_t scopes::update_profile(ns_waflz::profile* a_profile)
                                                   l_new_pb->last_modified_date().c_str()))
                                 {
                                         if(a_profile) { delete a_profile; a_profile = NULL;}
-                                        return WAFLZ_STATUS_OK;
+                                        return WAFLZ_STATUS_ERROR;
                                 }
                         }
                         l_sc.set__profile_prod__reserved((uint64_t)a_profile);
-                        l_found = true;
                 }
         }
         if(!l_found)

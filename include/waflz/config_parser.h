@@ -92,7 +92,7 @@ public:
         void set_verbose(bool a_val) { m_verbose = a_val;}
         void set_color(bool a_val) { m_color = a_val;}
         int32_t parse_config(waflz_pb::sec_config_t &ao_config, format_t a_format, const std::string &a_path);
-        int32_t parse_config(waflz_pb::sec_config_t& ao_config, format_t a_format, const char* a_buf, uint64_t a_buf_len);
+        int32_t parse_config(waflz_pb::sec_config_t& ao_config, void* a_js);
         int32_t parse_line(waflz_pb::sec_config_t &ao_config, format_t a_format, const std::string &a_line);
         void show_status(void);
         const char *get_err_msg(void) { return m_err_msg; }

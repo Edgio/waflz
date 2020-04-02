@@ -671,6 +671,7 @@ int32_t waf::init(config_parser::format_t a_format,
         // set id
         // -------------------------------------------------
         m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
         // -------------------------------------------------
         // compile
         // -------------------------------------------------
@@ -688,9 +689,7 @@ int32_t waf::init(config_parser::format_t a_format,
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t waf::init(config_parser::format_t a_format,
-                  const char* a_buf,
-                  uint64_t a_buf_len,
+int32_t waf::init(void* a_js,
                   bool a_apply_defaults)
 {
         // Check if already is initd
@@ -723,7 +722,7 @@ int32_t waf::init(config_parser::format_t a_format,
         // -------------------------------------------------
         config_parser *l_parser = new config_parser();
         l_pb = new waflz_pb::sec_config_t();
-        l_s = l_parser->parse_config(*l_pb, a_format, a_buf, a_buf_len);
+        l_s = l_parser->parse_config(*l_pb, a_js);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", l_parser->get_err_msg());
@@ -753,6 +752,7 @@ int32_t waf::init(config_parser::format_t a_format,
         // set id
         // -------------------------------------------------
         m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
         // -------------------------------------------------
         // compile
         // -------------------------------------------------

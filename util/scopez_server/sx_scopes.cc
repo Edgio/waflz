@@ -171,23 +171,8 @@ ns_is2::h_resp_t update_rules_h::do_post(ns_is2::session &a_session,
         char *l_buf;
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
-        // get cust id from header
-        uint64_t l_id;
         int32_t l_s;
-        const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
-        ns_is2::mutable_data_t i_hdr;
-        if(ns_is2::find_first(i_hdr, l_headers, _SCOPEZ_SERVER_SCOPES_ID, sizeof(_SCOPEZ_SERVER_SCOPES_ID)))
-        {
-                std::string l_hex;
-                l_hex.assign(i_hdr.m_data, i_hdr.m_len);
-                l_s = ns_waflz::convert_hex_to_uint(l_id, l_hex.c_str());
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        TRC_ERROR("an provided is not a provided hex\n");
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-        l_s = m_scopes_configs->update_rules(l_buf, l_buf_len, l_id);
+        l_s = m_scopes_configs->update_rules(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 printf("update rules failed %s\n", m_scopes_configs->get_err_msg());

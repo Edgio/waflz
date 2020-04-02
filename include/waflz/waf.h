@@ -103,7 +103,7 @@ public:
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t init(profile &a_profile);
         int32_t init(config_parser::format_t a_format, const std::string &a_path, bool a_apply_defaults = false);
-        int32_t init(config_parser::format_t a_format, const char* a_buf, uint64_t a_buf_len, bool a_apply_defaults = false);
+        int32_t init(void* a_js, bool a_apply_defaults = false);
         int32_t get_str(std::string &ao_str, config_parser::format_t a_format);
         const char *get_err_msg(void) { return m_err_msg; }
         waflz_pb::sec_config_t* get_pb(void) { return m_pb; }

@@ -26,6 +26,7 @@
 #include "waflz/scopes_configs.h"
 #include "waflz/scopes.h"
 #include "waflz/rules.h"
+#include "waflz/acl.h"
 #include "waflz/trace.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
@@ -618,37 +619,116 @@ bool scopes_configs::check_id(uint64_t a_cust_id)
         return true;
 }
 //: ----------------------------------------------------------------------------
+//: \details update scopes acl config
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes_configs::update_scopes_acl(void* a_js)
+{
+        int32_t l_s;
+        ns_waflz::acl* l_acl = new acl();
+        l_s = l_acl->load(a_js);
+         if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "acl loading failed");
+                if(l_acl) { delete l_acl;l_acl = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        uint64_t l_id;
+        const std::string& l_cust_id = l_acl->get_cust_id();
+        l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
+                if(l_acl) { delete l_acl;l_acl = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        cust_id_scopes_map_t::iterator i_scopes;
+        i_scopes = m_cust_id_scopes_map.find(l_id);
+        if(i_scopes == m_cust_id_scopes_map.end())
+        {
+
+                WAFLZ_PERROR(m_err_msg, "customer id - %lu not found in the scopes map", l_id);
+                if(l_acl) { delete l_acl; l_acl = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        l_s = i_scopes->second->update_acl(l_acl);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
+                if(l_acl) { delete l_acl; l_acl = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+
+}
+//: ----------------------------------------------------------------------------
 //: \details update acl config
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::update_acl(const char* a_buf, uint32_t a_buf_len, uint64_t a_cust_id)
+int32_t scopes_configs::update_acl(const char* a_buf, uint32_t a_buf_len)
 {
-        if(m_enable_locking)
+        // ---------------------------------------
+        // parse
+        // ---------------------------------------
+        rapidjson::Document *l_js = new rapidjson::Document();
+        rapidjson::ParseResult l_ok;
+        l_ok = l_js->Parse(a_buf, a_buf_len);
+        if (!l_ok)
         {
-                pthread_mutex_lock(&m_mutex);
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
+                             rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
+                if(l_js) { delete l_js; l_js = NULL;}
+                return WAFLZ_STATUS_ERROR;
         }
-        cust_id_scopes_map_t::iterator i_scopes;
-        i_scopes = m_cust_id_scopes_map.find(a_cust_id);
-        if(i_scopes == m_cust_id_scopes_map.end())
+        if(!l_js->IsObject() &&
+           !l_js->IsArray())
         {
-                WAFLZ_PERROR(m_err_msg, "customer id - %lu not found in the scopes map", a_cust_id); 
-                if(m_enable_locking)
-                {
-                        pthread_mutex_unlock(&m_mutex);
-                }
+                WAFLZ_PERROR(m_err_msg, "error parsing json");
+                if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         int32_t l_s;
-        l_s = i_scopes->second->update_acl(a_buf, a_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+       if(m_enable_locking)
         {
-                WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
-                if(m_enable_locking)
+                pthread_mutex_lock(&m_mutex);
+        }
+        // -------------------------------------------------
+        // object
+        // -------------------------------------------------
+        if(l_js->IsObject())
+        {
+                l_s = update_scopes_acl(l_js);
+                if(l_s != WAFLZ_STATUS_OK)
                 {
-                        pthread_mutex_unlock(&m_mutex);
+                        if(m_enable_locking)
+                        {
+                                pthread_mutex_unlock(&m_mutex);
+                        }
+                        if(l_js) { delete l_js; l_js = NULL;}
+                        return WAFLZ_STATUS_ERROR;
                 }
-                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // array
+        // -------------------------------------------------
+        else if(l_js->IsArray())
+        {
+                for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
+                {
+                        rapidjson::Value &l_e = (*l_js)[i_e];
+                        l_s = update_scopes_acl((void*)&l_e);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                if(m_enable_locking)
+                                {
+                                        pthread_mutex_unlock(&m_mutex);
+                                }
+                                if(l_js) { delete l_js; l_js = NULL;}
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                }
         }
         if(m_enable_locking)
         {

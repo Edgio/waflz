@@ -1113,46 +1113,67 @@ bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::update_acl(const char* a_buf, uint32_t a_buf_len)
+int32_t scopes::update_acl(ns_waflz::acl* a_acl)
 {
-        int32_t l_s;
-        acl* l_acl = new acl();
-        l_s = l_acl->load(a_buf, a_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+        if(!a_acl)
         {
-                WAFLZ_PERROR(m_err_msg, "acl loading failed");
-                if(l_acl) { delete l_acl;l_acl = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-        // -----------------------------------------
-        // update map
-        // return if id is not found in map.
-        // -----------------------------------------
-        std::string l_id = m_cust_id +"-"+ l_acl->get_id();
-        id_acl_map_t::iterator i_acl = m_id_acl_map.find(l_id);
-        if(i_acl == m_id_acl_map.end())
-        {
-                WAFLZ_PERROR(m_err_msg, "acl id is not found in map - %s\n", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
-        }
-        i_acl->second = l_acl;
+        const std::string& l_id = a_acl->get_cust_id()+'-'+a_acl->get_id();
+        bool l_found = false;
         //-------------------------------------------
         // update scope's reserved fields
         //-------------------------------------------
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-
                 if(l_sc.has_acl_audit_id() &&
-                    l_sc.acl_audit_id() == l_id)
+                   l_sc.acl_audit_id() == l_id)
                 {
-                        l_sc.set__acl_audit__reserved((uint64_t)l_acl);
+                        l_found = true;
+                        acl* l_acl = (acl*)l_sc._acl_audit__reserved();
+                        const waflz_pb::acl* l_old_pb = l_acl->get_pb();
+                        const waflz_pb::acl* l_new_pb = a_acl->get_pb();
+                        if((l_old_pb != NULL) &&
+                           (l_new_pb != NULL) &&
+                           (l_old_pb->has_last_modified_date()) &&
+                           (l_new_pb->has_last_modified_date()))
+                        {
+                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                                  l_new_pb->last_modified_date().c_str()))
+                                {
+                                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                        }
+                        l_sc.set__acl_audit__reserved((uint64_t)a_acl);
                 }
                 if(l_sc.has_acl_prod_id() &&
-                    l_sc.acl_prod_id() == l_id)
+                   l_sc.acl_prod_id() == l_id)
                 {
-                        l_sc.set__acl_prod__reserved((uint64_t)l_acl);
+                        l_found = true;
+                        acl* l_acl = (acl*)l_sc._acl_prod__reserved();
+                        const waflz_pb::acl* l_old_pb = l_acl->get_pb();
+                        const waflz_pb::acl* l_new_pb = a_acl->get_pb();
+                        if((l_old_pb != NULL) &&
+                           (l_new_pb != NULL) &&
+                           (l_old_pb->has_last_modified_date()) &&
+                           (l_new_pb->has_last_modified_date()))
+                        {
+                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                                  l_new_pb->last_modified_date().c_str()))
+                                {
+                                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                        }
+                        l_sc.set__acl_prod__reserved((uint64_t)a_acl);
                 }
+        }
+        if(!l_found)
+        {
+                WAFLZ_PERROR(m_err_msg, "acl id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
 }

@@ -1,5 +1,6 @@
 {
 	"id": "ZrLf2KkQ",
+	"customer_id":"0050",
 	"name": "my cool acl",
 	"url": {
 		"whitelist": ["robots.txt"],

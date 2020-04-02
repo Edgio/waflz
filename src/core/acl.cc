@@ -87,6 +87,7 @@ acl::acl(void):
         m_err_msg(),
         m_pb(NULL),
         m_id(),
+        m_cust_id(),
         m_ip_whitelist(NULL),
         m_ip_accesslist(NULL),
         m_ip_blacklist(NULL),
@@ -220,6 +221,35 @@ int32_t acl::load(const waflz_pb::acl* a_pb)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+int32_t acl::load(void* a_js)
+{
+        const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
+        int32_t l_s;
+        if(m_pb)
+        {
+                delete m_pb;
+                m_pb = NULL;
+        }
+        m_pb = new waflz_pb::acl();
+        l_s = update_from_json(*m_pb, l_js);
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
+        }
+        l_s = init();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
+
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 static int32_t compile_regex_list(regex **ao_regex,
                                   const ::google::protobuf::RepeatedPtrField< ::std::string>& a_list,
                                   uint32_t a_list_len)
@@ -287,6 +317,7 @@ int32_t acl::init()
         // },
         // -------------------------------------------------
         m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
         if(m_pb->has_ip())
         {
 #define _COMPILE_IP_LIST(_type) do { \

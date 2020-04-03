@@ -1113,6 +1113,15 @@ bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+int32_t scopes::update_limit(ns_waflz::limit* a_limit)
+{
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 int32_t scopes::update_acl(ns_waflz::acl* a_acl)
 {
         if(!a_acl)

@@ -64,7 +64,9 @@ limit::limit(kv_db &a_db,
         rl_obj(a_case_insensitive_headers),
         m_init(false),
         m_pb(NULL),
-        m_db(a_db)
+        m_db(a_db),
+        m_id(),
+        m_cust_id()
 {
         m_pb = new waflz_pb::limit();
 }
@@ -202,6 +204,11 @@ int32_t limit::init()
                 WAFLZ_PERROR(m_err_msg, "limit missing duration field");
                 return WAFLZ_STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // set id and cust_id
+        // -------------------------------------------------
+        m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
         // ------------------------------------------------
         // always on???
         // ------------------------------------------------

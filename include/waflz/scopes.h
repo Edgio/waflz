@@ -128,6 +128,7 @@ public:
         int32_t update_acl(ns_waflz::acl* a_acl);
         int32_t update_rules(ns_waflz::rules* a_rules);
         int32_t update_profile(ns_waflz::profile* a_profile);
+        int32_t update_limit(ns_waflz::limit* a_limit);
         int32_t process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,

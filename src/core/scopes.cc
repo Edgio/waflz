@@ -1115,6 +1115,34 @@ bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
 //: ----------------------------------------------------------------------------
 int32_t scopes::update_limit(ns_waflz::limit* a_limit)
 {
+        if(!a_limit)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        const std::string& l_id = a_limit->get_cust_id()+'-'+ a_limit->get_id();
+        //-------------------------------------------
+        // check id in map
+        //-------------------------------------------
+        id_limit_map_t::iterator i_t = m_id_limit_map.find(l_id);
+        if(i_t == m_id_limit_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "limit id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        i_t->second = a_limit;
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+                for(int i_l = 0; i_l < l_sc.limits_size(); ++i_l)
+                {       
+                        ::waflz_pb::scope_limit_config* l_slc = l_sc.mutable_limits(i_l);
+                        if(l_slc->id() == l_id)
+                        {
+                                l_slc->set__reserved_1((uint64_t)a_limit);
+                                break;
+                        }
+                }
+        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -1129,7 +1157,16 @@ int32_t scopes::update_acl(ns_waflz::acl* a_acl)
                 return WAFLZ_STATUS_ERROR;
         }
         const std::string& l_id = a_acl->get_cust_id()+'-'+a_acl->get_id();
-        bool l_found = false;
+        //-------------------------------------------
+        // check id in map
+        //-------------------------------------------
+        id_acl_map_t::iterator i_t = m_id_acl_map.find(l_id);
+        if(i_t == m_id_acl_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "acl id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        i_t->second = a_acl;
         //-------------------------------------------
         // update scope's reserved fields
         //-------------------------------------------
@@ -1139,7 +1176,6 @@ int32_t scopes::update_acl(ns_waflz::acl* a_acl)
                 if(l_sc.has_acl_audit_id() &&
                    l_sc.acl_audit_id() == l_id)
                 {
-                        l_found = true;
                         acl* l_acl = (acl*)l_sc._acl_audit__reserved();
                         const waflz_pb::acl* l_old_pb = l_acl->get_pb();
                         const waflz_pb::acl* l_new_pb = a_acl->get_pb();
@@ -1160,7 +1196,6 @@ int32_t scopes::update_acl(ns_waflz::acl* a_acl)
                 if(l_sc.has_acl_prod_id() &&
                    l_sc.acl_prod_id() == l_id)
                 {
-                        l_found = true;
                         acl* l_acl = (acl*)l_sc._acl_prod__reserved();
                         const waflz_pb::acl* l_old_pb = l_acl->get_pb();
                         const waflz_pb::acl* l_new_pb = a_acl->get_pb();
@@ -1179,11 +1214,6 @@ int32_t scopes::update_acl(ns_waflz::acl* a_acl)
                         l_sc.set__acl_prod__reserved((uint64_t)a_acl);
                 }
         }
-        if(!l_found)
-        {
-                WAFLZ_PERROR(m_err_msg, "acl id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
-        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -1198,7 +1228,16 @@ int32_t scopes::update_rules(ns_waflz::rules* a_rules)
                 return WAFLZ_STATUS_ERROR;
         }
         const std::string& l_id = a_rules->get_cust_id()+'-'+a_rules->get_id();
-        bool l_found = false;
+        //-------------------------------------------
+        // check id in map
+        //-------------------------------------------
+        id_rules_map_t::iterator i_t = m_id_rules_map.find(l_id);
+        if(i_t == m_id_rules_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "acl id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        i_t->second = a_rules;
         //-------------------------------------------
         // update scope's reserved fields
         //-------------------------------------------
@@ -1208,7 +1247,6 @@ int32_t scopes::update_rules(ns_waflz::rules* a_rules)
                 if(l_sc.has_rules_audit_id() &&
                    l_sc.rules_audit_id() == l_id)
                 {
-                        l_found = true;
                         rules* l_rules = (rules*)l_sc._rules_audit__reserved();
                         const waflz_pb::sec_config_t* l_old_pb = l_rules->get_pb();
                         const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
@@ -1228,7 +1266,6 @@ int32_t scopes::update_rules(ns_waflz::rules* a_rules)
                 if(l_sc.has_rules_prod_id() &&
                    l_sc.rules_prod_id() == l_id)
                 {
-                        l_found = true;
                         rules* l_rules = (rules*)l_sc._rules_prod__reserved();
                         const waflz_pb::sec_config_t* l_old_pb = l_rules->get_pb();
                         const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
@@ -1246,11 +1283,6 @@ int32_t scopes::update_rules(ns_waflz::rules* a_rules)
                         l_sc.set__rules_prod__reserved((uint64_t)a_rules);
                 }
         }
-        if(!l_found)
-        {
-                WAFLZ_PERROR(m_err_msg, "rule id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
-        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -1265,7 +1297,16 @@ int32_t scopes::update_profile(ns_waflz::profile* a_profile)
                 return WAFLZ_STATUS_ERROR;
         }
         const std::string& l_id = a_profile->get_cust_id()+'-'+a_profile->get_id();
-        bool l_found = false;
+        //-------------------------------------------
+        // check id in map
+        //-------------------------------------------
+        id_profile_map_t::iterator i_t = m_id_profile_map.find(l_id);
+        if(i_t == m_id_profile_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "profile id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        i_t->second = a_profile;
         //-------------------------------------------
         // update scope's reserved fields
         //-------------------------------------------
@@ -1276,7 +1317,6 @@ int32_t scopes::update_profile(ns_waflz::profile* a_profile)
                 if(l_sc.has_profile_audit_id() &&
                     l_sc.profile_audit_id() == l_id)
                 {
-                        l_found = true;
                         profile *l_profile = (profile *)l_sc._profile_audit__reserved();
                         const waflz_pb::profile* l_old_pb = l_profile->get_pb();
                         const waflz_pb::profile* l_new_pb = a_profile->get_pb();
@@ -1297,7 +1337,6 @@ int32_t scopes::update_profile(ns_waflz::profile* a_profile)
                 if(l_sc.has_profile_prod_id() &&
                     l_sc.profile_prod_id() == l_id)
                 {
-                        l_found = true;
                         profile *l_profile = (profile *)l_sc._profile_prod__reserved();
                         const waflz_pb::profile* l_old_pb = l_profile->get_pb();
                         const waflz_pb::profile* l_new_pb = a_profile->get_pb();
@@ -1315,11 +1354,6 @@ int32_t scopes::update_profile(ns_waflz::profile* a_profile)
                         }
                         l_sc.set__profile_prod__reserved((uint64_t)a_profile);
                 }
-        }
-        if(!l_found)
-        {
-                WAFLZ_PERROR(m_err_msg, "profile id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
 }

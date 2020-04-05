@@ -1121,7 +1121,7 @@ int32_t scopes::update_limit(ns_waflz::limit* a_limit)
         }
         const std::string& l_id = a_limit->get_cust_id()+'-'+ a_limit->get_id();
         //-------------------------------------------
-        // check id in map
+        // check id in map and update map
         //-------------------------------------------
         id_limit_map_t::iterator i_t = m_id_limit_map.find(l_id);
         if(i_t == m_id_limit_map.end())
@@ -1130,6 +1130,9 @@ int32_t scopes::update_limit(ns_waflz::limit* a_limit)
                 return WAFLZ_STATUS_ERROR;
         }
         i_t->second = a_limit;
+        //-------------------------------------------
+        // update scope's reserved fields
+        //-------------------------------------------
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));

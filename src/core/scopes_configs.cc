@@ -624,7 +624,7 @@ bool scopes_configs::check_id(uint64_t a_cust_id)
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 int32_t scopes_configs::update_scopes_limit(void* a_js)
-{        
+{     
         int32_t l_s;
         ns_waflz::limit* l_limit = new limit(m_db);
         l_s = l_limit->load(a_js);

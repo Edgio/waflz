@@ -100,6 +100,49 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
+ns_is2::h_resp_t update_limit_h::do_post(ns_is2::session &a_session,
+                                       ns_is2::rqst &a_rqst,
+                                       const ns_is2::url_pmap_t &a_url_pmap)
+{
+        if(!m_scopes_configs)
+        {
+                TRC_ERROR("m_scopes_configs == NULL");
+                return ns_is2::H_RESP_SERVER_ERROR;
+        }
+        uint64_t l_buf_len = a_rqst.get_body_len();
+        ns_is2::nbq *l_q = a_rqst.get_body_q();
+        // copy to buffer
+        char *l_buf;
+        l_buf = (char *)malloc(l_buf_len);
+        l_q->read(l_buf, l_buf_len);
+        // get cust id from header
+        int32_t l_s;
+        l_s = m_scopes_configs->update_limit(l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                TRC_ERROR("update limit failed %s\n", m_scopes_configs->get_err_msg());
+                if(l_buf) { free(l_buf); l_buf = NULL; }
+                return ns_is2::H_RESP_SERVER_ERROR;
+        }
+        if(l_buf) { free(l_buf); l_buf = NULL; }
+        std::string l_resp_str = "{\"status\": \"success\"}";
+        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                   "application/json",
+                                   l_resp_str.length(),
+                                   a_rqst.m_supports_keep_alives,
+                                   a_session.get_server_name());
+        l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
+        l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
+        ns_is2::queue_api_resp(a_session, l_api_resp);
+        return ns_is2::H_RESP_DONE;
+}
+
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
 ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
                                        ns_is2::rqst &a_rqst,
                                        const ns_is2::url_pmap_t &a_url_pmap)
@@ -233,6 +276,7 @@ sx_scopes::sx_scopes(void):
         m_update_acl_h(NULL),
         m_update_rules_h(NULL),
         m_update_profile_h(NULL),
+        m_update_limit_h(NULL),
         m_scopes_configs(NULL),
         m_config_path(),
         m_ruleset_dir(),
@@ -255,6 +299,7 @@ sx_scopes::~sx_scopes(void)
         if(m_update_acl_h) { delete m_update_acl_h; m_update_acl_h = NULL; }
         if(m_update_rules_h) { delete m_update_rules_h; m_update_rules_h = NULL; }
         if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
+        if(m_update_limit_h) {delete m_update_limit_h; m_update_limit_h = NULL; }
         if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
 }
 //: ----------------------------------------------------------------------------
@@ -419,6 +464,10 @@ int32_t sx_scopes::init(void)
         m_update_profile_h = new update_profile_h();
         m_update_profile_h->m_scopes_configs = m_scopes_configs;
         m_lsnr->add_route("/update_profile", m_update_profile_h);
+
+        m_update_limit_h = new update_limit_h();
+        m_update_limit_h->m_scopes_configs = m_scopes_configs;
+        m_lsnr->add_route("/update_limit", m_update_limit_h);
 
         printf("listeners added\n");
         return STATUS_OK;

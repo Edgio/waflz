@@ -1113,7 +1113,7 @@ bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::update_limit(ns_waflz::limit* a_limit)
+int32_t scopes::load_limit(ns_waflz::limit* a_limit)
 {
         if(!a_limit)
         {
@@ -1153,7 +1153,7 @@ int32_t scopes::update_limit(ns_waflz::limit* a_limit)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::update_acl(ns_waflz::acl* a_acl)
+int32_t scopes::load_acl(ns_waflz::acl* a_acl)
 {
         if(!a_acl)
         {
@@ -1224,7 +1224,7 @@ int32_t scopes::update_acl(ns_waflz::acl* a_acl)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::update_rules(ns_waflz::rules* a_rules)
+int32_t scopes::load_rules(ns_waflz::rules* a_rules)
 {
         if(!a_rules)
         {
@@ -1293,7 +1293,7 @@ int32_t scopes::update_rules(ns_waflz::rules* a_rules)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes::update_profile(ns_waflz::profile* a_profile)
+int32_t scopes::load_profile(ns_waflz::profile* a_profile)
 {
         if(!a_profile)
         {

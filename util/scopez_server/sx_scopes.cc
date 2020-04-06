@@ -75,7 +75,7 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
         int32_t l_s;
-        //l_s = m_scopes_configs->update_scopes(l_buf, l_buf_len);
+        l_s = m_scopes_configs->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 TRC_ERROR("update scopes failed %s\n", m_scopes_configs->get_err_msg());
@@ -117,7 +117,7 @@ ns_is2::h_resp_t update_limit_h::do_post(ns_is2::session &a_session,
         l_q->read(l_buf, l_buf_len);
         // get cust id from header
         int32_t l_s;
-        l_s = m_scopes_configs->update_limit(l_buf, l_buf_len);
+        l_s = m_scopes_configs->load_limit(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 TRC_ERROR("update limit failed %s\n", m_scopes_configs->get_err_msg());
@@ -160,7 +160,7 @@ ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
         l_q->read(l_buf, l_buf_len);
         // get cust id from header
         int32_t l_s;
-        l_s = m_scopes_configs->update_acl(l_buf, l_buf_len);
+        l_s = m_scopes_configs->load_acl(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 TRC_ERROR("update acl failed %s\n", m_scopes_configs->get_err_msg());
@@ -201,7 +201,7 @@ ns_is2::h_resp_t update_rules_h::do_post(ns_is2::session &a_session,
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
         int32_t l_s;
-        l_s = m_scopes_configs->update_rules(l_buf, l_buf_len);
+        l_s = m_scopes_configs->load_rules(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 printf("update rules failed %s\n", m_scopes_configs->get_err_msg());
@@ -242,7 +242,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
         int32_t l_s;
-        l_s = m_scopes_configs->update_profile(l_buf, l_buf_len);
+        l_s = m_scopes_configs->load_profile(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 printf("update profile failed %s\n", m_scopes_configs->get_err_msg());

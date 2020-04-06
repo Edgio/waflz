@@ -623,8 +623,8 @@ bool scopes_configs::check_id(uint64_t a_cust_id)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::update_scopes_limit(void* a_js)
-{     
+int32_t scopes_configs::load_limit(void* a_js)
+{
         int32_t l_s;
         ns_waflz::limit* l_limit = new limit(m_db);
         l_s = l_limit->load(a_js);
@@ -652,7 +652,7 @@ int32_t scopes_configs::update_scopes_limit(void* a_js)
                 if(l_limit) { delete l_limit; l_limit = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-        l_s = i_scopes->second->update_limit(l_limit);
+        l_s = i_scopes->second->load_limit(l_limit);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
@@ -666,7 +666,7 @@ int32_t scopes_configs::update_scopes_limit(void* a_js)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::update_limit(const char* a_buf, uint32_t a_buf_len)
+int32_t scopes_configs::load_limit(const char* a_buf, uint32_t a_buf_len)
 {
         // ---------------------------------------
         // parse
@@ -698,7 +698,7 @@ int32_t scopes_configs::update_limit(const char* a_buf, uint32_t a_buf_len)
         // -------------------------------------------------
         if(l_js->IsObject())
         {
-                l_s = update_scopes_limit(l_js);
+                l_s = load_limit(l_js);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(m_enable_locking)
@@ -717,7 +717,7 @@ int32_t scopes_configs::update_limit(const char* a_buf, uint32_t a_buf_len)
                 for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
-                        l_s = update_scopes_limit((void*)&l_e);
+                        l_s = load_limit((void*)&l_e);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 if(m_enable_locking)
@@ -740,7 +740,7 @@ int32_t scopes_configs::update_limit(const char* a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::update_scopes_acl(void* a_js)
+int32_t scopes_configs::load_acl(void* a_js)
 {
         int32_t l_s;
         ns_waflz::acl* l_acl = new acl();
@@ -769,7 +769,7 @@ int32_t scopes_configs::update_scopes_acl(void* a_js)
                 if(l_acl) { delete l_acl; l_acl = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-        l_s = i_scopes->second->update_acl(l_acl);
+        l_s = i_scopes->second->load_acl(l_acl);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
@@ -783,7 +783,7 @@ int32_t scopes_configs::update_scopes_acl(void* a_js)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::update_acl(const char* a_buf, uint32_t a_buf_len)
+int32_t scopes_configs::load_acl(const char* a_buf, uint32_t a_buf_len)
 {
         // ---------------------------------------
         // parse
@@ -815,7 +815,7 @@ int32_t scopes_configs::update_acl(const char* a_buf, uint32_t a_buf_len)
         // -------------------------------------------------
         if(l_js->IsObject())
         {
-                l_s = update_scopes_acl(l_js);
+                l_s = load_acl(l_js);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(m_enable_locking)
@@ -834,7 +834,7 @@ int32_t scopes_configs::update_acl(const char* a_buf, uint32_t a_buf_len)
                 for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
-                        l_s = update_scopes_acl((void*)&l_e);
+                        l_s = load_acl((void*)&l_e);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 if(m_enable_locking)
@@ -857,7 +857,7 @@ int32_t scopes_configs::update_acl(const char* a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::update_scopes_rules(void* a_js)
+int32_t scopes_configs::load_rules(void* a_js)
 {
         int32_t l_s;
         ns_waflz::rules* l_rules = new rules(m_engine);
@@ -885,7 +885,7 @@ int32_t scopes_configs::update_scopes_rules(void* a_js)
                 if(l_rules) { delete l_rules; l_rules = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-        l_s = i_scopes->second->update_rules(l_rules);
+        l_s = i_scopes->second->load_rules(l_rules);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
@@ -899,7 +899,7 @@ int32_t scopes_configs::update_scopes_rules(void* a_js)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t scopes_configs::update_rules(const char* a_buf, uint32_t a_buf_len)
+int32_t scopes_configs::load_rules(const char* a_buf, uint32_t a_buf_len)
 {
         // ---------------------------------------
         // parse
@@ -931,7 +931,7 @@ int32_t scopes_configs::update_rules(const char* a_buf, uint32_t a_buf_len)
         // -------------------------------------------------
         if(l_js->IsObject())
         {
-                l_s = update_scopes_rules(l_js);
+                l_s = load_rules(l_js);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(m_enable_locking)
@@ -950,7 +950,7 @@ int32_t scopes_configs::update_rules(const char* a_buf, uint32_t a_buf_len)
                 for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
-                        l_s = update_scopes_rules((void*)&l_e);
+                        l_s = load_rules((void*)&l_e);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 if(m_enable_locking)
@@ -973,7 +973,7 @@ int32_t scopes_configs::update_rules(const char* a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: -----------------------------------------------------------------------------
-int32_t scopes_configs::update_scopes_profile(void* a_js)
+int32_t scopes_configs::load_profile(void* a_js)
 {
         int32_t l_s;
         ns_waflz::profile* l_profile = new profile(m_engine);
@@ -1002,7 +1002,7 @@ int32_t scopes_configs::update_scopes_profile(void* a_js)
                 if(l_profile) { delete l_profile; l_profile = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-        l_s = i_scopes->second->update_profile(l_profile);
+        l_s = i_scopes->second->load_profile(l_profile);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
@@ -1016,7 +1016,7 @@ int32_t scopes_configs::update_scopes_profile(void* a_js)
 //: \return  TODO
 //: \param   TODO
 //: -----------------------------------------------------------------------------
-int32_t scopes_configs::update_profile(const char* a_buf, uint32_t a_buf_len)
+int32_t scopes_configs::load_profile(const char* a_buf, uint32_t a_buf_len)
 {
         // ---------------------------------------
         // parse
@@ -1048,7 +1048,7 @@ int32_t scopes_configs::update_profile(const char* a_buf, uint32_t a_buf_len)
         // -------------------------------------------------
         if(l_js->IsObject())
         {
-                l_s = update_scopes_profile(l_js);
+                l_s = load_profile(l_js);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(m_enable_locking)
@@ -1067,7 +1067,7 @@ int32_t scopes_configs::update_profile(const char* a_buf, uint32_t a_buf_len)
                 for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
-                        l_s = update_scopes_profile((void*)&l_e);
+                        l_s = load_profile((void*)&l_e);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 if(m_enable_locking)

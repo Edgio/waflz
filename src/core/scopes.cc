@@ -271,7 +271,7 @@ static int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
 //: \return  None
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-scopes::scopes(engine &a_engine, kv_db &a_kv_db):
+scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),
@@ -286,7 +286,8 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db):
         m_id_rules_map(),
         m_id_profile_map(),
         m_id_limit_map(),
-        m_enfx(NULL)
+        m_enfx(NULL),
+         m_challenge(a_challenge)
 {
         m_pb = new waflz_pb::scope_config();
         m_enfx = new enforcer(false);

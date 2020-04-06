@@ -174,6 +174,7 @@ int32_t rules::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         if(l_event)
         {
+                // DS: todo check if browser challenge
                 l_s = l_rqst_ctx->append_rqst_info(*l_event);
                 if(l_s != WAFLZ_STATUS_OK)
                 {

@@ -680,6 +680,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
+        fprintf(a_stream, "  -b, --bot-challenge json containing browser challenges\n");
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
         fprintf(a_stream, "  -i, --geoip-isp-db  geoip-isp-db\n");
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
@@ -725,6 +726,7 @@ int main(int argc, char** argv)
         std::string l_server_spec;
         std::string l_config_file;
         std::string l_redis_host;
+        std::string l_b_challenge_file;
         bool l_action_mode = false;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
@@ -746,6 +748,7 @@ int main(int argc, char** argv)
                 { "port",         1, 0, 'p' },
                 { "action",       0, 0, 'a' },
                 { "ruleset-dir",  1, 0, 'r' },
+                { "bot-challenge",1, 0, 'b' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 'i' },
                 { "redis-host",   1, 0, 'e' },
@@ -778,9 +781,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:H:C:";
+        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:H:C:b:";
 #else
-        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:";
+        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:b:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -851,6 +854,11 @@ int main(int argc, char** argv)
                                 print_usage(stdout, STATUS_ERROR);
                         }
                         l_port = (uint16_t)l_port_val;
+                        break;
+                }
+                case 'b':
+                {
+                        l_b_challenge_file = l_arg;
                         break;
                 }
                 // -----------------------------------------
@@ -1025,6 +1033,19 @@ int main(int argc, char** argv)
                 l_ruleset_dir += "/";
         }
         // -------------------------------------------------
+        // init bot challenge
+        // -------------------------------------------------
+        int32_t l_s;
+        ns_waflz::challenge* l_b_challenge = new ns_waflz::challenge();
+        if(!l_b_challenge_file.empty())
+        {
+                l_s = l_b_challenge->load_file(l_b_challenge_file.c_str(), l_b_challenge_file.length());
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("Error:%s", l_b_challenge->get_err_msg());
+                }
+        }
+        // -------------------------------------------------
         // *************************************************
         // server setup
         // *************************************************
@@ -1076,6 +1097,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_scopes_dir = false;
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
+                g_sx_scopes->m_b_challenge = l_b_challenge;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
@@ -1091,6 +1113,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_scopes_dir = true;
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
+                g_sx_scopes->m_b_challenge = l_b_challenge;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
@@ -1110,7 +1133,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        int32_t l_s;
         l_s = g_sx_scopes->init();
         if(l_s != STATUS_OK)
         {

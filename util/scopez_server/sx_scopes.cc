@@ -284,7 +284,7 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         // create scope configs
         // -------------------------------------------------
-        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, *m_db, false);
+        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, *m_db, *m_b_challenge, false);
         m_scopes_configs->set_conf_dir(m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {

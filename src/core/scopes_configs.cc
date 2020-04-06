@@ -44,6 +44,7 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 scopes_configs::scopes_configs(engine &a_engine,
                                kv_db& a_db,
+                               challenge& a_challenge,
                                bool a_enable_locking):
         m_cust_id_scopes_map(),
         m_err_msg(),
@@ -51,7 +52,8 @@ scopes_configs::scopes_configs(engine &a_engine,
         m_db(a_db),
         m_mutex(),
         m_enable_locking(a_enable_locking),
-        m_conf_dir()
+        m_conf_dir(),
+        m_challenge(a_challenge)
 {
         // Initialize the mutex
         if(m_enable_locking)
@@ -291,7 +293,7 @@ int32_t scopes_configs::load(void* a_js)
                 return WAFLZ_STATUS_ERROR;                
         }
 
-        scopes *l_scopes = new scopes(m_engine, m_db);
+        scopes *l_scopes = new scopes(m_engine, m_db, m_challenge);
         int32_t l_s;
         l_s = l_scopes->load(a_js, m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)

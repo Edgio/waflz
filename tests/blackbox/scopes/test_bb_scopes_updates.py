@@ -250,7 +250,8 @@ def test_profile_config_update(setup_scopez_server_action):
 
 def test_limit_config_update(setup_scopez_server_action):
     # ------------------------------------------------------------------------------
-    # Make 3 request in 5 sec. Third request should get rate limited
+    # Make 3 request in 5 sec for 3rd and
+    # 4th scope. Third request should get rate limited
     # ------------------------------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
@@ -258,10 +259,19 @@ def test_limit_config_update(setup_scopez_server_action):
     for x in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
-
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
+
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'test.limit.com',
+                 'waf-scopes-id': '0050'}
+    for x in range(2):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'custom response for limits from limit_id_2\n'
     # ------------------------------------------------------------------------------
     # sleep for 10 seconds. Enforcements should expire
     # ------------------------------------------------------------------------------
@@ -304,6 +314,19 @@ def test_limit_config_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
+    # ------------------------------------------------------------------------------
+    # Make 4 request in 5 sec for fourth scope.
+    # verify if 4th scope was also updated
+    # ------------------------------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'test.limit.com',
+                 'waf-scopes-id': '0050'}
+    for x in range(3):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'custom response for limits from limit_id_2\n'
 
 def test_scopes_update(setup_scopez_server_action):
     #-------------------------------------------------------

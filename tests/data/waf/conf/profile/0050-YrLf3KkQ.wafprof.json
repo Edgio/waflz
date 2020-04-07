@@ -3,6 +3,7 @@
   "customer_id": "0050",
   "name": "test",
   "created_date": "5/28/2016 1:39:46 PM",
+  "last_modified_date": "2019-04-18T19:48:25.142172Z",
   "ruleset_id": "OWASP-CRS-3.2",
   "ruleset_version": "2018-10-04",
   "policies" : [

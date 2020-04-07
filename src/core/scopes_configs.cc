@@ -309,14 +309,14 @@ int32_t scopes_configs::load(void* a_js)
         {
                 WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint");
                 return WAFLZ_STATUS_ERROR;
-        }       
+        } 
         // -------------------------------------------------
         // check for exist in map
         // -------------------------------------------------
         cust_id_scopes_map_t::iterator i_scopes;
         i_scopes = m_cust_id_scopes_map.find(l_cust_id);
         // -------------------------------------------------
-        // found existing instance
+        // found existing scope
         // -------------------------------------------------
         if((i_scopes != m_cust_id_scopes_map.end()) &&
             i_scopes->second != NULL)

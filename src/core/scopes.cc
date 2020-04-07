@@ -1095,18 +1095,18 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
 //: ----------------------------------------------------------------------------
 bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
 {
-    if(a_loaded_date == NULL ||
-       a_new_date == NULL)
-    {
-            return false;
-    }
-    uint64_t l_loaded_epoch = get_epoch_seconds(a_loaded_date, CONFIG_DATE_FORMAT);
-    uint64_t l_new_epoch = get_epoch_seconds(a_new_date, CONFIG_DATE_FORMAT);
-    if(l_loaded_epoch >= l_new_epoch)
-    {
-            return false;
-    }
-    return true;
+        if(a_loaded_date == NULL ||
+           a_new_date == NULL)
+        {
+                return false;
+        }
+        uint64_t l_loaded_epoch = get_epoch_seconds(a_loaded_date, CONFIG_DATE_FORMAT);
+        uint64_t l_new_epoch = get_epoch_seconds(a_new_date, CONFIG_DATE_FORMAT);
+        if(l_loaded_epoch >= l_new_epoch)
+        {
+                return false;
+        }
+        return true;
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -1121,13 +1121,30 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
         }
         const std::string& l_id = a_limit->get_cust_id()+'-'+ a_limit->get_id();
         //-------------------------------------------
-        // check id in map and update map
+        // check id in map
         //-------------------------------------------
         id_limit_map_t::iterator i_t = m_id_limit_map.find(l_id);
         if(i_t == m_id_limit_map.end())
         {
                 WAFLZ_PERROR(m_err_msg, "limit id %s not attached to any scopes", l_id.c_str());
                 return WAFLZ_STATUS_ERROR;
+        }
+        //-------------------------------------------
+        // check if limit is latest
+        //-------------------------------------------
+        const waflz_pb::limit* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::limit* l_new_pb = a_limit->get_pb();
+        if((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                        return WAFLZ_STATUS_ERROR;
+                }
         }
         i_t->second = a_limit;
         //-------------------------------------------
@@ -1169,6 +1186,23 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
                 WAFLZ_PERROR(m_err_msg, "acl id %s not attached to any scopes", l_id.c_str());
                 return WAFLZ_STATUS_ERROR;
         }
+        //-------------------------------------------
+        // check if acl is latest
+        //-------------------------------------------
+        const waflz_pb::acl* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::acl* l_new_pb = a_acl->get_pb();
+        if((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
         i_t->second = a_acl;
         //-------------------------------------------
         // update scope's reserved fields
@@ -1179,41 +1213,11 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
                 if(l_sc.has_acl_audit_id() &&
                    l_sc.acl_audit_id() == l_id)
                 {
-                        acl* l_acl = (acl*)l_sc._acl_audit__reserved();
-                        const waflz_pb::acl* l_old_pb = l_acl->get_pb();
-                        const waflz_pb::acl* l_new_pb = a_acl->get_pb();
-                        if((l_old_pb != NULL) &&
-                           (l_new_pb != NULL) &&
-                           (l_old_pb->has_last_modified_date()) &&
-                           (l_new_pb->has_last_modified_date()))
-                        {
-                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
-                                                  l_new_pb->last_modified_date().c_str()))
-                                {
-                                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                                        return WAFLZ_STATUS_ERROR;
-                                }
-                        }
                         l_sc.set__acl_audit__reserved((uint64_t)a_acl);
                 }
                 if(l_sc.has_acl_prod_id() &&
                    l_sc.acl_prod_id() == l_id)
                 {
-                        acl* l_acl = (acl*)l_sc._acl_prod__reserved();
-                        const waflz_pb::acl* l_old_pb = l_acl->get_pb();
-                        const waflz_pb::acl* l_new_pb = a_acl->get_pb();
-                        if((l_old_pb != NULL) &&
-                           (l_new_pb != NULL) &&
-                           (l_old_pb->has_last_modified_date()) &&
-                           (l_new_pb->has_last_modified_date()))
-                        {
-                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
-                                                  l_new_pb->last_modified_date().c_str()))
-                                {
-                                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                                        return WAFLZ_STATUS_ERROR;
-                                }
-                        }
                         l_sc.set__acl_prod__reserved((uint64_t)a_acl);
                 }
         }
@@ -1237,8 +1241,25 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
         id_rules_map_t::iterator i_t = m_id_rules_map.find(l_id);
         if(i_t == m_id_rules_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "acl id %s not attached to any scopes", l_id.c_str());
+                WAFLZ_PERROR(m_err_msg, "rules id %s not attached to any scopes", l_id.c_str());
                 return WAFLZ_STATUS_ERROR;
+        }
+        //-------------------------------------------
+        // check if rules is latest
+        //-------------------------------------------
+        const waflz_pb::sec_config_t* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
+        if((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                        return WAFLZ_STATUS_ERROR;
+                }
         }
         i_t->second = a_rules;
         //-------------------------------------------
@@ -1250,39 +1271,11 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
                 if(l_sc.has_rules_audit_id() &&
                    l_sc.rules_audit_id() == l_id)
                 {
-                        rules* l_rules = (rules*)l_sc._rules_audit__reserved();
-                        const waflz_pb::sec_config_t* l_old_pb = l_rules->get_pb();
-                        const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
-                        if((l_old_pb != NULL) &&
-                           (l_new_pb != NULL) &&
-                           (l_old_pb->has_last_modified_date()) &&
-                           (l_new_pb->has_last_modified_date()))
-                        {
-                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
-                                                  l_new_pb->last_modified_date().c_str()))
-                                {
-                                        return WAFLZ_STATUS_ERROR;
-                                }
-                        }
                         l_sc.set__rules_audit__reserved((uint64_t)a_rules);
                 }
                 if(l_sc.has_rules_prod_id() &&
                    l_sc.rules_prod_id() == l_id)
                 {
-                        rules* l_rules = (rules*)l_sc._rules_prod__reserved();
-                        const waflz_pb::sec_config_t* l_old_pb = l_rules->get_pb();
-                        const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
-                        if((l_old_pb != NULL) &&
-                           (l_new_pb != NULL) &&
-                           (l_old_pb->has_last_modified_date()) &&
-                           (l_new_pb->has_last_modified_date()))
-                        {
-                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
-                                                  l_new_pb->last_modified_date().c_str()))
-                                {
-                                        return WAFLZ_STATUS_ERROR;
-                                }
-                        }
                         l_sc.set__rules_prod__reserved((uint64_t)a_rules);
                 }
         }
@@ -1309,6 +1302,23 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
                 WAFLZ_PERROR(m_err_msg, "profile id %s not attached to any scopes", l_id.c_str());
                 return WAFLZ_STATUS_ERROR;
         }
+        //-------------------------------------------
+        // check if profile is latest
+        //-------------------------------------------
+        const waflz_pb::profile* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::profile* l_new_pb = a_profile->get_pb();
+        if((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
         i_t->second = a_profile;
         //-------------------------------------------
         // update scope's reserved fields
@@ -1320,41 +1330,11 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
                 if(l_sc.has_profile_audit_id() &&
                     l_sc.profile_audit_id() == l_id)
                 {
-                        profile *l_profile = (profile *)l_sc._profile_audit__reserved();
-                        const waflz_pb::profile* l_old_pb = l_profile->get_pb();
-                        const waflz_pb::profile* l_new_pb = a_profile->get_pb();
-                        if((l_old_pb != NULL) &&
-                            (l_new_pb != NULL) &&
-                            (l_old_pb->has_last_modified_date()) &&
-                            (l_new_pb->has_last_modified_date()))
-                        {
-                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
-                                                  l_new_pb->last_modified_date().c_str()))
-                                {
-                                        if(a_profile) { delete a_profile; a_profile = NULL;}
-                                        return WAFLZ_STATUS_ERROR;
-                                }
-                        }
                         l_sc.set__profile_audit__reserved((uint64_t)a_profile);
                 }       
                 if(l_sc.has_profile_prod_id() &&
                     l_sc.profile_prod_id() == l_id)
                 {
-                        profile *l_profile = (profile *)l_sc._profile_prod__reserved();
-                        const waflz_pb::profile* l_old_pb = l_profile->get_pb();
-                        const waflz_pb::profile* l_new_pb = a_profile->get_pb();
-                        if((l_old_pb != NULL) &&
-                            (l_new_pb != NULL) &&
-                            (l_old_pb->has_last_modified_date()) &&
-                            (l_new_pb->has_last_modified_date()))
-                        {
-                                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
-                                                  l_new_pb->last_modified_date().c_str()))
-                                {
-                                        if(a_profile) { delete a_profile; a_profile = NULL;}
-                                        return WAFLZ_STATUS_ERROR;
-                                }
-                        }
                         l_sc.set__profile_prod__reserved((uint64_t)a_profile);
                 }
         }

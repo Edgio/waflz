@@ -12,6 +12,7 @@ import time
 import requests
 import base64
 import time
+import datetime
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -94,6 +95,7 @@ def test_acl_config_update(setup_scopez_server_action):
             l_acl_conf_path, type(l_e), l_e, l_e.__doc__))
         assert False
     l_conf['user_agent']['blacklist'] = []
+    l_conf['last_modified_date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     # ------------------------------------------------------
     # post/update acl conf
     # ------------------------------------------------------
@@ -145,6 +147,7 @@ def test_rules_config_update(setup_scopez_server_action):
             l_conf_path, type(l_e), l_e, l_e.__doc__))
         assert False
     l_conf['directive'][1]['sec_rule']['operator']['value'] = 'donkeez'
+    l_conf['last_modified_date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     # ------------------------------------------------------
     # post/update rules conf
     # ------------------------------------------------------
@@ -214,6 +217,7 @@ def test_profile_config_update(setup_scopez_server_action):
             l_profile_conf_path, type(l_e), l_e, l_e.__doc__))
         assert False
     l_conf["general_settings"]["ignore_query_args"] = ["test"]
+    l_conf['last_modified_date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     # ------------------------------------------------------
     # post/update profile conf
     # ------------------------------------------------------
@@ -276,6 +280,7 @@ def test_limit_config_update(setup_scopez_server_action):
             l_limit_conf_path, type(l_e), l_e, l_e.__doc__))
         assert False
     l_conf["num"] = 3
+    l_conf['last_modified_date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     #-------------------------------------------------------
     # POST conf
     # ------------------------------------------------------
@@ -299,3 +304,64 @@ def test_limit_config_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
+
+def test_scopes_update(setup_scopez_server_action):
+    #-------------------------------------------------------
+    #  check second scope for AN 0051 working correctly
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/path.html'
+    l_headers = {'host': 'www.regexhost.com',
+                 'waf-scopes-id':'0051',
+                 'User-Agent': 'bananas'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'This is from RX scope\n'
+    #-------------------------------------------------------
+    #  change the 'path' value for scope and update.
+    #  check if update was successful
+    # ------------------------------------------------------
+    l_conf = {}
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_scopes_conf_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes/0051.scopes.json'))
+    try:
+        with open(l_scopes_conf_path) as l_f:
+            l_conf = json.load(l_f)
+    except Exception as l_e:
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
+            l_scopes_conf_path, type(l_e), l_e, l_e.__doc__))
+        assert False 
+    l_conf['scopes'][1]['path']['value'] = ".*/test.html"
+    l_conf['last_modified_date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    #-------------------------------------------------------
+    # POST conf
+    # ------------------------------------------------------
+    l_url = '%s/update_scopes'%(G_TEST_HOST)
+    l_headers = {'Content-Type': 'application/json'}
+    l_r = requests.post(l_url,
+                        headers=l_headers,
+                        data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    #-------------------------------------------------------
+    # make a request with same path '/path.html',
+    # should match GLOB scope
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/path.html'
+    l_headers = {'host': 'www.regexhost.com',
+                 'waf-scopes-id':'0051',
+                 'User-Agent': 'bananas'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'This is from GLOB scope\n'
+    #-------------------------------------------------------
+    # make a request with updated path '/test.html',
+    # should get 403 with custom response
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'www.regexhost.com',
+                 'waf-scopes-id':'0051',
+                 'User-Agent': 'bananas'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'This is from RX scope\n'
+
+

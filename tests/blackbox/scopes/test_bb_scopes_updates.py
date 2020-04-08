@@ -249,10 +249,10 @@ def test_profile_config_update(setup_scopez_server_action):
     assert l_r.status_code == 200
 
 def test_limit_config_update(setup_scopez_server_action):
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
     # Make 3 request in 5 sec for 3rd and
     # 4th scope. Third request should get rate limited
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
@@ -272,9 +272,9 @@ def test_limit_config_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'custom response for limits from limit_id_2\n'
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
     # sleep for 10 seconds. Enforcements should expire
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
     time.sleep(10)
     #-------------------------------------------------------
     # load limit config and change duration_sec to 3
@@ -301,10 +301,11 @@ def test_limit_config_update(setup_scopez_server_action):
                         headers=l_headers,
                         data=json.dumps(l_conf))
     assert l_r.status_code == 200
-    # ------------------------------------------------------------------------------
-    # Make 4 request in 5 sec. fourth request should get rate limited.
-    # Third request shouldn't be blocked because of the update
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
+    # Make 4 request in 5 sec. fourth request should get
+    # rate limited. Third request shouldn't be blocked
+    # because of the update
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
@@ -314,10 +315,10 @@ def test_limit_config_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
     # Make 4 request in 5 sec for fourth scope.
     # verify if 4th scope was also updated
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'test.limit.com',
                  'waf-scopes-id': '0050'}

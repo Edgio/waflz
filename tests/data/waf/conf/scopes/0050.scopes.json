@@ -17,7 +17,7 @@
       "type": "GLOB",
       "value": "*"
     },
-    "acl_prod_id": "0050-ZrLf2KkQ",
+    "acl_prod_id": "ZrLf2KkQ",
     "acl_prod_action": {
       "id": "zeAXrlLT",
       "name": "ACTION",
@@ -28,7 +28,7 @@
       "status": 403,
       "type": "custom-response"
     },
-    "rules_prod_id": "0050-ZrLf3KkQ",
+    "rules_prod_id": "ZrLf3KkQ",
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -39,7 +39,7 @@
       "status": 403,
       "type": "custom-response"
     },
-    "profile_prod_id": "0050-YrLf3KkQ",
+    "profile_prod_id": "YrLf3KkQ",
     "profile_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -64,11 +64,11 @@
       "type": "GLOB",
       "value": "*"
     },
-    "acl_audit_id":"0050-5wOgfHWR",
+    "acl_audit_id":"5wOgfHWR",
     "acl_audit_action": {
 
     },
-    "acl_prod_id":"0050-ZrLf2KkQ",
+    "acl_prod_id":"ZrLf2KkQ",
     "acl_prod_action": {
       "id": "zeAXrlLT",
       "name": "ACTION",
@@ -79,7 +79,7 @@
       "status": 403,
       "type": "custom-response"
     },
-    "rules_prod_id":"0050-ZrLf3KkQ",
+    "rules_prod_id":"ZrLf3KkQ",
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -90,9 +90,9 @@
       "status": 403,
       "type": "custom-response"
     },
-    "rules_audit_id":"0050-0gG8osWJ",
+    "rules_audit_id":"0gG8osWJ",
     "rules_audit_action":{},
-    "profile_prod_id":"0050-YrLf3KkQ",
+    "profile_prod_id":"YrLf3KkQ",
     "profile_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -103,7 +103,7 @@
       "status": 403,
       "type": "custom-response"   
     },
-    "profile_audit_id":"0050-YrLf3KkQ",
+    "profile_audit_id":"YrLf3KkQ",
     "profile_audit_action":{}
   },
   {
@@ -120,7 +120,7 @@
       "value": "*"
     },
     "limits":[{
-       "id":"0050-MjMhNXMR",
+       "id":"MjMhNXMR",
        "action":{
           "id":"zeAXrllT",
           "name":"ddos-action",
@@ -130,14 +130,14 @@
           "response_body_base64": "VGhpcyBpcyBkZG9zIGN1c3RvbSByZXNwb25zZQo="
        }
     }],
-    "acl_prod_id":"0050-5wOgfHWR",
+    "acl_prod_id":"5wOgfHWR",
     "acl_prod_action":{
           "name": "acl-action",
           "status":403,
           "type":"custom-response",
           "response_body_base64":"VGhpcyBpcyBhY2wgY3VzdG9tIHJlc3BvbnNlCg=="
     },
-    "profile_prod_id":"0050-YrLf3KkQ",
+    "profile_prod_id":"YrLf3KkQ",
     "profile_prod_action":{
           "name":"profile-action",
           "status":403,
@@ -159,7 +159,7 @@
       "value": "*"
     },
     "limits":[{
-       "id":"0050-MjMhNXMR",
+       "id":"MjMhNXMR",
        "action":{
           "id":"lllllll",
           "name":"ddos-action",

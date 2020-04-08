@@ -17,7 +17,7 @@
       "type": "EM",
       "value": "/test.html"
     },
-    "rules_prod_id": "0051-4fsYnj9c",
+    "rules_prod_id": "4fsYnj9c",
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -39,7 +39,7 @@
       "type": "RX",
       "value": ".*/path.html"
     },
-    "rules_prod_id": "0051-4fsYnj9c",
+    "rules_prod_id": "4fsYnj9c",
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -61,7 +61,7 @@
       "type": "GLOB",
       "value": "*"
     },
-    "rules_prod_id": "0051-4fsYnj9c",
+    "rules_prod_id": "4fsYnj9c",
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",

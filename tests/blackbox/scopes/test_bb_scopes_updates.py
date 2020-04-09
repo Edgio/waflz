@@ -46,14 +46,16 @@ def setup_scopez_server_action():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
-                                  '-a'])
+                                  '-a',
+                                  '-b'])
     print('cmd: {}'.format(' '.join([l_scopez_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
-                                  '-a'])))
+                                  '-a',
+                                  '-b'])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...

@@ -44,7 +44,8 @@ class update_scopes_h: public ns_is2::default_rqst_h
 public:
         update_scopes_h():
                 default_rqst_h(),
-                m_scopes_configs(NULL)
+                m_scopes_configs(NULL),
+                m_bg_load(false)
         {}
         ~update_scopes_h()
         {}
@@ -52,6 +53,7 @@ public:
                                  ns_is2::rqst &a_rqst,
                                  const ns_is2::url_pmap_t &a_url_pmap);
         ns_waflz::scopes_configs* m_scopes_configs;
+        bool m_bg_load;
 };
 //: ----------------------------------------------------------------------------
 //: update_acl_h
@@ -95,7 +97,8 @@ class update_profile_h: public ns_is2::default_rqst_h
 public:
         update_profile_h():
                 default_rqst_h(),
-                m_scopes_configs(NULL)
+                m_scopes_configs(NULL),
+                m_bg_load(false)
         {}
         ~update_profile_h()
         {}
@@ -103,6 +106,7 @@ public:
                                  ns_is2::rqst &a_rqst,
                                  const ns_is2::url_pmap_t &a_url_pmap);
         ns_waflz::scopes_configs* m_scopes_configs;
+        bool m_bg_load;
 };
 //: ----------------------------------------------------------------------------
 //: update_limit_h

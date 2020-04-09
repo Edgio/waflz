@@ -55,6 +55,70 @@
 #define _SCOPEZ_SERVER_SCOPES_ID "waf-scopes-id"
 namespace ns_scopez_server {
 //: ----------------------------------------------------------------------------
+//: type
+//: ----------------------------------------------------------------------------
+typedef struct _waf_scopes_bg_update {
+        char* m_buf;
+        uint32_t m_buf_len;
+        ns_waflz::scopes_configs* m_scopes_configs;
+} waf_scopes_bg_update_t;
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+static void* t_load_scopes(void* a_context)
+{
+        waf_scopes_bg_update_t* l_sc = reinterpret_cast<waf_scopes_bg_update_t*>(a_context);
+        if(!l_sc)
+        {
+                return NULL;
+        }
+        int32_t l_s;
+        l_s = l_sc->m_scopes_configs->load(l_sc->m_buf, l_sc->m_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                TRC_ERROR("performing scopes->load\n");
+                if(l_sc->m_buf) { free(l_sc->m_buf); l_sc->m_buf = NULL;}
+                return NULL;
+        }
+        if(l_sc->m_buf) { free(l_sc->m_buf); l_sc->m_buf = NULL;}
+        delete l_sc;
+        return NULL;
+}
+//: ----------------------------------------------------------------------------
+//: type
+//: ----------------------------------------------------------------------------
+typedef struct _waf_profile_bg_update {
+        char* m_buf;
+        uint32_t m_buf_len;
+        ns_waflz::scopes_configs* m_scopes_configs;
+} waf_profile_bg_update_t;
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+static void* t_load_profile(void* a_context)
+{
+        waf_profile_bg_update_t* l_sc = reinterpret_cast<waf_profile_bg_update_t*>(a_context);
+        if(!l_sc)
+        {
+                return NULL;
+        }
+        int32_t l_s;
+        l_s = l_sc->m_scopes_configs->load_profile(l_sc->m_buf, l_sc->m_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                TRC_ERROR("performing profile loading\n");
+                if(l_sc->m_buf) { free(l_sc->m_buf); l_sc->m_buf = NULL;}
+                return NULL;
+        }
+        if(l_sc->m_buf) { free(l_sc->m_buf); l_sc->m_buf = NULL;}
+        delete l_sc;
+        return NULL;
+}
+//: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
@@ -75,14 +139,36 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
         int32_t l_s;
-        l_s = m_scopes_configs->load(l_buf, l_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+        m_scopes_configs->set_locking(true);
+        if(!m_bg_load)
         {
-                TRC_ERROR("update scopes failed %s\n", m_scopes_configs->get_err_msg());
+                l_s = m_scopes_configs->load(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        TRC_ERROR("update scopes failed %s\n", m_scopes_configs->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; }
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
                 if(l_buf) { free(l_buf); l_buf = NULL; }
-                return ns_is2::H_RESP_SERVER_ERROR;
         }
-        if(l_buf) { free(l_buf); l_buf = NULL; }
+        else
+        {
+                waf_scopes_bg_update_t* l_scopes_bg_update = new waf_scopes_bg_update_t();
+                l_scopes_bg_update->m_buf = l_buf;
+                l_scopes_bg_update->m_buf_len = l_buf_len;
+                l_scopes_bg_update->m_scopes_configs = m_scopes_configs;
+                pthread_t l_t_thread;
+                int32_t l_pthread_error = 0;
+                l_pthread_error = pthread_create(&l_t_thread,
+                                                 NULL,
+                                                 t_load_scopes,
+                                                 l_scopes_bg_update);
+                if (l_pthread_error != 0)
+                {
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
+
+        }
         std::string l_resp_str = "{\"status\": \"success\"}";
         ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
         l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
@@ -242,14 +328,35 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
         int32_t l_s;
-        l_s = m_scopes_configs->load_profile(l_buf, l_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+        m_scopes_configs->set_locking(true);
+        if(!m_bg_load)
         {
-                printf("update profile failed %s\n", m_scopes_configs->get_err_msg());
+                l_s = m_scopes_configs->load_profile(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        printf("update profile failed %s\n", m_scopes_configs->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; }
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
                 if(l_buf) { free(l_buf); l_buf = NULL; }
-                return ns_is2::H_RESP_SERVER_ERROR;
         }
-        if(l_buf) { free(l_buf); l_buf = NULL; }
+        else
+        {
+                waf_profile_bg_update_t* l_profile_bg_update = new waf_profile_bg_update_t();
+                l_profile_bg_update->m_buf = l_buf;
+                l_profile_bg_update->m_buf_len = l_buf_len;
+                l_profile_bg_update->m_scopes_configs = m_scopes_configs;
+                pthread_t l_t_thread;
+                int32_t l_pthread_error = 0;
+                l_pthread_error = pthread_create(&l_t_thread,
+                                                 NULL,
+                                                 t_load_profile,
+                                                 l_profile_bg_update);
+                if (l_pthread_error != 0)
+                {
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
+        }
         std::string l_resp_str = "{\"status\": \"success\"}";
         ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
         l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
@@ -451,6 +558,7 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         m_update_scopes_h = new update_scopes_h();
         m_update_scopes_h->m_scopes_configs = m_scopes_configs;
+        m_update_scopes_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_scopes", m_update_scopes_h);
 
         m_update_acl_h = new update_acl_h();
@@ -463,6 +571,7 @@ int32_t sx_scopes::init(void)
 
         m_update_profile_h = new update_profile_h();
         m_update_profile_h->m_scopes_configs = m_scopes_configs;
+        m_update_scopes_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_profile", m_update_profile_h);
 
         m_update_limit_h = new update_limit_h();

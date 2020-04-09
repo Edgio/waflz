@@ -1218,6 +1218,7 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
                         return WAFLZ_STATUS_ERROR;
                 }
         }
+        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_limit;
         //-------------------------------------------
         // update scope's reserved fields
@@ -1275,6 +1276,7 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
                         return WAFLZ_STATUS_ERROR;
                 }
         }
+        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_acl;
         //-------------------------------------------
         // update scope's reserved fields
@@ -1333,6 +1335,7 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
                         return WAFLZ_STATUS_ERROR;
                 }
         }
+        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_rules;
         //-------------------------------------------
         // update scope's reserved fields
@@ -1391,6 +1394,7 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
                         return WAFLZ_STATUS_ERROR;
                 }
         }
+        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_profile;
         //-------------------------------------------
         // update scope's reserved fields

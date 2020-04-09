@@ -70,6 +70,7 @@ waf::waf(engine &a_engine):
         m_err_msg(),
         m_engine(a_engine),
         m_id("NA"),
+        m_cust_id("NA"),
         m_name("NA"),
         m_ruleset_dir(),
         m_owasp_ruleset_version(0),
@@ -666,6 +667,92 @@ int32_t waf::init(config_parser::format_t a_format,
         // -------------------------------------------------
         m_pb->set_ruleset_id("__na__");
         m_pb->set_ruleset_version("__na__");
+        // -------------------------------------------------
+        // set id
+        // -------------------------------------------------
+        m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
+        // -------------------------------------------------
+        // compile
+        // -------------------------------------------------
+        l_s = compile();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "compilation failed");
+                return WAFLZ_STATUS_ERROR;
+        }
+        m_is_initd = true;
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t waf::init(void* a_js,
+                  bool a_apply_defaults)
+{
+        // Check if already is initd
+        if(m_is_initd)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(m_pb)
+        {
+                delete m_pb;
+                m_pb = NULL;
+        }
+        // -------------------------------------------------
+        // set defaults for missing values...
+        // -------------------------------------------------
+        int32_t l_s;
+        waflz_pb::sec_config_t *l_pb = NULL;
+        if(a_apply_defaults)
+        {
+                m_pb = new waflz_pb::sec_config_t();
+                l_s = set_defaults();
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "set_defaults failed");
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // parse
+        // -------------------------------------------------
+        config_parser *l_parser = new config_parser();
+        l_pb = new waflz_pb::sec_config_t();
+        l_s = l_parser->parse_config(*l_pb, a_js);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "%s", l_parser->get_err_msg());
+                if(l_parser) { delete l_parser; l_parser = NULL;}
+                if(l_pb) { delete l_pb; l_pb = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(m_pb)
+        {
+                m_pb->MergeFrom(*l_pb);
+                delete l_pb;
+                l_pb = NULL;
+        }
+        else
+        {
+                m_pb = l_pb;
+        }
+        // TODO remove -debug...
+        //l_parser->show_status();
+        if(l_parser) { delete l_parser; l_parser = NULL;}
+        // -------------------------------------------------
+        // set ruleset info
+        // -------------------------------------------------
+        m_pb->set_ruleset_id("__na__");
+        m_pb->set_ruleset_version("__na__");
+        // -------------------------------------------------
+        // set id
+        // -------------------------------------------------
+        m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
         // -------------------------------------------------
         // compile
         // -------------------------------------------------

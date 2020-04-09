@@ -39,9 +39,11 @@
 #include "op/nms.h"
 #include "op/regex.h"
 #include "scope.pb.h"
+#include "profile.pb.h"
 #include "jspb/jspb.h"
 #include "event.pb.h"
 #include "limit.pb.h"
+#include "rule.pb.h"
 #include <fnmatch.h>
 //: ----------------------------------------------------------------------------
 //: constants
@@ -489,11 +491,13 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
                 WAFLZ_PERROR(m_err_msg, "missing id field");
                 return WAFLZ_STATUS_ERROR;
         }
-        m_id = m_pb->id();
-        if(m_pb->has_customer_id())
+        if(!m_pb->has_customer_id())
         {
-                m_cust_id = m_pb->customer_id();
+                WAFLZ_PERROR(m_err_msg, "missing customer id field");
+                return WAFLZ_STATUS_ERROR;
         }
+        m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
         // -------------------------------------------------
         // for each scope - compile op and load parts
         // -------------------------------------------------
@@ -618,11 +622,21 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                 // make acl obj
                 // -----------------------------------------
                 acl *l_acl = new acl();
-                std::string l_p = a_conf_dir_path + "/acl/" + a_scope.acl_audit_id() + ".acl.json";
-                int32_t l_s;
+                std::string l_path;
+                //TODO: remove after config migration
+                size_t l_pos = a_scope.acl_audit_id().find(m_cust_id);
+                if(l_pos == std::string::npos)
+                {
+                       l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_audit_id() +".acl.json"; 
+                }
+                else
+                {
+                        l_path = a_conf_dir_path + "/acl/" + a_scope.acl_audit_id() + ".acl.json";
+                }
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
-                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                int32_t l_s;
+                l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
@@ -677,11 +691,21 @@ acl_audit_action:
                 // make acl obj
                 // -----------------------------------------
                 acl *l_acl = new acl();
-                std::string l_p = a_conf_dir_path + "/acl/" + a_scope.acl_prod_id()+ ".acl.json";
+                std::string l_path;
+                //TODO: remove after config migration
+                size_t l_pos = a_scope.acl_prod_id().find(m_cust_id);
+                if(l_pos == std::string::npos)
+                {
+                        l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_prod_id() +".acl.json";
+                }
+                else
+                {
+                        l_path = a_conf_dir_path + "/acl/" + a_scope.acl_prod_id() + ".acl.json";
+                }
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
-                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
@@ -732,17 +756,27 @@ acl_prod_action:
                         a_scope.set__rules_audit__reserved((uint64_t)i_rules->second);
                         goto rules_audit_action;
                 }
+                std::string l_path;
+                //TODO: remove after config migration
+                size_t l_pos = a_scope.rules_audit_id().find(m_cust_id);
+                if(l_pos == std::string::npos)
+                {
+                        l_path = a_conf_dir_path + "/rules/" + m_cust_id + "-" + a_scope.rules_audit_id() +".rules.json";
+                }
+                else
+                {
+                        l_path = a_conf_dir_path + "/rules/" + a_scope.rules_audit_id() + ".rules.json";
+                }
                 // -----------------------------------------
                 // make rules obj
                 // -----------------------------------------
-                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_audit_id() + ".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
-                l_s = l_rules->load_file(l_p.c_str(), l_p.length());
+                l_s = l_rules->load_file(l_path.c_str(), l_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading rules (audit) conf file: %s. reason: %s\n",
-                                   l_p.c_str(),
+                                   l_path.c_str(),
                                    "__na__");
                                    // TODO -get reason...
                                    //l_wafl->get_err_msg());
@@ -782,17 +816,27 @@ rules_audit_action:
                         a_scope.set__rules_prod__reserved((uint64_t)i_rules->second);
                         goto rules_prod_action;
                 }
+                //TODO: remove after config migration
+                std::string l_path;
+                size_t l_pos = a_scope.rules_prod_id().find(m_cust_id);
+                if(l_pos == std::string::npos)
+                {
+                        l_path = a_conf_dir_path + "/rules/" + m_cust_id + "-" + a_scope.rules_prod_id() +".rules.json";
+                }
+                else
+                {
+                        l_path = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id() + ".rules.json";
+                }
                 // -----------------------------------------
                 // make rules obj
                 // -----------------------------------------
-                std::string l_p = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id() + ".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
-                l_s = l_rules->load_file(l_p.c_str(), l_p.length());
+                l_s = l_rules->load_file(l_path.c_str(), l_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading rules (prod) conf file: %s. reason: %s\n",
-                                   l_p.c_str(),
+                                   l_path.c_str(),
                                    "__na__");
                                    // TODO -get reason...
                                    //l_wafl->get_err_msg());
@@ -832,15 +876,25 @@ rules_prod_action:
                         a_scope.set__profile_audit__reserved((uint64_t)i_profile->second);
                         goto profile_audit_action;
                 }
+                //TODO: remove after config migration
+                std::string l_path;
+                size_t l_pos = a_scope.profile_audit_id().find(m_cust_id);
+                if(l_pos == std::string::npos)
+                {
+                        l_path = a_conf_dir_path + "/profile/" + m_cust_id + "-" + a_scope.profile_audit_id() +".wafprof.json";
+                }
+                else
+                {
+                        l_path = a_conf_dir_path + "/profile/" + a_scope.profile_audit_id() + ".wafprof.json";
+                }
                 // -----------------------------------------
                 // make profile obj
                 // -----------------------------------------
                 profile *l_profile = new profile(m_engine);
-                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.profile_audit_id() + ".wafprof.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
-                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
@@ -891,15 +945,25 @@ profile_audit_action:
                         a_scope.set__profile_prod__reserved((uint64_t)i_profile->second);
                         goto profile_prod_action;
                 }
+                //TODO: remove after config migration
+                std::string l_path;
+                size_t l_pos = a_scope.profile_prod_id().find(m_cust_id);
+                if(l_pos == std::string::npos)
+                {
+                        l_path = a_conf_dir_path + "/profile/" + m_cust_id + "-" + a_scope.profile_prod_id() +".wafprof.json";
+                }
+                else
+                {
+                        l_path = a_conf_dir_path + "/profile/" + a_scope.profile_prod_id() + ".wafprof.json";
+                }
                 // -----------------------------------------
                 // make profile obj
                 // -----------------------------------------
                 profile *l_profile = new profile(m_engine);
-                std::string l_p = a_conf_dir_path + "/profile/" + a_scope.profile_prod_id() + ".wafprof.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
-                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
@@ -955,16 +1019,26 @@ profile_prod_action:
                         a_scope.mutable_limits(i_l)->set__reserved_1((uint64_t)i_limit->second);
                         goto limit_action;
                 }
+                {
+                //TODO: remove after config migration
+                std::string l_path;
+                size_t l_pos = l_id.find(m_cust_id);
+                if(l_pos == std::string::npos)
+                {
+                        l_path = a_conf_dir_path + "/limit/" + m_cust_id + "-" + l_id +".limit.json";
+                }
+                else
+                {
+                        l_path = a_conf_dir_path + "/limit/" + l_id + ".limit.json";
+                }
                 // -----------------------------------------
                 // make limit obj
                 // -----------------------------------------
-                {
                 limit *l_limit = new limit(m_db);
-                std::string l_p = a_conf_dir_path + "/limit/" + l_id + ".limit.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
-                l_s = read_file(l_p.c_str(), &l_buf, l_buf_len);
+                l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
@@ -1084,6 +1158,262 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         // cleanup
         // -------------------------------------------------
         if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details if a_loaded_date is >= a_new_Date
+//: \return  False
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
+{
+        if(a_loaded_date == NULL ||
+           a_new_date == NULL)
+        {
+                return false;
+        }
+        uint64_t l_loaded_epoch = get_epoch_seconds(a_loaded_date, CONFIG_DATE_FORMAT);
+        uint64_t l_new_epoch = get_epoch_seconds(a_new_date, CONFIG_DATE_FORMAT);
+        if(l_loaded_epoch >= l_new_epoch)
+        {
+                return false;
+        }
+        return true;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::load_limit(ns_waflz::limit* a_limit)
+{
+        if(!a_limit)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        const std::string& l_id = a_limit->get_id();
+        //-------------------------------------------
+        // check id in map
+        //-------------------------------------------
+        id_limit_map_t::iterator i_t = m_id_limit_map.find(l_id);
+        if(i_t == m_id_limit_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "limit id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        //-------------------------------------------
+        // check if limit is latest
+        //-------------------------------------------
+        const waflz_pb::limit* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::limit* l_new_pb = a_limit->get_pb();
+        if((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        i_t->second = a_limit;
+        //-------------------------------------------
+        // update scope's reserved fields
+        //-------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+                for(int i_l = 0; i_l < l_sc.limits_size(); ++i_l)
+                {       
+                        ::waflz_pb::scope_limit_config* l_slc = l_sc.mutable_limits(i_l);
+                        if(l_slc->id() == l_id)
+                        {
+                                l_slc->set__reserved_1((uint64_t)a_limit);
+                                break;
+                        }
+                }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::load_acl(ns_waflz::acl* a_acl)
+{
+        if(!a_acl)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        const std::string& l_id = a_acl->get_id();
+        //-------------------------------------------
+        // check id in map
+        //-------------------------------------------
+        id_acl_map_t::iterator i_t = m_id_acl_map.find(l_id);
+        if(i_t == m_id_acl_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "acl id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        //-------------------------------------------
+        // check if acl is latest
+        //-------------------------------------------
+        const waflz_pb::acl* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::acl* l_new_pb = a_acl->get_pb();
+        if((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        i_t->second = a_acl;
+        //-------------------------------------------
+        // update scope's reserved fields
+        //-------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+                if(l_sc.has_acl_audit_id() &&
+                   l_sc.acl_audit_id() == l_id)
+                {
+                        l_sc.set__acl_audit__reserved((uint64_t)a_acl);
+                }
+                if(l_sc.has_acl_prod_id() &&
+                   l_sc.acl_prod_id() == l_id)
+                {
+                        l_sc.set__acl_prod__reserved((uint64_t)a_acl);
+                }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::load_rules(ns_waflz::rules* a_rules)
+{
+        if(!a_rules)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        const std::string& l_id = a_rules->get_id();
+        //-------------------------------------------
+        // check id in map
+        //-------------------------------------------
+        id_rules_map_t::iterator i_t = m_id_rules_map.find(l_id);
+        if(i_t == m_id_rules_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "rules id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        //-------------------------------------------
+        // check if rules is latest
+        //-------------------------------------------
+        const waflz_pb::sec_config_t* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
+        if((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        i_t->second = a_rules;
+        //-------------------------------------------
+        // update scope's reserved fields
+        //-------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+                if(l_sc.has_rules_audit_id() &&
+                   l_sc.rules_audit_id() == l_id)
+                {
+                        l_sc.set__rules_audit__reserved((uint64_t)a_rules);
+                }
+                if(l_sc.has_rules_prod_id() &&
+                   l_sc.rules_prod_id() == l_id)
+                {
+                        l_sc.set__rules_prod__reserved((uint64_t)a_rules);
+                }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::load_profile(ns_waflz::profile* a_profile)
+{
+        if(!a_profile)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        const std::string& l_id = a_profile->get_id();
+        //-------------------------------------------
+        // check id in map
+        //-------------------------------------------
+        id_profile_map_t::iterator i_t = m_id_profile_map.find(l_id);
+        if(i_t == m_id_profile_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "profile id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        //-------------------------------------------
+        // check if profile is latest
+        //-------------------------------------------
+        const waflz_pb::profile* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::profile* l_new_pb = a_profile->get_pb();
+        if((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        i_t->second = a_profile;
+        //-------------------------------------------
+        // update scope's reserved fields
+        //-------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+
+                if(l_sc.has_profile_audit_id() &&
+                    l_sc.profile_audit_id() == l_id)
+                {
+                        l_sc.set__profile_audit__reserved((uint64_t)a_profile);
+                }       
+                if(l_sc.has_profile_prod_id() &&
+                    l_sc.profile_prod_id() == l_id)
+                {
+                        l_sc.set__profile_prod__reserved((uint64_t)a_profile);
+                }
+        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

@@ -55,6 +55,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
                                            ns_is2::rqst &a_rqst,
                                            const ns_is2::url_pmap_t &a_url_pmap)
 {
+        printf("update_profile\n");
         if(!m_profile)
         {
                 TRC_ERROR("g_profile == NULL\n");

@@ -103,14 +103,18 @@ public:
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t init(profile &a_profile);
         int32_t init(config_parser::format_t a_format, const std::string &a_path, bool a_apply_defaults = false);
+        int32_t init(void* a_js, bool a_apply_defaults = false);
         int32_t get_str(std::string &ao_str, config_parser::format_t a_format);
         const char *get_err_msg(void) { return m_err_msg; }
         waflz_pb::sec_config_t* get_pb(void) { return m_pb; }
+        const std::string& get_id(void) { return m_id; }
+        const std::string& get_cust_id(void) { return m_cust_id; }
         // -------------------------------------------------
         // properties
         // -------------------------------------------------
         void set_id(const std::string &a_id) { m_id = a_id; }
         void set_name(const std::string &a_name) { m_name = a_name; }
+        void set_cust_id(const std::string& a_cust_id) {m_cust_id = a_cust_id; }
         void set_owasp_ruleset_version(uint32_t a_version) { m_owasp_ruleset_version = a_version; }
         void set_paranoia_level(uint32_t a_paranoia_level) { m_paranoia_level = a_paranoia_level; }
         void set_parse_xml( const bool &a_parse_xml) { m_parse_xml = a_parse_xml; }
@@ -163,6 +167,7 @@ private:
         // properties
         // -------------------------------------------------
         std::string m_id;
+        std::string m_cust_id;
         std::string m_name;
         std::string m_ruleset_dir;
         uint32_t m_owasp_ruleset_version;

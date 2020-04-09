@@ -56,7 +56,7 @@ def setup_scopez_server():
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 # ------------------------------------------------------------------------------
-# setup scopez server with single scope
+# setup scopez server with single scope for an 0050
 # ------------------------------------------------------------------------------
 @pytest.fixture()
 def setup_scopez_server_single():
@@ -94,7 +94,7 @@ def setup_scopez_server_single():
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 # ------------------------------------------------------------------------------
-# setup scopez server in action mode for an 0050
+# setup scopez server in action mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
 def setup_scopez_server_action():

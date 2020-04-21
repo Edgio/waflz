@@ -50,7 +50,7 @@ def setup_scopez_server_action():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
-                                  '-b', l_bot_challenge,
+                                  '-c', l_bot_challenge,
                                   '-a'])
     print('cmd: {}'.format(' '.join([l_scopez_server_path,
                                   '-d', l_conf_dir,
@@ -58,7 +58,7 @@ def setup_scopez_server_action():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
-                                  '-b', l_bot_challenge,
+                                  '-c', l_bot_challenge,
                                   '-a'])))
     time.sleep(1)
     # ------------------------------------------------------

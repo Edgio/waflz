@@ -62,7 +62,7 @@
       "type": "EM",
       "value": "/test.html"
     },
-    "rules_prod_id": "0052-l9nTkowq",
+    "rules_prod_id": "l9nTkowq",
     "rules_prod_action": {
       "id": "uKlXttqm",
       "name": "ACTION",
@@ -72,7 +72,7 @@
     }
   },
   {
-    "id": "HiKxcbal",
+    "id": "PnQrlisd",
     "name": "scope with custom rule for bot challenge",
     "host": {
       "is_negated": false,
@@ -84,7 +84,7 @@
       "type": "GLOB",
       "value": "*"
     },
-    "rules_prod_id": "0052-l9nTkowq",
+    "rules_prod_id": "l9nTkowq",
     "rules_prod_action": {
       "id": "uKlXttqm",
       "name": "ACTION",
@@ -92,7 +92,7 @@
       "type": "browser-challenge",
       "valid_for_sec" : 3
     },
-    "profile_prod_id": "0050-YrLf3KkQ",
+    "profile_prod_id": "KsdoThsq",
     "profile_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",

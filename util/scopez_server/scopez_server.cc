@@ -655,7 +655,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
-        fprintf(a_stream, "  -b, --bot-challenge json containing browser challenges\n");
+        fprintf(a_stream, "  -c, --bot-challenge json containing browser challenges\n");
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
         fprintf(a_stream, "  -i, --geoip-isp-db  geoip-isp-db\n");
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
@@ -725,7 +725,7 @@ int main(int argc, char** argv)
                 { "action",       0, 0, 'a' },
                 { "bg" ,          0, 0, 'b' },
                 { "ruleset-dir",  1, 0, 'r' },
-                { "bot-challenge",1, 0, 'b' },
+                { "bot-challenge",1, 0, 'c' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 'i' },
                 { "redis-host",   1, 0, 'e' },
@@ -758,9 +758,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:H:C:b:";
+        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:H:C:c:";
 #else
-        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:b:";
+        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:c:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -833,7 +833,7 @@ int main(int argc, char** argv)
                         l_port = (uint16_t)l_port_val;
                         break;
                 }
-                case 'b':
+                case 'c':
                 {
                         l_b_challenge_file = l_arg;
                         break;

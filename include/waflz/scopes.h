@@ -126,6 +126,10 @@ public:
         std::string& get_cust_id(void) { return m_cust_id; }
         int32_t load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path);
         int32_t load(void *a_js, const std::string& a_conf_dir_path);
+        int32_t load_acl(ns_waflz::acl* a_acl);
+        int32_t load_rules(ns_waflz::rules* a_rules);
+        int32_t load_profile(ns_waflz::profile* a_profile);
+        int32_t load_limit(ns_waflz::limit* a_limit);
         int32_t process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
@@ -156,6 +160,7 @@ private:
                         void *a_ctx,
                         part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
+        bool compare_dates(const char* a_loaded_date, const char* a_new_date);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

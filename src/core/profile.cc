@@ -91,6 +91,7 @@ profile::profile(engine &a_engine):
         m_acl(NULL),
         m_waf(NULL),
         m_id(),
+        m_cust_id(),
         m_name(),
         m_resp_header_name(),
         m_action(waflz_pb::enforcement_type_t_NOP),
@@ -172,6 +173,35 @@ int32_t profile::load(const char *a_buf, uint32_t a_buf_len)
         // -------------------------------------------------
         // init
         // -------------------------------------------------
+        l_s = init();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t profile::load(void* a_js)
+{
+        m_init = false;
+        const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
+        int32_t l_s;
+        if(m_pb)
+        {
+                delete m_pb;
+                m_pb = NULL;
+        }
+        m_pb = new waflz_pb::profile();
+        l_s = update_from_json(*m_pb, l_js);
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
+        }
         l_s = init();
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -503,6 +533,12 @@ int32_t profile::validate(void)
         }
         m_id = m_pb->id();
         m_name = m_pb->name();
+        //TODO: Throw waflz error once customer_id
+        // field is added to all profiles
+        if(m_pb->has_customer_id())
+        {
+                m_cust_id = m_pb->customer_id();
+        }
         // -------------------------------------------------
         // general settings
         // -------------------------------------------------

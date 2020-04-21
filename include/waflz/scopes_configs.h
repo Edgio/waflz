@@ -26,7 +26,6 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/scopes.h"
 #include "waflz/limit/limit.h"
 #include "waflz/limit/challenge.h"
 #include <pthread.h>
@@ -69,6 +68,10 @@ public:
         int32_t load_dir(const char *a_dir_path, uint32_t a_dir_path_len);
         int32_t load_file(const char *a_file_path, uint32_t a_file_path_len);
         int32_t load(const char *a_buf, uint32_t a_buf_len);
+        int32_t load_acl(const char* a_buf, uint32_t a_buf_len);
+        int32_t load_limit(const char* a_buf, uint32_t a_buf_len);
+        int32_t load_rules(const char* a_buf, uint32_t a_buf_len);
+        int32_t load_profile(const char* a_buf, uint32_t a_buf_len);
         int32_t process(waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
@@ -95,6 +98,10 @@ private:
         scopes_configs& operator=(const scopes_configs &);
         int32_t load(void *a_js);
         scopes* get_scopes(uint64_t a_id);
+        int32_t load_acl(void* a_js);
+        int32_t load_limit(void* a_js);
+        int32_t load_rules(void* a_js);
+        int32_t load_profile(void* a_js);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------

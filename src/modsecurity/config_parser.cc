@@ -3581,6 +3581,25 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
+int32_t config_parser::read_buf_json(waflz_pb::sec_config_t& ao_config, const char* a_buf, uint64_t a_buf_len)
+{
+        // -------------------------------------------------
+        // Parse
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = update_from_json(ao_config, a_buf, a_buf_len);
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
 int32_t config_parser::read_directory(waflz_pb::sec_config_t& ao_config,
                                       format_t a_format,
                                       const std::string &a_directory)
@@ -3821,6 +3840,24 @@ int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
+                                    void* a_js)
+{
+        int32_t l_s;
+        const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
+        l_s = update_from_json(ao_config, l_js);
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
 }

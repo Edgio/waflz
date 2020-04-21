@@ -68,6 +68,7 @@ public:
         ~profile();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t load(const char *a_buf, uint32_t a_buf_len);
+        int32_t load(void* a_js);
         int32_t load(const waflz_pb::profile *a_pb);
         //: ------------------------------------------------
         //:               G E T T E R S
@@ -79,9 +80,10 @@ public:
         const char *get_err_msg(void) { return m_err_msg; }
         waflz_pb::profile *get_pb(void) { return m_pb; }
         waf *get_waf(void) { return m_waf; }
-        const std::string &get_id(void) { return m_id; }
-        const std::string &get_name(void) { return m_name; }
-        const std::string &get_resp_header_name(void) { return m_resp_header_name; }
+        const std::string& get_id(void) { return m_id; }
+        const std::string& get_cust_id(void) { return m_cust_id; }
+        const std::string& get_name(void) { return m_name; }
+        const std::string& get_resp_header_name(void) { return m_resp_header_name; }
         uint16_t get_action(void) { return m_action; }
         void set_pb(waflz_pb::profile *a_pb);
 private:
@@ -115,6 +117,7 @@ private:
         // properties
         // -------------------------------------------------
         std::string m_id;
+        std::string m_cust_id;
         std::string m_name;
         std::string m_resp_header_name;
         uint16_t m_action;

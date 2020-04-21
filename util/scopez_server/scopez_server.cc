@@ -651,6 +651,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -d  --config-dir    configuration directory\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
         fprintf(a_stream, "  -a, --action        server will apply scope actions instead of reporting\n");
+        fprintf(a_stream, "  -b, --background    update configs in bg\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
@@ -702,6 +703,7 @@ int main(int argc, char** argv)
         std::string l_redis_host;
         std::string l_b_challenge_file;
         bool l_action_mode = false;
+        bool l_bg = false;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -721,6 +723,7 @@ int main(int argc, char** argv)
                 { "config-dir",   1, 0, 'd' },
                 { "port",         1, 0, 'p' },
                 { "action",       0, 0, 'a' },
+                { "bg" ,          0, 0, 'b' },
                 { "ruleset-dir",  1, 0, 'r' },
                 { "bot-challenge",1, 0, 'b' },
                 { "geoip-db",     1, 0, 'g' },
@@ -841,6 +844,14 @@ int main(int argc, char** argv)
                 case 'a':
                 {
                         l_action_mode = true;
+                        break;
+                }
+                // -----------------------------------------
+                // bg
+                // -----------------------------------------
+                case 'b':
+                {
+                        l_bg = true;
                         break;
                 }
                 // -----------------------------------------
@@ -1055,7 +1066,7 @@ int main(int argc, char** argv)
                 g_sx_scopes = new ns_scopez_server::sx_scopes();
                 g_sx_scopes->m_lsnr = l_lsnr;
                 g_sx_scopes->m_config = l_config_file;
-                g_sx_scopes->m_bg_load = false;
+                g_sx_scopes->m_bg_load = l_bg;
                 g_sx_scopes->m_scopes_dir = false;
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
@@ -1071,7 +1082,7 @@ int main(int argc, char** argv)
                 g_sx_scopes = new ns_scopez_server::sx_scopes();
                 g_sx_scopes->m_lsnr = l_lsnr;
                 g_sx_scopes->m_config = l_config_file;
-                g_sx_scopes->m_bg_load = false;
+                g_sx_scopes->m_bg_load = l_bg;
                 g_sx_scopes->m_scopes_dir = true;
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;

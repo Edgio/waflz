@@ -123,7 +123,6 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
         {
                 return ns_is2::H_RESP_NONE;
         }
-        //NDBG_PRINT("l_enfcmnt: %s\n", a_enf.ShortDebugString().c_str());
 #define STR_CMP(_a,_b) (strncasecmp(_a,_b,strlen(_b)) == 0)
         // -------------------------------------------------
         // switch on type
@@ -346,6 +345,76 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 break;
         }
         // -------------------------------------------------
+        // BROWSER_CHALLENGE
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
+        {
+                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
+                if(a_enf.has_status())
+                {
+                        l_status = a_enf.status();
+                }
+                const std::string *l_b64 = NULL;
+                int32_t l_s;
+                l_s = g_sx_scopes->m_b_challenge->get_challenge(&l_b64, a_ctx);
+                if((l_s != WAFLZ_STATUS_OK) ||
+                    !l_b64)
+                {
+                        break;
+                }
+                if(l_b64->empty())
+                {
+                        break;
+                }
+                // -----------------------------------------
+                // decode
+                // -----------------------------------------
+                char *l_dcd = NULL;
+                size_t l_dcd_len = 0;
+                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        break;
+                }
+                //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                char *l_rndr = NULL;
+                size_t l_rndr_len = 0;
+                l_s =  ns_waflz::render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                        break;
+                }
+                // -----------------------------------------
+                // set/cleanup
+                // -----------------------------------------
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                // -----------------------------------------
+                // response
+                // -----------------------------------------
+                // TODO -fix content type if resp header...
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
+                                           "text/html",
+                                           (uint64_t)l_rndr_len,
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                l_api_resp.set_body_data(l_rndr, l_rndr_len);
+                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
         // DROP_REQUEST
         // -------------------------------------------------
         case waflz_pb::enforcement_type_t_DROP_REQUEST:
@@ -365,101 +434,6 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 l_resp_code = ns_is2::H_RESP_DONE;
                 break;
         }
-        // -------------------------------------------------
-        // BROWSER CHALLENGE
-        // -------------------------------------------------
-        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
-        {
-                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
-                if(a_enf.has_status())
-                {
-                        l_status = a_enf.status();
-                }
-                // -----------------------------------------
-                // render
-                // -----------------------------------------
-                char *l_body = NULL;
-                uint32_t l_body_len = 0;
-                // TODO FIX!!!
-#if 0
-                l_s = l_config->render_resp(&l_body, l_body_len, a_enf, a_ctx);
-                if(l_s != STATUS_OK)
-                {
-                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
-                        break;
-                }
-#endif
-                // -----------------------------------------
-                // response
-                // -----------------------------------------
-                // TODO -fix content type if resp header...
-                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
-                                           "text/html",
-                                           (uint64_t)l_body_len,
-                                           a_rqst.m_supports_keep_alives,
-                                           a_session.get_server_name());
-                l_api_resp.set_body_data(l_body, l_body_len);
-                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
-                // TODO check status
-                UNUSED(l_s);
-                if(l_body) { free(l_body); l_body = NULL; }
-                l_resp_code = ns_is2::H_RESP_DONE;
-                break;
-        }
-#if 0
-        // -------------------------------------------------
-        // BROWSER_CHALLENGE
-        // -------------------------------------------------
-        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
-        {
-                const std::string *l_b64 = NULL;
-                int32_t l_s;
-                l_s = m_challenge.get_challenge(&l_b64, a_ctx);
-                if((l_s != WAFLZ_STATUS_OK) ||
-                    !l_b64)
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(l_b64->empty())
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // decode
-                // -----------------------------------------
-                char *l_dcd = NULL;
-                size_t l_dcd_len = 0;
-                l_s = b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
-                // -----------------------------------------
-                // render
-                // -----------------------------------------
-                char *l_rndr = NULL;
-                size_t l_rndr_len = 0;
-                l_s = render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // set/cleanup
-                // -----------------------------------------
-                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                *ao_resp = l_rndr;
-                ao_resp_len = l_rndr_len;
-                break;
-        }
-#endif
         // -------------------------------------------------
         // default
         // -------------------------------------------------
@@ -1032,19 +1006,7 @@ int main(int argc, char** argv)
                 // Append
                 l_ruleset_dir += "/";
         }
-        // -------------------------------------------------
-        // init bot challenge
-        // -------------------------------------------------
         int32_t l_s;
-        ns_waflz::challenge* l_b_challenge = new ns_waflz::challenge();
-        if(!l_b_challenge_file.empty())
-        {
-                l_s = l_b_challenge->load_file(l_b_challenge_file.c_str(), l_b_challenge_file.length());
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("Error:%s", l_b_challenge->get_err_msg());
-                }
-        }
         // -------------------------------------------------
         // *************************************************
         // server setup
@@ -1097,7 +1059,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_scopes_dir = false;
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
-                g_sx_scopes->m_b_challenge = l_b_challenge;
+                g_sx_scopes->m_b_challenge_file = l_b_challenge_file;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
@@ -1113,7 +1075,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_scopes_dir = true;
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
-                g_sx_scopes->m_b_challenge = l_b_challenge;
+                g_sx_scopes->m_b_challenge_file = l_b_challenge_file;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;

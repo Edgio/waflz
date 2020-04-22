@@ -23,6 +23,8 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "waflz/scopes_configs.h"
 #include "waflz/scopes.h"
 #include "waflz/rules.h"
@@ -648,7 +650,7 @@ int32_t scopes_configs::load_limit(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                WAFLZ_PERROR(m_err_msg, "customer id - %lu not found in the scopes map", l_id);
+                WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
                 if(l_limit) { delete l_limit; l_limit = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -765,7 +767,7 @@ int32_t scopes_configs::load_acl(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                WAFLZ_PERROR(m_err_msg, "customer id - %lu not found in the scopes map", l_id);
+                WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
                 if(l_acl) { delete l_acl; l_acl = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -881,7 +883,7 @@ int32_t scopes_configs::load_rules(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                WAFLZ_PERROR(m_err_msg, "customer id - %lu not found in the scopes map", l_id);
+                WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
                 if(l_rules) { delete l_rules; l_rules = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -998,7 +1000,7 @@ int32_t scopes_configs::load_profile(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                WAFLZ_PERROR(m_err_msg, "customer id - %lu not found in the scopes map", l_id);
+                WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
                 if(l_profile) { delete l_profile; l_profile = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }

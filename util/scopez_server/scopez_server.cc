@@ -732,12 +732,6 @@ int main(int argc, char** argv)
         std::string l_hprof_file;
         std::string l_cprof_file;
 #endif
-#ifdef ENABLE_PROFILER
-        fprintf(a_stream, "Profile Options:\n");
-        fprintf(a_stream, "  -H, --hprofile      Google heap profiler output file\n");
-        fprintf(a_stream, "  -C, --cprofile      Google cpu profiler output file\n");
-        fprintf(a_stream, "  \n");
-#endif
         struct option l_long_options[] =
                 {
                 { "help",         0, 0, 'h' },

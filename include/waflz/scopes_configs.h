@@ -27,7 +27,7 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/limit/limit.h"
-#include "waflz/limit/challenge.h"
+#include "waflz/challenge.h"
 #include <pthread.h>
 #include <string>
 #if defined(__APPLE__) || defined(__darwin__)

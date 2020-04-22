@@ -1674,8 +1674,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         }
         if(l_event)
         {
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
+                goto done;
         }
         // -------------------------------------------------
         // blacklist...
@@ -1687,8 +1686,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         }
         if(l_event)
         {
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
+                goto done;
         }
         // -------------------------------------------------
         // settings...
@@ -1700,9 +1698,18 @@ int32_t acl::process(waflz_pb::event **ao_event,
         }
         if(l_event)
         {
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
+                goto done;
         }
+done:
+        // -------------------------------------------------
+        // Set config properties
+        // -------------------------------------------------
+        if(l_event)
+        {
+                l_event->set_acl_config_id(m_id);
+                l_event->set_acl_config_name(m_name);
+        }
+        *ao_event = l_event;
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------

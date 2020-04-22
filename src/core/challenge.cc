@@ -22,7 +22,7 @@
 //! ----------------------------------------------------------------------------
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
-#include "waflz/limit/challenge.h"
+#include "waflz/challenge.h"
 #include "waflz/render.h"
 #include "jspb/jspb.h"
 #include "limit.pb.h"

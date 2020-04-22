@@ -32,7 +32,7 @@
 #include "waflz/limit/rl_obj.h"
 #include "waflz/limit/limit.h"
 #include "waflz/limit/enforcer.h"
-#include "waflz/limit/challenge.h"
+#include "waflz/challenge.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
 #include "support/file_util.h"
@@ -1499,11 +1499,6 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
-                // -------------------------------------------------
-                // Set config properties
-                // -------------------------------------------------
-                l_event->set_acl_config_id(l_acl->get_id());
-                l_event->set_acl_config_name(l_acl->get_name());
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1604,8 +1599,6 @@ prod:
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
-                l_event->set_acl_config_id(l_acl->get_id());
-                l_event->set_acl_config_name(l_acl->get_name());
                 *ao_prod_event = l_event;
                 if(a_scope.has_acl_prod_action())
                 {

@@ -351,7 +351,6 @@ void instance::set_event_properties(waflz_pb::event &ao_event, profile &a_profil
         {
                 ao_event.set_response_header_name(a_profile.get_resp_header_name());
         }
-
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO

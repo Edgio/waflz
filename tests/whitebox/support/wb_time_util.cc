@@ -24,6 +24,8 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "support/time_util.h"
@@ -71,14 +73,14 @@ TEST_CASE( "time util test", "[time_util]" ) {
                 l_cur_time_ms = ns_waflz::get_time_ms();
                 usleep(3000);
                 l_nxt_time_ms = ns_waflz::get_delta_time_ms(l_cur_time_ms);
-                printf("l_nxt_time: %lu\n", l_nxt_time_ms);
+                printf("l_nxt_time: %" PRIu64 "\n", l_nxt_time_ms);
                 REQUIRE((l_nxt_time_ms >= 3));
                 REQUIRE((l_nxt_time_ms < 8));
 
                 l_cur_time_ms = ns_waflz::get_time_ms();
                 usleep(5000);
                 l_nxt_time_ms = ns_waflz::get_delta_time_ms(l_cur_time_ms);
-                printf("l_nxt_time: %lu\n", l_nxt_time_ms);
+                printf("l_nxt_time: %" PRIu64 "\n", l_nxt_time_ms);
                 REQUIRE((l_nxt_time_ms >= 5));
                 REQUIRE((l_nxt_time_ms < 10));
         }

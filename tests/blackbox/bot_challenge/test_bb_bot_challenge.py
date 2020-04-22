@@ -13,7 +13,11 @@ import requests
 import base64
 import time
 import re
-from html.parser import HTMLParser
+try:
+    from html.parser import HTMLParser
+except ImportError:
+    # python2 fallback
+    from HTMLParser import HTMLParser
 
 # ------------------------------------------------------------------------------
 # Constants

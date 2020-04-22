@@ -539,7 +539,8 @@ static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset
         // config
         // -------------------------------------------------
         ns_waflz::kycb_db l_kycb_db;
-        ns_waflz::scopes *l_scopes = new ns_waflz::scopes(*l_engine, l_kycb_db);
+        ns_waflz::challenge l_challenge;
+        ns_waflz::scopes *l_scopes = new ns_waflz::scopes(*l_engine, l_kycb_db, l_challenge);
         l_s = l_scopes->load(l_buf, l_buf_len, a_conf_dir);
         if(l_s != STATUS_OK)
         {

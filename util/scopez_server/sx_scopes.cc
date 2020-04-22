@@ -402,6 +402,7 @@ sx_scopes::~sx_scopes(void)
 {
         if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_db) { delete m_db; m_db = NULL; }
+        if(m_b_challenge) { delete m_b_challenge; m_b_challenge = NULL; }
         if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
         if(m_update_acl_h) { delete m_update_acl_h; m_update_acl_h = NULL; }
         if(m_update_rules_h) { delete m_update_rules_h; m_update_rules_h = NULL; }
@@ -416,7 +417,6 @@ sx_scopes::~sx_scopes(void)
 //: ----------------------------------------------------------------------------
 int32_t sx_scopes::init(void)
 {
-        NDBG_PRINT("sx_scopes::init called\n");
         int32_t l_s;
         // -------------------------------------------------
         // redis db
@@ -508,9 +508,21 @@ int32_t sx_scopes::init(void)
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
+        // init bot challenge
+        // -------------------------------------------------
+        m_b_challenge = new ns_waflz::challenge();
+        if(!m_b_challenge_file.empty())
+        {
+                l_s = m_b_challenge->load_file(m_b_challenge_file.c_str(), m_b_challenge_file.length());
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("Error:%s", m_b_challenge->get_err_msg());
+                }
+        }
+        // -------------------------------------------------
         // create scope configs
         // -------------------------------------------------
-        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, *m_db, false);
+        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, *m_db, *m_b_challenge, false);
         m_scopes_configs->set_conf_dir(m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -677,6 +689,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
         rapidjson::Document l_event_audit_json;
         if(l_event_audit)
         {
+                //NDBG_PRINT(" audit event %s", l_event_audit->DebugString().c_str());
                 l_s = ns_waflz::convert_to_json(l_event_audit_json, *l_event_audit);
                 if(l_s != JSPB_OK)
                 {
@@ -690,6 +703,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
         }
         if(l_event_prod)
         {
+                //NDBG_PRINT(" prod event %s",l_event_prod->DebugString().c_str());
                 l_s = ns_waflz::convert_to_json(l_event_prod_json, *l_event_prod);
                 if(l_s != JSPB_OK)
                 {

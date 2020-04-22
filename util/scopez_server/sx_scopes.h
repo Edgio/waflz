@@ -151,6 +151,7 @@ public:
         std::string m_redis_host;
         ns_waflz::engine *m_engine;
         ns_waflz::kv_db *m_db;
+        ns_waflz::challenge *m_b_challenge;
         update_scopes_h *m_update_scopes_h;
         update_acl_h* m_update_acl_h;
         update_rules_h* m_update_rules_h;
@@ -162,6 +163,7 @@ public:
         std::string m_geoip2_db;
         std::string m_geoip2_isp_db;
         std::string m_conf_dir;
+        std::string m_b_challenge_file;
 };
 }
 #endif

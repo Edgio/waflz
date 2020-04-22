@@ -417,7 +417,6 @@ sx_scopes::~sx_scopes(void)
 //: ----------------------------------------------------------------------------
 int32_t sx_scopes::init(void)
 {
-        NDBG_PRINT("sx_scopes::init called\n");
         int32_t l_s;
         // -------------------------------------------------
         // redis db

@@ -1154,6 +1154,20 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
+                // Log scope id and name
+                // that generated an event
+                // -----------------------------------------
+                if(*ao_audit_event)
+                {
+                        (*ao_audit_event)->set_scope_config_id(l_sc.id());
+                        (*ao_audit_event)->set_scope_config_name(l_sc.name());
+                }
+                if(*ao_prod_event)
+                {
+                        (*ao_prod_event)->set_scope_config_id(l_sc.id());
+                        (*ao_prod_event)->set_scope_config_name(l_sc.name());
+                }
+                // -----------------------------------------
                 // break out on first scope match
                 // -----------------------------------------
                 break;
@@ -1480,14 +1494,16 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         goto audit_rules;
                 }
                 l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event);
-                // Set config properties 
-                l_event->set_acl_config_id(l_acl->get_id());
-                l_event->set_acl_config_name(l_acl->get_name());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
+                // -------------------------------------------------
+                // Set config properties
+                // -------------------------------------------------
+                l_event->set_acl_config_id(l_acl->get_id());
+                l_event->set_acl_config_name(l_acl->get_name());
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1583,13 +1599,13 @@ prod:
                         goto enforcements;
                 }
                 l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event);
-                l_event->set_acl_config_id(l_acl->get_id());
-                l_event->set_acl_config_name(l_acl->get_name());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
+                l_event->set_acl_config_id(l_acl->get_id());
+                l_event->set_acl_config_name(l_acl->get_name());
                 *ao_prod_event = l_event;
                 if(a_scope.has_acl_prod_action())
                 {

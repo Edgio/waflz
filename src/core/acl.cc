@@ -88,6 +88,7 @@ acl::acl(void):
         m_pb(NULL),
         m_id(),
         m_cust_id(),
+        m_name(),
         m_ip_whitelist(NULL),
         m_ip_accesslist(NULL),
         m_ip_blacklist(NULL),
@@ -318,6 +319,7 @@ int32_t acl::init()
         // -------------------------------------------------
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
+        m_name = m_pb->name();
         if(m_pb->has_ip())
         {
 #define _COMPILE_IP_LIST(_type) do { \
@@ -1672,8 +1674,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         }
         if(l_event)
         {
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
+                goto done;
         }
         // -------------------------------------------------
         // blacklist...
@@ -1685,8 +1686,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         }
         if(l_event)
         {
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
+                goto done;
         }
         // -------------------------------------------------
         // settings...
@@ -1698,9 +1698,18 @@ int32_t acl::process(waflz_pb::event **ao_event,
         }
         if(l_event)
         {
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
+                goto done;
         }
+done:
+        // -------------------------------------------------
+        // Set config properties
+        // -------------------------------------------------
+        if(l_event)
+        {
+                l_event->set_acl_config_id(m_id);
+                l_event->set_acl_config_name(m_name);
+        }
+        *ao_event = l_event;
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------

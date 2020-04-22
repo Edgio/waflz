@@ -27,6 +27,7 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/limit/limit.h"
+#include "waflz/challenge.h"
 #include <pthread.h>
 #include <string>
 #if defined(__APPLE__) || defined(__darwin__)
@@ -86,7 +87,7 @@ public:
         void get_first_id(uint64_t &ao_id);
         void get_rand_id(uint64_t &ao_id);
         bool id_exists(uint64_t a_id);
-        scopes_configs(engine& a_engine, kv_db& a_db, bool a_enable_locking);
+        scopes_configs(engine& a_engine, kv_db& a_db, challenge& a_challenge, bool a_enable_locking);
         ~scopes_configs();
 private:
         // -------------------------------------------------
@@ -111,6 +112,10 @@ private:
         pthread_mutex_t m_mutex;
         bool m_enable_locking;
         std::string m_conf_dir;
+        // -------------------------------------------------
+        // bot challenge
+        // -------------------------------------------------
+        challenge& m_challenge;
 };
 }
 #endif

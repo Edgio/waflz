@@ -26,7 +26,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/limit/challenge.h"
+#include "waflz/challenge.h"
 #if defined(__APPLE__) || defined(__darwin__)
     #include <unordered_map>
     #include <memory>

@@ -27,7 +27,7 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/limit/rl_obj.h"
-#include "waflz/limit/challenge.h"
+#include "waflz/challenge.h"
 #include <set>
 //: ----------------------------------------------------------------------------
 //: fwd Decl's

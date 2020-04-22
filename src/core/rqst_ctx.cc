@@ -253,7 +253,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_src_asn(0),
         m_src_asn_str(),
         m_geo_cn2(),
-        m_xml_capture_xxe(false),
+        m_xml_capture_xxe(true),
         m_ctx(a_ctx)
 {
 }

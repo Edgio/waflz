@@ -1,0 +1,55 @@
+{
+  "directive": [
+    {
+      "sec_rule": {
+        "action": {
+          "action_type": "BLOCK",
+          "file": "0052-l9nTkowq.rules",
+          "id": "960050",
+          "msg": "Request User-Agent is bot",
+          "phase": 2,
+          "rev": "2",
+          "setvar": [
+            {
+              "op": "INCREMENT",
+              "scope": "TX",
+              "val": "%{tx.warning_anomaly_score}",
+              "var": "anomaly_score_pl1"
+            }
+          ],
+          "severity": "4",
+          "t": [
+            "NONE"
+          ],
+          "ver": "OWASP_CRS/3.1.0"
+        },
+        "hidden": false,
+        "operator": {
+          "is_negated": false,
+          "is_regex": false,
+          "type": "CONTAINS",
+          "value": "bot"
+        },
+        "variable": [
+          {
+            "is_count": false,
+            "match": [
+              {
+                "is_negated": false,
+                "is_regex": false,
+                "value": "User-Agent"
+              }
+            ],
+            "type": "REQUEST_HEADERS"
+          }
+        ]
+      }
+    }
+  ],
+  "ruleset_id": "__na__",
+  "id": "l9nTkowq",
+  "customer_id":"0052",
+  "last_modified_date": "2019-04-18T19:48:25.142172Z",
+  "ruleset_version": "__na__"
+}
+

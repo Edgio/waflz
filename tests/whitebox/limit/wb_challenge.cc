@@ -25,7 +25,7 @@
 //! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
-#include "waflz/limit/challenge.h"
+#include "waflz/challenge.h"
 #include "waflz/rqst_ctx.h"
 #include "support/base64.h"
 #include "support/string_util.h"

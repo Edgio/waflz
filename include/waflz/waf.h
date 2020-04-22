@@ -109,6 +109,7 @@ public:
         waflz_pb::sec_config_t* get_pb(void) { return m_pb; }
         const std::string& get_id(void) { return m_id; }
         const std::string& get_cust_id(void) { return m_cust_id; }
+        const std::string& get_name(void) { return m_name; }
         // -------------------------------------------------
         // properties
         // -------------------------------------------------

@@ -32,6 +32,7 @@
 #include "waflz/limit/rl_obj.h"
 #include "waflz/limit/limit.h"
 #include "waflz/limit/enforcer.h"
+#include "waflz/challenge.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
 #include "support/file_util.h"
@@ -273,7 +274,7 @@ static int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
 //: \return  None
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-scopes::scopes(engine &a_engine, kv_db &a_kv_db):
+scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),
@@ -284,11 +285,13 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db):
         m_data_case_i_set_list(),
         m_id(),
         m_cust_id(),
+        m_name(),
         m_id_acl_map(),
         m_id_rules_map(),
         m_id_profile_map(),
         m_id_limit_map(),
-        m_enfx(NULL)
+        m_enfx(NULL),
+        m_challenge(a_challenge)
 {
         m_pb = new waflz_pb::scope_config();
         m_enfx = new enforcer(false);
@@ -498,6 +501,7 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
         }
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
+        m_name = m_pb->name();
         // -------------------------------------------------
         // for each scope - compile op and load parts
         // -------------------------------------------------
@@ -1150,6 +1154,20 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
+                // Log scope id and name
+                // that generated an event
+                // -----------------------------------------
+                if(*ao_audit_event)
+                {
+                        (*ao_audit_event)->set_scope_config_id(l_sc.id());
+                        (*ao_audit_event)->set_scope_config_name(l_sc.name());
+                }
+                if(*ao_prod_event)
+                {
+                        (*ao_prod_event)->set_scope_config_id(l_sc.id());
+                        (*ao_prod_event)->set_scope_config_name(l_sc.name());
+                }
+                // -----------------------------------------
                 // break out on first scope match
                 // -----------------------------------------
                 break;
@@ -1723,9 +1741,38 @@ limits:
                         goto prod_profile;
                 }
                 *ao_prod_event = l_event;
+                // -----------------------------------------
+                // Check for enforcement type
+                // if its browser challenge, verify challenge
+                // -----------------------------------------
+                const waflz_pb::enforcement *l_enf = &(a_scope.rules_prod_action());
+                bool l_pass = false;
+                if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
+                {
+                        // -----------------------------------------
+                        // check cookie -verify browser challenge
+                        // -----------------------------------------
+                        // default to valid for 10 min
+                        uint32_t l_valid_for_s = 600;
+                        if(l_enf->has_valid_for_sec())
+                        {
+                                l_valid_for_s = l_enf->valid_for_sec();
+                        }
+                        int32_t l_s;
+                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                // do nothing -re-issue challenge
+                        }
+                        if(l_pass)
+                        {
+                                // Challenge passed, move on to next step
+                                goto prod_profile;
+                        }
+                }
                 if(a_scope.has_rules_prod_action())
                 {
-                        *ao_enf = &(a_scope.rules_prod_action());
+                        *ao_enf = l_enf;
                         if((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();

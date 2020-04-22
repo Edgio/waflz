@@ -61,6 +61,7 @@ class profile;
 class limit;
 class kv_db;
 class enforcer;
+class challenge;
 class regex;
 //: ----------------------------------------------------------------------------
 //: types
@@ -117,12 +118,13 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        scopes(engine &a_engine, kv_db &a_kv_db);
+        scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge);
         ~scopes();
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
         std::string& get_id(void) { return m_id; }
         std::string& get_cust_id(void) { return m_cust_id; }
+        std::string& get_name(void) { return m_name; }
         int32_t load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path);
         int32_t load(void *a_js, const std::string& a_conf_dir_path);
         int32_t load_acl(ns_waflz::acl* a_acl);
@@ -174,6 +176,7 @@ private:
         // properties
         std::string m_id;
         std::string m_cust_id;
+        std::string m_name;
         // -------------------------------------------------
         // parts...
         // -------------------------------------------------
@@ -185,6 +188,10 @@ private:
         // enforcements
         // -------------------------------------------------
         enforcer *m_enfx;
+        // -------------------------------------------------
+        // bot challenge
+        // -------------------------------------------------
+        challenge& m_challenge;
 };
 //: ----------------------------------------------------------------------------
 //: run operation

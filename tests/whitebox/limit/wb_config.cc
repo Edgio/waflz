@@ -31,7 +31,7 @@
 #include "waflz/def.h"
 #include "waflz/limit/config.h"
 #include "waflz/limit/configs.h"
-#include "waflz/limit/challenge.h"
+#include "waflz/challenge.h"
 #include "waflz/db/kycb_db.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"

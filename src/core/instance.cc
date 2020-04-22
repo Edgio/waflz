@@ -347,13 +347,6 @@ void instance::set_event_properties(waflz_pb::event &ao_event, profile &a_profil
         ao_event.set_waf_instance_id(m_id);
         ao_event.set_waf_instance_name(m_name);
         ao_event.set_waf_profile_action(a_profile.get_action());
-        waflz_pb::profile *l_p_pb = a_profile.get_pb();
-        ao_event.set_ruleset_id(l_p_pb->ruleset_id());
-        ao_event.set_ruleset_version(l_p_pb->ruleset_version());
-        if(l_p_pb->general_settings().has_paranoia_level())
-        {
-                ao_event.set_paranoia_level(l_p_pb->general_settings().paranoia_level());
-        }
         if (!a_profile.get_resp_header_name().empty())
         {
                 ao_event.set_response_header_name(a_profile.get_resp_header_name());

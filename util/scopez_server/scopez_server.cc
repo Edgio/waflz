@@ -508,6 +508,7 @@ public:
                 l_api_resp.set_body_data(g_sx_scopes->m_resp.c_str(), g_sx_scopes->m_resp.length());
                 l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
                 ns_is2::queue_api_resp(a_session, l_api_resp);
+                if(l_enf) { delete l_enf; l_enf = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_DONE;
         }

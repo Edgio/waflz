@@ -690,6 +690,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
         rapidjson::Document l_event_audit_json;
         if(l_event_audit)
         {
+                //NDBG_PRINT(" audit event %s", l_event_audit->DebugString().c_str());
                 l_s = ns_waflz::convert_to_json(l_event_audit_json, *l_event_audit);
                 if(l_s != JSPB_OK)
                 {
@@ -703,6 +704,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
         }
         if(l_event_prod)
         {
+                //NDBG_PRINT(" prod event %s",l_event_prod->DebugString().c_str());
                 l_s = ns_waflz::convert_to_json(l_event_prod_json, *l_event_prod);
                 if(l_s != JSPB_OK)
                 {

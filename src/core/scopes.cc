@@ -285,6 +285,7 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_data_case_i_set_list(),
         m_id(),
         m_cust_id(),
+        m_name(),
         m_id_acl_map(),
         m_id_rules_map(),
         m_id_profile_map(),
@@ -500,6 +501,7 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
         }
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
+        m_name = m_pb->name();
         // -------------------------------------------------
         // for each scope - compile op and load parts
         // -------------------------------------------------
@@ -1478,6 +1480,9 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         goto audit_rules;
                 }
                 l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event);
+                // Set config properties 
+                l_event->set_acl_config_id(l_acl->get_id());
+                l_event->set_acl_config_name(l_acl->get_name());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
@@ -1578,6 +1583,8 @@ prod:
                         goto enforcements;
                 }
                 l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event);
+                l_event->set_acl_config_id(l_acl->get_id());
+                l_event->set_acl_config_name(l_acl->get_name());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");

@@ -107,6 +107,7 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
         // -----------------------------------------
         m_id = m_waf->get_id();
         m_cust_id = m_waf->get_cust_id();
+        m_name = m_waf->get_name();
         // -----------------------------------------
         // done...
         // -----------------------------------------
@@ -226,8 +227,8 @@ int32_t rules::process(waflz_pb::event **ao_event,
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_event->set_rule_intercept_status(403);
-                l_event->set_waf_profile_id(m_id);
-                l_event->set_waf_profile_name(m_name);
+                l_event->set_rules_config_id(m_id);
+                l_event->set_rules_config_name(m_name);
                 *ao_event = l_event;
         }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }

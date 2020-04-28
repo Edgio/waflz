@@ -36,7 +36,9 @@ jobs:
 
     - name: Install macOS dependencies
       if: matrix.os == 'macos-latest'
-      run: brew install gcc cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg
+      run: |
+        brew reinstall gcc
+        brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg
 
     - name: Set up Python
       uses: actions/setup-python@v1

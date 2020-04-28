@@ -1,4 +1,4 @@
-![waflz-build](https://github.com/VerizonDigital/waflz/workflows/waflz-build/badge.svg)
+![waflz-ci](https://github.com/VerizonDigital/waflz/workflows/waflz-ci/badge.svg)
 
 <p align="center">
 <img src="/docs/_images/waflz_white.svg" title="waflz" width="200"/>

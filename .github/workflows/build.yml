@@ -15,12 +15,13 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, ubuntu-16.04, macos-latest]
+      fail-fast: false
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Install Ubuntu dependencies
-      if: matrix.os == 'ubuntu-latest' || matrix.ox == 'ubuntu-16.04'
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-16.04'
       run: sudo apt install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev
 
     - name: Install macOS dependencies

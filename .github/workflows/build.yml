@@ -38,6 +38,7 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg
       env:
+        CC: gcc
         CXX: gcc
 
     - name: Set up Python

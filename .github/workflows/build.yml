@@ -12,7 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-16.04]
+        os: [ubuntu-latest, ubuntu-16.04, macos-latest]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -37,7 +37,6 @@ jobs:
     - name: Install macOS dependencies
       if: matrix.os == 'macos-latest'
       run: |
-        brew reinstall gcc
         brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg
 
     - name: Set up Python

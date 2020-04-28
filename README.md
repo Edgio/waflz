@@ -1,3 +1,4 @@
+![waflz-ci](https://github.com/VerizonDigital/waflz/workflows/waflz-ci/badge.svg)
 
 <p align="center">
 <img src="/docs/_images/waflz_white.svg" title="waflz" width="200"/>
@@ -42,6 +43,7 @@ brew install libxml2
 brew install pcre
 brew install kyoto-cabinet
 brew install hiredis
+brew install dpkg
 ```
 
 ### Building the tools

@@ -43,6 +43,7 @@ brew install libxml2
 brew install pcre
 brew install kyoto-cabinet
 brew install hiredis
+brew install dpkg
 ```
 
 ### Building the tools

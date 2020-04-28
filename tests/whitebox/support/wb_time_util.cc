@@ -36,6 +36,7 @@
 //: ----------------------------------------------------------------------------
 TEST_CASE( "time util test", "[time_util]" ) {
 
+#if !defined(__APPLE__) && !defined(__darwin__)
         SECTION("validate time caching") {
                 uint64_t l_cur_time_ms;
                 uint64_t l_nxt_time_ms;
@@ -84,6 +85,7 @@ TEST_CASE( "time util test", "[time_util]" ) {
                 REQUIRE((l_nxt_time_ms >= 5));
                 REQUIRE((l_nxt_time_ms < 10));
         }
+#endif
         SECTION("validate time string to epoch") {
                 std::string l_time_string("2016-07-20T00:44:20.744583Z");
                 std::string l_format(CONFIG_DATE_FORMAT);

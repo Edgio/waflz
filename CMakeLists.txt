@@ -196,7 +196,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # if rate-limiting check for kv db libs
   # --------------------------------------------------------  
   if(BUILD_RATE_LIMITING)
-    # TODO libhiredis/libkyotocabinet
+    INCLUDE_DIRECTORIES(/usr/local/opt/kyoto-cabinet/include)
+    INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
+    LINK_DIRECTORIES(/usr/local/opt/kyoto-cabinet/lib)
+    LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
+    LIST(APPEND LIBRARIES kyotocabinet)
+    LIST(APPEND LIBRARIES hiredis)
   endif()
   # --------------------------------------------------------
   # cc flags

@@ -23,6 +23,8 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "support/ndebug.h"
 #include "jspb/jspb.h"
 #include "waflz/limit/limit.h"
@@ -62,7 +64,9 @@ limit::limit(kv_db &a_db,
         rl_obj(a_case_insensitive_headers),
         m_init(false),
         m_pb(NULL),
-        m_db(a_db)
+        m_db(a_db),
+        m_id(),
+        m_cust_id()
 {
         m_pb = new waflz_pb::limit();
 }
@@ -200,6 +204,11 @@ int32_t limit::init()
                 WAFLZ_PERROR(m_err_msg, "limit missing duration field");
                 return WAFLZ_STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // set id and cust_id
+        // -------------------------------------------------
+        m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
         // ------------------------------------------------
         // always on???
         // ------------------------------------------------
@@ -226,6 +235,7 @@ int32_t limit::init()
 //! ----------------------------------------------------------------------------
 int32_t limit::process(bool &ao_exceeds,
                        const waflz_pb::condition_group** ao_cg,
+                       const std::string& a_scope_id,
                        rqst_ctx* a_ctx)
 {
         // -------------------------------------------------
@@ -289,7 +299,7 @@ int32_t limit::process(bool &ao_exceeds,
                 // TODO log?
                 //TRC_DEBUG("Matched enforcement limit completely!\n");
                 int32_t l_s;
-                l_s = incr_key(ao_exceeds, a_ctx);
+                l_s = incr_key(ao_exceeds, a_scope_id, a_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason
@@ -326,7 +336,7 @@ int32_t limit::process(bool &ao_exceeds,
                 // -----------------------------------------
                 // ****************MATCH********************
                 // -----------------------------------------
-                l_s = incr_key(ao_exceeds, a_ctx);
+                l_s = incr_key(ao_exceeds, a_scope_id, a_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason
@@ -346,6 +356,7 @@ int32_t limit::process(bool &ao_exceeds,
 //! @param   TODO
 //! ----------------------------------------------------------------------------
 int32_t limit::incr_key(bool &ao_exceeds,
+                        const std::string& a_scope_id,
                         rqst_ctx* a_ctx)
 {
         // -------------------------------------------------
@@ -356,7 +367,7 @@ int32_t limit::incr_key(bool &ao_exceeds,
         // -------------------------------------------------
         char l_key[_MAX_KEY_LEN];
         int32_t l_s;
-        l_s = get_key(l_key, a_ctx);
+        l_s = get_key(l_key, a_scope_id, a_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "Failed to generate db key for limit id: '%s'", m_pb->id().c_str());
@@ -399,7 +410,9 @@ int32_t limit::incr_key(bool &ao_exceeds,
 //! @return  TODO
 //! @param   TODO
 //! ----------------------------------------------------------------------------
-int32_t limit::get_key(char* ao_key, rqst_ctx *a_ctx)
+int32_t limit::get_key(char* ao_key,
+                       const std::string& a_scope_id,
+                       rqst_ctx *a_ctx)
 {
         if(!a_ctx)
         {
@@ -456,16 +469,16 @@ int32_t limit::get_key(char* ao_key, rqst_ctx *a_ctx)
         //                K E Y   F O R M A T
         // *************************************************
         // -------------------------------------------------
-        // SF:RL:<CUSTOMER_ID>:<LIMIT_ID>:
+        // SF:RL:<CUSTOMER_ID>:<SCOPE_ID>::<LIMIT_ID>:
         // -------------------------------------------------
         if(m_pb->has__reserved_1() &&
            !m_pb->_reserved_1().empty())
         {
-                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%lX", m_pb->customer_id().c_str(), m_pb->_reserved_1().c_str(), l_dim_hash);
+                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%s:%" PRIX64 "", m_pb->customer_id().c_str(), a_scope_id.c_str(), m_pb->_reserved_1().c_str(), l_dim_hash);
         }
         else
         {
-                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%lX", m_pb->customer_id().c_str(), m_pb->id().c_str(), l_dim_hash);
+                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%s:%" PRIX64 "", m_pb->customer_id().c_str(), a_scope_id.c_str(), m_pb->id().c_str(), l_dim_hash);
         }
         return WAFLZ_STATUS_OK;
 }

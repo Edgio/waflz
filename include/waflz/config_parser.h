@@ -28,6 +28,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include "waflz/def.h"
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
@@ -91,8 +92,10 @@ public:
         void set_verbose(bool a_val) { m_verbose = a_val;}
         void set_color(bool a_val) { m_color = a_val;}
         int32_t parse_config(waflz_pb::sec_config_t &ao_config, format_t a_format, const std::string &a_path);
+        int32_t parse_config(waflz_pb::sec_config_t& ao_config, void* a_js);
         int32_t parse_line(waflz_pb::sec_config_t &ao_config, format_t a_format, const std::string &a_line);
         void show_status(void);
+        const char *get_err_msg(void) { return m_err_msg; }
         // -------------------------------------------------
         // public static methods
         // -------------------------------------------------
@@ -133,6 +136,7 @@ private:
         // -------------------------------------------------
         int32_t read_file_pbuf(waflz_pb::sec_config_t& ao_config, const std::string &a_file, bool a_force = false);
         int32_t read_file_json(waflz_pb::sec_config_t& ao_config, const std::string &a_file, bool a_force = false);
+        int32_t read_buf_json(waflz_pb::sec_config_t& ao_config, const char* a_buf, uint64_t a_buf_len);
         static int32_t get_action_string(std::string &ao_str, const waflz_pb::sec_action_t &a_sec_action);
         static int32_t append_modsec_rule(std::string &ao_str, const waflz_pb::sec_rule_t &a_secrule, const uint32_t a_indent, const bool a_is_chained);
         static int32_t get_modsec_rule_line(std::string &ao_str, const waflz_pb::sec_rule_t &a_secrule, const uint32_t a_indent, const bool a_is_chained);
@@ -170,6 +174,10 @@ private:
         count_map_t m_unimplemented_actions;
         count_map_t m_unimplemented_transformations;
         count_map_t m_unimplemented_ctls;
+        // -------------------------------------------------
+        // err msg
+        // -------------------------------------------------
+        char m_err_msg[WAFLZ_ERR_LEN];
 };
 //: ----------------------------------------------------------------------------
 //: Prototypes

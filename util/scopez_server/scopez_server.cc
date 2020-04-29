@@ -123,7 +123,6 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
         {
                 return ns_is2::H_RESP_NONE;
         }
-        //NDBG_PRINT("l_enfcmnt: %s\n", a_enf.ShortDebugString().c_str());
 #define STR_CMP(_a,_b) (strncasecmp(_a,_b,strlen(_b)) == 0)
         // -------------------------------------------------
         // switch on type
@@ -346,6 +345,76 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 break;
         }
         // -------------------------------------------------
+        // BROWSER_CHALLENGE
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
+        {
+                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
+                if(a_enf.has_status())
+                {
+                        l_status = a_enf.status();
+                }
+                const std::string *l_b64 = NULL;
+                int32_t l_s;
+                l_s = g_sx_scopes->m_b_challenge->get_challenge(&l_b64, a_ctx);
+                if((l_s != WAFLZ_STATUS_OK) ||
+                    !l_b64)
+                {
+                        break;
+                }
+                if(l_b64->empty())
+                {
+                        break;
+                }
+                // -----------------------------------------
+                // decode
+                // -----------------------------------------
+                char *l_dcd = NULL;
+                size_t l_dcd_len = 0;
+                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        break;
+                }
+                //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                char *l_rndr = NULL;
+                size_t l_rndr_len = 0;
+                l_s =  ns_waflz::render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                        break;
+                }
+                // -----------------------------------------
+                // set/cleanup
+                // -----------------------------------------
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                // -----------------------------------------
+                // response
+                // -----------------------------------------
+                // TODO -fix content type if resp header...
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
+                                           "text/html",
+                                           (uint64_t)l_rndr_len,
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                l_api_resp.set_body_data(l_rndr, l_rndr_len);
+                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
         // DROP_REQUEST
         // -------------------------------------------------
         case waflz_pb::enforcement_type_t_DROP_REQUEST:
@@ -365,101 +434,6 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 l_resp_code = ns_is2::H_RESP_DONE;
                 break;
         }
-        // -------------------------------------------------
-        // BROWSER CHALLENGE
-        // -------------------------------------------------
-        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
-        {
-                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
-                if(a_enf.has_status())
-                {
-                        l_status = a_enf.status();
-                }
-                // -----------------------------------------
-                // render
-                // -----------------------------------------
-                char *l_body = NULL;
-                uint32_t l_body_len = 0;
-                // TODO FIX!!!
-#if 0
-                l_s = l_config->render_resp(&l_body, l_body_len, a_enf, a_ctx);
-                if(l_s != STATUS_OK)
-                {
-                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
-                        break;
-                }
-#endif
-                // -----------------------------------------
-                // response
-                // -----------------------------------------
-                // TODO -fix content type if resp header...
-                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
-                                           "text/html",
-                                           (uint64_t)l_body_len,
-                                           a_rqst.m_supports_keep_alives,
-                                           a_session.get_server_name());
-                l_api_resp.set_body_data(l_body, l_body_len);
-                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
-                // TODO check status
-                UNUSED(l_s);
-                if(l_body) { free(l_body); l_body = NULL; }
-                l_resp_code = ns_is2::H_RESP_DONE;
-                break;
-        }
-#if 0
-        // -------------------------------------------------
-        // BROWSER_CHALLENGE
-        // -------------------------------------------------
-        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
-        {
-                const std::string *l_b64 = NULL;
-                int32_t l_s;
-                l_s = m_challenge.get_challenge(&l_b64, a_ctx);
-                if((l_s != WAFLZ_STATUS_OK) ||
-                    !l_b64)
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(l_b64->empty())
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // decode
-                // -----------------------------------------
-                char *l_dcd = NULL;
-                size_t l_dcd_len = 0;
-                l_s = b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
-                // -----------------------------------------
-                // render
-                // -----------------------------------------
-                char *l_rndr = NULL;
-                size_t l_rndr_len = 0;
-                l_s = render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // set/cleanup
-                // -----------------------------------------
-                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                *ao_resp = l_rndr;
-                ao_resp_len = l_rndr_len;
-                break;
-        }
-#endif
         // -------------------------------------------------
         // default
         // -------------------------------------------------
@@ -534,6 +508,7 @@ public:
                 l_api_resp.set_body_data(g_sx_scopes->m_resp.c_str(), g_sx_scopes->m_resp.length());
                 l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
                 ns_is2::queue_api_resp(a_session, l_api_resp);
+                if(l_enf) { delete l_enf; l_enf = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_DONE;
         }
@@ -677,9 +652,11 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -d  --config-dir    configuration directory\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
         fprintf(a_stream, "  -a, --action        server will apply scope actions instead of reporting\n");
+        fprintf(a_stream, "  -b, --background    update configs in bg\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
+        fprintf(a_stream, "  -c, --bot-challenge json containing browser challenges\n");
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
         fprintf(a_stream, "  -i, --geoip-isp-db  geoip-isp-db\n");
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
@@ -725,16 +702,12 @@ int main(int argc, char** argv)
         std::string l_server_spec;
         std::string l_config_file;
         std::string l_redis_host;
+        std::string l_b_challenge_file;
         bool l_action_mode = false;
+        bool l_bg = false;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
-#endif
-#ifdef ENABLE_PROFILER
-        fprintf(a_stream, "Profile Options:\n");
-        fprintf(a_stream, "  -H, --hprofile      Google heap profiler output file\n");
-        fprintf(a_stream, "  -C, --cprofile      Google cpu profiler output file\n");
-        fprintf(a_stream, "  \n");
 #endif
         struct option l_long_options[] =
                 {
@@ -745,7 +718,9 @@ int main(int argc, char** argv)
                 { "config-dir",   1, 0, 'd' },
                 { "port",         1, 0, 'p' },
                 { "action",       0, 0, 'a' },
+                { "bg" ,          0, 0, 'b' },
                 { "ruleset-dir",  1, 0, 'r' },
+                { "bot-challenge",1, 0, 'c' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 'i' },
                 { "redis-host",   1, 0, 'e' },
@@ -778,9 +753,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:H:C:";
+        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:H:C:c:";
 #else
-        char l_short_arg_list[] = "hvs:S:d:p:ar:g:i:e:w:y:t:";
+        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:c:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -853,12 +828,25 @@ int main(int argc, char** argv)
                         l_port = (uint16_t)l_port_val;
                         break;
                 }
+                case 'c':
+                {
+                        l_b_challenge_file = l_arg;
+                        break;
+                }
                 // -----------------------------------------
                 // action mode
                 // -----------------------------------------
                 case 'a':
                 {
                         l_action_mode = true;
+                        break;
+                }
+                // -----------------------------------------
+                // bg
+                // -----------------------------------------
+                case 'b':
+                {
+                        l_bg = true;
                         break;
                 }
                 // -----------------------------------------
@@ -1024,6 +1012,7 @@ int main(int argc, char** argv)
                 // Append
                 l_ruleset_dir += "/";
         }
+        int32_t l_s;
         // -------------------------------------------------
         // *************************************************
         // server setup
@@ -1072,10 +1061,11 @@ int main(int argc, char** argv)
                 g_sx_scopes = new ns_scopez_server::sx_scopes();
                 g_sx_scopes->m_lsnr = l_lsnr;
                 g_sx_scopes->m_config = l_config_file;
-                g_sx_scopes->m_bg_load = false;
+                g_sx_scopes->m_bg_load = l_bg;
                 g_sx_scopes->m_scopes_dir = false;
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
+                g_sx_scopes->m_b_challenge_file = l_b_challenge_file;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
@@ -1087,10 +1077,11 @@ int main(int argc, char** argv)
                 g_sx_scopes = new ns_scopez_server::sx_scopes();
                 g_sx_scopes->m_lsnr = l_lsnr;
                 g_sx_scopes->m_config = l_config_file;
-                g_sx_scopes->m_bg_load = false;
+                g_sx_scopes->m_bg_load = l_bg;
                 g_sx_scopes->m_scopes_dir = true;
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
+                g_sx_scopes->m_b_challenge_file = l_b_challenge_file;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
@@ -1110,7 +1101,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        int32_t l_s;
         l_s = g_sx_scopes->init();
         if(l_s != STATUS_OK)
         {

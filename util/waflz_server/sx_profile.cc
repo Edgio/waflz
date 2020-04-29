@@ -55,6 +55,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
                                            ns_is2::rqst &a_rqst,
                                            const ns_is2::url_pmap_t &a_url_pmap)
 {
+        printf("update_profile\n");
         if(!m_profile)
         {
                 TRC_ERROR("g_profile == NULL\n");
@@ -226,6 +227,7 @@ ns_is2::h_resp_t sx_profile::handle_rqst(waflz_pb::enforcement **ao_enf,
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_NONE;
         }
+        l_ctx->m_event = l_event;
         // -------------------------------------------------
         // serialize event...
         // -------------------------------------------------
@@ -247,7 +249,6 @@ ns_is2::h_resp_t sx_profile::handle_rqst(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(l_event) { delete l_event; l_event = NULL; }
         if(ao_ctx)
         {
                 *ao_ctx = l_ctx;

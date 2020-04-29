@@ -40,6 +40,7 @@ class profile;
 class event;
 class request_info;
 class acl;
+class sec_config_t;
 }
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
@@ -61,17 +62,17 @@ public:
         ~rules();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t load_file(const char *a_buf, uint32_t a_buf_len);
-        //: ------------------------------------------------
-        //:               G E T T E R S
-        //: ------------------------------------------------
+        int32_t load(void* a_js);
         //: ------------------------------------------------
         //: \details Get last error message string
         //: \return  last error message (in buffer)
         //: ------------------------------------------------
         const char *get_err_msg(void) { return m_err_msg; }
         waf *get_waf(void) { return m_waf; }
-        const std::string &get_id(void) { return m_id; }
-        const std::string &get_name(void) { return m_name; }
+        const std::string& get_id(void) { return m_id; };
+        const std::string& get_cust_id(void) { return m_cust_id; };
+        const std::string& get_name(void) { return m_name; };
+        const waflz_pb::sec_config_t* get_pb(void);
 private:
         // -------------------------------------------------
         // private methods
@@ -96,6 +97,7 @@ private:
         // properties
         // -------------------------------------------------
         std::string m_id;
+        std::string m_cust_id;
         std::string m_name;
 };
 }

@@ -26,9 +26,14 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/limit/challenge.h"
-#include <tr1/unordered_map>
-#include <tr1/memory>
+#include "waflz/challenge.h"
+#if defined(__APPLE__) || defined(__darwin__)
+    #include <unordered_map>
+    #include <memory>
+#else
+    #include <tr1/unordered_map>
+    #include <tr1/memory>
+#endif
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
@@ -45,7 +50,11 @@ public:
         // -------------------------------------------------
         // public types
         // -------------------------------------------------
+#if defined(__APPLE__) || defined(__darwin__)
+        typedef std::unordered_map <uint64_t, config*> cust_id_config_map_t;
+#else
         typedef std::tr1::unordered_map <uint64_t, config*> cust_id_config_map_t;
+#endif
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------

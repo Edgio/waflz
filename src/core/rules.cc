@@ -50,10 +50,12 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 rules::rules(engine &a_engine):
         m_init(false),
+        m_err_msg(),
         m_engine(a_engine),
         m_waf(NULL),
-        m_id(),
-        m_name()
+        m_id("NA"),
+        m_cust_id("NA"),
+        m_name("NA")
 {
 }
 //: ----------------------------------------------------------------------------
@@ -91,11 +93,8 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
         l_s = m_waf->init(config_parser::JSON, l_p, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("error loading conf file: %s. reason: %s\n",
-                                l_p.c_str(),
-                           "__na__");
-                           // TODO -get reason...
-                           //l_wafl->get_err_msg());
+                WAFLZ_AERROR(m_err_msg, "error loading conf file-reason: %s",
+                             m_waf->get_err_msg());
                 if(m_waf) { delete m_waf; m_waf = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -104,10 +103,53 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
         // -----------------------------------------
         m_waf->set_owasp_ruleset_version(300);
         // -----------------------------------------
+        // get properties from m_waf
+        // -----------------------------------------
+        m_id = m_waf->get_id();
+        m_cust_id = m_waf->get_cust_id();
+        m_name = m_waf->get_name();
+        // -----------------------------------------
         // done...
         // -----------------------------------------
         m_init = true;
         return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t rules::load(void* a_js)
+{
+        m_init = false;
+        // -----------------------------------------
+        // make waf obj
+        // -----------------------------------------
+        if(m_waf) { delete m_waf; m_waf = NULL; }
+        m_waf = new waf(m_engine);
+        int32_t l_s;
+        l_s = m_waf->init(a_js, true);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_AERROR(m_err_msg, "error loading conf file-reason: %s",
+                             m_waf->get_err_msg());
+                if(m_waf) { delete m_waf; m_waf = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -----------------------------------------
+        // set version...
+        // -----------------------------------------
+        m_waf->set_owasp_ruleset_version(300);
+        // -----------------------------------------
+        // get properties from m_waf
+        // -----------------------------------------
+        m_id = m_waf->get_id();
+        m_cust_id = m_waf->get_cust_id();
+        // -----------------------------------------
+        // done...
+        // -----------------------------------------
+        m_init = true;
+        return WAFLZ_STATUS_OK;     
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -184,11 +226,24 @@ int32_t rules::process(waflz_pb::event **ao_event,
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_event->set_rule_intercept_status(403);
-                l_event->set_waf_profile_id(m_id);
-                l_event->set_waf_profile_name(m_name);
+                l_event->set_rules_config_id(m_id);
+                l_event->set_rules_config_name(m_name);
                 *ao_event = l_event;
         }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+const waflz_pb::sec_config_t* rules::get_pb(void)
+{
+        if(!m_waf)
+        {
+                return NULL;
+        }
+        return m_waf->get_pb();
 }
 }

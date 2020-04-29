@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 '''Test WAF Access settings'''
 #TODO: make so waflz_server only runs once and then can post to it 
 # ------------------------------------------------------------------------------
@@ -9,7 +9,6 @@ import subprocess
 import os
 import sys
 import json
-from pprint import pprint
 import time
 # ------------------------------------------------------------------------------
 # globals
@@ -39,11 +38,11 @@ def test_bb_wjc_bad_regex(setup_wjc):
 
     l_profile_path = os.path.realpath(os.path.join(g_file_path, 'test_bb_wjc_bad_regex.waf.prof.json'))
     l_sp = subprocess.Popen([g_wjc_path, '-p', l_profile_path, '-r', g_ruleset_path], stderr=subprocess.PIPE)
-    l_sp_stderr =  l_sp.communicate()[1]
-    #print(l_sp_stderr)
-    #print('return code: %d'%(l_sp.returncode))
+    l_sp_stderr = l_sp.communicate()[1]
+    # print(l_sp_stderr)
+    # print('return code: %d'%(l_sp.returncode))
     assert l_sp.returncode != 0
-    assert l_sp_stderr == 'compiling url blacklist\n'
+    assert l_sp_stderr == b'compiling url blacklist\n'
 # ------------------------------------------------------------------------------
 # test output with bad regex
 # ------------------------------------------------------------------------------
@@ -53,8 +52,8 @@ def test_bb_wjc_bad_asn(setup_wjc):
     global g_wjc_path
     l_profile_path = os.path.realpath(os.path.join(g_file_path, 'test_bb_wjc_bad_asn.waf.prof.json'))
     l_sp = subprocess.Popen([g_wjc_path, '-p', l_profile_path, '-r', g_ruleset_path], stderr=subprocess.PIPE)
-    l_sp_stderr =  l_sp.communicate()[1]
-    #print(l_sp_stderr)
-    #print('return code: %d'%(l_sp.returncode))
+    l_sp_stderr = l_sp.communicate()[1]
+    # print(l_sp_stderr)
+    # print('return code: %d'%(l_sp.returncode))
     assert l_sp.returncode != 0
-    assert l_sp_stderr == 'expecting type: uint32 for field: \'waflz_pb.acl.lists_asn_t.blacklist\'\n'
+    assert l_sp_stderr == b'expecting type: uint32 for field: \'waflz_pb.acl.lists_asn_t.blacklist\'\n'

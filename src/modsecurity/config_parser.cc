@@ -3504,13 +3504,13 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
         l_s = stat(a_file.c_str(), &l_stat);
         if(l_s != 0)
         {
-                NDBG_PRINT("error performing stat on file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
+                WAFLZ_PERROR(m_err_msg, "error performing stat on file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
         // Check if is regular file
         if(!(l_stat.st_mode & S_IFREG))
         {
-                NDBG_PRINT("error opening file: %s.  Reason: is NOT a regular file\n", a_file.c_str());
+                WAFLZ_PERROR(m_err_msg, "error opening file: %s.  Reason: is NOT a regular file\n", a_file.c_str());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -3533,7 +3533,7 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
         l_file = fopen(a_file.c_str(),"r");
         if(NULL == l_file)
         {
-                NDBG_PRINT("error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
+                WAFLZ_PERROR(m_err_msg, "error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -3545,7 +3545,8 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
         l_read_size = fread(l_buf, 1, l_size, l_file);
         if(l_read_size != l_size)
         {
-                NDBG_PRINT("error performing fread.  Reason: %s [%d:%d]\n", strerror(errno), l_read_size, l_size);
+                WAFLZ_PERROR(m_err_msg, "error performing fread.  Reason: %s [%d:%d]\n", strerror(errno), l_read_size, l_size);
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -3554,7 +3555,8 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
         l_s = update_from_json(ao_config, l_buf, l_size);
         if(l_s != JSPB_OK)
         {
-                NDBG_PRINT("error -json_protobuf::convert_to_json threw\n");
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -3563,13 +3565,33 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
         l_s = fclose(l_file);
         if(WAFLZ_STATUS_OK != l_s)
         {
-                NDBG_PRINT("error performing fclose.  Reason: %s\n", strerror(errno));
+                WAFLZ_PERROR(m_err_msg, "error performing fclose.  Reason: %s\n", strerror(errno));
+                if(l_buf) { free(l_buf); l_buf = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_buf)
         {
                 free(l_buf);
                 l_buf = NULL;
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t config_parser::read_buf_json(waflz_pb::sec_config_t& ao_config, const char* a_buf, uint64_t a_buf_len)
+{
+        // -------------------------------------------------
+        // Parse
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = update_from_json(ao_config, a_buf, a_buf_len);
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
 }
@@ -3788,7 +3810,7 @@ int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
         l_s = stat(a_path.c_str(), &l_stat);
         if(l_s != 0)
         {
-                NDBG_PRINT("error performing stat on file: %s.  Reason: %s\n", a_path.c_str(), strerror(errno));
+                WAFLZ_PERROR(m_err_msg, "error performing stat on file: %s.  Reason: %s\n", a_path.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -3818,6 +3840,24 @@ int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
+                                    void* a_js)
+{
+        int32_t l_s;
+        const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
+        l_s = update_from_json(ao_config, l_js);
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
 }
@@ -3866,7 +3906,8 @@ config_parser::config_parser(void):
         m_unimplemented_operators(),
         m_unimplemented_actions(),
         m_unimplemented_transformations(),
-        m_unimplemented_ctls()
+        m_unimplemented_ctls(),
+        m_err_msg()
 {
 }
 //: ----------------------------------------------------------------------------

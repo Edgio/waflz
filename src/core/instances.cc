@@ -109,7 +109,7 @@ int32_t instances::load(instance **ao_instance, void *a_js, bool a_update)
         l_s = l_instance->load(a_js);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_AERROR(m_err_msg, "%s", l_instance->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", l_instance->get_err_msg());
                 if(l_instance) { delete l_instance; l_instance = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }

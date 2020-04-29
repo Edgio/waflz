@@ -120,6 +120,16 @@ message event {
         // Using enums defined in enforcement.proto
         optional uint32 waf_profile_action = 222;
         optional bytes waf_profile_type = 223;
+        // scopes config sepcific
+        optional string scope_config_id = 224;
+        optional string scope_config_name = 225;
+        // acl config specific
+        optional string acl_config_id = 226;
+        optional string acl_config_name = 227;
+        // rules config specific
+        optional string rules_config_id = 228;
+        optional string rules_config_name = 229;
+
         // -------------------------------------------------
         // !!!DEPRECATED!!!
         // -------------------------------------------------

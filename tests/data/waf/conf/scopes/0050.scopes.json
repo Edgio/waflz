@@ -1,5 +1,6 @@
 {
-  "id": "0050",
+  "customer_id": "0050",
+  "id": "xDre6J1c",
   "last_modified_date": "2019-04-18T19:48:25.142172Z",
   "last_modified_by": "Mr. Monkeez",
   "scopes": [
@@ -16,7 +17,7 @@
       "type": "GLOB",
       "value": "*"
     },
-    "acl_prod_id": "0050-ZrLf2KkQ",
+    "acl_prod_id": "ZrLf2KkQ",
     "acl_prod_action": {
       "id": "zeAXrlLT",
       "name": "ACTION",
@@ -27,7 +28,7 @@
       "status": 403,
       "type": "custom-response"
     },
-    "rules_prod_id": "0050-ZrLf3KkQ",
+    "rules_prod_id": "ZrLf3KkQ",
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -38,7 +39,7 @@
       "status": 403,
       "type": "custom-response"
     },
-    "profile_prod_id": "0050-YrLf3KkQ",
+    "profile_prod_id": "YrLf3KkQ",
     "profile_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -63,11 +64,11 @@
       "type": "GLOB",
       "value": "*"
     },
-    "acl_audit_id":"0050-5wOgfHWR",
+    "acl_audit_id":"5wOgfHWR",
     "acl_audit_action": {
 
     },
-    "acl_prod_id":"0050-ZrLf2KkQ",
+    "acl_prod_id":"ZrLf2KkQ",
     "acl_prod_action": {
       "id": "zeAXrlLT",
       "name": "ACTION",
@@ -78,7 +79,7 @@
       "status": 403,
       "type": "custom-response"
     },
-    "rules_prod_id":"0050-ZrLf3KkQ",
+    "rules_prod_id":"ZrLf3KkQ",
     "rules_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -89,9 +90,9 @@
       "status": 403,
       "type": "custom-response"
     },
-    "rules_audit_id":"0050-0gG8osWJ",
+    "rules_audit_id":"0gG8osWJ",
     "rules_audit_action":{},
-    "profile_prod_id":"0050-YrLf3KkQ",
+    "profile_prod_id":"YrLf3KkQ",
     "profile_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -102,11 +103,11 @@
       "status": 403,
       "type": "custom-response"   
     },
-    "profile_audit_id":"0050-YrLf3KkQ",
+    "profile_audit_id":"YrLf3KkQ",
     "profile_audit_action":{}
   },
   {
-    "id": "limit_id",
+    "id": "limit_id_1",
     "name": "limit.com scope",
     "host": {
       "is_negated": false,
@@ -119,7 +120,7 @@
       "value": "*"
     },
     "limits":[{
-       "id":"0050-MjMhNXMR",
+       "id":"MjMhNXMR",
        "action":{
           "id":"zeAXrllT",
           "name":"ddos-action",
@@ -129,20 +130,45 @@
           "response_body_base64": "VGhpcyBpcyBkZG9zIGN1c3RvbSByZXNwb25zZQo="
        }
     }],
-    "acl_prod_id":"0050-5wOgfHWR",
+    "acl_prod_id":"5wOgfHWR",
     "acl_prod_action":{
           "name": "acl-action",
           "status":403,
           "type":"custom-response",
           "response_body_base64":"VGhpcyBpcyBhY2wgY3VzdG9tIHJlc3BvbnNlCg=="
     },
-    "profile_prod_id":"0050-YrLf3KkQ",
+    "profile_prod_id":"YrLf3KkQ",
     "profile_prod_action":{
           "name":"profile-action",
           "status":403,
           "type":"custom-response",
           "response_body_base64":"VGhpcyBpcyBwcm9maWxlIGN1c3RvbSByZXNwb25zZQo="
     }
+  },
+  {
+    "id": "limit_id_2",
+    "name": "another scope for limits",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "test.limit.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "limits":[{
+       "id":"MjMhNXMR",
+       "action":{
+          "id":"lllllll",
+          "name":"ddos-action",
+          "status": 403,
+          "duration_sec": 10,
+          "type": "custom-response",
+          "response_body_base64": "Y3VzdG9tIHJlc3BvbnNlIGZvciBsaW1pdHMgZnJvbSBsaW1pdF9pZF8yCg=="
+       }
+    }]
   }
 ]
 }

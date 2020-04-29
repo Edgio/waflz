@@ -30,7 +30,7 @@
 #include "waflz/limit/configs.h"
 #include "waflz/limit/config.h"
 #include "waflz/geoip2_mmdb.h"
-#include "waflz/limit/challenge.h"
+#include "waflz/challenge.h"
 #include "support/file_util.h"
 #include <errno.h>
 #include <stdlib.h>

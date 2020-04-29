@@ -43,4 +43,3 @@ add_waflz_wb_test(var)
 add_waflz_wb_test(tx)
 add_waflz_wb_test(render)
 add_waflz_wb_test(scopes)
-

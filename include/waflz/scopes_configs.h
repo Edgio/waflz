@@ -26,8 +26,8 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/scopes.h"
 #include "waflz/limit/limit.h"
+#include "waflz/challenge.h"
 #include <pthread.h>
 #include <string>
 #if defined(__APPLE__) || defined(__darwin__)
@@ -68,6 +68,10 @@ public:
         int32_t load_dir(const char *a_dir_path, uint32_t a_dir_path_len);
         int32_t load_file(const char *a_file_path, uint32_t a_file_path_len);
         int32_t load(const char *a_buf, uint32_t a_buf_len);
+        int32_t load_acl(const char* a_buf, uint32_t a_buf_len);
+        int32_t load_limit(const char* a_buf, uint32_t a_buf_len);
+        int32_t load_rules(const char* a_buf, uint32_t a_buf_len);
+        int32_t load_profile(const char* a_buf, uint32_t a_buf_len);
         int32_t process(waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
@@ -83,7 +87,7 @@ public:
         void get_first_id(uint64_t &ao_id);
         void get_rand_id(uint64_t &ao_id);
         bool id_exists(uint64_t a_id);
-        scopes_configs(engine& a_engine, kv_db& a_db, bool a_enable_locking);
+        scopes_configs(engine& a_engine, kv_db& a_db, challenge& a_challenge, bool a_enable_locking);
         ~scopes_configs();
 private:
         // -------------------------------------------------
@@ -94,6 +98,10 @@ private:
         scopes_configs& operator=(const scopes_configs &);
         int32_t load(void *a_js);
         scopes* get_scopes(uint64_t a_id);
+        int32_t load_acl(void* a_js);
+        int32_t load_limit(void* a_js);
+        int32_t load_rules(void* a_js);
+        int32_t load_profile(void* a_js);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------
@@ -104,6 +112,10 @@ private:
         pthread_mutex_t m_mutex;
         bool m_enable_locking;
         std::string m_conf_dir;
+        // -------------------------------------------------
+        // bot challenge
+        // -------------------------------------------------
+        challenge& m_challenge;
 };
 }
 #endif

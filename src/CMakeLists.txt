@@ -153,6 +153,7 @@ SET(SRCS
     core/scopes.cc
     core/scopes_configs.cc
     core/rules.cc
+    core/challenge.cc
     # ------------------------------------------------------
     # parsers
     # ------------------------------------------------------
@@ -179,7 +180,6 @@ list(APPEND SRCS
     # ------------------------------------------------------
     # limit
     # ------------------------------------------------------
-    limit/challenge.cc
     limit/rl_obj.cc
     limit/enforcer.cc
     limit/config.cc

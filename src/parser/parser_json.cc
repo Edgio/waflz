@@ -27,6 +27,7 @@
 #include "waflz/rqst_ctx.h"
 #include "parser/parser_json.h"
 #include "support/ndebug.h"
+#include "support/string_util.h"
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
@@ -192,12 +193,12 @@ static int yajl_start_map_cb(void *a_ctx)
                 l_max_cat_len = PARSER_JSON_PREFIX_LEN_MAX - l_prefix_len - 1;
                 if(l_max_cat_len)
                 {
-                        strncat((char *)l_parser->m_prefix, ".", l_max_cat_len);
+                        strlcat((char *)l_parser->m_prefix, ".", PARSER_JSON_PREFIX_LEN_MAX);
                         --l_max_cat_len;
                 }
                 if(l_max_cat_len)
                 {
-                        strncat((char *)l_parser->m_prefix, (char *)l_parser->m_current_key, l_max_cat_len);
+                        strlcat((char *)l_parser->m_prefix, (char *)l_parser->m_current_key, PARSER_JSON_PREFIX_LEN_MAX);
                 }
         }
         else

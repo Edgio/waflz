@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 '''Test scopes with custom rules'''
 # ------------------------------------------------------------------------------
 # Imports
@@ -8,11 +8,8 @@ import subprocess
 import os
 import sys
 import json
-from pprint import pprint
 import time
 import requests
-from urllib2 import urlopen
-from urllib2 import Request
 import base64
 import time
 # ------------------------------------------------------------------------------
@@ -59,7 +56,7 @@ def setup_scopez_server():
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 # ------------------------------------------------------------------------------
-# setup scopez server with single scope
+# setup scopez server with single scope for an 0050
 # ------------------------------------------------------------------------------
 @pytest.fixture()
 def setup_scopez_server_single():
@@ -97,7 +94,7 @@ def setup_scopez_server_single():
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 # ------------------------------------------------------------------------------
-# setup scopez server in action mode for an 0050
+# setup scopez server in action mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
 def setup_scopez_server_action():
@@ -146,7 +143,7 @@ def test_scopes_dir_for_an_0050(setup_scopez_server):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST
     l_headers = {'host': 'monkeez.com',
-    			 'waf-scopes-id': '0050'}
+                 'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -159,7 +156,7 @@ def test_scopes_dir_for_an_0050(setup_scopez_server):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST
     l_headers = {'host': 'monkeez.com',
-                 'user-agent':'monkeez',
+                 'user-agent': 'monkeez',
                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -216,7 +213,7 @@ def test_scopes_dir_for_an_0051(setup_scopez_server):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'bananas.com',
-                 'user-agent':'bananas',
+                 'user-agent': 'bananas',
                  'waf-scopes-id': '0051'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -234,7 +231,7 @@ def test_single_scope(setup_scopez_server_single):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST
     l_headers = {'host': 'monkeez.com',
-                 'user-agent':'monkeez',
+                 'user-agent': 'monkeez',
                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -275,7 +272,7 @@ def test_audit_and_prod_for_scope(setup_scopez_server_single):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST
     l_headers = {'host': 'test.com',
-                 'user-agent':'gizoogle',
+                 'user-agent': 'gizoogle',
                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -290,7 +287,7 @@ def test_audit_and_prod_for_scope(setup_scopez_server_single):
     l_uri = G_TEST_HOST + '/audit.html'
     l_headers = {'host': 'test.com',
                  'waf-scopes-id': '0050'}
-    l_r = requests.get(l_uri , headers = l_headers)
+    l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert 'audit_profile' in l_r_json
@@ -303,13 +300,13 @@ def test_audit_and_prod_for_scope(setup_scopez_server_single):
     l_uri = G_TEST_HOST + '/prod.html'
     l_headers = {'host': 'test.com',
                  'waf-scopes-id': '0050'}
-    l_r = requests.get(l_uri , headers = l_headers)
+    l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert 'audit_profile' in l_r_json
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
-    assert l_r_json['prod_profile'] ['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
     # ------------------------------------------------------
     # test audit and prod profile
     # ------------------------------------------------------
@@ -317,7 +314,7 @@ def test_audit_and_prod_for_scope(setup_scopez_server_single):
     l_headers = { 'host': 'test.com',
                   'waf-scopes-id': '0050',
                   'user-agent': 'curl'}
-    l_r = requests.get(l_uri, headers = l_headers)
+    l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert 'audit_profile' in l_r_json
@@ -328,30 +325,30 @@ def test_audit_and_prod_for_scope(setup_scopez_server_single):
     # test prod rule
     # ------------------------------------------------------
     l_uri = G_TEST_HOST
-    l_headers = {'host':'test.com',
+    l_headers = {'host': 'test.com',
                  'waf-scopes-id': '0050',
-                 'user-agent': 'monkeez' 
-                }
-    l_r = requests.get(l_uri, headers = l_headers)
-    assert l_r.status_code == 200
-    l_r_json = l_r.json()    
-    assert 'audit_profile' in l_r_json
-    assert l_r_json['audit_profile'] == None
-    assert 'prod_profile' in l_r_json
-    assert l_r_json['prod_profile'] ['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
-    # ------------------------------------------------------
-    # test audit rule
-    # ------------------------------------------------------
-    l_uri = G_TEST_HOST
-    l_headers = {'host':'test.com',
-                 'waf-scopes-id': '0050',
-                 'user-agent': 'bananas' 
+                 'user-agent': 'monkeez'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert 'audit_profile' in l_r_json
-    assert l_r_json['audit_profile'] ['sub_event'][0]['rule_msg'] == 'Request User-Agent is bananas'
+    assert l_r_json['audit_profile'] == None
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
+    # ------------------------------------------------------
+    # test audit rule
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'host': 'test.com',
+                 'waf-scopes-id': '0050',
+                 'user-agent': 'bananas'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'audit_profile' in l_r_json
+    assert l_r_json['audit_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is bananas'
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile'] == None
 # ------------------------------------------------------------------------------
@@ -365,7 +362,7 @@ def test_alert_order(setup_scopez_server_single):
     l_uri = G_TEST_HOST+'/prod.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'test.com',
                   'user-agent': 'gizoogle',
-                  'waf-scopes-id':'0050'}
+                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -378,7 +375,7 @@ def test_alert_order(setup_scopez_server_single):
     l_uri = G_TEST_HOST+'/prod.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'test.com',
                   'user-agent': 'bananas',
-                  'waf-scopes-id':'0050'}
+                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -390,7 +387,7 @@ def test_alert_order(setup_scopez_server_single):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/prod.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'test.com',
-                  'waf-scopes-id':'0050'}
+                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -402,7 +399,7 @@ def test_alert_order(setup_scopez_server_single):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/audit.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'test.com',
-                  'waf-scopes-id':'0050'}
+                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -414,8 +411,8 @@ def test_alert_order(setup_scopez_server_single):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/audit.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'test.com',
-                  'user-agent':'monkeez',
-                  'waf-scopes-id':'0050'}
+                  'user-agent': 'monkeez',
+                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -430,12 +427,12 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     # shoot 3 request in 5 sec Third request should get rate limited
     # ------------------------------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
-    l_headers = {'host':'limit.com',
-                 'waf-scopes-id':'0050'}
+    l_headers = {'host': 'limit.com',
+                 'waf-scopes-id': '0050'}
     for x in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
-    
+
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
@@ -445,7 +442,7 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     # ------------------------------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'limit.com',
-                  'waf-scopes-id':'0050'}
+                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
@@ -459,13 +456,13 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     assert l_r.status_code == 403
     assert l_r.text == 'This is acl custom response\n'
     # ------------------------------------------------------------------------------
-    # sleep for 10 seconds enforcement period. 
+    # sleep for 10 seconds enforcement period.
     # Shoot SQL injection request again. should see waf action
     # ------------------------------------------------------------------------------
     time.sleep(10)
     l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'limit.com',
-                  'waf-scopes-id':'0050'}
+                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is profile custom response\n'
@@ -474,11 +471,11 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 def test_scopes_operators(setup_scopez_server_action):
     # ------------------------------------------------------
-    # test for EM 
+    # test for EM
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'bananas.com',
-                 'user-agent':'bananas',
+                 'user-agent': 'bananas',
                  'waf-scopes-id': '0051'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
@@ -488,7 +485,7 @@ def test_scopes_operators(setup_scopez_server_action):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test/path.html'
     l_headers = {'host': 'test.regexhost.com',
-                 'user-agent':'bananas',
+                 'user-agent': 'bananas',
                  'waf-scopes-id': '0051'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
@@ -498,7 +495,7 @@ def test_scopes_operators(setup_scopez_server_action):
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/somepath.html'
     l_headers = {'host': 'somedomain.com',
-                 'user-agent':'bananas',
+                 'user-agent': 'bananas',
                  'waf-scopes-id': '0051'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
@@ -521,8 +518,82 @@ def test_acl_whitelist(setup_scopez_server_action):
     # Request with lot of args in whitelisted url
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/robots.txt?arg1&arg2&arg3&arg4'
-    l_header = {'host': 'monkeez.com',
+    l_headers = {'host': 'monkeez.com',
+                 'waf-scopes-id': '0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+# ------------------------------------------------------------------------------
+# test mutiple scopes for ratelimiting
+# ------------------------------------------------------------------------------
+def test_multiple_scopes_for_limit(setup_scopez_server_action):
+    # ------------------------------------------------------------------------------
+    # Make 3 request in 5 sec. Third request should get rate limited
+    # ------------------------------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'limit.com',
+                 'waf-scopes-id': '0050'}
+    for x in range(2):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'This is ddos custom response\n'
+    # ------------------------------------------------------------------------------
+    # Make another request for different scope during the enf window
+    # of first request. should get 200 and followed by
+    # enforcement for that scope
+    # ------------------------------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'test.limit.com',
+                 'waf-scopes-id': '0050'}
+    for x in range(2):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == "custom response for limits from limit_id_2\n"
+    # ------------------------------------------------------------------------------
+    # sleep for 10 seconds. Enforcements should expire for both scopes
+    # ------------------------------------------------------------------------------
+    time.sleep(10)
+    # ------------------------------------------------------------------------------
+    # making single request for each scope should give 200
+    # ------------------------------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
 
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'test.limit.com',
+                 'waf-scopes-id': '0050'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+
+def test_custom_rules_in_scopes(setup_scopez_server_action):
+    # ------------------------------------------------------
+    #
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'rulestest.com',
+                 'user-agent': 'RULESTEST',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'basic custom rule triggered\n'
+   
+def test_chained_custom_rules_in_scopes(setup_scopez_server_action):
+    # ------------------------------------------------------
+    #
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'chainedrulestest.com',
+                 'waf-scopes-id': '0052',
+                 'Pragma': 'NO-CACHE'
+                 }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'response from chained custom rules\n'

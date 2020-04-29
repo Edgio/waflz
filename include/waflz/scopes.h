@@ -61,6 +61,7 @@ class profile;
 class limit;
 class kv_db;
 class enforcer;
+class challenge;
 class regex;
 //: ----------------------------------------------------------------------------
 //: types
@@ -117,13 +118,19 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        scopes(engine &a_engine, kv_db &a_kv_db);
+        scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge);
         ~scopes();
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
         std::string& get_id(void) { return m_id; }
+        std::string& get_cust_id(void) { return m_cust_id; }
+        std::string& get_name(void) { return m_name; }
         int32_t load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path);
         int32_t load(void *a_js, const std::string& a_conf_dir_path);
+        int32_t load_acl(ns_waflz::acl* a_acl);
+        int32_t load_rules(ns_waflz::rules* a_rules);
+        int32_t load_profile(ns_waflz::profile* a_profile);
+        int32_t load_limit(ns_waflz::limit* a_limit);
         int32_t process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
@@ -145,6 +152,7 @@ private:
                                  const waflz_pb::limit& a_limit,
                                  const waflz_pb::condition_group *a_condition_group,
                                  const waflz_pb::enforcement &a_action,
+                                 const ::waflz_pb::scope& a_scope,
                                  rqst_ctx *a_ctx);
         int32_t process(const waflz_pb::enforcement** ao_enf,
                         waflz_pb::event** ao_audit_event,
@@ -153,6 +161,7 @@ private:
                         void *a_ctx,
                         part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
+        bool compare_dates(const char* a_loaded_date, const char* a_new_date);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
@@ -167,6 +176,7 @@ private:
         // properties
         std::string m_id;
         std::string m_cust_id;
+        std::string m_name;
         // -------------------------------------------------
         // parts...
         // -------------------------------------------------
@@ -178,6 +188,10 @@ private:
         // enforcements
         // -------------------------------------------------
         enforcer *m_enfx;
+        // -------------------------------------------------
+        // bot challenge
+        // -------------------------------------------------
+        challenge& m_challenge;
 };
 //: ----------------------------------------------------------------------------
 //: run operation

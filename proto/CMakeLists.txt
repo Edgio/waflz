@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.5)
 
 set(waflz_proto_files acl.proto action.proto rule.proto profile.proto event.proto request_info.proto scope.proto)
 if(BUILD_RATE_LIMITING)
-    set(${waflz_proto_files} ${waflz_proto_files} limit.proto)
+    set(waflz_proto_files ${waflz_proto_files} limit.proto)
 endif()
 
 protobuf_generate_cpp(WAFLZ_PROTO_SRCS WAFLZ_PROTO_HDRS ${waflz_proto_files})

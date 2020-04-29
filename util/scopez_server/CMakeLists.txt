@@ -22,7 +22,7 @@
 # project setup
 # ------------------------------------------------------------------------------
 project(waflz)
-cmake_minimum_required(VERSION 2.6.0)
+cmake_minimum_required(VERSION 3.5)
 # TODO set later...
 #set(CMAKE_CXX_FLAGS "-Wall -Weffc++ -Werror -std=c++11")
 # ------------------------------------------------------------------------------

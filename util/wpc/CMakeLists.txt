@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------------
 # Project setup
 project(waflz)
-cmake_minimum_required(VERSION 2.6.0)
+cmake_minimum_required(VERSION 3.5)
 if (POLICY CMP0050)
     cmake_policy(SET CMP0050 OLD)
 endif()

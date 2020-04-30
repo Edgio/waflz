@@ -26,7 +26,7 @@
 #include "catch/catch.hpp"
 #include "jspb/jspb.h"
 #include "support/ndebug.h"
-#include "waflz/limit/enforcer.h"
+#include "waflz/enforcer.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"
 #include "waflz/def.h"

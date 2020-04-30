@@ -237,6 +237,40 @@ set(CMAKE_CXX_FLAGS "-Wall -Weffc++ -Werror -std=c++11")
 # headers
 # ------------------------------------------------------------------------------
 SET(HDRS
+    ${CMAKE_SOURCE_DIR}/include/waflz/acl.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/arg.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/atomic.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/challenge.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/config_parser.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/def.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/engine.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/geoip2_mmdb.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/instance.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/instances.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/parser.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/profile.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/render.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/rqst_ctx.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/rules.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/scopes_configs.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/scopes.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/trace.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/waf.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/waflz.h
+    # ------------------------------------------------------
+    # db
+    # ------------------------------------------------------
+    ${CMAKE_SOURCE_DIR}/include/waflz/kv_db.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/kycb_db.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/redis_db.h
+    # ------------------------------------------------------
+    # limit
+    # ------------------------------------------------------
+    ${CMAKE_SOURCE_DIR}/include/waflz/config.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/configs.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/enforcer.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/limit.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/rl_obj.h
 )
 # ------------------------------------------------------------------------------
 # Tell the build system protobuf files are automatically generated

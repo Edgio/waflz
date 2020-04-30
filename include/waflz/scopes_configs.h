@@ -26,7 +26,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/limit/limit.h"
+#include "waflz/limit.h"
 #include "waflz/challenge.h"
 #include <pthread.h>
 #include <string>

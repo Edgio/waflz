@@ -51,25 +51,25 @@ include_directories(
     # ------------------------------------------------------
     # waflz include
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src
     # ------------------------------------------------------
     # cityhash libs
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/cityhash
+    ${CMAKE_SOURCE_DIR}/ext/cityhash
     # ------------------------------------------------------
     # libinjection
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libinjection/src
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src
     # ------------------------------------------------------
     # libmaxminddb
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libmaxminddb/src
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src
     # ------------------------------------------------------
     # external libs
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl
+    ${CMAKE_SOURCE_DIR}/ext
+    ${CMAKE_SOURCE_DIR}/ext/yajl
     /usr/include/libxml2
 )
 # ------------------------------------------------------------------------------
@@ -79,29 +79,29 @@ SET(SRCS
     # ------------------------------------------------------
     # libmaxminddb
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libmaxminddb/src/data-pool.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libmaxminddb/src/maxminddb.c
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/data-pool.c
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/maxminddb.c
     # ------------------------------------------------------
     # yajl
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_alloc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_gen.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_parser.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_version.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_buf.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_encode.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_lex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_tree.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_alloc.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_gen.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_parser.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_version.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_buf.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_encode.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_lex.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_tree.c
 
     # ------------------------------------------------------
     # cityhash
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/cityhash/city.cc
+    ${CMAKE_SOURCE_DIR}/ext/cityhash/city.cc
     # ------------------------------------------------------
     # base64
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/base64/base64.cc
+    ${CMAKE_SOURCE_DIR}/ext/base64/base64.cc
     # ------------------------------------------------------
     # json protobuf
     # ------------------------------------------------------
@@ -119,9 +119,9 @@ SET(SRCS
     # ------------------------------------------------------
     # libinjection
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libinjection/src/libinjection_html5.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libinjection/src/libinjection_sqli.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libinjection/src/libinjection_xss.c
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_html5.c
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_sqli.c
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_xss.c
     # ------------------------------------------------------
     # operators
     # ------------------------------------------------------
@@ -170,8 +170,8 @@ list(APPEND SRCS
     #---------------------------------------------
     # ectoken
     #---------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/ectoken/ectoken_v3.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/ectoken/base64.cc
+    ${CMAKE_SOURCE_DIR}/ext/ectoken/ectoken_v3.cc
+    ${CMAKE_SOURCE_DIR}/ext/ectoken/base64.cc
     # ------------------------------------------------------
     # db
     # ------------------------------------------------------
@@ -194,26 +194,26 @@ SET_SOURCE_FILES_PROPERTIES(
     # ------------------------------------------------------
     # libmaxminddb
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libmaxminddb/src/data-pool.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libmaxminddb/src/maxminddb.c
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/data-pool.c
+    ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/maxminddb.c
     # ------------------------------------------------------
     # yajl
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_alloc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_gen.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_parser.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_version.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_buf.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_encode.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_lex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/yajl/yajl_tree.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_alloc.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_gen.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_parser.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_version.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_buf.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_encode.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_lex.c
+    ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_tree.c
     # ------------------------------------------------------
     # libinjection
     # ------------------------------------------------------
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libinjection/src/libinjection_html5.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libinjection/src/libinjection_sqli.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ext/libinjection/src/libinjection_xss.c
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_html5.c
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_sqli.c
+    ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_xss.c
     # ------------------------------------------------------
     # properties
     # ------------------------------------------------------
@@ -263,7 +263,7 @@ install(FILES ${PY_INST}
 # ------------------------------------------------------------------------------
 add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
 
-target_include_directories(waflzcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/../proto/ ${CMAKE_CURRENT_BINARY_DIR}/../)
+target_include_directories(waflzcore PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/proto/ ${CMAKE_BINARY_DIR}/)
 
 
 SET_TARGET_PROPERTIES(waflzcore

@@ -5,10 +5,7 @@ project (waflz)
 cmake_minimum_required(VERSION 3.5)
 
 
-set(waflz_proto_files acl.proto action.proto rule.proto profile.proto event.proto request_info.proto scope.proto)
-if(BUILD_RATE_LIMITING)
-    set(waflz_proto_files ${waflz_proto_files} limit.proto)
-endif()
+set(waflz_proto_files acl.proto action.proto rule.proto profile.proto event.proto request_info.proto scope.proto limit.proto)
 
 protobuf_generate_cpp(WAFLZ_PROTO_SRCS WAFLZ_PROTO_HDRS ${waflz_proto_files})
 protobuf_generate_python(WAFLZ_PROTO_PY ${waflz_proto_files})

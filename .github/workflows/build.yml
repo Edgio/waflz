@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: |
-    git fetch --prune --unshallow
+        git fetch --prune --unshallow
 
     - name: Install gcc-7
       if: matrix.os == 'ubuntu-16.04'

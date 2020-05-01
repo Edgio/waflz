@@ -142,8 +142,7 @@ static void* t_load_acl(void* a_context)
         l_s = l_sc->m_scopes_configs->load_acl(l_sc->m_buf, l_sc->m_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_ERROR("performing acl loading\n");
-                printf("error loading. Reason -%s\n", l_sc->m_scopes_configs->get_err_msg());
+                TRC_ERROR("performing acl loading - %s\n", l_sc->m_scopes_configs->get_err_msg());
                 if(l_sc->m_buf) { free(l_sc->m_buf); l_sc->m_buf = NULL;}
                 return NULL;
         }
@@ -192,7 +191,6 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
                                           ns_is2::rqst &a_rqst,
                                           const ns_is2::url_pmap_t &a_url_pmap)
 {
-        printf("update_scopes_h::do_post\n");
         if(!m_scopes_configs)
         {
                 TRC_ERROR("m_scopes_configs == NULL");
@@ -208,7 +206,6 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
         m_scopes_configs->set_locking(true);
         if(!m_bg_load)
         {
-                printf("updating in foreground\n");
                 l_s = m_scopes_configs->load(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -220,7 +217,6 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
         }
         else
         {
-                printf("updating in background\n");
                 waf_scopes_bg_update_t* l_scopes_bg_update = new waf_scopes_bg_update_t();
                 l_scopes_bg_update->m_buf = l_buf;
                 l_scopes_bg_update->m_buf_len = l_buf_len;
@@ -301,7 +297,6 @@ ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
                                        ns_is2::rqst &a_rqst,
                                        const ns_is2::url_pmap_t &a_url_pmap)
 {
-        printf("update_Acl\n");
         if(!m_scopes_configs)
         {
                 TRC_ERROR("m_scopes_configs == NULL");
@@ -328,7 +323,6 @@ ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
         }
         else
         {
-                printf("updating in bg\n");
                 waf_acl_bg_update_t* l_acl_bg_update = new waf_acl_bg_update_t();
                 l_acl_bg_update->m_buf = l_buf;
                 l_acl_bg_update->m_buf_len = l_buf_len;
@@ -677,7 +671,6 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         // update end points
         // -------------------------------------------------
-        printf("background loadind -%d\n", m_bg_load);
         m_update_scopes_h = new update_scopes_h();
         m_update_scopes_h->m_scopes_configs = m_scopes_configs;
         m_update_scopes_h->m_bg_load = m_bg_load;
@@ -695,7 +688,7 @@ int32_t sx_scopes::init(void)
 
         m_update_profile_h = new update_profile_h();
         m_update_profile_h->m_scopes_configs = m_scopes_configs;
-        m_update_scopes_h->m_bg_load = m_bg_load;
+        m_update_profile_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_profile", m_update_profile_h);
 
         m_update_limit_h = new update_limit_h();

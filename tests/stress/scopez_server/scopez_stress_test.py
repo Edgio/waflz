@@ -101,12 +101,6 @@ def get_rqst(a_host, a_id, a_vectors, a_idx, a_results):
 #
 # ------------------------------------------------------------------------------
 def post_config(a_host, a_template, a_type, a_idx):
-    # print('post_config: a_idx: %s' % (a_idx)
-    # print(json.dumps(a_template)
-    # if 'id' in a_template:
-    #     a_template['id'] = str(a_idx)
-    # else:
-    #     a_template['id'] = '1'
     if isinstance(a_template, list):
         for l_instance in a_template:
             if 'last_modified_date' in l_instance:
@@ -122,9 +116,8 @@ def post_config(a_host, a_template, a_type, a_idx):
     l_headers['Content-type'] = 'application/json'
     l_url = '%s/update_%s'%(a_host, a_type)
     l_body = json.dumps(a_template)
-    # print(l_body)
     # ------------------------------------------------------
-    # urlopen (POST)
+    # POST
     # ------------------------------------------------------
     try:
         l_rq = Request(l_url, l_body.encode(), l_headers)
@@ -136,13 +129,6 @@ def post_config(a_host, a_template, a_type, a_idx):
     if l_r.getcode() != 200:
         print('error: performing POST to %s -status: %d. Response: %s' % (l_url, l_r.getcode(), l_body))
         sys.exit(1)
-    # try:
-    #     l_body = l_r.read()
-    #     l_r_json = json.loads(l_body)
-    # except:
-    #     print('error: performing POST to %s Response not json' % (l_url))
-    #     sys.exit(1)
-    # print(l_r_json)
 # ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------
@@ -165,11 +151,9 @@ def scopez_server_stress(a_verbose,
         print('error opening template file: %s.  Reason: %s error: %s, doc: %s' % (
             a_vector_file, type(l_e), l_e, l_e.__doc__))
         sys.exit(-1)
-    print('preloading configs')
     l_time_ms_last = time.time()*1000
     i_c = 0
     while g_run:
-        print("posting config, i_c", i_c)
         i_c += 1
         post_config(l_host, l_template, a_type, i_c)
         l_time_ms_cur = time.time()*1000
@@ -238,7 +222,7 @@ def scopez_server_stress(a_verbose,
 def main(argv):
     l_arg_parser = argparse.ArgumentParser(
         description='scopez_server stress tester.',
-        usage='%(prog)s <any one template file(acl, rules, profile, scopes, limit) and request vector file',
+        usage='%(prog)s <any one template file(acl, rules, profile, scopes, limit), template type and request vector file',
         epilog='')
     l_arg_parser.add_argument(
         '-v',

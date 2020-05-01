@@ -733,6 +733,7 @@ int32_t scopes_configs::load_limit(const char* a_buf, uint32_t a_buf_len)
                         }
                 }
         }
+        if(l_js) { delete l_js; l_js = NULL;}
         if(m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
@@ -850,6 +851,7 @@ int32_t scopes_configs::load_acl(const char* a_buf, uint32_t a_buf_len)
                         }
                 }
         }
+        if(l_js) { delete l_js; l_js = NULL; }
         if(m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
@@ -966,6 +968,7 @@ int32_t scopes_configs::load_rules(const char* a_buf, uint32_t a_buf_len)
                         }
                 }
         }
+        if(l_js) { delete l_js; l_js = NULL;}
         if(m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
@@ -1083,6 +1086,7 @@ int32_t scopes_configs::load_profile(const char* a_buf, uint32_t a_buf_len)
                         }
                 }
         }
+        if(l_js) { delete l_js; l_js = NULL;}
         if(m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);

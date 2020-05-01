@@ -77,8 +77,6 @@ def get_rqst(a_host, a_id, a_vectors, a_idx, a_results):
         l_body = l_body.encode()
     l_r = None
     try:
-        print('l_url:     %s'%(l_url))
-        print('l_headers: %s'%(l_headers))
         l_rq = Request(url=l_url,
                        data=l_body,
                        headers=l_headers)
@@ -243,7 +241,6 @@ def waflz_server_stress(a_verbose,
     # run...
     # ------------------------------------------------------
     while g_run:
-        print("doing get request")
         l_id = random.randint(1, a_num_ids)
         get_rqst(l_host, l_id, l_vectors, l_v_idx, l_results)
         l_v_idx += 1

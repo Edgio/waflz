@@ -247,7 +247,6 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 }
                 if(l_dcd) { free(l_dcd); l_dcd = NULL; }
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                printf("returning forbidden status\n");
                 l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FORBIDDEN,
                                            "text/html",
                                            l_resp_len,
@@ -847,7 +846,6 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'b':
                 {
-                        printf("setting background loading to true\n");
                         l_bg = true;
                         break;
                 }
@@ -1060,7 +1058,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------  
         case(CONFIG_MODE_SCOPES):
         {
-                printf("config mode scopes\n");
                 g_sx_scopes = new ns_scopez_server::sx_scopes();
                 g_sx_scopes->m_lsnr = l_lsnr;
                 g_sx_scopes->m_config = l_config_file;

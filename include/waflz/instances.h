@@ -26,7 +26,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "cityhash/city.h"
+#include "waflz/city.h"
 #include <pthread.h>
 #include <string>
 #include <vector>

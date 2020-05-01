@@ -22,7 +22,7 @@
 # Project setup
 # ------------------------------------------------------------------------------
 project(waflz)
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.5)
 # ------------------------------------------------------------------------------
 # Build options
 # ------------------------------------------------------------------------------
@@ -65,6 +65,11 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
   #message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++0x support. Please use a different C++ compiler.")
 endif()
+
+
+find_package(Protobuf REQUIRED)
+
+
 # ------------------------------------------------------------------------------
 # Display the current settings
 # ------------------------------------------------------------------------------

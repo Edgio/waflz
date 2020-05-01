@@ -22,18 +22,7 @@
 # project setup
 # ------------------------------------------------------------------------------
 project(waflz)
-cmake_minimum_required(VERSION 2.8.0)
-# ------------------------------------------------------------------------------
-# wb_jspb
-# ------------------------------------------------------------------------------
-SET(SRCS  wb_jspb.cc)
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/include/
-  ${CMAKE_SOURCE_DIR}/src/support/
-)
-add_executable(wb_jspb ${HDRS} ${SRCS})
-add_dependencies(wb_jspb waflzcore)
-target_link_libraries(wb_jspb ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
-SET_TARGET_PROPERTIES(wb_jspb PROPERTIES OUTPUT_NAME "wb_jspb")
-add_test(jspb wb_jspb)
+cmake_minimum_required(VERSION 3.5)
+
+add_waflz_wb_test(jspb)
+

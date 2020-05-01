@@ -21,8 +21,8 @@
 # ------------------------------------------------------------------------------
 # project setup
 # ------------------------------------------------------------------------------
-project(waflz)
-cmake_minimum_required(VERSION 2.6.0)
+project(waflz C CXX)
+cmake_minimum_required(VERSION 3.5)
 if (POLICY CMP0050)
     cmake_policy(SET CMP0050 OLD)
 endif()
@@ -93,16 +93,7 @@ SET(SRCS
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_encode.c
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_lex.c
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_tree.c
-    # ------------------------------------------------------
-    # pb
-    # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/profile.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/event.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/action.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
+
     # ------------------------------------------------------
     # cityhash
     # ------------------------------------------------------
@@ -175,10 +166,7 @@ SET(SRCS
 # ------------------------------------------------------------------------------
 if(BUILD_RATE_LIMITING)
 list(APPEND SRCS
-    # ------------------------------------------------------
-    # pb
-    # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
+
     #---------------------------------------------
     # ectoken
     #---------------------------------------------
@@ -276,30 +264,7 @@ SET(HDRS
 # Tell the build system protobuf files are automatically generated
 # ------------------------------------------------------------------------------
 SET(PB_SRCS
-    # ------------------------------------------------------
-    # proto
-    # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/profile.pb.h
-    ${CMAKE_BINARY_DIR}/proto/profile.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/action.pb.h
-    ${CMAKE_BINARY_DIR}/proto/action.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/event.pb.h
-    ${CMAKE_BINARY_DIR}/proto/event.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/request_info.pb.h
-    ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/rule.pb.h
-    ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/acl.pb.h
-    ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/scope.pb.h
-    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
-    # ------------------------------------------------------
-    # rate-limiting proto
-    # ------------------------------------------------------
-    if(BUILD_RATE_LIMITING)
-        ${CMAKE_BINARY_DIR}/proto/limit.pb.h
-        ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
-    endif()
+    ${WAFLZ_PROTO_HDRS} ${WAFLZ_PROTO_SRCS}
 )
 set_source_files_properties(${PB_SRCS} PROPERTIES GENERATED TRUE)
 set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
@@ -330,7 +295,10 @@ install(FILES ${PY_INST}
 # ------------------------------------------------------------------------------
 # library
 # ------------------------------------------------------------------------------
-add_library(waflzcore STATIC ${HDRS} ${SRCS})
+add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
+
+target_include_directories(waflzcore PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/proto/ ${CMAKE_BINARY_DIR}/)
+
 
 SET_TARGET_PROPERTIES(waflzcore
   PROPERTIES

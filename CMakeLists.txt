@@ -343,7 +343,11 @@ add_definitions(-DWAFLZ_VERSION="${VERSION}")
 # ------------------------------------------------------------------------------
 # Debian Package Support
 # ------------------------------------------------------------------------------
-EXECUTE_PROCESS(COMMAND lsb_release -cs OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  SET(DISTRIBUTION "macOS")
+else()
+  EXECUTE_PROCESS(COMMAND lsb_release -cs OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_VERSION "${VERSION}-${DISTRIBUTION}")
 SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")

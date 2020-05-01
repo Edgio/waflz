@@ -36,7 +36,11 @@ deb2tar () {
     # ------------------------------------------------------
     local l_deb_tmp_bin_dir=$(mktemp -d /tmp/deb2tar_XXXXXXXX)
     echo ": create bundle dir:      $l_deb_tmp_bin_dir"
-    local l_os_prefix_dir=$(lsb_release -i | cut -f 2 | tr '[:upper:]' '[:lower:]')$(lsb_release -r | cut -f 2)-$(uname -m)
+    if [ "$(uname)" == "Darwin" ]; then
+        local l_os_prefix_dir="macOS"-$(uname -m)
+    else
+        local l_os_prefix_dir=$(lsb_release -i | cut -f 2 | tr '[:upper:]' '[:lower:]')$(lsb_release -r | cut -f 2)-$(uname -m)
+    fi
     local l_os_dir=$l_deb_tmp_bin_dir/$l_os_prefix_dir
     echo ": make os dir:            $l_os_dir"
     mkdir -p $l_os_dir

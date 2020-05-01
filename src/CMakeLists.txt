@@ -93,11 +93,6 @@ SET(SRCS
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_encode.c
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_lex.c
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_tree.c
-
-    # ------------------------------------------------------
-    # cityhash
-    # ------------------------------------------------------
-    ${CMAKE_SOURCE_DIR}/ext/cityhash/city.cc
     # ------------------------------------------------------
     # base64
     # ------------------------------------------------------
@@ -109,6 +104,7 @@ SET(SRCS
     # ------------------------------------------------------
     # support
     # ------------------------------------------------------
+    support/city.cc
     support/time_util.cc
     support/geoip2_mmdb.cc
     support/file_util.cc
@@ -166,7 +162,6 @@ SET(SRCS
 # ------------------------------------------------------------------------------
 if(BUILD_RATE_LIMITING)
 list(APPEND SRCS
-
     #---------------------------------------------
     # ectoken
     #---------------------------------------------
@@ -229,6 +224,7 @@ SET(HDRS
     ${CMAKE_SOURCE_DIR}/include/waflz/arg.h
     ${CMAKE_SOURCE_DIR}/include/waflz/atomic.h
     ${CMAKE_SOURCE_DIR}/include/waflz/challenge.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/city.h
     ${CMAKE_SOURCE_DIR}/include/waflz/config_parser.h
     ${CMAKE_SOURCE_DIR}/include/waflz/def.h
     ${CMAKE_SOURCE_DIR}/include/waflz/engine.h
@@ -259,6 +255,17 @@ SET(HDRS
     ${CMAKE_SOURCE_DIR}/include/waflz/enforcer.h
     ${CMAKE_SOURCE_DIR}/include/waflz/limit.h
     ${CMAKE_SOURCE_DIR}/include/waflz/rl_obj.h
+    # ------------------------------------------------------
+    # protocol buffers
+    # ------------------------------------------------------
+    ${CMAKE_BINARY_DIR}/proto/acl.pb.h
+    ${CMAKE_BINARY_DIR}/proto/action.pb.h
+    ${CMAKE_BINARY_DIR}/proto/event.pb.h
+    ${CMAKE_BINARY_DIR}/proto/limit.pb.h
+    ${CMAKE_BINARY_DIR}/proto/profile.pb.h
+    ${CMAKE_BINARY_DIR}/proto/request_info.pb.h
+    ${CMAKE_BINARY_DIR}/proto/rule.pb.h
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.h
 )
 # ------------------------------------------------------------------------------
 # Tell the build system protobuf files are automatically generated

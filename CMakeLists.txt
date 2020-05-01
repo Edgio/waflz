@@ -367,3 +367,16 @@ if (BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
+# ------------------------------------------------------------------------------
+# release target
+# NOTE deb has to exist in order to create tar.gz
+# ------------------------------------------------------------------------------
+if(BUILD_ASAN)
+    SET(RELEASE_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-debug.deb")
+else()
+    SET(RELEASE_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb")
+endif()
+add_custom_target(release
+    COMMAND ${CMAKE_SOURCE_DIR}/support/deb2tar.sh -d ${CMAKE_BINARY_DIR}/${RELEASE_PACKAGE_FILE_NAME}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)

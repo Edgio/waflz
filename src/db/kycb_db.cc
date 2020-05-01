@@ -40,7 +40,7 @@
 #include <inttypes.h>
 #include "support/time_util.h"
 #include "support/ndebug.h"
-#include "waflz/db/kycb_db.h"
+#include "waflz/kycb_db.h"
 #include "waflz/def.h"
 #include <errno.h>
 #include <string.h>

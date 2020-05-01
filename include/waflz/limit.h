@@ -2,10 +2,10 @@
 //: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    config.h
+//: \file:    limit.h
 //: \details: TODO
 //: \author:  Reed P. Morrison
-//: \date:    11/30/2016
+//: \date:    09/09/2019
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -20,23 +20,20 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+#ifndef _LIMIT_H_
+#define _LIMIT_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/limit/rl_obj.h"
-#include "waflz/challenge.h"
+#include "waflz/rl_obj.h"
 #include <set>
 //: ----------------------------------------------------------------------------
 //: fwd Decl's
 //: ----------------------------------------------------------------------------
 namespace waflz_pb {
+        class condition_group;
         class limit;
-        class alert;
-        class enforcement;
-        class enforcer;
 }
 namespace ns_waflz
 {
@@ -45,73 +42,46 @@ namespace ns_waflz
 //: ----------------------------------------------------------------------------
 class kv_db;
 class regex;
-class enforcer;
 //: ----------------------------------------------------------------------------
 //: config
 //: ----------------------------------------------------------------------------
-class config: public rl_obj
+class limit: public rl_obj
 {
 public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        config(kv_db &a_db,
-               challenge& a_challenge,
-               bool a_case_insensitive_headers = false);
-        ~config();
+        limit(kv_db &a_db, bool a_case_insensitive_headers = false);
+        ~limit();
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t load(void *a_js);
         const std::string& get_last_modified_date();
-        int32_t process(const waflz_pb::enforcement** ao_enfcmnt,
-                        const waflz_pb::limit** ao_limit,
+        int32_t process(bool &ao_exceeds,
+                        const waflz_pb::condition_group** ao_cg,
+                        const std::string& a_scope_id,
                         rqst_ctx* a_ctx);
-        int32_t generate_alert(waflz_pb::alert** ao_alert,
-                               rqst_ctx* a_ctx);
-        int32_t merge(waflz_pb::config &ao_cfg);
-        challenge &get_challenge(void) { return m_challenge;}
         const char *get_err_msg(void) { return m_err_msg; }
+        waflz_pb::limit *get_pb(void) { return m_pb; }
+        const std::string& get_id(void) { return m_id; }
+        const std::string& get_cust_id(void) { return m_cust_id; }
 private:
-        // -------------------------------------------------
-        // Private types
-        // -------------------------------------------------
-        typedef std::set <uint64_t> exceed_key_set_t;
         // -------------------------------------------------
         // Private methods
         // -------------------------------------------------
         // disallow copy/assign
-        config(const config &);
-        config& operator=(const config &);
-        int32_t validate(void);
-        int32_t load();
-        int32_t process_config(waflz_pb::config **ao_cfg,
-                               rqst_ctx *a_ctx);
-        int32_t process_enfx(const waflz_pb::enforcement** ao_enfcmnt,
-                             bool& ao_pass,
-                             rqst_ctx* a_ctx);
-        int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
-                                  uint16_t a_key,
-                                  rqst_ctx *a_ctx);
-        int32_t add_exceed_limit(waflz_pb::config **ao_cfg,
-                                 const std::string &a_cust_id,
-                                 const waflz_pb::limit& a_limit,
-                                 const waflz_pb::condition_group *a_condition_group,
-                                 rqst_ctx *a_ctx);
-        int32_t handle_match(waflz_pb::config** ao_cfg,
-                             const std::string& a_cust_id,
-                             const waflz_pb::limit& a_limit,
-                             const waflz_pb::condition_group* a_condition_group,
-                             rqst_ctx* a_ctx);
-        int32_t get_limit_key_value(char* ao_key,
-                                    const std::string& a_cust_id,
-                                    const waflz_pb::limit& a_limit,
-                                    rqst_ctx *a_ctx);
+        limit(const limit &);
+        limit& operator=(const limit &);
+        int32_t init(void);
+        int32_t incr_key(bool &ao_exceeds, const std::string& a_scope_id, rqst_ctx* a_ctx);
+        int32_t get_key(char* ao_key, const std::string& a_scope_id, rqst_ctx *a_ctx);
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------
+        bool m_init;
+        waflz_pb::limit *m_pb;
         kv_db &m_db;
-        challenge& m_challenge;
-        enforcer *m_enfx;
-        exceed_key_set_t m_exceed_key_set;
+        std::string m_id;
+        std::string m_cust_id;
 };
 }
 #endif

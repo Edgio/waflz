@@ -35,11 +35,11 @@
 #include "profile.pb.h"
 #ifdef WAFLZ_RATE_LIMITING
 #include "waflz/scopes.h"
-#include "waflz/limit/config.h"
-#include "waflz/limit/enforcer.h"
-#include "waflz/limit/rl_obj.h"
-#include "waflz/limit/limit.h"
-#include "waflz/db/kycb_db.h"
+#include "waflz/config.h"
+#include "waflz/enforcer.h"
+#include "waflz/rl_obj.h"
+#include "waflz/limit.h"
+#include "waflz/kycb_db.h"
 #include "limit.pb.h"
 #endif
 #include <stdio.h>

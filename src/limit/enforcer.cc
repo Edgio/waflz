@@ -26,7 +26,7 @@
 #include "support/time_util.h"
 #include "support/ndebug.h"
 #include "jspb/jspb.h"
-#include "waflz/limit/enforcer.h"
+#include "waflz/enforcer.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/def.h"
 #include "waflz/scopes.h"

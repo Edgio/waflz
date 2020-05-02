@@ -457,10 +457,11 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is acl custom response\n'
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
     # sleep for 5 seconds enforcement period.
-    # Shoot SQL injection request again. should see waf action
-    # ------------------------------------------------------------------------------
+    # Shoot SQL injection request again.
+    # should see waf action
+    # ------------------------------------------------------
     time.sleep(5)
     l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'limit.com',
@@ -557,9 +558,10 @@ def test_multiple_scopes_for_limit(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == "custom response for limits from limit_id_2\n"
-    # ------------------------------------------------------------------------------
-    # sleep for 5 seconds. Enforcements should expire for both scopes
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
+    # sleep for 5 seconds.
+    # Enforcements should expire for both scopes
+    # ------------------------------------------------------
     time.sleep(5)
     # ------------------------------------------------------
     # making single request for each scope should give 200

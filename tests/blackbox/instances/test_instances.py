@@ -102,7 +102,7 @@ def check_rqst(a_host, a_id, a_rqst):
         assert False, 'no response for request: %s' % (json.dumps(a_rqst))
     assert l_r.getcode() == 200, 'non-200 for request: %s' % (json.dumps(a_rqst))
     assert l_r.info().get('Content-Type') == 'application/json', 'wrong content-type: %s' % (l_r.info().get('Content-Type'))
-    l_body = l_r.read()
+    l_body = l_r.read().decode()
     l_r_json = None
     try:
         l_r_json = json.loads(l_body)

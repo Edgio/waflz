@@ -201,7 +201,6 @@ def waflz_server_stress(a_verbose,
     l_time_ms_last = time.time()*1000
     i_c = 0
     while g_run:
-        print("posting config, i_c", i_c)
         i_c += 1
         post_config(l_host, l_template, i_c)
         l_time_ms_cur = time.time()*1000

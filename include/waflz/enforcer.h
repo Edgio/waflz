@@ -2,10 +2,10 @@
 //: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    limit.h
+//: \file:    enforcer.h
 //: \details: TODO
 //: \author:  Reed P. Morrison
-//: \date:    09/09/2019
+//: \date:    04/15/2016
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -20,68 +20,53 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _LIMIT_H_
-#define _LIMIT_H_
+#ifndef _ENFORCER_H_
+#define _ENFORCER_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#include "waflz/def.h"
-#include "waflz/limit/rl_obj.h"
-#include <set>
+#include "waflz/rl_obj.h"
 //: ----------------------------------------------------------------------------
 //: fwd Decl's
 //: ----------------------------------------------------------------------------
 namespace waflz_pb {
-        class condition_group;
-        class limit;
+class event;
+class config;
+class enforcement;
 }
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
-//: fwd Decl's
+//: fwd decl's
 //: ----------------------------------------------------------------------------
-class kv_db;
-class regex;
+class rqst_ctx;
 //: ----------------------------------------------------------------------------
-//: config
+//: enforcer
 //: ----------------------------------------------------------------------------
-class limit: public rl_obj
+class enforcer: public rl_obj
 {
 public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        limit(kv_db &a_db, bool a_case_insensitive_headers = false);
-        ~limit();
+        enforcer(bool a_case_insensitive_headers = false);
+        enforcer(waflz_pb::config *m_pb, bool a_case_insensitive_headers = false);
+        ~enforcer();
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t load(void *a_js);
-        const std::string& get_last_modified_date();
-        int32_t process(bool &ao_exceeds,
-                        const waflz_pb::condition_group** ao_cg,
-                        const std::string& a_scope_id,
-                        rqst_ctx* a_ctx);
-        const char *get_err_msg(void) { return m_err_msg; }
-        waflz_pb::limit *get_pb(void) { return m_pb; }
-        const std::string& get_id(void) { return m_id; }
-        const std::string& get_cust_id(void) { return m_cust_id; }
+        int32_t process(const waflz_pb::enforcement** ao_enf, rqst_ctx* a_ctx);
+        int32_t merge(waflz_pb::config &ao_cfg);
+        void update_start_time(void);
+        uint64_t get_total_limits() const { return m_stat_total_limits; }
 private:
         // -------------------------------------------------
         // Private methods
         // -------------------------------------------------
         // disallow copy/assign
-        limit(const limit &);
-        limit& operator=(const limit &);
-        int32_t init(void);
-        int32_t incr_key(bool &ao_exceeds, const std::string& a_scope_id, rqst_ctx* a_ctx);
-        int32_t get_key(char* ao_key, const std::string& a_scope_id, rqst_ctx *a_ctx);
-        // -------------------------------------------------
-        // Private members
-        // -------------------------------------------------
-        bool m_init;
-        waflz_pb::limit *m_pb;
-        kv_db &m_db;
-        std::string m_id;
-        std::string m_cust_id;
+        enforcer(const enforcer &);
+        enforcer& operator=(const enforcer &);
+        int32_t validate(void);
+        uint64_t m_stat_total_limits;
 };
 }
 #endif

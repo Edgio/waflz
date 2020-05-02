@@ -23,7 +23,7 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#include "waflz/limit/rl_obj.h"
+#include "waflz/rl_obj.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/scopes.h"
 #include "support/time_util.h"

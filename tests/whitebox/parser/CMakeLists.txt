@@ -22,29 +22,6 @@
 # project setup
 # ------------------------------------------------------------------------------
 project(waflz)
-cmake_minimum_required(VERSION 2.8.0)
-# ------------------------------------------------------------------------------
-# wb_parser_json
-# ------------------------------------------------------------------------------
-SET(SRCS wb_parser_json.cc)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src)
-add_executable(wb_parser_json ${HDRS} ${SRCS})
-add_dependencies(wb_parser_json waflzcore)
-target_link_libraries(wb_parser_json ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
-SET_TARGET_PROPERTIES(wb_parser_json PROPERTIES OUTPUT_NAME "wb_parser_json")
-add_test(parser_json wb_parser_json)
-# ------------------------------------------------------------------------------
-# wb_parser_xml
-# ------------------------------------------------------------------------------
-SET(SRCS wb_parser_xml.cc)
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/src
-    /usr/include/libxml2
-)
-add_executable(wb_parser_xml ${HDRS} ${SRCS})
-add_dependencies(wb_parser_xml waflzcore)
-target_link_libraries(wb_parser_xml ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libwaflzcore.a ${LIBRARIES})
-SET_TARGET_PROPERTIES(wb_parser_xml PROPERTIES OUTPUT_NAME "wb_parser_xml")
-add_test(parser_xml wb_parser_xml)
+cmake_minimum_required(VERSION 3.5)
+
+add_waflz_wb_test(parser_json)

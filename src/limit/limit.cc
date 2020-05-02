@@ -27,12 +27,12 @@
 #include <inttypes.h>
 #include "support/ndebug.h"
 #include "jspb/jspb.h"
-#include "waflz/limit/limit.h"
-#include "waflz/db/kv_db.h"
+#include "waflz/city.h"
+#include "waflz/limit.h"
+#include "waflz/kv_db.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
-#include "cityhash/city.h"
 #include "limit.pb.h"
 //! ----------------------------------------------------------------------------
 //! constants

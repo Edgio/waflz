@@ -28,7 +28,7 @@
 #include "op/nms.h"
 #include "waflz/def.h"
 #include "waflz/scopes.h"
-#include "waflz/limit/rl_obj.h"
+#include "waflz/rl_obj.h"
 #include "limit.pb.h"
 //: ----------------------------------------------------------------------------
 //: macros

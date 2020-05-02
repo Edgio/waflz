@@ -22,12 +22,20 @@
 # Project setup
 # ------------------------------------------------------------------------------
 project(waflz)
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.5)
+
+macro (add_waflz_wb_test test_name)
+    # SET(SRCS wb_matched_data.cc)
+    add_executable("wb_${test_name}" "wb_${test_name}.cc")
+    target_link_libraries("wb_${test_name}" ${DEBUG_LIBRARIES} waflz_compiled_catch waflzcore ${LIBRARIES})
+    add_test(${test_name} "wb_${test_name}")
+endmacro()
+
 # ------------------------------------------------------------------------------
 # build catch
 # ------------------------------------------------------------------------------
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ../../ext/)
-add_library(compiled_catch STATIC ${CMAKE_CURRENT_SOURCE_DIR}/../../ext/catch/catch.hpp _catch.cc)
+add_library(waflz_compiled_catch STATIC ${CMAKE_CURRENT_SOURCE_DIR}/../../ext/catch/catch.hpp _catch.cc)
 # ------------------------------------------------------------------------------
 # build tests
 # ------------------------------------------------------------------------------
@@ -43,4 +51,3 @@ if(BUILD_RATE_LIMITING)
 add_subdirectory(db)
 add_subdirectory(limit)
 endif()
-

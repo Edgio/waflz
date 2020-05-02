@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''Test scopes with custom rules'''
 # ------------------------------------------------------------------------------
-# Imports
+# imports
 # ------------------------------------------------------------------------------
 import pytest
 import subprocess
@@ -13,7 +13,7 @@ import requests
 import base64
 import time
 # ------------------------------------------------------------------------------
-# Constants
+# constants
 # ------------------------------------------------------------------------------
 G_TEST_HOST = 'http://127.0.0.1:12345'
 # ------------------------------------------------------------------------------
@@ -423,9 +423,10 @@ def test_alert_order(setup_scopez_server_single):
 # test limit and waf with scopes
 # ------------------------------------------------------------------------------
 def test_limit_and_waf_with_scopes(setup_scopez_server_action):
-    # ------------------------------------------------------------------------------
-    # shoot 3 request in 5 sec Third request should get rate limited
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
+    # shoot 3 request in 5 sec
+    # 3rd request should get rate limited
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
@@ -436,19 +437,20 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
-    # ------------------------------------------------------------------------------
-    # shoot SQL injection request during the enforcement window. Should still
-    # get a ddos custom response
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
+    # shoot SQL injection request during enforcement window.
+    # Should still get a ddos custom response
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'limit.com',
                   'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
-    # ------------------------------------------------------------------------------
-    # shoot acl request during enforcement period. should see acl action
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
+    # shoot acl request during enforcement period.
+    # should see acl action
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/audit.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
@@ -526,9 +528,10 @@ def test_acl_whitelist(setup_scopez_server_action):
 # test mutiple scopes for ratelimiting
 # ------------------------------------------------------------------------------
 def test_multiple_scopes_for_limit(setup_scopez_server_action):
-    # ------------------------------------------------------------------------------
-    # Make 3 request in 5 sec. Third request should get rate limited
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
+    # Make 3 request in 5 sec.
+    # 3rd request should get rate limited
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
@@ -539,11 +542,11 @@ def test_multiple_scopes_for_limit(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
-    # ------------------------------------------------------------------------------
-    # Make another request for different scope during the enf window
-    # of first request. should get 200 and followed by
-    # enforcement for that scope
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
+    # Make another request for different scope during enf
+    # window of first request. should get 200 and followed
+    # by enforcement for that scope
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'test.limit.com',
                  'waf-scopes-id': '0050'}
@@ -558,9 +561,9 @@ def test_multiple_scopes_for_limit(setup_scopez_server_action):
     # sleep for 5 seconds. Enforcements should expire for both scopes
     # ------------------------------------------------------------------------------
     time.sleep(5)
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
     # making single request for each scope should give 200
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
@@ -572,10 +575,12 @@ def test_multiple_scopes_for_limit(setup_scopez_server_action):
                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
-
+# ------------------------------------------------------------------------------
+# custom rules in scopes
+# ------------------------------------------------------------------------------
 def test_custom_rules_in_scopes(setup_scopez_server_action):
     # ------------------------------------------------------
-    #
+    # create request
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'rulestest.com',
@@ -584,10 +589,12 @@ def test_custom_rules_in_scopes(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'basic custom rule triggered\n'
-   
+# ------------------------------------------------------------------------------
+# chained custom rules in scopes
+# ------------------------------------------------------------------------------   
 def test_chained_custom_rules_in_scopes(setup_scopez_server_action):
     # ------------------------------------------------------
-    #
+    # create request
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'chainedrulestest.com',

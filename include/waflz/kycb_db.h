@@ -1,11 +1,11 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
+//: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    redis_db.h
-//: \details: redis db kv header for waflz
+//: \file:    kycb_db.h
+//: \details: TODO
 //: \author:  Reed P. Morrison
-//: \date:    06/05/2018
+//: \date:    12/07/2016
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -20,39 +20,65 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _REDIS_DB_H_
-#define _REDIS_DB_H_
+#ifndef _KYCB_DB_H_
+#define _KYCB_DB_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
 #include <stdint.h>
 #include <string>
-#include "waflz/db/kv_db.h"
+// for std::priority_queue
+#include <queue>
+#include "waflz/kv_db.h"
+#include "waflz/atomic.h"
 #include "waflz/def.h"
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
-struct redisContext;
+namespace kyotocabinet
+{
+class HashDB;
+}
 namespace ns_waflz {
+// key ttl
+typedef struct kv_ttl {
+        uint64_t m_ttl_ms;
+        std::string *m_key;
+        ~kv_ttl() { if(m_key) { delete m_key; m_key = NULL; } }
+} kv_ttl_t;
+//: ----------------------------------------------------------------------------
+//: Priority queue sorting
+//: ----------------------------------------------------------------------------
+class pq_compare_events {
+public:
+        // Returns true if t1 is greater than t2
+        bool operator()(kv_ttl_t* t1, kv_ttl_t* t2)
+        {
+                return (t1->m_ttl_ms > t2->m_ttl_ms);
+        }
+};
+typedef std::priority_queue<kv_ttl_t *, std::vector<kv_ttl_t *>, pq_compare_events> kv_ttl_pq_t;
 //: ----------------------------------------------------------------------------
 //: kycb_db
 //: ----------------------------------------------------------------------------
-class redis_db: public kv_db {
+class kycb_db: public kv_db {
 public:
         // -------------------------------------------------
         // public types
         // -------------------------------------------------
         typedef enum opt_enum
         {
-                OPT_REDIS_HOST = 0,
-                OPT_REDIS_PORT = 1,
+                OPT_KYCB_DB_FILE_PATH = 0,
+                OPT_KYCB_OPTIONS = 1,
+                OPT_KYCB_BUCKETS = 2,
+                OPT_KYCB_MAP = 3,
                 OPT_KYCB_SENTINEL = 999
         } opt_t;
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        redis_db(void);
-        ~redis_db(void);
+        kycb_db(void);
+        ~kycb_db(void);
         int32_t init(void);
         //: ------------------------------------------------
         //:                  D B   O P S
@@ -66,21 +92,24 @@ public:
         int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len);
 private:
         // -------------------------------------------------
-        // private methods
+        // Private methods
         // -------------------------------------------------
-        // disallow copy/assign
-        redis_db(const redis_db &);
-        redis_db& operator=(const redis_db &);
-        int32_t reconnect(void);
+        int32_t expire_old_keys(void);
         // -------------------------------------------------
-        // private members
+        // Private members
         // -------------------------------------------------
-        redisContext *m_ctx;
+        atomic_gcc_builtin <kyotocabinet::HashDB*> m_db;
         // -------------------------------------------------
         // config
         // -------------------------------------------------
-        std::string m_config_host;
-        uint16_t m_config_port;
+        std::string m_config_db_file_path;
+        int m_config_options;
+        uint32_t m_config_buckets;
+        uint32_t m_config_map;
+        // -------------------------------------------------
+        // timer priority queue -used as min heap
+        // -------------------------------------------------
+        kv_ttl_pq_t m_kv_ttl_pq;
 };
 }
 #endif

@@ -25,7 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
-#include "waflz/db/redis_db.h"
+#include "waflz/redis_db.h"
 #include "support/time_util.h"
 #include "support/ndebug.h"
 #include <unistd.h>

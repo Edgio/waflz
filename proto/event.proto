@@ -129,7 +129,6 @@ message event {
         // rules config specific
         optional string rules_config_id = 228;
         optional string rules_config_name = 229;
-
         // -------------------------------------------------
         // !!!DEPRECATED!!!
         // -------------------------------------------------

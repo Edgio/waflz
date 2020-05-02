@@ -1234,8 +1234,8 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
                 if(!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                        return WAFLZ_STATUS_ERROR;
+                        if(a_limit) { delete a_limit; a_limit = NULL; }
+                        return WAFLZ_STATUS_OK;
                 }
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
@@ -1292,8 +1292,8 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
                 if(!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                        return WAFLZ_STATUS_ERROR;
+                        if(a_acl) { delete a_acl; a_acl = NULL; }
+                        return WAFLZ_STATUS_OK;
                 }
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
@@ -1351,8 +1351,8 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
                 if(!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                        return WAFLZ_STATUS_ERROR;
+                        if(a_rules) { delete a_rules; a_rules = NULL; }
+                        return WAFLZ_STATUS_OK;
                 }
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
@@ -1410,8 +1410,8 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
                 if(!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                        return WAFLZ_STATUS_ERROR;
+                        if(a_profile) { delete a_profile; a_profile = NULL; }
+                        return WAFLZ_STATUS_OK;
                 }
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}

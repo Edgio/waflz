@@ -164,7 +164,7 @@ def post_config(a_host, a_template, a_idx):
     except Exception as l_e:
         print('error: performing POST to %s. Exception: %s' % (l_url, l_e))
         sys.exit(1)
-    l_body = l_r.read()
+    l_body = l_r.read().decode()
     if l_r.getcode() != 200:
         print('error: performing POST to %s -status: %d. Response: %s' % (l_url, l_r.getcode(), l_body))
         sys.exit(1)

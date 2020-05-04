@@ -68,7 +68,7 @@ def get_rqst(a_host, a_id, a_vectors, a_idx, a_results):
         l_url += '?'
         l_url += l_v['query_string']
     if 'headers' in l_v and len(l_v['headers']):
-        l_headers = l_v['headers']
+        l_headers.update(l_v['headers'])
     if 'body' in l_v:
         l_body = base64.b64decode(l_v['body'])
     else:

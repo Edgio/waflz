@@ -237,7 +237,7 @@ def main(argv):
         help='acl/rules/profile/scopes template(REQUIRED).',
         required=True)
     l_arg_parser.add_argument(
-        '-a'
+        '-a',
         '--template_type',
         dest='type',
         help='type of template - should be acl, rules, scopes or profile',

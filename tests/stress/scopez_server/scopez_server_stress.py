@@ -60,7 +60,7 @@ def print_stats_line(a_time_delta_ms, a_num_reqs, a_num_configs, a_results):
 def get_rqst(a_host, a_id, a_vectors, a_idx, a_results):
     l_url = a_host
     l_v = a_vectors[a_idx]
-    l_headers = None;
+    l_headers = {'x-ec-scopes-id': str(a_id)}
     l_body = ''
     if 'uri' in l_v:
         l_url = '%s/%s'%(a_host, l_v['uri'])
@@ -123,7 +123,7 @@ def post_config(a_host, a_template, a_type, a_idx):
     except Exception as l_e:
         print('error: performing POST to %s. Exception: %s' % (l_url, l_e))
         sys.exit(1)
-    l_body = l_r.read()
+    l_body = l_r.read().decode()
     if l_r.getcode() != 200:
         print('error: performing POST to %s -status: %d. Response: %s' % (l_url, l_r.getcode(), l_body))
         sys.exit(1)
@@ -147,7 +147,7 @@ def scopez_server_stress(a_verbose,
             l_template = json.load(l_f)
     except Exception as l_e:
         print('error opening template file: %s.  Reason: %s error: %s, doc: %s' % (
-            a_vector_file, type(l_e), l_e, l_e.__doc__))
+            a_template, type(l_e), l_e, l_e.__doc__))
         sys.exit(-1)
     l_time_ms_last = time.time()*1000
     i_c = 0
@@ -220,7 +220,7 @@ def scopez_server_stress(a_verbose,
 def main(argv):
     l_arg_parser = argparse.ArgumentParser(
         description='scopez_server stress tester.',
-        usage='%(prog)s <any one template file(acl, rules, profile, scopes, limit), template type and request vector file',
+        usage='%(prog)s -t <any one template file(acl, rules, profile, scopes, limit) -a <template type> -x <request vector file>',
         epilog='')
     l_arg_parser.add_argument(
         '-v',
@@ -247,7 +247,7 @@ def main(argv):
         '--vectors',
         dest='vector_file',
         help='request vector file.',
-        required=False)
+        required=True)
     l_arg_parser.add_argument(
         '-p',
         '--port',

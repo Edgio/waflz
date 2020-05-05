@@ -125,7 +125,7 @@
           "id":"zeAXrllT",
           "name":"ddos-action",
           "status": 403,
-          "duration_sec": 10,
+          "duration_sec": 5,
           "type": "custom-response",
           "response_body_base64": "VGhpcyBpcyBkZG9zIGN1c3RvbSByZXNwb25zZQo="
        }
@@ -164,7 +164,7 @@
           "id":"lllllll",
           "name":"ddos-action",
           "status": 403,
-          "duration_sec": 10,
+          "duration_sec": 5,
           "type": "custom-response",
           "response_body_base64": "Y3VzdG9tIHJlc3BvbnNlIGZvciBsaW1pdHMgZnJvbSBsaW1pdF9pZF8yCg=="
        }

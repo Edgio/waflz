@@ -714,7 +714,7 @@ acl_audit_action:
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
                         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        // TODO cleanup...
+                        if(l_acl) { delete l_acl; l_acl = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_s = l_acl->load(l_buf, l_buf_len);
@@ -722,7 +722,7 @@ acl_audit_action:
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_acl->get_err_msg());
                         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        // TODO cleanup...
+                        if(l_acl) { delete l_acl; l_acl = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
@@ -784,6 +784,7 @@ acl_prod_action:
                                    "__na__");
                                    // TODO -get reason...
                                    //l_wafl->get_err_msg());
+                        if(l_rules) { delete l_rules; l_rules = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
@@ -844,6 +845,7 @@ rules_audit_action:
                                    "__na__");
                                    // TODO -get reason...
                                    //l_wafl->get_err_msg());
+                        if(l_rules) { delete l_rules; l_rules = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
@@ -903,7 +905,7 @@ rules_prod_action:
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
                         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        // TODO cleanup...
+                        if(l_profile) { delete l_profile; l_profile = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_s = l_profile->load(l_buf, l_buf_len);
@@ -911,7 +913,7 @@ rules_prod_action:
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
                         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        // TODO cleanup...
+                       if(l_profile) { delete l_profile; l_profile = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
@@ -972,7 +974,7 @@ profile_audit_action:
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
                         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        // TODO cleanup...
+                        if(l_profile) { delete l_profile; l_profile = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_s = l_profile->load(l_buf, l_buf_len);
@@ -980,7 +982,7 @@ profile_audit_action:
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
                         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        // TODO cleanup...
+                        if(l_profile) { delete l_profile; l_profile = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
@@ -1232,8 +1234,8 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
                 if(!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                        return WAFLZ_STATUS_ERROR;
+                        if(a_limit) { delete a_limit; a_limit = NULL; }
+                        return WAFLZ_STATUS_OK;
                 }
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
@@ -1290,8 +1292,8 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
                 if(!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                        return WAFLZ_STATUS_ERROR;
+                        if(a_acl) { delete a_acl; a_acl = NULL; }
+                        return WAFLZ_STATUS_OK;
                 }
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
@@ -1349,8 +1351,8 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
                 if(!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                        return WAFLZ_STATUS_ERROR;
+                        if(a_rules) { delete a_rules; a_rules = NULL; }
+                        return WAFLZ_STATUS_OK;
                 }
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
@@ -1408,8 +1410,8 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
                 if(!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        WAFLZ_PERROR(m_err_msg ,"Not updating, config is latest");
-                        return WAFLZ_STATUS_ERROR;
+                        if(a_profile) { delete a_profile; a_profile = NULL; }
+                        return WAFLZ_STATUS_OK;
                 }
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}

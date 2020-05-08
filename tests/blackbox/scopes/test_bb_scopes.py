@@ -457,11 +457,11 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     assert l_r.status_code == 403
     assert l_r.text == 'This is acl custom response\n'
     # ------------------------------------------------------
-    # sleep for 5 seconds enforcement period.
+    # sleep for 1 seconds enforcement period.
     # Shoot SQL injection request again.
     # should see waf action
     # ------------------------------------------------------
-    time.sleep(5)
+    time.sleep(2)
     l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'limit.com',
                   'waf-scopes-id': '0050'}

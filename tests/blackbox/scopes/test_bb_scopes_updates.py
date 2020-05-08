@@ -250,6 +250,87 @@ def test_profile_config_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
 
+def test_limit_config_update(setup_scopez_server_action):
+    # ------------------------------------------------------
+    # Make 3 request in 2 sec for 3rd and
+    # 4th scope. Third request should get rate limited
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'limit.com',
+                 'waf-scopes-id': '0050'}
+    for x in range(2):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'This is ddos custom response\n'
+
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'test.limit.com',
+                 'waf-scopes-id': '0050'}
+    for x in range(2):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'custom response for limits from limit_id_2\n'
+    # ------------------------------------------------------
+    # sleep for 2 seconds. Enforcements should expire
+    # ------------------------------------------------------
+    time.sleep(2)
+    #-------------------------------------------------------
+    # load limit config and change duration_sec to 3
+    # ------------------------------------------------------
+    l_conf = {}
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_limit_conf_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/limit/0050-MjMhNXMR.limit.json'))
+    try:
+        with open(l_limit_conf_path) as l_f:
+            l_conf = json.load(l_f)
+    except Exception as l_e:
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
+            l_limit_conf_path, type(l_e), l_e, l_e.__doc__))
+        assert False
+    l_conf["num"] = 3
+    l_conf['last_modified_date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    #-------------------------------------------------------
+    # POST conf
+    # ------------------------------------------------------
+    l_url = '%s/update_limit'%(G_TEST_HOST)
+    l_headers = {'Content-Type': 'application/json',
+                 'waf-scopes-id': '0050'}
+    l_r = requests.post(l_url,
+                        headers=l_headers,
+                        data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    # ------------------------------------------------------
+    # Make 4 request in 2 sec. fourth request should get
+    # rate limited. Third request shouldn't be blocked
+    # because of the update
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'limit.com',
+                 'waf-scopes-id': '0050'}
+    for x in range(3):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'This is ddos custom response\n'
+    # ------------------------------------------------------
+    # Make 4 request in 2 sec for fourth scope.
+    # verify if 4th scope was also updated
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'test.limit.com',
+                 'waf-scopes-id': '0050'}
+    for x in range(3):
+        l_r = requests.get(l_uri, headers=l_headers)
+        assert l_r.status_code == 200
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'custom response for limits from limit_id_2\n'
+
 def test_scopes_update(setup_scopez_server_action):
     #-------------------------------------------------------
     #  check second scope for AN 0051 working correctly

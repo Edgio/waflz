@@ -276,54 +276,24 @@ SET(PB_SRCS
 set_source_files_properties(${PB_SRCS} PROPERTIES GENERATED TRUE)
 set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
 # ------------------------------------------------------------------------------
-# Python support
-# ------------------------------------------------------------------------------
-SET(PY_INST
-    ${CMAKE_BINARY_DIR}/proto/profile_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/action_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/event_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/rule_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/acl_pb2.py
-)
-# ------------------------------------------------------------------------------
-# rate-limiting proto
-# ------------------------------------------------------------------------------
-if(BUILD_RATE_LIMITING)
-    list(APPEND PY_INST
-    ${CMAKE_BINARY_DIR}/proto/scope_pb2.py
-    ${CMAKE_BINARY_DIR}/proto/limit_pb2.py
-    )
-endif()
-install(FILES ${PY_INST}
-    DESTINATION include/waflz-py
-    COMPONENT Headers
-)
-# ------------------------------------------------------------------------------
 # library
 # ------------------------------------------------------------------------------
 add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
-
 target_include_directories(waflzcore PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/proto/ ${CMAKE_BINARY_DIR}/)
-
-
 SET_TARGET_PROPERTIES(waflzcore
   PROPERTIES
   POSITION_INDEPENDENT_CODE ON
 )
-
 # Create symlink for libwaflz.so.<soversion>
 SET_TARGET_PROPERTIES(waflzcore
   PROPERTIES
   SOVERSION 0
 )
-
 # Add install target for the library
 install(TARGETS waflzcore
   ARCHIVE DESTINATION lib
   COMPONENT Libraries
 )
-
 # Add install target for header files
 install(FILES ${HDRS}
   DESTINATION include/waflz

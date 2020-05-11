@@ -38,17 +38,59 @@ git submodule update -f --init || {
 # ------------------------------------------------------------------------------
 # Build waflz
 # ------------------------------------------------------------------------------
-mkdir -p build
-pushd build && \
-    cmake ../ \
-    -DBUILD_SYMBOLS=ON \
-    -DBUILD_APPS=ON \
-    -DBUILD_UBUNTU=ON \
-    -DBUILD_RATE_LIMITING=ON \
-    -DCMAKE_INSTALL_PREFIX=/usr && \
-    make -j$(nproc) && \
+main() {
+
+    build_asan=0
+    while getopts ":a" opt; do
+        case "${opt}" in
+            a)
+                build_asan=1
+            ;;
+
+            \?)
+                echo "Invalid option: -$OPTARG" >&2
+                exit $?
+            ;;
+        esac
+    done
+
+    if [ "$(uname)" == "Darwin" ]; then
+        BUILD_UBUNTU=OFF
+        BUILD_RATE_LIMITING=ON
+        NPROC=$(sysctl -n hw.ncpu)
+    else
+        BUILD_UBUNTU=ON
+        BUILD_RATE_LIMITING=ON
+        NPROC=$(nproc)
+    fi
+
+    mkdir -p build
+    pushd build
+
+    if [[ "${build_asan}" -eq 1 ]]; then
+        cmake ../ \
+        -DBUILD_ASAN=ON\
+        -DBUILD_SYMBOLS=ON \
+        -DBUILD_APPS=ON \
+        -DBUILD_UBUNTU=${BUILD_UBUNTU} \
+        -DBUILD_RATE_LIMITING=${BUILD_RATE_LIMITING} \
+        -DCMAKE_INSTALL_PREFIX=/usr
+    else
+        cmake ../ \
+        -DBUILD_SYMBOLS=ON \
+        -DBUILD_APPS=ON \
+        -DBUILD_UBUNTU=${BUILD_UBUNTU} \
+        -DBUILD_RATE_LIMITING=${BUILD_RATE_LIMITING} \
+        -DCMAKE_INSTALL_PREFIX=/usr
+    fi
+
+    make -j${NPROC} && \
     make test && \
     umask 0022 && chmod -R a+rX . && \
     make package && \
-popd && \
-exit $?
+    make release && \
+    popd && \
+    exit $?
+}
+
+main "${@}"

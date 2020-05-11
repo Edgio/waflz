@@ -33,7 +33,6 @@
 namespace ns_waflz {
 class engine;
 class profile;
-class geoip2_mmdb;
 class enforcement;
 }
 namespace ns_waflz_server {
@@ -65,7 +64,7 @@ public:
         sx_profile(void);
         ~sx_profile(void);
         int32_t init(void);
-        ns_is2::h_resp_t handle_rqst(const waflz_pb::enforcement **ao_enf,
+        ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
                                      ns_waflz::rqst_ctx **ao_ctx,
                                      ns_is2::session &a_session,
                                      ns_is2::rqst &a_rqst,
@@ -76,8 +75,10 @@ public:
         ns_waflz::engine *m_engine;
         ns_waflz::profile *m_profile;
         update_profile_h *m_update_profile_h;
-        ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
         waflz_pb::enforcement *m_action;
+        std::string m_ruleset_dir;
+        std::string m_geoip2_db;
+        std::string m_geoip2_isp_db;
 };
 }
 #endif

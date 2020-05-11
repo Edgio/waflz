@@ -34,6 +34,8 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/profile.h"
 #include "waflz/render.h"
+#include "waflz/engine.h"
+#include "waflz/trace.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
 #include "is2/support/trace.h"
@@ -49,7 +51,9 @@
 #include "is2/srvr/default_rqst_h.h"
 #include "is2/handler/proxy_h.h"
 #include "is2/handler/file_h.h"
+#include "event.pb.h"
 #include "action.pb.h"
+#include <errno.h>
 #include <string>
 #include <getopt.h>
 #include <stdio.h>
@@ -63,18 +67,14 @@
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
-#define BOGUS_GEO_DATABASE "/tmp/BOGUS_GEO_DATABASE.db"
-#define _DEFAULT_RESP_BODY_B64 "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+IDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4gPHRpdGxlPjwvdGl0bGU+PC9oZWFkPjxib2R5PiA8c3R5bGU+Knstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9ZGl2e2Rpc3BsYXk6IGJsb2NrO31ib2R5e2ZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXNpemU6IDE0cHg7IGxpbmUtaGVpZ2h0OiAxLjQyODU3MTQzOyBjb2xvcjogIzMzMzsgYmFja2dyb3VuZC1jb2xvcjogI2ZmZjt9aHRtbHtmb250LXNpemU6IDEwcHg7IC13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7IC13ZWJraXQtdGV4dC1zaXplLWFkanVzdDogMTAwJTsgLW1zLXRleHQtc2l6ZS1hZGp1c3Q6IDEwMCU7fTpiZWZvcmUsIDphZnRlcnstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9LmNvbnRhaW5lcntwYWRkaW5nLXJpZ2h0OiAxNXB4OyBwYWRkaW5nLWxlZnQ6IDE1cHg7IG1hcmdpbi1yaWdodDogYXV0bzsgbWFyZ2luLWxlZnQ6IGF1dG87fUBtZWRpYSAobWluLXdpZHRoOiA3NjhweCl7LmNvbnRhaW5lcnt3aWR0aDogNzUwcHg7fX0uY2FsbG91dCsuY2FsbG91dHttYXJnaW4tdG9wOiAtNXB4O30uY2FsbG91dHtwYWRkaW5nOiAyMHB4OyBtYXJnaW46IDIwcHggMDsgYm9yZGVyOiAxcHggc29saWQgI2VlZTsgYm9yZGVyLWxlZnQtd2lkdGg6IDVweDsgYm9yZGVyLXJhZGl1czogM3B4O30uY2FsbG91dC1kYW5nZXJ7Ym9yZGVyLWxlZnQtY29sb3I6ICNmYTBlMWM7fS5jYWxsb3V0LWRhbmdlciBoNHtjb2xvcjogI2ZhMGUxYzt9LmNhbGxvdXQgaDR7bWFyZ2luLXRvcDogMDsgbWFyZ2luLWJvdHRvbTogNXB4O31oNCwgLmg0e2ZvbnQtc2l6ZTogMThweDt9aDQsIC5oNCwgaDUsIC5oNSwgaDYsIC5oNnttYXJnaW4tdG9wOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxMHB4O31oMSwgaDIsIGgzLCBoNCwgaDUsIGg2LCAuaDEsIC5oMiwgLmgzLCAuaDQsIC5oNSwgLmg2e2ZvbnQtZmFtaWx5OiBBcGV4LCAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNDAwOyBsaW5lLWhlaWdodDogMS4xOyBjb2xvcjogaW5oZXJpdDt9aDR7ZGlzcGxheTogYmxvY2s7IC13ZWJraXQtbWFyZ2luLWJlZm9yZTogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1hZnRlcjogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1zdGFydDogMHB4OyAtd2Via2l0LW1hcmdpbi1lbmQ6IDBweDsgZm9udC13ZWlnaHQ6IGJvbGQ7fWxhYmVse2Rpc3BsYXk6IGlubGluZS1ibG9jazsgbWF4LXdpZHRoOiAxMDAlOyBtYXJnaW4tYm90dG9tOiA1cHg7IGZvbnQtd2VpZ2h0OiA3MDA7fWRse21hcmdpbi10b3A6IDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGRpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1iZWZvcmU6IDFlbTsgLXdlYmtpdC1tYXJnaW4tYWZ0ZXI6IDFlbTsgLXdlYmtpdC1tYXJnaW4tc3RhcnQ6IDBweDsgLXdlYmtpdC1tYXJnaW4tZW5kOiAwcHg7fWRke2Rpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1zdGFydDogNDBweDsgbWFyZ2luLWxlZnQ6IDA7IHdvcmQtd3JhcDogYnJlYWstd29yZDt9ZHR7Zm9udC13ZWlnaHQ6IDcwMDsgZGlzcGxheTogYmxvY2s7fWR0LCBkZHtsaW5lLWhlaWdodDogMS40Mjg1NzE0Mzt9LmRsLWhvcml6b250YWwgZHR7ZmxvYXQ6IGxlZnQ7IHdpZHRoOiAxNjBweDsgb3ZlcmZsb3c6IGhpZGRlbjsgY2xlYXI6IGxlZnQ7IHRleHQtYWxpZ246IHJpZ2h0OyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDt9LmRsLWhvcml6b250YWwgZGR7bWFyZ2luLWxlZnQ6IDE4MHB4O308L3N0eWxlPiA8ZGl2IGNsYXNzPSJjb250YWluZXIiPiA8ZGl2IGNsYXNzPSJjYWxsb3V0IGNhbGxvdXQtZGFuZ2VyIj4gPGg0IGNsYXNzPSJsYWJlbCI+Rm9yYmlkZGVuPC9oND4gPGRsIGNsYXNzPSJkbC1ob3Jpem9udGFsIj4gPGR0PkNsaWVudCBJUDwvZHQ+IDxkZD57e0NMSUVOVF9JUH19PC9kZD4gPGR0PlVzZXItQWdlbnQ8L2R0PiA8ZGQ+e3tVU0VSX0FHRU5UfX08L2RkPiA8ZHQ+UmVxdWVzdCBVUkw8L2R0PiA8ZGQ+e3tSRVFVRVNUX1VSTH19PC9kZD4gPGR0PlJlYXNvbjwvZHQ+IDxkZD57e1JVTEVfTVNHfX08L2RkPiA8ZHQ+RGF0ZTwvZHQ+IDxkZD57e1RJTUVTVEFNUH19PC9kZD4gPC9kbD4gPC9kaXY+PC9kaXY+PC9ib2R5PjwvaHRtbD4="
-// TODO FIX!!!
-#if 0
-#define WAFLZ_SERVER_HEADER_INSTANCE_ID "waf-instance-id"
-#endif
 #ifndef STATUS_OK
   #define STATUS_OK 0
 #endif
 #ifndef STATUS_ERROR
   #define STATUS_ERROR -1
 #endif
+#define _DEFAULT_RESP_BODY_B64 "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+IDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4gPHRpdGxlPjwvdGl0bGU+PC9oZWFkPjxib2R5PiA8c3R5bGU+Knstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9ZGl2e2Rpc3BsYXk6IGJsb2NrO31ib2R5e2ZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXNpemU6IDE0cHg7IGxpbmUtaGVpZ2h0OiAxLjQyODU3MTQzOyBjb2xvcjogIzMzMzsgYmFja2dyb3VuZC1jb2xvcjogI2ZmZjt9aHRtbHtmb250LXNpemU6IDEwcHg7IC13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7IC13ZWJraXQtdGV4dC1zaXplLWFkanVzdDogMTAwJTsgLW1zLXRleHQtc2l6ZS1hZGp1c3Q6IDEwMCU7fTpiZWZvcmUsIDphZnRlcnstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9LmNvbnRhaW5lcntwYWRkaW5nLXJpZ2h0OiAxNXB4OyBwYWRkaW5nLWxlZnQ6IDE1cHg7IG1hcmdpbi1yaWdodDogYXV0bzsgbWFyZ2luLWxlZnQ6IGF1dG87fUBtZWRpYSAobWluLXdpZHRoOiA3NjhweCl7LmNvbnRhaW5lcnt3aWR0aDogNzUwcHg7fX0uY2FsbG91dCsuY2FsbG91dHttYXJnaW4tdG9wOiAtNXB4O30uY2FsbG91dHtwYWRkaW5nOiAyMHB4OyBtYXJnaW46IDIwcHggMDsgYm9yZGVyOiAxcHggc29saWQgI2VlZTsgYm9yZGVyLWxlZnQtd2lkdGg6IDVweDsgYm9yZGVyLXJhZGl1czogM3B4O30uY2FsbG91dC1kYW5nZXJ7Ym9yZGVyLWxlZnQtY29sb3I6ICNmYTBlMWM7fS5jYWxsb3V0LWRhbmdlciBoNHtjb2xvcjogI2ZhMGUxYzt9LmNhbGxvdXQgaDR7bWFyZ2luLXRvcDogMDsgbWFyZ2luLWJvdHRvbTogNXB4O31oNCwgLmg0e2ZvbnQtc2l6ZTogMThweDt9aDQsIC5oNCwgaDUsIC5oNSwgaDYsIC5oNnttYXJnaW4tdG9wOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxMHB4O31oMSwgaDIsIGgzLCBoNCwgaDUsIGg2LCAuaDEsIC5oMiwgLmgzLCAuaDQsIC5oNSwgLmg2e2ZvbnQtZmFtaWx5OiBBcGV4LCAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNDAwOyBsaW5lLWhlaWdodDogMS4xOyBjb2xvcjogaW5oZXJpdDt9aDR7ZGlzcGxheTogYmxvY2s7IC13ZWJraXQtbWFyZ2luLWJlZm9yZTogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1hZnRlcjogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1zdGFydDogMHB4OyAtd2Via2l0LW1hcmdpbi1lbmQ6IDBweDsgZm9udC13ZWlnaHQ6IGJvbGQ7fWxhYmVse2Rpc3BsYXk6IGlubGluZS1ibG9jazsgbWF4LXdpZHRoOiAxMDAlOyBtYXJnaW4tYm90dG9tOiA1cHg7IGZvbnQtd2VpZ2h0OiA3MDA7fWRse21hcmdpbi10b3A6IDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGRpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1iZWZvcmU6IDFlbTsgLXdlYmtpdC1tYXJnaW4tYWZ0ZXI6IDFlbTsgLXdlYmtpdC1tYXJnaW4tc3RhcnQ6IDBweDsgLXdlYmtpdC1tYXJnaW4tZW5kOiAwcHg7fWRke2Rpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1zdGFydDogNDBweDsgbWFyZ2luLWxlZnQ6IDA7IHdvcmQtd3JhcDogYnJlYWstd29yZDt9ZHR7Zm9udC13ZWlnaHQ6IDcwMDsgZGlzcGxheTogYmxvY2s7fWR0LCBkZHtsaW5lLWhlaWdodDogMS40Mjg1NzE0Mzt9LmRsLWhvcml6b250YWwgZHR7ZmxvYXQ6IGxlZnQ7IHdpZHRoOiAxNjBweDsgb3ZlcmZsb3c6IGhpZGRlbjsgY2xlYXI6IGxlZnQ7IHRleHQtYWxpZ246IHJpZ2h0OyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDt9LmRsLWhvcml6b250YWwgZGR7bWFyZ2luLWxlZnQ6IDE4MHB4O308L3N0eWxlPiA8ZGl2IGNsYXNzPSJjb250YWluZXIiPiA8ZGl2IGNsYXNzPSJjYWxsb3V0IGNhbGxvdXQtZGFuZ2VyIj4gPGg0IGNsYXNzPSJsYWJlbCI+Rm9yYmlkZGVuPC9oND4gPGRsIGNsYXNzPSJkbC1ob3Jpem9udGFsIj4gPGR0PkNsaWVudCBJUDwvZHQ+IDxkZD57e0NMSUVOVF9JUH19PC9kZD4gPGR0PlVzZXItQWdlbnQ8L2R0PiA8ZGQ+e3tVU0VSX0FHRU5UfX08L2RkPiA8ZHQ+UmVxdWVzdCBVUkw8L2R0PiA8ZGQ+e3tSRVFVRVNUX1VSTH19PC9kZD4gPGR0PlJlYXNvbjwvZHQ+IDxkZD57e1JVTEVfTVNHfX08L2RkPiA8ZHQ+RGF0ZTwvZHQ+IDxkZD57e1RJTUVTVEFNUH19PC9kZD4gPC9kbD4gPC9kaXY+PC9kaXY+PC9ib2R5PjwvaHRtbD4="
+#define BOGUS_GEO_DATABASE "/tmp/BOGUS_GEO_DATABASE.db"
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
@@ -94,11 +94,6 @@ typedef enum {
 #endif
         CONFIG_MODE_NONE
 } config_mode_t;
-//: ****************************************************************************
-//: ----------------------------------------------------------------------------
-//:                           request handler
-//: ----------------------------------------------------------------------------
-//: ****************************************************************************
 //: ----------------------------------------------------------------------------
 //: globals
 //: ----------------------------------------------------------------------------
@@ -106,6 +101,11 @@ ns_is2::srvr *g_srvr = NULL;
 ns_waflz_server::sx *g_sx = NULL;
 FILE *g_out_file_ptr = NULL;
 config_mode_t g_config_mode = CONFIG_MODE_NONE;
+//: ****************************************************************************
+//: ----------------------------------------------------------------------------
+//:                           request handler
+//: ----------------------------------------------------------------------------
+//: ****************************************************************************
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -114,7 +114,7 @@ config_mode_t g_config_mode = CONFIG_MODE_NONE;
 static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                                    ns_is2::session &a_session,
                                    ns_is2::rqst &a_rqst,
-                                   const waflz_pb::enforcement &a_enf)
+                                   waflz_pb::enforcement &a_enf)
 {
         if(!a_ctx)
         {
@@ -237,13 +237,21 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 int32_t l_s;
                 char *l_dcd = NULL;
                 size_t l_dcd_len = 0;
-                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, _DEFAULT_RESP_BODY_B64, strlen(_DEFAULT_RESP_BODY_B64));
-                if(l_s != STATUS_OK)
+                if(a_enf.has_response_body())
                 {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
-                        break;
+                        l_dcd = (char *)a_enf.response_body().c_str();
+                        l_dcd_len = a_enf.response_body().length();
+                }
+                else
+                {
+                        l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, _DEFAULT_RESP_BODY_B64, strlen(_DEFAULT_RESP_BODY_B64));
+                        if(l_s != STATUS_OK)
+                        {
+                                // error???
+                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                                l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
+                                break;
+                        }
                 }
                 // -----------------------------------------
                 // render
@@ -304,12 +312,22 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 int32_t l_s;
                 char *l_dcd = NULL;
                 size_t l_dcd_len = 0;
-                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
-                if(l_s != WAFLZ_STATUS_OK)
+                bool l_dcd_allocd = false;
+                if(a_enf.has_response_body())
                 {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        break;
+                        l_dcd = (char *)a_enf.response_body().c_str();
+                        l_dcd_len = a_enf.response_body().length();
+                }
+                else
+                {
+                        l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                // error???
+                                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                                break;
+                        }
+                        l_dcd_allocd = true;
                 }
                 // -----------------------------------------
                 // render
@@ -320,14 +338,14 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_dcd_allocd && l_dcd) { free(l_dcd); l_dcd = NULL; }
                         if(l_rndr) { free(l_rndr); l_rndr = NULL; }
                         break;
                 }
                 // -----------------------------------------
                 // set/cleanup
                 // -----------------------------------------
-                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                if(l_dcd_allocd && l_dcd) { free(l_dcd); l_dcd = NULL; }
                 // -----------------------------------------
                 // response
                 // -----------------------------------------
@@ -486,7 +504,7 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                const waflz_pb::enforcement *l_enf = NULL;
+                waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
@@ -495,20 +513,25 @@ public:
                 l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
+                        if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return l_resp_t;
                 }
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
+#ifdef WAFLZ_RATE_LIMITING
                 if(l_enf
                    // only enforcements for limit mode
-#ifdef WAFLZ_RATE_LIMITING
                    && (!g_config_mode == CONFIG_MODE_LIMIT)
-#endif
                    )
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+
+#endif
+                if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
+                if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // return response
@@ -544,7 +567,7 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                const waflz_pb::enforcement *l_enf = NULL;
+                waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
@@ -553,6 +576,8 @@ public:
                 l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
+                        if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return l_resp_t;
                 }
                 // -----------------------------------------
@@ -562,6 +587,8 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
+                if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // default
@@ -589,7 +616,7 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                const waflz_pb::enforcement *l_enf = NULL;
+                waflz_pb::enforcement *l_enf = NULL;
                 ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
@@ -607,6 +634,8 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+                if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
+                if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
                 // default
@@ -644,8 +673,8 @@ void print_version(FILE* a_stream, int a_exit_code)
 {
         // print out the version information
         fprintf(a_stream, "waflz_server\n");
-        fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
-        fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
+        fprintf(a_stream, "Copyright (C) 2019 Verizon Digital Media.\n");
+        fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(a_exit_code);
 }
 //: ----------------------------------------------------------------------------
@@ -676,7 +705,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -x, --random-ips    randomly generate ips\n");
 #ifdef WAFLZ_RATE_LIMITING
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
-        fprintf(a_stream, "  -c, --challenge json containing browser challenges\n");
+        fprintf(a_stream, "  -c, --challenge     json containing browser challenges\n");
 #endif
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Configuration:\n");
@@ -689,7 +718,9 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -y, --proxy         run server in proxy mode\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Debug Options:\n");
-        fprintf(a_stream, "  -t, --trace         turn on tracing (error/warn/debug/verbose/all)\n");
+        fprintf(a_stream, "  -t, --trace         tracing (error/rule/match/all)\n");
+        fprintf(a_stream, "  -T, --server-trace  server tracing  (error/warn/debug/verbose/all)\n");
+        fprintf(a_stream, "  -a, --audit-mode    load and exit\n");
         fprintf(a_stream, "  \n");
 #ifdef ENABLE_PROFILER
         fprintf(a_stream, "Profile Options:\n");
@@ -697,9 +728,6 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -C, --cprofile      Google cpu profiler output file\n");
         fprintf(a_stream, "  \n");
 #endif
-        fprintf(a_stream, "NOTE: to run in w/o geoip db's:\n");
-        fprintf(a_stream, "      make a file in tmp to act like geo IP database\n");
-        fprintf(a_stream, "      ~>touch %s\n", BOGUS_GEO_DATABASE);
         exit(a_exit_code);
 }
 //: ----------------------------------------------------------------------------
@@ -713,9 +741,8 @@ int main(int argc, char** argv)
         char l_opt;
         std::string l_arg;
         int l_option_index = 0;
+        ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ERROR);
         ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_NONE);
-        //ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_ALL);
-        //ns_is2::trc_log_file_open("/dev/stdout");
         // modes
         server_mode_t l_server_mode = SERVER_MODE_NONE;
         std::string l_geoip_db;
@@ -724,6 +751,7 @@ int main(int argc, char** argv)
         std::string l_config_file;
         std::string l_server_spec;
         bool l_bg_load = false;
+        bool l_audit_mode = false;
         // server settings
         std::string l_out_file;
         uint16_t l_port = 12345;
@@ -750,9 +778,11 @@ int main(int argc, char** argv)
                 { "random-ips",   0, 0, 'x' },
                 { "bg",           0, 0, 'z' },
                 { "trace",        1, 0, 't' },
+                { "server-trace", 1, 0, 'T' },
                 { "static",       1, 0, 'w' },
                 { "proxy",        1, 0, 'y' },
                 { "output",       1, 0, 'o' },
+                { "audit-mode",   0, 0, 'a' },
 #ifdef WAFLZ_RATE_LIMITING
                 { "limit",        1, 0, 'l' },
                 { "challenge",    1, 0, 'c' },
@@ -786,9 +816,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:H:C:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:H:C:a";
 #else
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:w:y:o:l:c:e:";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:a";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -803,6 +833,14 @@ int main(int argc, char** argv)
                 //NDBG_PRINT("arg[%c=%d]: %s\n", l_opt, l_option_index, l_arg.c_str());
                 switch (l_opt)
                 {
+                // -----------------------------------------
+                // audit mode
+                // -----------------------------------------
+                case 'a':
+                {
+                        l_audit_mode = true;
+                        break;
+                }
                 // -----------------------------------------
                 // Help
                 // -----------------------------------------
@@ -902,11 +940,32 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // trace
+                // tracing
                 // -----------------------------------------
+#define ELIF_TRACE_STR(_level) else if(strncasecmp(_level, l_arg.c_str(), sizeof(_level)) == 0)
                 case 't':
                 {
-#define ELIF_TRACE_STR(_level) else if(strncasecmp(_level, l_arg.c_str(), sizeof(_level)) == 0)
+                        bool l_trace = false;
+                        if(0) {}
+                        ELIF_TRACE_STR("error") { ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ERROR);   l_trace = true; }
+                        ELIF_TRACE_STR("rule")  { ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_RULE);    l_trace = true; }
+                        ELIF_TRACE_STR("match") { ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_MATCH);   l_trace = true; }
+                        ELIF_TRACE_STR("all")   { ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ALL);     l_trace = true; }
+                        else
+                        {
+                                ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_NONE);
+                        }
+                        if(l_trace)
+                        {
+                                ns_waflz::trc_file_open("/dev/stdout");
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // server trace
+                // -----------------------------------------
+                case 'T':
+                {
                         bool l_trace = false;
                         if(0) {}
                         ELIF_TRACE_STR("error") { ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_ERROR); l_trace = true; }
@@ -1090,19 +1149,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         srand(time(NULL));
         // -------------------------------------------------
-        // geoip db checks...
-        // -------------------------------------------------
-        if(l_geoip_db.empty())
-        {
-                fprintf(stdout, "No geoip db provide, using BOGUS_GEO_DATABASE.\n");
-                l_geoip_db = BOGUS_GEO_DATABASE;
-        }
-        if(l_geoip_isp_db.empty())
-        {
-                fprintf(stdout, "No geoip isp db provide, using BOGUS_GEO_DATABASE.\n");
-                l_geoip_isp_db = BOGUS_GEO_DATABASE;
-        }
-        // -------------------------------------------------
         // Force directory string to end with '/'
         // -------------------------------------------------
         if(!l_ruleset_dir.empty() &&
@@ -1134,13 +1180,6 @@ int main(int argc, char** argv)
                         exit(STATUS_ERROR);
                 }
         }
-        // -------------------------------------------------
-        // setup
-        // -------------------------------------------------
-        ns_waflz::geoip2_mmdb *l_geoip2_mmdb = NULL;
-        ns_waflz::profile::s_ruleset_dir = l_ruleset_dir;
-        ns_waflz::profile::s_geoip2_db = l_geoip_db;
-        ns_waflz::profile::s_geoip2_isp_db = l_geoip_isp_db;
         // -------------------------------------------------
         // *************************************************
         // server setup
@@ -1198,6 +1237,10 @@ int main(int argc, char** argv)
                 l_sx_profile->m_lsnr = l_lsnr;
                 l_sx_profile->m_config = l_config_file;
                 l_sx_profile->m_callbacks = &s_callbacks;
+                l_sx_profile->m_ruleset_dir = l_ruleset_dir;
+                l_sx_profile->m_geoip2_db = l_geoip_db;
+                l_sx_profile->m_geoip2_isp_db = l_geoip_isp_db;
+
                 g_sx = l_sx_profile;
                 break;
         }
@@ -1209,6 +1252,9 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
                 l_sx_instance->m_lsnr = l_lsnr;
                 l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_ruleset_dir = l_ruleset_dir;
+                l_sx_instance->m_geoip2_db = l_geoip_db;
+                l_sx_instance->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_instance->m_is_dir_flag = true;
                 l_sx_instance->m_bg_load = l_bg_load;
                 l_sx_instance->m_callbacks = &s_callbacks;
@@ -1223,6 +1269,9 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
                 l_sx_instance->m_lsnr = l_lsnr;
                 l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_ruleset_dir = l_ruleset_dir;
+                l_sx_instance->m_geoip2_db = l_geoip_db;
+                l_sx_instance->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_instance->m_is_dir_flag = false;
                 l_sx_instance->m_bg_load = l_bg_load;
                 l_sx_instance->m_callbacks = &s_callbacks;
@@ -1251,6 +1300,7 @@ int main(int argc, char** argv)
                 l_sx_limit->m_config = l_config_file;
                 l_sx_limit->m_callbacks = &s_callbacks;
                 // TODO ...
+                l_sx_limit->m_redis_host = l_redis_host;
                 g_sx = l_sx_limit;
                 break;
         }
@@ -1273,6 +1323,7 @@ int main(int argc, char** argv)
                 fprintf(stdout, "performing initialization\n");
                 return STATUS_ERROR;
         }
+
         // -------------------------------------------------
         // Sigint handler
         // -------------------------------------------------
@@ -1280,6 +1331,13 @@ int main(int argc, char** argv)
         {
                 printf("Error: can't catch SIGINT\n");
                 return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // audit mode
+        // -------------------------------------------------
+        if(l_audit_mode)
+        {
+                goto cleanup;
         }
         // -------------------------------------------------
         // run
@@ -1306,6 +1364,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
+cleanup:
         if(g_out_file_ptr) { fclose(g_out_file_ptr); g_out_file_ptr = NULL; }
         if(g_srvr) { delete g_srvr; g_srvr = NULL; }
         if(l_h) { delete l_h; l_h = NULL; }

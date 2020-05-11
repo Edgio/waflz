@@ -1,0 +1,108 @@
+{
+  "customer_id": "0052",
+  "id":"3lTIzIqv",
+  "last_modified_date": "2019-04-18T19:48:25.142172Z",
+  "last_modified_by": "Mr. bananas",
+  "name": "To test different custom rules config",
+  "scopes": [
+  {
+    "id": "ImtYcpjF",
+    "name": "scope with default/basic custom rule",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "rulestest.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "/test.html"
+    },
+    "rules_prod_id": "svUweMIX",
+    "rules_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64":"YmFzaWMgY3VzdG9tIHJ1bGUgdHJpZ2dlcmVkCg==",
+      "status": 403,
+      "type": "custom-response"
+    }
+  },
+  {
+    "id": "1yhbrgGx",
+    "name": "scope with basic chained rule",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "chainedrulestest.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "/test.html"
+    },
+    "rules_prod_id": "7eWjgqLK",
+    "rules_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64":"cmVzcG9uc2UgZnJvbSBjaGFpbmVkIGN1c3RvbSBydWxlcwo=",
+      "status": 403,
+      "type": "custom-response"
+    }
+  },
+  {
+    "id": "HiKxcbal",
+    "name": "scope with custom rule for bot challenge",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "testbot.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "/test.html"
+    },
+    "rules_prod_id": "l9nTkowq",
+    "rules_prod_action": {
+      "id": "uKlXttqm",
+      "name": "ACTION",
+      "status": 200,
+      "type": "browser-challenge",
+      "valid_for_sec" : 5
+    }
+  },
+  {
+    "id": "PnQrlisd",
+    "name": "scope with custom rule for bot challenge",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "mycoolbot.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "rules_prod_id": "l9nTkowq",
+    "rules_prod_action": {
+      "id": "uKlXttqm",
+      "name": "ACTION",
+      "status": 200,
+      "type": "browser-challenge",
+      "valid_for_sec" : 3
+    },
+    "profile_prod_id": "KsdoThsq",
+    "profile_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64": "VGhpcyBpcyBwcm9maWxlIGN1c3RvbSByZXNwb25zZQo=",
+      "response_headers": {
+        "x-ec-rules": "rejected"
+      },
+      "status": 403,
+      "type": "custom-response"
+    }
+  }
+]
+}

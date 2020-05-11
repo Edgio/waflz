@@ -21,15 +21,14 @@
 # ------------------------------------------------------------------------------
 # project setup
 # ------------------------------------------------------------------------------
-project(waflz)
-cmake_minimum_required(VERSION 2.6.0)
+project(waflz C CXX)
+cmake_minimum_required(VERSION 3.5)
 if (POLICY CMP0050)
     cmake_policy(SET CMP0050 OLD)
 endif()
 # ------------------------------------------------------------------------------
 # Can't add for now...
 # ------------------------------------------------------------------------------
-#add_definitions(-Weffc++)
 add_definitions(-DHAVE_CONFIG_H)
 # ------------------------------------------------------------------------------
 # header files to install
@@ -95,19 +94,6 @@ SET(SRCS
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_lex.c
     ${CMAKE_SOURCE_DIR}/ext/yajl/yajl_tree.c
     # ------------------------------------------------------
-    # pb
-    # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/config.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/event.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/action.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
-    # ------------------------------------------------------
-    # cityhash
-    # ------------------------------------------------------
-    ${CMAKE_SOURCE_DIR}/ext/cityhash/city.cc
-    # ------------------------------------------------------
     # base64
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/ext/base64/base64.cc
@@ -118,11 +104,12 @@ SET(SRCS
     # ------------------------------------------------------
     # support
     # ------------------------------------------------------
+    support/city.cc
     support/time_util.cc
     support/geoip2_mmdb.cc
     support/file_util.cc
     support/string_util.cc
-    support/trace_internal.cc
+    support/trace.cc
     support/ndebug.cc
     support/base64.cc
     # ------------------------------------------------------
@@ -138,6 +125,7 @@ SET(SRCS
     # ------------------------------------------------------
     # operators
     # ------------------------------------------------------
+    op/regex.cc
     op/luhn.cc
     op/nms.cc
     op/ac.cc
@@ -158,6 +146,10 @@ SET(SRCS
     core/op.cc
     core/macro.cc
     core/render.cc
+    core/scopes.cc
+    core/scopes_configs.cc
+    core/rules.cc
+    core/challenge.cc
     # ------------------------------------------------------
     # parsers
     # ------------------------------------------------------
@@ -170,11 +162,6 @@ SET(SRCS
 # ------------------------------------------------------------------------------
 if(BUILD_RATE_LIMITING)
 list(APPEND SRCS
-    # ------------------------------------------------------
-    # pb
-    # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
     #---------------------------------------------
     # ectoken
     #---------------------------------------------
@@ -188,12 +175,11 @@ list(APPEND SRCS
     # ------------------------------------------------------
     # limit
     # ------------------------------------------------------
-    limit/challenge.cc
     limit/rl_obj.cc
-    limit/rl_op.cc
     limit/enforcer.cc
     limit/config.cc
     limit/configs.cc
+    limit/limit.cc
 )
 endif()
 # ------------------------------------------------------------------------------
@@ -229,46 +215,71 @@ SET_SOURCE_FILES_PROPERTIES(
     PROPERTIES LANGUAGE C
 )
 set(CMAKE_C_FLAGS "-std=c99")
+set(CMAKE_CXX_FLAGS "-Wall -Weffc++ -Werror -std=c++11")
 # ------------------------------------------------------------------------------
 # headers
 # ------------------------------------------------------------------------------
 SET(HDRS
+    ${CMAKE_SOURCE_DIR}/include/waflz/acl.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/arg.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/atomic.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/challenge.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/city.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/config_parser.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/def.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/engine.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/geoip2_mmdb.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/instance.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/instances.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/parser.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/profile.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/render.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/rqst_ctx.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/rules.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/scopes_configs.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/scopes.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/trace.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/waf.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/waflz.h
+    # ------------------------------------------------------
+    # db
+    # ------------------------------------------------------
+    ${CMAKE_SOURCE_DIR}/include/waflz/kv_db.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/kycb_db.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/redis_db.h
+    # ------------------------------------------------------
+    # limit
+    # ------------------------------------------------------
+    ${CMAKE_SOURCE_DIR}/include/waflz/config.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/configs.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/enforcer.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/limit.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/rl_obj.h
+    # ------------------------------------------------------
+    # protocol buffers
+    # ------------------------------------------------------
+    ${CMAKE_BINARY_DIR}/proto/acl.pb.h
+    ${CMAKE_BINARY_DIR}/proto/action.pb.h
+    ${CMAKE_BINARY_DIR}/proto/event.pb.h
+    ${CMAKE_BINARY_DIR}/proto/limit.pb.h
+    ${CMAKE_BINARY_DIR}/proto/profile.pb.h
+    ${CMAKE_BINARY_DIR}/proto/request_info.pb.h
+    ${CMAKE_BINARY_DIR}/proto/rule.pb.h
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.h
 )
 # ------------------------------------------------------------------------------
 # Tell the build system protobuf files are automatically generated
 # ------------------------------------------------------------------------------
-set_source_files_properties(
-    # ------------------------------------------------------
-    # proto
-    # ------------------------------------------------------
-    ${CMAKE_BINARY_DIR}/proto/config.pb.h
-    ${CMAKE_BINARY_DIR}/proto/config.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/action.pb.h
-    ${CMAKE_BINARY_DIR}/proto/action.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/event.pb.h
-    ${CMAKE_BINARY_DIR}/proto/event.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/request_info.pb.h
-    ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/rule.pb.h
-    ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/acl.pb.h
-    ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
-    # ------------------------------------------------------
-    # rate-limiting proto
-    # ------------------------------------------------------
-    if(BUILD_RATE_LIMITING)
-        ${CMAKE_BINARY_DIR}/proto/scope.pb.h
-        ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
-        ${CMAKE_BINARY_DIR}/proto/limit.pb.h
-        ${CMAKE_BINARY_DIR}/proto/limit.pb.cc
-    endif()
-    PROPERTIES GENERATED TRUE
+SET(PB_SRCS
+    ${WAFLZ_PROTO_HDRS} ${WAFLZ_PROTO_SRCS}
 )
+set_source_files_properties(${PB_SRCS} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
 # ------------------------------------------------------------------------------
 # Python support
 # ------------------------------------------------------------------------------
 SET(PY_INST
-    ${CMAKE_BINARY_DIR}/proto/config_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/profile_pb2.py
     ${CMAKE_BINARY_DIR}/proto/action_pb2.py
     ${CMAKE_BINARY_DIR}/proto/event_pb2.py
     ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
@@ -291,18 +302,19 @@ install(FILES ${PY_INST}
 # ------------------------------------------------------------------------------
 # library
 # ------------------------------------------------------------------------------
-add_library(waflzcore STATIC ${HDRS} ${SRCS})
-add_library(waflz SHARED ${HDRS} ${SRCS})
+add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
+add_library(waflz SHARED ${SRCS} ${PB_SRCS})
 
-<<<<<<< HEAD
+target_include_directories(waflzcore PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/proto/ ${CMAKE_BINARY_DIR}/)
+
+
 target_link_libraries(waflz pthread ssl crypto pcre protobuf xml2)
-=======
+
 SET_TARGET_PROPERTIES(waflzcore
   PROPERTIES
   POSITION_INDEPENDENT_CODE ON
 )
 
->>>>>>> master
 # Create symlink for libwaflz.so.<soversion>
 SET_TARGET_PROPERTIES(waflz
   PROPERTIES

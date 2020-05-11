@@ -22,7 +22,7 @@
 # Project setup
 # ------------------------------------------------------------------------------
 project(waflz)
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.5)
 # ------------------------------------------------------------------------------
 # Build options
 # ------------------------------------------------------------------------------
@@ -65,6 +65,10 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
   #message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++0x support. Please use a different C++ compiler.")
 endif()
+# ------------------------------------------------------------------------------
+# find protobuf package
+# ------------------------------------------------------------------------------
+find_package(Protobuf REQUIRED)
 # ------------------------------------------------------------------------------
 # Display the current settings
 # ------------------------------------------------------------------------------
@@ -163,7 +167,7 @@ if(BUILD_UBUNTU AND BUILD_CUSTOM_OPENSSL)
 elseif(BUILD_UBUNTU)
   #set(LIBRARIES ${LIBRARIES} pthread ssl crypto)
 else()
-  #set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
+  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
 endif()
 # ------------------------------------------------------------------------------
 # Mac OS X
@@ -191,7 +195,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # if rate-limiting check for kv db libs
   # --------------------------------------------------------  
   if(BUILD_RATE_LIMITING)
-    # TODO libhiredis/libkyotocabinet
+    INCLUDE_DIRECTORIES(/usr/local/opt/kyoto-cabinet/include)
+    INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
+    LINK_DIRECTORIES(/usr/local/opt/kyoto-cabinet/lib)
+    LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
+    LIST(APPEND LIBRARIES kyotocabinet)
+    LIST(APPEND LIBRARIES hiredis)
   endif()
   # --------------------------------------------------------
   # cc flags
@@ -333,11 +342,19 @@ add_definitions(-DWAFLZ_VERSION="${VERSION}")
 # ------------------------------------------------------------------------------
 # Debian Package Support
 # ------------------------------------------------------------------------------
-EXECUTE_PROCESS(COMMAND lsb_release -cs OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  SET(DISTRIBUTION "macOS")
+else()
+  EXECUTE_PROCESS(COMMAND lsb_release -cs OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_VERSION "${VERSION}-${DISTRIBUTION}")
 SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-SET(CPACK_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+if(BUILD_ASAN)
+    SET(CPACK_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-debug")
+else()
+    SET(CPACK_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+endif()
 SET(CPACK_DEBIAN_PACKAGE_NAME "waflz")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Reed Morrison")
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libprotobuf-dev (>= 2.1.0-1), protobuf-compiler (>= 2.1.0-1)")
@@ -362,3 +379,16 @@ if (BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
+# ------------------------------------------------------------------------------
+# release target
+# NOTE deb has to exist in order to create tar.gz
+# ------------------------------------------------------------------------------
+if(BUILD_ASAN)
+    SET(RELEASE_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-debug.deb")
+else()
+    SET(RELEASE_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb")
+endif()
+add_custom_target(release
+    COMMAND ${CMAKE_SOURCE_DIR}/support/deb2tar.sh -d ${CMAKE_BINARY_DIR}/${RELEASE_PACKAGE_FILE_NAME}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)

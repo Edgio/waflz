@@ -35,10 +35,10 @@
 #include "is2/srvr/api_resp.h"
 #include "is2/srvr/srvr.h"
 #include "jspb/jspb.h"
-#include "support/geoip2_mmdb.h"
 #include "support/file_util.h"
 #include "event.pb.h"
-#include "config.pb.h"
+#include "action.pb.h"
+#include "profile.pb.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
@@ -75,10 +75,10 @@ static void *t_load_instance(void *a_context)
         }
         int32_t l_s;
         ns_waflz::instance *l_instance = NULL;
-        l_s = l_i->m_instances->load_config(&l_instance, l_i->m_buf, l_i->m_buf_len, true);
+        l_s = l_i->m_instances->load(&l_instance, l_i->m_buf, l_i->m_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_ERROR("performing m_profile->load_config\n");
+                TRC_ERROR("performing m_profile->load\n");
                 if(l_i->m_buf) { free(l_i->m_buf); l_i->m_buf = NULL;}
                 return NULL;
         }
@@ -113,10 +113,10 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
                 //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
                 int32_t l_s;
                 ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len, true);
+                l_s = m_instances->load(&l_instance, l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        TRC_ERROR("performing m_profile->load_config\n");
+                        TRC_ERROR("performing m_profile->load\n");
                         if(l_buf) { free(l_buf); l_buf = NULL;}
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
@@ -159,12 +159,14 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
 //: ----------------------------------------------------------------------------
 sx_instance::sx_instance(void):
         m_bg_load(false),
+        m_is_rand(false),
         m_is_dir_flag(false),
         m_engine(NULL),
         m_instances(NULL),
         m_update_instances_h(NULL),
-        m_geoip2_mmdb(NULL),
-        m_id_vector()
+        m_ruleset_dir(),
+        m_geoip2_db(),
+        m_geoip2_isp_db()
 {
 
 }
@@ -178,7 +180,6 @@ sx_instance::~sx_instance(void)
         if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_instances) { delete m_instances; m_instances = NULL; }
         if(m_update_instances_h) { delete m_update_instances_h; m_update_instances_h = NULL; }
-        if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL; }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -192,6 +193,8 @@ int32_t sx_instance::init(void)
         // engine
         // -------------------------------------------------
         m_engine = new ns_waflz::engine();
+        m_engine->set_ruleset_dir(m_ruleset_dir);
+        m_engine->set_geoip2_dbs(m_geoip2_db, m_geoip2_isp_db);
         l_s = m_engine->init();
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -204,34 +207,19 @@ int32_t sx_instance::init(void)
         m_instances = new ns_waflz::instances(*m_engine, m_bg_load);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_instances->get_err_msg());
+                // TODO log reason
                 return STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // init dbs
-        // -------------------------------------------------
-        l_s = m_instances->init_dbs();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing instances. geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_instances->get_err_msg());
-                return STATUS_ERROR;
-        }
+        m_instances->set_locking(true);
         // -------------------------------------------------
         // load dir
         // -------------------------------------------------
         if(m_is_dir_flag)
         {
                 //NDBG_PRINT("l_instance_dir: %s\n", l_instance_dir.c_str());
-                l_s = m_instances->load_config_dir(m_config.c_str(),
+                l_s = m_instances->load_dir(m_config.c_str(),
                                                    m_config.length(),
-                                                   true,
-                                                   true);
+                                                   false);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config dir: %s. reason: %s\n", m_config.c_str(), m_instances->get_err_msg());
@@ -259,7 +247,7 @@ int32_t sx_instance::init(void)
                 // load instance
                 // -----------------------------------------
                 ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load_config(&l_instance, l_buf, l_buf_len, true);
+                l_s = m_instances->load(&l_instance, l_buf, l_buf_len, false);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_instances->get_err_msg());
@@ -282,7 +270,7 @@ int32_t sx_instance::init(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_instance::handle_rqst(const waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
                                           ns_waflz::rqst_ctx **ao_ctx,
                                           ns_is2::session &a_session,
                                           ns_is2::rqst &a_rqst,
@@ -301,49 +289,29 @@ ns_is2::h_resp_t sx_instance::handle_rqst(const waflz_pb::enforcement **ao_enf,
         waflz_pb::event *l_event_prod = NULL;
         waflz_pb::event *l_event_audit = NULL;
         ns_waflz::rqst_ctx *l_ctx  = NULL;
-        // -------------------------------------------------
-        // instances
-        // -------------------------------------------------
-        m_instances->set_locking(true);
-        std::string l_id;
-        // -------------------------------------------------
-        // pick rand from id set if not empty
-        // -------------------------------------------------
-        if(!m_id_vector.empty())
-        {
-                uint32_t l_len = (uint32_t)m_id_vector.size();
-                uint32_t l_idx = 0;
-                l_idx = ((uint32_t)rand()) % (l_len + 1);
-                l_id = m_id_vector[l_idx];
-        }
+        std::string l_id = "";
         // -------------------------------------------------
         // get id from header if exists
         // -------------------------------------------------
-        else
+        const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
+        ns_is2::mutable_data_t i_hdr;
+        if(ns_is2::find_first(i_hdr, l_headers, _WAFLZ_SERVER_HEADER_INSTANCE_ID, sizeof(_WAFLZ_SERVER_HEADER_INSTANCE_ID)))
         {
-                const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
-                ns_is2::mutable_data_t i_hdr;
-                if(ns_is2::find_first(i_hdr, l_headers, _WAFLZ_SERVER_HEADER_INSTANCE_ID, sizeof(_WAFLZ_SERVER_HEADER_INSTANCE_ID)))
-                {
-                        l_id.assign(i_hdr.m_data, i_hdr.m_len);
-                }
+                l_id.assign(i_hdr.m_data, i_hdr.m_len);
+        }
+        // -------------------------------------------------
+        // pick rand if id empty
+        // -------------------------------------------------
+        if(l_id.empty() && m_is_rand)
+        {
+                m_instances->get_rand_id(l_id);
         }
         // -------------------------------------------------
         // get first
         // -------------------------------------------------
-        //NDBG_PRINT("instance: id:   %s\n", l_id.c_str());
-        if(l_id.empty())
+        else if(l_id.empty())
         {
-                ns_waflz::instance *l_instance = NULL;
-                l_instance = m_instances->get_first_instance();
-                if(!l_instance)
-                {
-                        if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
-                        if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                l_id = l_instance->get_id();
+                m_instances->get_first_id(l_id);
         }
         if(l_id.empty())
         {
@@ -356,11 +324,11 @@ ns_is2::h_resp_t sx_instance::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // process
         // -------------------------------------------------
-        l_s = m_instances->process(&l_event_audit, &l_event_prod, &a_session, l_id, m_callbacks, &l_ctx);
+        l_s = m_instances->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, l_id, ns_waflz::PART_MK_ALL, m_callbacks, &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("error processing config. reason: %s\n",
-                           m_instances->get_err_msg());
+                NDBG_PRINT("error processing config. reason: %s\n", m_instances->get_err_msg());
+                if(*ao_enf) { delete *ao_enf; *ao_enf = NULL; }
                 if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                 if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
@@ -383,6 +351,7 @@ ns_is2::h_resp_t sx_instance::handle_rqst(const waflz_pb::enforcement **ao_enf,
                 if(l_s != JSPB_OK)
                 {
                         NDBG_PRINT("error performing convert_to_json.\n");
+                        if(*ao_enf) { delete *ao_enf; *ao_enf = NULL; }
                         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                         if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
@@ -396,6 +365,7 @@ ns_is2::h_resp_t sx_instance::handle_rqst(const waflz_pb::enforcement **ao_enf,
                 if(l_s != JSPB_OK)
                 {
                         NDBG_PRINT("error performing convert_to_json.\n");
+                        if(*ao_enf) { delete *ao_enf; *ao_enf = NULL; }
                         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                         if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
@@ -411,18 +381,6 @@ ns_is2::h_resp_t sx_instance::handle_rqst(const waflz_pb::enforcement **ao_enf,
         rapidjson::Writer<rapidjson::StringBuffer> l_js_writer(l_strbuf);
         l_js_doc.Accept(l_js_writer);
         m_resp.assign(l_strbuf.GetString(), l_strbuf.GetSize());
-        // -------------------------------------------------
-        // append action
-        // -------------------------------------------------
-        ns_waflz::instance *l_instance = NULL;
-        l_instance = m_instances->get_instance(l_id);
-        if(ao_enf &&
-           l_instance &&
-           l_instance->get_pb() &&
-           l_instance->get_pb()->prod_profile_enforcements_size())
-        {
-                *ao_enf = &(l_instance->get_pb()->prod_profile_enforcements(0));
-        }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------

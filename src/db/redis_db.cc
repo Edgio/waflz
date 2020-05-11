@@ -24,8 +24,9 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "support/ndebug.h"
-#include "waflz/db/redis_db.h"
+#include "waflz/redis_db.h"
 #include "waflz/def.h"
+#include <stdlib.h>
 #include <string.h>
 #include <hiredis/hiredis.h>
 namespace ns_waflz {
@@ -36,6 +37,7 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 redis_db::redis_db(void):
         kv_db(),
+        m_ctx(NULL),
         m_config_host("localhost"),
         m_config_port(6379)
 {}
@@ -110,7 +112,7 @@ int32_t redis_db::init(void)
                 return WAFLZ_STATUS_ERROR;
         }
         //NDBG_PRINT("PING: %s\n", l_r->str);
-        if(strncasecmp(l_r->str, "PONG", strlen("PONG") != 0))
+        if(strncasecmp(l_r->str, "PONG", strlen("PONG")) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "pinging redis");
                 if(m_ctx) { redisFree(m_ctx); m_ctx = NULL;}

@@ -1,0 +1,145 @@
+syntax = "proto2";
+package waflz_pb;
+import "action.proto";
+import "acl.proto";
+//: ----------------------------------------------------------------------------
+//: waf profile
+//: ----------------------------------------------------------------------------
+message profile {
+        // -------------------------------------------------
+        // general settings
+        // -------------------------------------------------
+        message general_settings_t {
+                //: ----------------------------------------
+                //: ******** D E P R E C A T E D ***********
+                //: ----------------------------------------
+                //: allowed moved to acl
+                //: ----------------------------------------
+                repeated string allowed_http_methods = 100;
+                repeated string allowed_http_versions = 101;
+                repeated string allowed_request_content_types = 102;
+                repeated string disallowed_extensions = 103;
+                repeated string disallowed_headers = 104;
+                // -----------------------------------------
+                // args
+                // -----------------------------------------
+                optional uint32 arg_length = 200;
+                optional uint32 arg_name_length = 201;
+                optional uint32 max_num_args = 202;
+                optional uint32 total_arg_length = 203;
+                // -----------------------------------------
+                // file
+                // -----------------------------------------
+                optional uint64 combined_file_sizes = 300;
+                optional uint64 max_file_size = 301;
+                // -----------------------------------------
+                // response
+                // -----------------------------------------
+                optional string response_header_name = 400;
+                repeated string response_mime_types = 401;
+                // -----------------------------------------
+                // processing
+                // -----------------------------------------
+                optional bool validate_utf8_encoding = 502;
+                optional bool xml_parser = 503;
+                optional bool process_request_body = 504;
+                optional bool process_response_body = 505;
+                optional bool json_parser = 506;
+                optional bool xml_capture_xxe = 520;
+                // -----------------------------------------
+                // scoring
+                // -----------------------------------------
+                optional uint32 paranoia_level = 550;
+                optional uint32 anomaly_threshold = 560;
+                // -----------------------------------------
+                // logging
+                // -----------------------------------------
+                optional bool dont_log_matched_data = 600;
+                // -----------------------------------------
+                // ignore
+                // -----------------------------------------
+                repeated string ignore_cookie = 700;
+                repeated string ignore_header = 701;
+                repeated string ignore_query_args = 702;
+        }
+        // -------------------------------------------------
+        // rule target update
+        // -------------------------------------------------
+        message rule_target_update_t {
+                optional string target = 1;
+                optional string replace_target = 2;
+                optional string target_match = 3;
+                optional bool is_regex = 4;
+                optional bool is_negated = 5;
+                optional string rule_id = 6;
+        }
+        // -------------------------------------------------
+        // disabled rule
+        // -------------------------------------------------
+        message disabled_rule_t {
+                optional string policy_id = 1;
+                optional string rule_id = 2;                
+        }
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        optional string version = 1;
+        optional string id = 2;
+        optional string name = 3;
+        optional string customer_id = 4;
+        optional string last_modified_date = 5;
+        optional string last_modified_by = 6;
+        // -------------------------------------------------
+        //: ************ D E P R E C A T E D ***************
+        // -------------------------------------------------
+        optional string created_date = 7;
+        // -------------------------------------------------
+        // settings
+        // -------------------------------------------------
+        optional general_settings_t general_settings = 100;
+        optional acl access_settings = 101;
+        // -------------------------------------------------
+        // modsecurity config
+        // -------------------------------------------------
+        optional string ruleset_id = 200;
+        optional string ruleset_version = 201;
+        repeated string custom_rules = 210;
+        repeated disabled_rule_t disabled_rules = 212;
+        repeated rule_target_update_t rule_target_updates = 213;
+        repeated string policies = 214;
+}
+//: ----------------------------------------------------------------------------
+//: instance
+//: ----------------------------------------------------------------------------
+message instance {
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        optional string id = 1;
+        optional string name = 2;
+        optional string type = 3;
+        optional string customer_id = 4;
+        optional string enabled_date = 5;
+        optional uint64 deleted_on = 6;
+        optional string last_modified_date = 7;
+        // -------------------------------------------------
+        // production
+        // -------------------------------------------------
+        optional profile prod_profile = 100;
+        optional string prod_profile_action = 101;
+        repeated waflz_pb.enforcement prod_profile_enforcements = 102;
+        optional string prod_profile_id = 110;
+        optional string prod_profile_name = 111;
+        optional string prod_profile_ruleset_id = 112;
+        optional string prod_profile_ruleset_version = 113;
+        // -------------------------------------------------
+        // audit
+        // -------------------------------------------------
+        optional profile audit_profile = 200;
+        optional string audit_profile_action = 201;
+        repeated waflz_pb.enforcement audit_profile_enforcements = 202;
+        optional string audit_profile_id = 210;
+        optional string audit_profile_name = 211;
+        optional string audit_profile_ruleset_id = 212;
+        optional string audit_profile_ruleset_version = 213;
+}

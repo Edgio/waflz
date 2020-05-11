@@ -25,16 +25,18 @@
 //: ----------------------------------------------------------------------------
 #include "rule.pb.h"
 #include "event.pb.h"
-#include "config.pb.h"
+#include "profile.pb.h"
 #include "waflz/def.h"
 #include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/engine.h"
 #include "waflz/profile.h"
+#include "waflz/trace.h"
 #include "op/ac.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
+#include "support/time_util.h"
 #include "support/md5.h"
 #include "core/op.h"
 #include "core/var.h"
@@ -65,12 +67,16 @@ waf::waf(engine &a_engine):
         ,m_anomaly_score_cur(0),
 #endif
         m_is_initd(false),
+        m_err_msg(),
         m_engine(a_engine),
         m_id("NA"),
+        m_cust_id("NA"),
         m_name("NA"),
+        m_ruleset_dir(),
         m_owasp_ruleset_version(0),
         m_paranoia_level(1),
         m_no_log_matched(false),
+        m_parse_xml(false),
         m_parse_json(false)
 {
         m_compiled_config = new compiled_config_t();
@@ -452,10 +458,10 @@ int32_t waf::compile(void)
         // compile
         // -------------------------------------------------
         int32_t l_s;
-        l_s = m_engine.compile(*m_compiled_config, *m_pb);
+        l_s = m_engine.compile(*m_compiled_config, *m_pb, m_ruleset_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "engine compile reason: %s", m_engine.get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_engine.get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -626,6 +632,7 @@ int32_t waf::init(config_parser::format_t a_format,
                 l_s = set_defaults();
                 if(l_s != WAFLZ_STATUS_OK)
                 {
+                        WAFLZ_PERROR(m_err_msg, "set_defaults failed");
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -637,7 +644,9 @@ int32_t waf::init(config_parser::format_t a_format,
         l_s = l_parser->parse_config(*l_pb, a_format, a_path);
         if(l_s != WAFLZ_STATUS_OK)
         {
+                WAFLZ_PERROR(m_err_msg, "%s", l_parser->get_err_msg());
                 if(l_parser) { delete l_parser; l_parser = NULL;}
+                if(l_pb) { delete l_pb; l_pb = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         if(m_pb)
@@ -659,11 +668,99 @@ int32_t waf::init(config_parser::format_t a_format,
         m_pb->set_ruleset_id("__na__");
         m_pb->set_ruleset_version("__na__");
         // -------------------------------------------------
+        // set id
+        // -------------------------------------------------
+        m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
+        m_name = m_pb->name();
+        // -------------------------------------------------
         // compile
         // -------------------------------------------------
         l_s = compile();
         if(l_s != WAFLZ_STATUS_OK)
         {
+                WAFLZ_PERROR(m_err_msg, "compilation failed");
+                return WAFLZ_STATUS_ERROR;
+        }
+        m_is_initd = true;
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t waf::init(void* a_js,
+                  bool a_apply_defaults)
+{
+        // Check if already is initd
+        if(m_is_initd)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        if(m_pb)
+        {
+                delete m_pb;
+                m_pb = NULL;
+        }
+        // -------------------------------------------------
+        // set defaults for missing values...
+        // -------------------------------------------------
+        int32_t l_s;
+        waflz_pb::sec_config_t *l_pb = NULL;
+        if(a_apply_defaults)
+        {
+                m_pb = new waflz_pb::sec_config_t();
+                l_s = set_defaults();
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "set_defaults failed");
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // parse
+        // -------------------------------------------------
+        config_parser *l_parser = new config_parser();
+        l_pb = new waflz_pb::sec_config_t();
+        l_s = l_parser->parse_config(*l_pb, a_js);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "%s", l_parser->get_err_msg());
+                if(l_parser) { delete l_parser; l_parser = NULL;}
+                if(l_pb) { delete l_pb; l_pb = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(m_pb)
+        {
+                m_pb->MergeFrom(*l_pb);
+                delete l_pb;
+                l_pb = NULL;
+        }
+        else
+        {
+                m_pb = l_pb;
+        }
+        // TODO remove -debug...
+        //l_parser->show_status();
+        if(l_parser) { delete l_parser; l_parser = NULL;}
+        // -------------------------------------------------
+        // set ruleset info
+        // -------------------------------------------------
+        m_pb->set_ruleset_id("__na__");
+        m_pb->set_ruleset_version("__na__");
+        // -------------------------------------------------
+        // set id
+        // -------------------------------------------------
+        m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
+        // -------------------------------------------------
+        // compile
+        // -------------------------------------------------
+        l_s = compile();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "compilation failed");
                 return WAFLZ_STATUS_ERROR;
         }
         m_is_initd = true;
@@ -715,6 +812,7 @@ int32_t waf::set_defaults(void)
         set_var_tx(l_conf_pb, "900006", "sql_injection_score", "0");
         set_var_tx(l_conf_pb, "900007", "xss_score", "0");
         set_var_tx(l_conf_pb, "900008", "inbound_anomaly_score", "0");
+        set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", "1");
         set_var_tx(l_conf_pb, "900012", "inbound_anomaly_score_level", "1");
         set_var_tx(l_conf_pb, "900014", "anomaly_score_blocking", "on");
         // -------------------------------------------------
@@ -733,7 +831,7 @@ int32_t waf::set_defaults(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
+int32_t waf::init(profile &a_profile)
 {
         if(!a_profile.get_pb())
         {
@@ -814,16 +912,7 @@ int32_t waf::init(profile &a_profile, bool a_leave_tmp_file)
         //Default anomaly threshold
         std::string l_anomaly_threshold = "5";
         // Use top level threshold setting
-        if(l_gs.has_anomaly_threshold())
-        {
-                l_anomaly_threshold = to_string(l_gs.anomaly_threshold());
-        }
-        else if(l_gs.has_anomaly_settings())
-        {
-                const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
-                l_anomaly_threshold = to_string(l_ax.inbound_threshold());
-                //NDBG_PRINT("setting anomaly %s\n", l_anomaly_threshold.c_str());
-        }
+        l_anomaly_threshold = to_string(l_gs.anomaly_threshold());
         if(m_owasp_ruleset_version >= 300)
         {
 
@@ -1096,35 +1185,23 @@ done:
         l_conf_pb.set_ruleset_version(l_prof_pb.ruleset_version());
         {
         struct dirent** l_conf_list = NULL;
-        std::string l_ruleset_dir;
-        if(a_profile.get_ruleset_dir().empty())
-        {
-                l_ruleset_dir = a_profile.s_ruleset_dir;
-        }
-        else
-        {
-                l_ruleset_dir = a_profile.get_ruleset_dir();
-        }
-        l_ruleset_dir.append(l_prof_pb.ruleset_id());
-        l_ruleset_dir.append("/version/");
-        l_ruleset_dir.append(l_prof_pb.ruleset_version());
-        l_ruleset_dir.append("/policy/");
-        // -------------------------------------------------
-        // set ruleset dir for engine before it compiles
-        // -------------------------------------------------
-        m_engine.set_ruleset_dir(l_ruleset_dir);
+        m_ruleset_dir = m_engine.get_ruleset_dir();
+        m_ruleset_dir.append(l_prof_pb.ruleset_id());
+        m_ruleset_dir.append("/version/");
+        m_ruleset_dir.append(l_prof_pb.ruleset_version());
+        m_ruleset_dir.append("/policy/");
         // -------------------------------------------------
         // scan ruleset dir
         // -------------------------------------------------
         int l_num_files = -1;
-        l_num_files = ::scandir(l_ruleset_dir.c_str(),
+        l_num_files = ::scandir(m_ruleset_dir.c_str(),
                                 &l_conf_list,
                                 is_conf_file::compare,
                                 alphasort);
         if(l_num_files == -1)
         {
                 // failed to build the list of directory entries
-                WAFLZ_PERROR(m_err_msg, "Failed to compile modsecurity json instance-profile settings.  Reason: failed to scan profile directory: %s: %s", l_ruleset_dir.c_str(), (errno == 0 ? "unknown" : strerror(errno)));
+                WAFLZ_PERROR(m_err_msg, "Failed to compile modsecurity json instance-profile settings.  Reason: failed to scan profile directory: %s: %s", m_ruleset_dir.c_str(), (errno == 0 ? "unknown" : strerror(errno)));
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -1143,7 +1220,7 @@ done:
                         if(l_enable_policies.find(l_conf_list[i_f]->d_name) != l_enable_policies.end())
                         {
                                 std::string &l_inc = *(l_conf_pb.add_directive()->mutable_include());
-                                l_inc.append(l_ruleset_dir);
+                                l_inc.append(m_ruleset_dir);
                                 l_inc.append(l_conf_list[i_f]->d_name);
                         }
                 }
@@ -1302,10 +1379,10 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
                           const waflz_pb::sec_rule_t &a_rule,
                           rqst_ctx &a_ctx)
 {
-        //NDBG_PRINT("**********************************************\n");
-        //NDBG_PRINT("*                 R U L E                     \n");
-        //NDBG_PRINT("**********************************************\n");
-        //NDBG_PRINT("rule: %s\n", a_rule.ShortDebugString().c_str());
+        WFLZ_TRC_RULE("%s%s%s\n",
+                      ANSI_COLOR_FG_YELLOW,
+                      a_rule.ShortDebugString().c_str(),
+                      ANSI_COLOR_OFF);
         // -------------------------------------------------
         // chain rule loop
         // -------------------------------------------------
@@ -1376,9 +1453,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // matched...
         // -------------------------------------------------
-        //NDBG_PRINT("%sMATCH%s: !!!\n%s%s%s\n",
-        //           ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
-        //           ANSI_COLOR_FG_RED, a_rule.ShortDebugString().c_str(), ANSI_COLOR_OFF);
         if(!a_rule.has_action())
         {
                 return WAFLZ_STATUS_OK;
@@ -1386,10 +1460,10 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // run disruptive action...
         // -------------------------------------------------
-        // TODO !!!
-        //NDBG_PRINT("%sACTIONS%s: !!!\n%s%s%s\n",
-        //           ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF,
-        //           ANSI_COLOR_FG_MAGENTA, a_rule.action().ShortDebugString().c_str(), ANSI_COLOR_OFF);
+        WFLZ_TRC_MATCH("ACTION: %s%s%s\n",
+                        ANSI_COLOR_FG_RED,
+                        a_rule.action().ShortDebugString().c_str(),
+                        ANSI_COLOR_OFF);
 #if 0
         for(int32_t i_s = 0; i_s < a_rule.action().setvar_size(); ++i_s)
         {
@@ -1634,9 +1708,10 @@ run_op:
                                                 a_ctx.m_cx_matched_var_name.append(l_var_name);
                                         }
                                 }
-                                //NDBG_PRINT("%sMATCH%s: !!!%s%s%s\n",
-                                //           ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF,
-                                //           ANSI_COLOR_FG_MAGENTA, a_rule.ShortDebugString().c_str(), ANSI_COLOR_OFF);
+                                WFLZ_TRC_MATCH("%s%s%s\n",
+                                                ANSI_COLOR_FG_MAGENTA,
+                                                a_rule.ShortDebugString().c_str(),
+                                                ANSI_COLOR_OFF);
                                 ao_match = true;
                                 break;
                         }
@@ -1943,6 +2018,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // Only calculate score if the rule is setting a var
         // e.g setvar:'tx.anomaly_score_pl1=+%{tx.notice_anomaly_score}
         // Or is a chained rule
+        // -------------------------------------------------
         if(get_owasp_ruleset_version() >= 300 &&
            (l_action.setvar_size() > 0 ||
             a_rule.chained_rule_size() > 0))
@@ -1958,11 +2034,12 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
                                 ++i_pl;
                                 continue;
                         }
-                        int32_t l_pl_score;
+                        long int l_pl_score;
                         char *l_end_ptr = NULL;
                         l_pl_score = strntol(i_t->second.c_str(), i_t->second.length(), &l_end_ptr, 10);
                         if((l_pl_score == LONG_MAX) ||
-                            (l_pl_score == LONG_MIN))
+                            (l_pl_score == LONG_MIN) ||
+                            (l_pl_score < 0))
                         {
                                 ++i_pl;
                                 continue;
@@ -1972,7 +2049,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
                                 ++i_pl;
                                 continue;
                         }
-                        l_cur_anomaly += l_pl_score;
+                        l_cur_anomaly += (uint32_t)l_pl_score;
                         ++i_pl;
                 } while(m_paranoia_level >= i_pl);
                 if(l_cur_anomaly)
@@ -2344,11 +2421,10 @@ int32_t waf::process(waflz_pb::event **ao_event,
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        int32_t l_status = WAFLZ_STATUS_OK;
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         m_anomaly_score_cur = 0;
 #endif
-        int32_t l_s;
+        int32_t l_s = WAFLZ_STATUS_OK;
         // -------------------------------------------------
         // create new if null
         // -------------------------------------------------
@@ -2366,7 +2442,7 @@ int32_t waf::process(waflz_pb::event **ao_event,
                 {
                         l_body_size_max = m_pb->request_body_in_memory_limit();
                 }
-                l_ctx = new rqst_ctx(a_ctx, l_body_size_max, a_callbacks, m_parse_json);
+                l_ctx = new rqst_ctx(a_ctx, l_body_size_max, a_callbacks, m_parse_xml, m_parse_json);
                 if(ao_rqst_ctx)
                 {
                         *ao_rqst_ctx = l_ctx;
@@ -2379,7 +2455,7 @@ int32_t waf::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = l_ctx->init_phase_1();
+        l_s = l_ctx->init_phase_1(m_engine.get_geoip2_mmdb());
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???

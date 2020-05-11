@@ -23,15 +23,13 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#include "config.pb.h"
+#include "profile.pb.h"
 #include "waflz/instances.h"
 #include "waflz/instance.h"
 #include "waflz/profile.h"
 #include "waflz/engine.h"
 #include "support/file_util.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
-#include "support/geoip2_mmdb.h"
 #include "support/time_util.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
@@ -52,7 +50,6 @@
         } \
 } while(0)
 #endif
-#define CONFIG_WAF_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -61,13 +58,11 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 instances::instances(engine &a_engine,
                      bool a_enable_locking):
-        m_init(false),
         m_err_msg(),
         m_engine(a_engine),
         m_id_instance_map(),
         m_mutex(),
-        m_enable_locking(a_enable_locking),
-        m_geoip_mmdb(NULL)
+        m_enable_locking(a_enable_locking)
 {
         // Initialize the mutex
         if(m_enable_locking)
@@ -93,47 +88,14 @@ instances::~instances()
         {
                 pthread_mutex_destroy(&m_mutex);
         }
-        if(m_geoip_mmdb)
-        {
-                delete m_geoip_mmdb;
-                m_geoip_mmdb = NULL;
-        }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instances::init_dbs(void)
+int32_t instances::load(instance **ao_instance, void *a_js, bool a_update)
 {
-         m_geoip_mmdb = new geoip2_mmdb();
-         int32_t l_s;
-         l_s = m_geoip_mmdb->init(profile::s_geoip2_db,
-                                profile::s_geoip2_isp_db);
-
-         if(l_s != WAFLZ_STATUS_OK)
-         {
-                  WAFLZ_PERROR(m_err_msg,"error intialiting");
-                  return WAFLZ_STATUS_OK;
-         }
-         m_init = true;
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t instances::load_config(instance **ao_instance,
-                               void *a_js,
-                               bool a_leave_compiled_file,
-                               bool a_update)
-{
-        if(!m_init)
-        {
-                WAFLZ_PERROR(m_err_msg, "not init'd");
-                return WAFLZ_STATUS_ERROR;
-        }
         if(!a_js)
         {
                 WAFLZ_PERROR(m_err_msg, "a_js == NULL");
@@ -142,13 +104,12 @@ int32_t instances::load_config(instance **ao_instance,
         // -------------------------------------------------
         // load
         // -------------------------------------------------
-        instance *l_instance = new instance(m_engine, *m_geoip_mmdb);
+        instance *l_instance = new instance(m_engine);
         int32_t l_s;
-        l_s = l_instance->load_config(a_js,
-                                      a_leave_compiled_file);
+        l_s = l_instance->load(a_js);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_AERROR(m_err_msg, "%s", l_instance->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", l_instance->get_err_msg());
                 if(l_instance) { delete l_instance; l_instance = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
@@ -172,12 +133,12 @@ int32_t instances::load_config(instance **ao_instance,
                    (l_new_pb->has_last_modified_date()))
                 {
                         uint64_t l_loaded_epoch = get_epoch_seconds(l_old_pb->last_modified_date().c_str(),
-                                                                    CONFIG_WAF_DATE_FORMAT);
+                                                                    CONFIG_DATE_FORMAT);
                         uint64_t l_config_epoch = get_epoch_seconds(l_new_pb->last_modified_date().c_str(),
-                                                                    CONFIG_WAF_DATE_FORMAT);
+                                                                    CONFIG_DATE_FORMAT);
                         if(l_loaded_epoch >= l_config_epoch)
                         {
-                                TRC_DEBUG("config is already latest. not performing update");
+                                //TRC_DEBUG("config is already latest. not performing update");
                                 *ao_instance = i_instance->second;
                                 // Delete the newly created instance
                                 delete l_instance;
@@ -222,11 +183,7 @@ int32_t instances::load_config(instance **ao_instance,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instances::load_config(instance **ao_instance,
-                               const char *a_buf,
-                               uint32_t a_buf_len,
-                               bool a_leave_compiled_file,
-                               bool a_update)
+int32_t instances::load(instance **ao_instance, const char *a_buf, uint32_t a_buf_len, bool a_update)
 {
         // ---------------------------------------
         // parse
@@ -236,7 +193,7 @@ int32_t instances::load_config(instance **ao_instance,
         l_ok = l_js->Parse(a_buf, a_buf_len);
         if (!l_ok)
         {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)\n",
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -248,21 +205,20 @@ int32_t instances::load_config(instance **ao_instance,
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
-        // object
-        // ---------------------------------------
-        // Lock down this junk
+        // -------------------------------------------------
+        // lock
+        // -------------------------------------------------
         if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
+        // -------------------------------------------------
+        // object
+        // -------------------------------------------------
         if(l_js->IsObject())
         {
                 int32_t l_s;
-                l_s = load_config(ao_instance,
-                                  (void *)l_js,
-                                  a_leave_compiled_file,
-                                  a_update);
+                l_s = load(ao_instance, (void *)l_js, a_update);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_js) { delete l_js; l_js = NULL; }
@@ -273,19 +229,16 @@ int32_t instances::load_config(instance **ao_instance,
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // array
-        // ---------------------------------------
+        // -------------------------------------------------
         else if(l_js->IsArray())
         {
                 for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
                         int32_t l_s;
-                        l_s = load_config(ao_instance,
-                                          (void *)&l_e,
-                                          a_leave_compiled_file,
-                                          a_update);
+                        l_s = load(ao_instance, (void *)&l_e, a_update);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 if(l_js) { delete l_js; l_js = NULL; }
@@ -309,11 +262,10 @@ int32_t instances::load_config(instance **ao_instance,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instances::load_config_file(instance **ao_instance,
-                                    const char *a_file_path,
-                                    uint32_t a_file_path_len,
-                                    bool a_leave_compiled_file,
-                                    bool a_update)
+int32_t instances::load_file(instance **ao_instance,
+                             const char *a_file_path,
+                             uint32_t a_file_path_len,
+                             bool a_update)
 {
         int32_t l_s;
         char *l_buf = NULL;
@@ -327,7 +279,7 @@ int32_t instances::load_config_file(instance **ao_instance,
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }
-        l_s = load_config(ao_instance, l_buf, l_buf_len);
+        l_s = load(ao_instance, l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_AERROR(m_err_msg, " :file[%s]", a_file_path);
@@ -342,17 +294,16 @@ int32_t instances::load_config_file(instance **ao_instance,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instances::load_config_dir(const char *a_dir_path,
-                                   uint32_t a_dir_path_len,
-                                   bool a_leave_compiled_file,
-                                   bool a_update)
+int32_t instances::load_dir(const char *a_dir_path,
+                            uint32_t a_dir_path_len,
+                            bool a_update)
 {
         // TODO log?
         //TRACE("Loading waf configs from: '%s'", a_config_dir_str);
         // -----------------------------------------------------------
         // this function should look through the given directory and
         // look for all ddos.json files, open them and call
-        // load_configfile() on it
+        // load_file() on it
         // -----------------------------------------------------------
         class is_conf_file
         {
@@ -423,11 +374,10 @@ int32_t instances::load_config_dir(const char *a_dir_path,
                 l_full_path.append(l_conf_list[i_f]->d_name);
                 int32_t l_s;
                 instance *l_instance = NULL;
-                l_s = load_config_file(&l_instance,
-                                       l_full_path.c_str(),
-                                       l_full_path.length(),
-                                       a_leave_compiled_file,
-                                       a_update);
+                l_s = load_file(&l_instance,
+                                l_full_path.c_str(),
+                                l_full_path.length(),
+                                a_update);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // failed to load a config file
@@ -445,10 +395,12 @@ int32_t instances::load_config_dir(const char *a_dir_path,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t instances::process(waflz_pb::event **ao_audit_event,
+int32_t instances::process(waflz_pb::enforcement **ao_enf,
+                           waflz_pb::event **ao_audit_event,
                            waflz_pb::event **ao_prod_event,
                            void *a_ctx,
                            const std::string &a_id,
+                           part_mk_t a_part_mk,
                            const rqst_ctx_callbacks *a_callbacks,
                            rqst_ctx **ao_rqst_ctx)
 {
@@ -456,6 +408,9 @@ int32_t instances::process(waflz_pb::event **ao_audit_event,
         {
                 pthread_mutex_lock(&m_mutex);
         }
+        // -------------------------------------------------
+        // get instance for id
+        // -------------------------------------------------
         ns_waflz::instance *l_instance = NULL;
         l_instance = get_instance(a_id);
         if(!l_instance)
@@ -466,8 +421,12 @@ int32_t instances::process(waflz_pb::event **ao_audit_event,
                 }
                 return WAFLZ_STATUS_OK;
         }
+        // -------------------------------------------------
+        // process
+        // -------------------------------------------------
+        const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
-        l_s = l_instance->process(ao_audit_event, ao_prod_event, a_ctx, a_callbacks, ao_rqst_ctx);
+        l_s = l_instance->process(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)
@@ -476,48 +435,13 @@ int32_t instances::process(waflz_pb::event **ao_audit_event,
                 }
                 return WAFLZ_STATUS_ERROR;
         }
-        if(m_enable_locking)
+        // -------------------------------------------------
+        // create enforcement copy...
+        // -------------------------------------------------
+        if(l_enf)
         {
-                pthread_mutex_unlock(&m_mutex);
-        }
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t instances::process_part(waflz_pb::event **ao_audit_event,
-                                waflz_pb::event **ao_prod_event,
-                                void *a_ctx,
-                                const std::string &a_id,
-                                part_mk_t a_part_mk,
-                                const rqst_ctx_callbacks *a_callbacks,
-                                rqst_ctx **ao_rqst_ctx)
-{
-        if(m_enable_locking)
-        {
-                pthread_mutex_lock(&m_mutex);
-        }
-        ns_waflz::instance *l_instance = NULL;
-        l_instance = get_instance(a_id);
-        if(!l_instance)
-        {
-                if(m_enable_locking)
-                {
-                        pthread_mutex_unlock(&m_mutex);
-                }
-                return WAFLZ_STATUS_OK;
-        }
-        int32_t l_s;
-        l_s = l_instance->process_part(ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(m_enable_locking)
-                {
-                        pthread_mutex_unlock(&m_mutex);
-                }
-                return WAFLZ_STATUS_ERROR;
+                *ao_enf = new waflz_pb::enforcement();
+                (*ao_enf)->CopyFrom(*l_enf);
         }
         if(m_enable_locking)
         {
@@ -545,27 +469,87 @@ instance *instances::get_instance(const std::string &a_id)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-instance *instances::get_first_instance(void)
+void instances::get_first_id(std::string &ao_id)
 {
+        if(m_enable_locking)
+        {
+                pthread_mutex_lock(&m_mutex);
+        }
+        ao_id.clear();
         if(m_id_instance_map.size())
         {
-                return m_id_instance_map.begin()->second;
+                ao_id = m_id_instance_map.begin()->first;
         }
-        return NULL;
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-void instances::get_instance_id_vector(id_vector_t &ao_id_vector)
+void instances::get_rand_id(std::string &ao_id)
 {
-        ao_id_vector.clear();
-        for(id_instance_map_t::iterator i_i = m_id_instance_map.begin();
-            i_i != m_id_instance_map.end();
-            ++i_i)
+        if(m_enable_locking)
         {
-                ao_id_vector.push_back(i_i->first);
+                pthread_mutex_lock(&m_mutex);
         }
+        ao_id.clear();
+        uint32_t l_len = (uint32_t)m_id_instance_map.size();
+        uint32_t l_idx = 0;
+        l_idx = ((uint32_t)rand()) % (l_len + 1);
+        id_instance_map_t::const_iterator i_i = m_id_instance_map.begin();
+        std::advance(i_i, l_idx);
+        ao_id = i_i->first;
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+bool instances::id_exists(bool& ao_audit, bool &ao_prod, const std::string& a_id)
+{
+        ao_audit = false;
+        ao_prod = false;
+        bool l_ret = false;
+        if(m_enable_locking)
+        {
+                pthread_mutex_lock(&m_mutex);
+        }
+        // -------------------------------------------------
+        // find id...
+        // -------------------------------------------------
+        id_instance_map_t::iterator i_i;
+        i_i = m_id_instance_map.find(a_id);
+        if (i_i != m_id_instance_map.end())
+        {
+                instance* l_i = i_i->second;
+                // -----------------------------------------
+                // set if has audit/prod profiles
+                // -----------------------------------------
+                if(l_i)
+                {
+                        if(l_i->get_audit_profile())
+                        {
+                                ao_audit = true;
+                        }
+                        if(l_i->get_prod_profile())
+                        {
+                                ao_audit = true;
+                        }
+                }
+                l_ret = true;
+        }
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
+        return l_ret;
 }
 }

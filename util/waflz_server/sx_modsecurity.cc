@@ -28,18 +28,19 @@
 #include "waflz/engine.h"
 #include "waflz/profile.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/geoip2_mmdb.h"
 #include "is2/support/trace.h"
 #include "is2/support/nbq.h"
 #include "is2/support/ndebug.h"
 #include "is2/srvr/api_resp.h"
 #include "is2/srvr/srvr.h"
 #include "jspb/jspb.h"
-#include "support/geoip2_mmdb.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
 #include "event.pb.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
@@ -86,6 +87,10 @@ static int32_t guess_owasp_version(uint32_t &ao_owasp_version,
                 NDBG_PRINT("Error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // check each line
+        // bail if OWASP 3.x flavor detected
+        // -------------------------------------------------
         ssize_t l_len = 0;
         char *l_line = NULL;
         size_t l_unused;
@@ -98,7 +103,8 @@ static int32_t guess_owasp_version(uint32_t &ao_owasp_version,
                         continue;
                 }
                 if((ns_waflz::strnstr(l_line, "ECRS", l_len) != NULL) ||
-                   (ns_waflz::strnstr(l_line, "3.0.", l_len) != NULL))
+                   (ns_waflz::strnstr(l_line, "OWASP_CRS/3.", l_len) != NULL) ||
+                   (ns_waflz::strnstr(l_line, "anomaly_score_pl", l_len) != NULL))
                 {
                         ao_owasp_version = 300;
                         if(l_line) { free(l_line); l_line = NULL; }
@@ -159,20 +165,6 @@ int32_t sx_modsecurity::init(void)
                 NDBG_PRINT("error initializing engine\n");
                 return STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // geoip db
-        // -------------------------------------------------
-        m_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        l_s = m_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                  ns_waflz::profile::s_geoip2_isp_db);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_geoip2_mmdb->get_err_msg());
-                return STATUS_ERROR;
-        }
         // -----------------------------------------
         // guess format from ext...
         // -----------------------------------------
@@ -211,9 +203,9 @@ int32_t sx_modsecurity::init(void)
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // hook geoip db ???
+        // set version...
         // -------------------------------------------------
-        // TODO
+        m_waf->set_owasp_ruleset_version(l_owasp_version);
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -221,7 +213,7 @@ int32_t sx_modsecurity::init(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_modsecurity::handle_rqst(const waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_modsecurity::handle_rqst(waflz_pb::enforcement **ao_enf,
                                              ns_waflz::rqst_ctx **ao_ctx,
                                              ns_is2::session &a_session,
                                              ns_is2::rqst &a_rqst,
@@ -253,6 +245,7 @@ ns_is2::h_resp_t sx_modsecurity::handle_rqst(const waflz_pb::enforcement **ao_en
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_NONE;
         }
+        l_ctx->m_event = l_event;
         // -------------------------------------------------
         // serialize event...
         // -------------------------------------------------
@@ -274,7 +267,6 @@ ns_is2::h_resp_t sx_modsecurity::handle_rqst(const waflz_pb::enforcement **ao_en
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(l_event) { delete l_event; l_event = NULL; }
         if(ao_ctx)
         {
                 *ao_ctx = l_ctx;

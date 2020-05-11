@@ -25,11 +25,11 @@
 //: ----------------------------------------------------------------------------
 #include "support/time_util.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "jspb/jspb.h"
-#include "waflz/limit/enforcer.h"
+#include "waflz/enforcer.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/def.h"
+#include "waflz/scopes.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
@@ -45,7 +45,8 @@ namespace ns_waflz
 //: \details TODO
 //: ----------------------------------------------------------------------------
 enforcer::enforcer(bool a_case_insensitive_headers):
-        rl_obj(a_case_insensitive_headers)
+        rl_obj(a_case_insensitive_headers),
+        m_stat_total_limits(0)
 {
 }
 //: ----------------------------------------------------------------------------
@@ -53,7 +54,8 @@ enforcer::enforcer(bool a_case_insensitive_headers):
 //: ----------------------------------------------------------------------------
 enforcer::enforcer(waflz_pb::config *a_pb,
                    bool a_case_insensitive_headers):
-                   rl_obj(a_case_insensitive_headers)
+           rl_obj(a_case_insensitive_headers),
+           m_stat_total_limits(0)
 {
         // initialize pb
         m_pb = a_pb;
@@ -148,50 +150,14 @@ int32_t enforcer::load(void *a_js)
         int32_t l_s;
         const rapidjson::Value &l_js = *((rapidjson::Value *)a_js);
         // -------------------------------------------------
-        // handle v1 configs...
+        // load pb...
         // -------------------------------------------------
-        if(l_js.HasMember("type") &&
-           l_js["type"].IsString())
+        l_s = update_from_json(*m_pb, l_js);
+        if(l_s != JSPB_OK)
         {
-                // -----------------------------------------
-                // create v1 pbuf...
-                // -----------------------------------------
-                waflz_pb::enforcer *l_v1_pb = NULL;
-                l_v1_pb = new waflz_pb::enforcer();
-                l_s = update_from_json(*l_v1_pb, l_js);
-                if(l_s != JSPB_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "parsing v1 json. Reason: %s", get_jspb_err_msg());
-                        if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // convert types...
-                // -----------------------------------------
-                if(m_pb) { delete m_pb; m_pb = NULL; }
-                m_pb = new waflz_pb::config();
-                l_s = convertv1(*m_pb, *l_v1_pb);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "convertv1: converting v1 format to v2");
-                        if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-                        if(m_pb) { delete m_pb; m_pb = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-        }
-        // -------------------------------------------------
-        // std load path...
-        // -------------------------------------------------
-        else
-        {
-                l_s = update_from_json(*m_pb, l_js);
-                if(l_s != JSPB_OK)
-                {
-                        TRC_DEBUG("error in load_config\n");
-                        WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
-                        return WAFLZ_STATUS_ERROR;
-                }
+                //TRC_DEBUG("error in load_config\n");
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // validate
@@ -200,7 +166,7 @@ int32_t enforcer::load(void *a_js)
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_DEBUG("error in validate load_config");
+                //TRC_DEBUG("error in validate load_config");
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -210,7 +176,7 @@ int32_t enforcer::load(void *a_js)
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_DEBUG("error in compile");
+                //TRC_DEBUG("error in compile");
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -236,7 +202,7 @@ int32_t enforcer::load(void *a_js)
                 }
                 if(!l_e_duration_s)
                 {
-                        TRC_DEBUG("missing duration in either enforcement or limit");
+                        //TRC_DEBUG("missing duration in either enforcement or limit");
                         return WAFLZ_STATUS_ERROR;
                 }
                 // set end time for limit -controls expiration
@@ -267,7 +233,7 @@ int32_t enforcer::load(const char *a_buf, uint32_t a_buf_len)
         l_ok = l_js->Parse(a_buf, a_buf_len);
         if (!l_ok)
         {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)\n",
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -409,7 +375,6 @@ int32_t enforcer::process(const waflz_pb::enforcement** ao_axn, rqst_ctx *a_ctx)
                         {
                                 *ao_axn = &(i_limit.action());
                                 a_ctx->m_limit = i_r_ptr;
-                                a_ctx->m_condition_group = &(i_limit.condition_groups(i_cg));
                                 //TRC_DEBUG("print enforcement%s\n", (*ao_axn)->DebugString().c_str());
                                 goto done;
                         }

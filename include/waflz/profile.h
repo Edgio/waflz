@@ -20,32 +20,20 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-
+#ifndef _PROFILE_H_
+#define _PROFILE_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#ifdef __cplusplus
+#include "waflz/def.h"
 #include <string>
 #include <list>
 #include <set>
 #include <strings.h>
 #include <map>
-#include "waflz/def.h"
-#include "waflz/rqst_ctx.h"
-#endif
-#ifndef _PROFILE_H_
-#define _PROFILE_H_
-#ifndef __cplusplus
-typedef struct profile_t profile;
-typedef struct engine_t engine;
-typedef struct geoip2_mmdb_t geoip2_mmdb;
-typedef struct rqst_ctx_t rqst_ctx;
-#endif
-
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
-#ifdef __cplusplus
 namespace waflz_pb {
 class enforcement;
 class profile;
@@ -53,8 +41,6 @@ class event;
 class request_info;
 class acl;
 }
-#endif
-#ifdef __cplusplus
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: fwd decl's
@@ -62,13 +48,13 @@ namespace ns_waflz {
 class engine;
 class waf;
 class acl;
-class geoip2_mmdb;
-
+class regex;
 class rqst_ctx;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
-
+typedef std::list<regex *> pcre_list_t;
+typedef std::list <std::string> str_list_t;
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
@@ -78,13 +64,12 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        profile(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
+        profile(engine &a_engine);
         ~profile();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx, const rqst_ctx_callbacks *a_callbacks, rqst_ctx **ao_rqst_ctx = NULL);
-        int32_t process_request_plugin(char **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx);
-        int32_t process_part(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, const rqst_ctx_callbacks *a_callbacks, rqst_ctx **ao_rqst_ctx = NULL);
-        int32_t load_config(const char *a_buf, uint32_t a_buf_len, bool a_leave_compiled_file = false);
-        int32_t load_config(const waflz_pb::profile *a_pb, bool a_leave_compiled_file = false);
+        int32_t process(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, const rqst_ctx_callbacks *a_callbacks, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t load(const char *a_buf, uint32_t a_buf_len);
+        int32_t load(void* a_js);
+        int32_t load(const waflz_pb::profile *a_pb);
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------
@@ -95,22 +80,12 @@ public:
         const char *get_err_msg(void) { return m_err_msg; }
         waflz_pb::profile *get_pb(void) { return m_pb; }
         waf *get_waf(void) { return m_waf; }
-        const std::string &get_id(void) { return m_id; }
-        const std::string &get_name(void) { return m_name; }
-        const std::string &get_resp_header_name(void) { return m_resp_header_name; }
-        const std::string &get_ruleset_dir(void) { return m_ruleset_dir; }
+        const std::string& get_id(void) { return m_id; }
+        const std::string& get_cust_id(void) { return m_cust_id; }
+        const std::string& get_name(void) { return m_name; }
+        const std::string& get_resp_header_name(void) { return m_resp_header_name; }
         uint16_t get_action(void) { return m_action; }
         void set_pb(waflz_pb::profile *a_pb);
-        void set_ruleset_dir(std::string a_ruleset_dir) { m_ruleset_dir = a_ruleset_dir; }
-        // -------------------------------------------------
-        // public static members
-        // -------------------------------------------------
-        static uint_fast32_t s_next_ec_rule_id;
-        static std::string s_ruleset_dir;
-        static std::string s_geoip_db;
-        static std::string s_geoip_isp_db;
-        static std::string s_geoip2_db;
-        static std::string s_geoip2_isp_db;
 private:
         // -------------------------------------------------
         // private types
@@ -133,7 +108,6 @@ private:
         waflz_pb::profile *m_pb;
         char m_err_msg[WAFLZ_ERR_LEN];
         engine &m_engine;
-        geoip2_mmdb &m_geoip2_mmdb;
         // -------------------------------------------------
         // engines...
         // -------------------------------------------------
@@ -143,40 +117,20 @@ private:
         // properties
         // -------------------------------------------------
         std::string m_id;
+        std::string m_cust_id;
         std::string m_name;
         std::string m_resp_header_name;
-        std::string m_ruleset_dir;
         uint16_t m_action;
-        bool m_leave_compiled_file;
         uint32_t m_owasp_ruleset_version;
         uint32_t m_paranoia_level;
         pcre_list_t m_il_query;
         pcre_list_t m_il_header;
         pcre_list_t m_il_cookie;
         // -------------------------------------------------
-        // class members
-        // -------------------------------------------------
-        static const std::string s_default_name;
-        // -------------------------------------------------
         // friends
         // -------------------------------------------------
         friend class instance;
         friend class acl;
 };
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-profile *create_profile(engine *a_engine, geoip2_mmdb *a_geoip2_mmdb);
-int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a_len);
-int32_t set_ruleset(profile *a_profile, char *a_ruleset_dir);
-int32_t process_request(profile *a_profile, void *ao_rqst_ctx, rqst_ctx *a_rqst_ctx, char **a_event);
-int32_t cleanup_profile(profile *a_profile);
-#ifdef __cplusplus
 }
-
-} // namespace waflz
 #endif
-#endif // Header

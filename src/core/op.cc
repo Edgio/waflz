@@ -29,7 +29,6 @@
 #include "core/macro.h"
 #include "core/decode.h"
 #include "support/string_util.h"
-#include "support/trace_internal.h"
 #include "support/ndebug.h"
 #include "op/regex.h"
 #include "op/ac.h"
@@ -99,7 +98,7 @@ OP(EQ)
         // -------------------------------------------------
         // convert/compare
         // -------------------------------------------------
-        int32_t l_in_val;
+        long int l_in_val;
         char *l_end_ptr = NULL;
         l_in_val = strntol(a_buf, a_len, &l_end_ptr, 10);
         if((l_in_val == LONG_MAX) ||
@@ -111,7 +110,7 @@ OP(EQ)
         {
                 return WAFLZ_STATUS_OK;
         }
-        int32_t l_op_val;
+        long int l_op_val;
         l_op_val = strntol(l_val_ref->c_str(), l_val_ref->length(), &l_end_ptr, 10);
         if((l_op_val == LONG_MAX) ||
            (l_op_val == LONG_MIN))
@@ -151,7 +150,7 @@ OP(GE)
         // -------------------------------------------------
         // convert/compare
         // -------------------------------------------------
-        int32_t l_in_val;
+        long int l_in_val;
         char *l_end_ptr = NULL;
         l_in_val = strntol(a_buf, a_len, &l_end_ptr, 10);
         if((l_in_val == LONG_MAX) ||
@@ -163,7 +162,7 @@ OP(GE)
         {
                 return WAFLZ_STATUS_OK;
         }
-        int32_t l_op_val;
+        long int l_op_val;
         l_op_val = strntol(l_val_ref->c_str(), l_val_ref->length(), &l_end_ptr, 10);
         if((l_op_val == LONG_MAX) ||
            (l_op_val == LONG_MIN))
@@ -203,7 +202,7 @@ OP(GT)
         // -------------------------------------------------
         // convert/compare
         // -------------------------------------------------
-        int32_t l_in_val;
+        long int l_in_val;
         char *l_end_ptr = NULL;
         // Special case for args combined size
         // since there is no transformation t:length on input buf
@@ -225,7 +224,7 @@ OP(GT)
         {
                 return WAFLZ_STATUS_OK;
         }
-        int32_t l_op_val;
+        long int l_op_val;
         l_op_val = strntol(l_val_ref->c_str(), l_val_ref->length(), &l_end_ptr, 10);
         if((l_op_val == LONG_MAX) ||
            (l_op_val == LONG_MIN))
@@ -265,7 +264,7 @@ OP(LT)
         // -------------------------------------------------
         // convert/compare
         // -------------------------------------------------
-        int32_t l_in_val;
+        long int l_in_val;
         char *l_end_ptr = NULL;
         // Special case for args combined size
         // since there is no transformation t:length on input buf
@@ -287,7 +286,7 @@ OP(LT)
         {
                 return WAFLZ_STATUS_OK;
         }
-        int32_t l_op_val;
+        long int l_op_val;
         l_op_val = strntol(l_val_ref->c_str(), l_val_ref->length(), &l_end_ptr, 10);
         if((l_op_val == LONG_MAX) ||
            (l_op_val == LONG_MIN))

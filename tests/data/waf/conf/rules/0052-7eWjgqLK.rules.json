@@ -1,0 +1,126 @@
+{
+  "directive": [
+    {
+      "sec_rule": {
+        "variable": [
+          {
+            "type": "REQUEST_HEADERS",
+            "match": [
+              {
+                "value": "Pragma",
+                "is_negated": false,
+                "is_regex": false
+              }
+            ],
+            "is_count": true
+          }
+        ],
+        "operator": {
+          "type": "EQ",
+          "value": "1",
+          "is_regex": false,
+          "is_negated": false
+        },
+        "action": {
+          "id": "x0GxsJKq",
+          "msg": "Pragma Header requires Cache-Control Header for HTTP/1.1 requests.",
+          "action_type": "BLOCK",
+          "phase": 2,
+          "t": [
+            "NONE"
+          ]
+        },
+        "chained_rule": [
+          {
+            "variable": [
+              {
+                "type": "REQUEST_HEADERS",
+                "match": [
+                  {
+                    "value": "Pragma",
+                    "is_negated": false,
+                    "is_regex": false
+                  }
+                ],
+                "is_count": false
+              }
+            ],
+            "operator": {
+              "type": "STRMATCH",
+              "value": "no-cache",
+              "is_regex": false,
+              "is_negated": false
+            },
+            "action": {
+              "msg": "chain-rule 1 match",
+              "t":[
+                "LOWERCASE"
+              ]
+            }
+          },
+          {
+            "variable": [
+              {
+                "type": "REQUEST_HEADERS",
+                "match": [
+                  {
+                    "value": "Cache-Control",
+                    "is_negated": false,
+                    "is_regex": false
+                  }
+                ],
+                "is_count": true
+              }
+            ],
+            "operator": {
+              "type": "EQ",
+              "value": "0",
+              "is_regex": false,
+              "is_negated": false
+            },
+            "action": {
+              "msg":"chain rule 2 match"
+            }
+          },
+          {
+            "variable": [
+              {
+                "type": "REQUEST_PROTOCOL",
+                "match": [
+                  {
+                    "is_negated": false,
+                    "is_regex": false
+                  }
+                ],
+                "is_count": false
+              }
+            ],
+            "operator": {
+              "type": "STREQ",
+              "value": "HTTP/1.1",
+              "is_regex": false,
+              "is_negated": false
+            },
+            "action": {
+              "msg": "chain rule 3 match",
+              "setvar": [
+                {
+                  "scope": "TX",
+                  "var": "msg",
+                  "op": "ASSIGN",
+                  "val": "%{rule.msg}"
+                },
+                {
+                  "scope": "TX",
+                  "var": "anomaly_score",
+                  "op": "INCREMENT",
+                  "val": "%{tx.notice_anomaly_score}"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

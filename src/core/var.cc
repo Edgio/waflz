@@ -465,24 +465,6 @@ static void add_vars_const(const_arg_list_t &ao_list,
         ao_list.push_back(l_data); \
         }while(0)
 //: ----------------------------------------------------------------------------
-//: \details: REMOTE_ADDR
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-GET_VAR(REMOTE_ADDR)
-{
-        if(!a_ctx)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        // TODO -handle counts!
-        // -------------------------------------------------
-        // unconditional match
-        // -------------------------------------------------
-        _ADD_VAR(a_ctx->m_src_addr);
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
 //: \details: REQUEST_PROTOCOL
 //: \return:  TODO
 //: \param:   TODO
@@ -758,7 +740,7 @@ GET_VAR(ARGS_GET)
                     a_var,
                     a_ctx->m_query_arg_list,
                     a_var.is_count(),
-                         false);
+                    false);
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -1224,12 +1206,37 @@ GET_VAR(REQUEST_BODY)
         // -------------------------------------------------
         // unconditional match
         // -------------------------------------------------
-        const_arg_t l_data;
-        l_data.m_key = "REQUEST_BODY";
-        l_data.m_key_len = sizeof("REQUEST_BODY") - 1;
-        l_data.m_val = a_ctx->m_body_data;
-        l_data.m_val_len = a_ctx->m_body_len;
-        ao_list.push_back(l_data);
+        if(!a_var.match_size() ||
+           ((a_var.match_size() == 1) &&
+           !a_var.match(0).has_value()))
+        {
+                const_arg_t l_data;
+                l_data.m_key = NULL;
+                l_data.m_key_len = 0;
+                l_data.m_val = a_ctx->m_body_data;
+                l_data.m_val_len = a_ctx->m_body_len;
+                ao_list.push_back(l_data);
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // TODO optimize out creation of tmp list???
+        // -------------------------------------------------
+        const_arg_list_t l_list;
+        const_arg_t l_arg;
+        l_arg.m_key = a_ctx->m_body_data;
+        l_arg.m_key_len = a_ctx->m_body_len;
+        l_arg.m_val = NULL;
+        l_arg.m_val_len = 0;
+        l_list.push_back(l_arg);
+        // -------------------------------------------------
+        // get query arg values
+        // -------------------------------------------------
+        get_matched_const(ao_list,
+                          ao_count,
+                          a_var,
+                          l_list,
+                          a_var.is_count(),
+                          true);
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -1422,6 +1429,73 @@ GET_VAR(XML)
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
+//: \details: REMOTE_ADDR
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+GET_VAR(REMOTE_ADDR)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // TODO -handle counts!
+        // -------------------------------------------------
+        // unconditional match
+        // -------------------------------------------------
+        _ADD_VAR(a_ctx->m_src_addr);
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: REMOTE_ASN
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+GET_VAR(REMOTE_ASN)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // TODO -handle counts!
+        // -------------------------------------------------
+        // unconditional match
+        // -------------------------------------------------
+        _ADD_VAR(a_ctx->m_src_asn_str);
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: GEO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+GET_VAR(GEO)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!a_var.match_size() ||
+           !a_var.match(0).has_value() ||
+           a_var.match(0).value().empty())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        const std::string& l_type = a_var.match(0).value();
+        // TODO -handle counts!
+        if(0) {}
+#define _ELIF_GEO_TYPE(_str) else if(l_type == _str)
+        // -------------------------------------------------
+        // COUNTRY_CODE
+        // -------------------------------------------------
+        _ELIF_GEO_TYPE("COUNTRY_CODE")
+        {
+                _ADD_VAR(a_ctx->m_geo_cn2);
+        }
+        return WAFLZ_STATUS_OK;
+}
+
+//: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
 #define INIT_GET_VAR(_type) \
@@ -1489,7 +1563,12 @@ void init_var_cb_vector(void)
         // urlencoded body
         // -------------------------------------------------
         INIT_GET_VAR(REQUEST_BODY);
+        // -------------------------------------------------
+        // address info
+        // -------------------------------------------------
         INIT_GET_VAR(REMOTE_ADDR);
+        INIT_GET_VAR(REMOTE_ASN);
+        INIT_GET_VAR(GEO);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO

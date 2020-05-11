@@ -26,25 +26,22 @@
 #include "support/time_util.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
-#include "support/trace_internal.h"
 #include "support/ndebug.h"
-#include "waflz/limit/configs.h"
-#include "waflz/limit/config.h"
-#include "waflz/db/kycb_db.h"
+#include "waflz/configs.h"
+#include "waflz/config.h"
+#include "waflz/kycb_db.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
+#include <errno.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
-#define CONFIG_RL_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: obj type utils
 //: ----------------------------------------------------------------------------
+#define LIMIT_OBJ_CONFIG_STR "CONFIG"
 #define LIMIT_OBJ_COORDINATOR_STR "ddos-coordinator"
 #define LIMIT_OBJ_ENFORCER_STR "ddos-enforcer"
 #define LIMIT_OBJ_ENFORCEMENT_STR "ddos-enforcement"
@@ -54,7 +51,6 @@ namespace ns_waflz {
 typedef enum {
         _LIMIT_OBJ_NONE = 0,
         _LIMIT_OBJ_CONFIG,
-        _LIMIT_OBJ_ENFCR
 } limit_obj_t;
 //: ----------------------------------------------------------------------------
 //: \details TODO
@@ -63,18 +59,14 @@ typedef enum {
 //: ----------------------------------------------------------------------------
 static limit_obj_t limit_obj_get_type(const char *a_buf)
 {
+        if(strncasecmp(LIMIT_OBJ_CONFIG_STR, a_buf, sizeof(LIMIT_OBJ_CONFIG_STR)) == 0)
+        {
+                return _LIMIT_OBJ_CONFIG;
+        }
         // TODO caseless???
         if(strncmp(LIMIT_OBJ_COORDINATOR_STR, a_buf, sizeof(LIMIT_OBJ_COORDINATOR_STR)) == 0)
         {
                 return _LIMIT_OBJ_CONFIG;
-        }
-        else if(strncmp(LIMIT_OBJ_ENFORCER_STR, a_buf, sizeof(LIMIT_OBJ_ENFORCER_STR)) == 0)
-        {
-                return _LIMIT_OBJ_ENFCR;
-        }
-        else if(strncmp(LIMIT_OBJ_ENFORCEMENT_STR, a_buf, sizeof(LIMIT_OBJ_ENFORCEMENT_STR)) == 0)
-        {
-                return _LIMIT_OBJ_ENFCR;
         }
         return _LIMIT_OBJ_NONE;
 }
@@ -135,7 +127,6 @@ int32_t configs::load(void *a_js)
                 if(l_t == _LIMIT_OBJ_NONE)
                 {
                         WAFLZ_PERROR(m_err_msg, "unrecognized type string: %s", l_str);
-                        NDBG_PRINT("unrecognized type string: %s", l_str);
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -147,7 +138,7 @@ int32_t configs::load(void *a_js)
            l_js["customer_id"].IsString())
         {
                 const char *l_str = l_js["customer_id"].GetString();
-                TRC_ALL("customer_id: %s\n", l_str);
+                //TRC_ALL("customer_id: %s\n", l_str);
                 int32_t l_s;
                 l_s = convert_hex_to_uint(l_cust_id, l_str);
                 if(l_s != WAFLZ_STATUS_OK)
@@ -156,40 +147,10 @@ int32_t configs::load(void *a_js)
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-        TRC_ALL("customer_id(int): %lu\n", l_cust_id);
+        //TRC_ALL("customer_id(int): %lu\n", l_cust_id);
         // -------------------------------------------------
         // find in map
         // -------------------------------------------------
-        cust_id_config_map_t::iterator i_cust;
-        i_cust = m_cust_id_config_map.find(l_cust_id);
-        // -------------------------------------------------
-        // merge enforcer -v1 only???
-        // -------------------------------------------------
-        if(l_t == _LIMIT_OBJ_ENFCR)
-        {
-                if(i_cust == m_cust_id_config_map.end())
-                {
-                        WAFLZ_PERROR(m_err_msg, "can't load enforcers w/o coordinator for id: %lu",
-                                     l_cust_id);
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(!i_cust->second)
-                {
-                        WAFLZ_PERROR(m_err_msg, "can't load enforcers for coordinator for id: %lu -coordinator NULL",
-                                     l_cust_id);
-                        return WAFLZ_STATUS_ERROR;
-                }
-                int32_t l_s;
-                l_s = (i_cust->second)->merge((void *)&l_js);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "performing merge for id: %lu. Reason: %s",
-                                     l_cust_id,
-                                     (i_cust->second)->get_err_msg());
-                        return WAFLZ_STATUS_ERROR;
-                }
-                return WAFLZ_STATUS_OK;
-        }
         config *l_c = new config(m_db, m_challenge, m_lowercase_headers);
         int32_t l_s;
         // -------------------------------------------------
@@ -198,7 +159,7 @@ int32_t configs::load(void *a_js)
         l_s = l_c->load((void *)&l_js);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing load. Reason: %s",
+                WAFLZ_PERROR(m_err_msg, "%s",
                              l_c->get_err_msg());
                 if(l_c) { delete l_c; l_c = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -206,6 +167,8 @@ int32_t configs::load(void *a_js)
         // -------------------------------------------------
         // add to map...
         // -------------------------------------------------
+        cust_id_config_map_t::iterator i_cust;
+        i_cust = m_cust_id_config_map.find(l_cust_id);
         if(i_cust == m_cust_id_config_map.end())
         {
                 m_cust_id_config_map[l_cust_id] = l_c;
@@ -228,11 +191,11 @@ int32_t configs::load(void *a_js)
         if(!l_lmd_cur.empty() &&
            !l_lmd_new.empty())
         {
-                uint64_t l_loaded_epoch = get_epoch_seconds(l_lmd_cur.c_str(), CONFIG_RL_DATE_FORMAT);
-                uint64_t l_config_epoch = get_epoch_seconds(l_lmd_new.c_str(), CONFIG_RL_DATE_FORMAT);
+                uint64_t l_loaded_epoch = get_epoch_seconds(l_lmd_cur.c_str(), CONFIG_DATE_FORMAT);
+                uint64_t l_config_epoch = get_epoch_seconds(l_lmd_new.c_str(), CONFIG_DATE_FORMAT);
                 if(l_loaded_epoch >= l_config_epoch)
                 {
-                        TRC_DEBUG("config is already latest. not performing update");
+                        //TRC_DEBUG("config is already latest. not performing update");
                         if(l_c) { delete l_c; l_c = NULL; }
                         return WAFLZ_STATUS_OK;
                 }
@@ -263,7 +226,7 @@ int32_t configs::load(const char *a_buf, uint32_t a_buf_len)
         l_ok = l_js->Parse(a_buf, a_buf_len);
         if (!l_ok)
         {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)\n",
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -420,9 +383,6 @@ int32_t configs::load_file(const char *a_file_path,
         l_s = read_file(a_file_path, &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing read_file: %s. Reason: %s",
-                             a_file_path,
-                             get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }

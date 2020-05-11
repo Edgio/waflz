@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------------
 # Project setup
 project(waflz)
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.5)
 # ------------------------------------------------------------------------------
 # Resolve dependencies
 # ------------------------------------------------------------------------------
@@ -57,14 +57,18 @@ find_python_module(requests REQUIRED)
 # ------------------------------------------------------------------------------
 # waflz
 # ------------------------------------------------------------------------------
-add_test(blackbox_access_settings
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/access_settings/test_bb_access_settings.py)
-add_test(blackbox_ruleset
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/ruleset/test_ruleset.py)
-add_test(blackbox_rules
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/rules/test_bb_rules.py)
-add_test(blackbox_instances
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/instances/test_instances.py)
+add_test(blackbox_acl             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/acl/test_bb_acl.py)
+add_test(blackbox_acl_accesslists ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/acl/test_bb_acl_accesslists.py)
+add_test(blackbox_ruleset         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/ruleset/test_ruleset.py)
+add_test(blackbox_rules           ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/rules/test_bb_rules.py)
+add_test(blackbox_rtu             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/rules/test_bb_rtu.py)
+add_test(blackbox_instances       ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/instances/test_instances.py)
+add_test(blackbox_profile         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/profile/test_bb_profile.py)
+add_test(blackbox_wjc             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/wjc/test_bb_wjc.py)
+add_test(blackbox_bot             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/bot_challenge/test_bb_bot_challenge.py)
+if (BUILD_RATE_LIMITING)
+add_test(blackbox_scopes          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/scopes/test_bb_scopes.py)
+endif()
 # ------------------------------------------------------------------------------
 # tests
 # ------------------------------------------------------------------------------

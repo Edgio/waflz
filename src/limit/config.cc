@@ -23,19 +23,21 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "support/time_util.h"
-#include "support/trace_internal.h"
 #include "support/ndebug.h"
 #include "support/string_util.h"
 #include "support/base64.h"
 #include "jspb/jspb.h"
-#include "cityhash/city.h"
 #include "waflz/def.h"
-#include "waflz/db/kv_db.h"
+#include "waflz/limit.h"
+#include "waflz/kv_db.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/render.h"
-#include "waflz/limit/enforcer.h"
-#include "waflz/limit/config.h"
+#include "waflz/scopes.h"
+#include "waflz/enforcer.h"
+#include "waflz/config.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
@@ -124,7 +126,7 @@ int32_t config::load()
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                TRC_DEBUG("error in compile");
+                //TRC_DEBUG("error in compile");
                 return WAFLZ_STATUS_ERROR;
         }
         // ------------------------------------------------
@@ -289,49 +291,13 @@ int32_t config::load(void *a_js)
         int32_t l_s;
         const rapidjson::Value &l_js = *((rapidjson::Value *)a_js);
         // -------------------------------------------------
-        // handle v1 configs...
-        // -------------------------------------------------
-        if(l_js.HasMember("type") &&
-           l_js["type"].IsString())
-        {
-                // -----------------------------------------
-                // create v1 pbuf...
-                // -----------------------------------------
-                waflz_pb::enforcer *l_v1_pb = NULL;
-                l_v1_pb = new waflz_pb::enforcer();
-                l_s = update_from_json(*l_v1_pb, l_js);
-                if(l_s != JSPB_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "parsing v1 json. Reason: %s", get_jspb_err_msg());
-                        if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // convert types...
-                // -----------------------------------------
-                if(m_pb) { delete m_pb; m_pb = NULL; }
-                m_pb = new waflz_pb::config();
-                l_s = convertv1(*m_pb, *l_v1_pb);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "convertv1: converting v1 format to v2");
-                        if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-                        if(m_pb) { delete m_pb; m_pb = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(l_v1_pb) { delete l_v1_pb; l_v1_pb = NULL; }
-        }
-        // -------------------------------------------------
         // create pbuf...
         // -------------------------------------------------
-        else
+        l_s = update_from_json(*m_pb, l_js);
+        if(l_s != JSPB_OK)
         {
-                l_s = update_from_json(*m_pb, l_js);
-                if(l_s != JSPB_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
-                        return WAFLZ_STATUS_ERROR;
-                }
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // load and validate
@@ -366,7 +332,7 @@ int32_t config::load(const char *a_buf,
         l_ok = l_js->Parse(a_buf, a_buf_len);
         if (!l_ok)
         {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)\n",
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
@@ -552,7 +518,7 @@ int32_t config::process(const waflz_pb::enforcement** ao_enfcmnt,
         // TODO -return enforcer...
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing enforcer merge.  Reason: %s\n", m_enfx->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_enfx->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_cfg) { delete l_cfg; l_cfg = NULL; }
@@ -707,40 +673,9 @@ int32_t config::merge(waflz_pb::config &ao_cfg)
         // TODO -return enforcer...
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing enforcer merge.  Reason: %s\n", m_enfx->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_enfx->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
-        return WAFLZ_STATUS_OK;
-}
-//! ----------------------------------------------------------------------------
-//! @details TODO
-//! @return  TODO
-//! @param   TODO
-//! ----------------------------------------------------------------------------
-int32_t config::merge(void *a_js)
-{
-        // -------------------------------------------------
-        // load
-        // -------------------------------------------------
-        enforcer *l_e = new enforcer(m_lowercase_headers);
-        int32_t l_s;
-        l_s = l_e->load(a_js);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                WAFLZ_PERROR(m_err_msg, "performing load enforcer.  Reason: %s\n", l_e->get_err_msg());
-                if(l_e) { delete l_e; l_e = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // merge
-        // -------------------------------------------------
-        l_s = merge(*(const_cast<waflz_pb::config *>(l_e->get_pb())));
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(l_e) { delete l_e; l_e = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(l_e) { delete l_e; l_e = NULL; }
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -1079,7 +1014,7 @@ int32_t config::process_config(waflz_pb::config **ao_cfg,
         {
                 *ao_cfg = NULL;
         }
-        // -----------------------------------------------------------
+        // -------------------------------------------------
         // overall algorithm:
         //   Look up customers coordination configuration
         //
@@ -1092,7 +1027,7 @@ int32_t config::process_config(waflz_pb::config **ao_cfg,
         //   If limits exceeded for customer
         //     For each
         //       synthesize into enforcement config
-        // -----------------------------------------------------------
+        // -------------------------------------------------
         if(!m_pb)
         {
                 // TODO log error reason
@@ -1294,11 +1229,11 @@ int32_t config::get_limit_key_value(char *ao_key,
         if(a_limit.has__reserved_1() &&
            !a_limit._reserved_1().empty())
         {
-                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%lX", a_cust_id.c_str(), a_limit._reserved_1().c_str(), l_dim_hash);
+                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%" PRIX64 "", a_cust_id.c_str(), a_limit._reserved_1().c_str(), l_dim_hash);
         }
         else
         {
-                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%lX", a_cust_id.c_str(), a_limit.id().c_str(), l_dim_hash);
+                snprintf(ao_key, _MAX_KEY_LEN, "SF:RL:%s:%s:%" PRIX64 "", a_cust_id.c_str(), a_limit.id().c_str(), l_dim_hash);
         }
         return WAFLZ_STATUS_OK;
 }

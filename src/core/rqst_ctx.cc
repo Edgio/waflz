@@ -26,6 +26,7 @@
 #include "event.pb.h"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/geoip2_mmdb.h"
 #include "core/decode.h"
 #include "op/regex.h"
 #include "support/ndebug.h"
@@ -153,6 +154,7 @@ static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
 rqst_ctx::rqst_ctx(void *a_ctx,
                    uint32_t a_body_len_max,
                    const rqst_ctx_callbacks *a_callbacks,
+                   bool a_parse_xml,
                    bool a_parse_json):
         m_src_addr(),
         m_local_addr(),
@@ -169,6 +171,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_query_str(),
         m_file_ext(),
         m_query_arg_list(),
+        m_body_arg_list(),
         m_header_map(),
         m_header_list(),
         m_cookie_list(),
@@ -180,6 +183,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_body_data(NULL),
         m_body_len(0),
         m_content_length(0),
+        m_parse_xml(a_parse_xml),
         m_parse_json(a_parse_json),
         m_cookie_mutated(),
         m_req_uuid(),
@@ -187,8 +191,8 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_bytes_in(0),
         m_token(),
         m_resp_status(0),
+        m_signal_enf(0),
         m_limit(NULL),
-        m_condition_group(NULL),
         m_body_parser(),
         // -------------------------------------------------
         // collections
@@ -216,6 +220,15 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         // -------------------------------------------------
         m_xpath_cache_map(NULL),
         m_callbacks(a_callbacks),
+        // -------------------------------------------------
+        // *************************************************
+        // extensions
+        // *************************************************
+        // -------------------------------------------------
+        m_src_asn(0),
+        m_src_asn_str(),
+        m_geo_cn2(),
+        m_xml_capture_xxe(true),
         m_ctx(a_ctx)
 {
 }
@@ -288,6 +301,10 @@ rqst_ctx::~rqst_ctx()
         // delete any tokens
         // -------------------------------------------------
         if(m_token.m_data) { free(m_token.m_data); m_token.m_data = NULL; m_token.m_len = 0; }
+        // -------------------------------------------------
+        // delete any extensions
+        // -------------------------------------------------
+        if(m_src_asn_str.m_data) { free(m_src_asn_str.m_data); m_src_asn_str.m_data = NULL; m_src_asn_str.m_len = 0; }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -346,7 +363,8 @@ int32_t rqst_ctx::reset_phase_1()
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
+int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
+                               const pcre_list_t *a_il_query,
                                const pcre_list_t *a_il_header,
                                const pcre_list_t *a_il_cookie)
 {
@@ -368,6 +386,54 @@ int32_t rqst_ctx::init_phase_1(const pcre_list_t *a_il_query,
                 {
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // country code
+        // -------------------------------------------------
+        if(m_src_addr.m_data &&
+           m_src_addr.m_len)
+        {
+                int32_t l_s;
+                m_geo_cn2.m_data = NULL;
+                m_geo_cn2.m_len = 0;
+                l_s = a_geoip2_mmdb.get_country(&m_geo_cn2.m_data,
+                                                m_geo_cn2.m_len,
+                                                m_src_addr.m_data,
+                                                m_src_addr.m_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
+                        //            a_geoip2_mmdb.get_err_msg());
+                        // TODO log reason???
+                        // fail is fine...
+                }
+        }
+        // -------------------------------------------------
+        // asn
+        // -------------------------------------------------
+        if(m_src_addr.m_data &&
+           m_src_addr.m_len)
+        {
+                int32_t l_s;
+                m_src_asn = 0;
+                l_s = a_geoip2_mmdb.get_asn(m_src_asn,
+                                            m_src_addr.m_data,
+                                            m_src_addr.m_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
+                        //           a_geoip2_mmdb.get_err_msg());
+                        // TODO log reason???
+                        // fail is fine...
+                }
+                // -----------------------------------------
+                // converting to str temporarily for str
+                // comparisons...
+                // -----------------------------------------
+                if(m_src_asn)
+                {
+                        m_src_asn_str.m_len = asprintf(&(m_src_asn_str.m_data), "%d", m_src_asn);
                 }
         }
         // -------------------------------------------------
@@ -897,7 +963,18 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         // -------------------------------------------------
         case PARSER_XML:
         {
-                m_body_parser = new parser_xml(this);
+                if(!m_parse_xml)
+                {
+                        // do nothing...
+                        m_init_phase_2 = true;
+                        return WAFLZ_STATUS_OK;
+                }
+                parser_xml* l_parser_xml = new parser_xml(this);
+                // -----------------------------------------
+                // optional set capture xxe
+                // -----------------------------------------
+                l_parser_xml->set_capture_xxe(m_xml_capture_xxe);
+                m_body_parser = l_parser_xml;
                 break;
         }
         // -------------------------------------------------

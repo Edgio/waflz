@@ -24,6 +24,8 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "support/time_util.h"
@@ -34,6 +36,7 @@
 //: ----------------------------------------------------------------------------
 TEST_CASE( "time util test", "[time_util]" ) {
 
+#if !defined(__APPLE__) && !defined(__darwin__)
         SECTION("validate time caching") {
                 uint64_t l_cur_time_ms;
                 uint64_t l_nxt_time_ms;
@@ -71,20 +74,21 @@ TEST_CASE( "time util test", "[time_util]" ) {
                 l_cur_time_ms = ns_waflz::get_time_ms();
                 usleep(3000);
                 l_nxt_time_ms = ns_waflz::get_delta_time_ms(l_cur_time_ms);
-                printf("l_nxt_time: %lu\n", l_nxt_time_ms);
+                printf("l_nxt_time: %" PRIu64 "\n", l_nxt_time_ms);
                 REQUIRE((l_nxt_time_ms >= 3));
                 REQUIRE((l_nxt_time_ms < 8));
 
                 l_cur_time_ms = ns_waflz::get_time_ms();
                 usleep(5000);
                 l_nxt_time_ms = ns_waflz::get_delta_time_ms(l_cur_time_ms);
-                printf("l_nxt_time: %lu\n", l_nxt_time_ms);
+                printf("l_nxt_time: %" PRIu64 "\n", l_nxt_time_ms);
                 REQUIRE((l_nxt_time_ms >= 5));
                 REQUIRE((l_nxt_time_ms < 10));
         }
+#endif
         SECTION("validate time string to epoch") {
                 std::string l_time_string("2016-07-20T00:44:20.744583Z");
-                std::string l_format("%Y-%m-%dT%H:%M:%S%Z");
+                std::string l_format(CONFIG_DATE_FORMAT);
                 uint64_t l_epoch1 = ns_waflz::get_epoch_seconds(l_time_string.c_str(), l_format.c_str());
                 //increasing one min
                 l_time_string.assign("2016-07-20T00:45:20.744583Z");

@@ -25,7 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
-#include "waflz/db/kycb_db.h"
+#include "waflz/kycb_db.h"
 #include "support/time_util.h"
 #include <unistd.h>
 #include <string.h>

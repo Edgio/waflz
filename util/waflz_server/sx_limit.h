@@ -33,6 +33,8 @@
 namespace ns_waflz {
 class configs;
 class enforcement;
+class kv_db;
+class challenge;
 }
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
@@ -46,7 +48,7 @@ public:
         sx_limit(void);
         ~sx_limit(void);
         int32_t init(void);
-        ns_is2::h_resp_t handle_rqst(const waflz_pb::enforcement **ao_enf,
+        ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
                                      ns_waflz::rqst_ctx **ao_ctx,
                                      ns_is2::session &a_session,
                                      ns_is2::rqst &a_rqst,
@@ -58,6 +60,8 @@ public:
         std::string m_challenge_file;
         ns_waflz::configs* m_configs;
         uint64_t m_cust_id;
+        ns_waflz::kv_db *m_db;
+        ns_waflz::challenge *m_challenge;
 
 };
 }

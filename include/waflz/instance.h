@@ -23,14 +23,13 @@
 #ifndef _INSTANCE_H_
 #define _INSTANCE_H_
 //: ----------------------------------------------------------------------------
-//: Includes
+//: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/rqst_ctx.h"
 #include <string>
 #include <list>
 //: ----------------------------------------------------------------------------
-//: Fwd Decl's
+//: fwd Decl's
 //: ----------------------------------------------------------------------------
 namespace waflz_pb {
         class enforcement;
@@ -43,7 +42,6 @@ namespace ns_waflz {
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 class profile;
-class geoip2_mmdb;
 class engine;
 class rqst_ctx;
 //: ----------------------------------------------------------------------------
@@ -60,45 +58,25 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        instance(engine &a_engine, geoip2_mmdb &a_geoip2_mmdb);
+        instance(engine &a_engine);
         ~instance();
         const char *get_err_msg(void) { return m_err_msg; }
         const waflz_pb::instance *get_pb(void) { return m_pb; }
         const std::string &get_id(void) { return m_id; }
         const std::string &get_name(void) { return m_name; }
         const std::string &get_customer_id(void) { return m_customer_id; }
-        //: ------------------------------------------------
-        //: \brief   get the audit settings values
-        //: \details The returned pointer is only valid as long as waf_config
-        //:          object is alive
-        //: \return  The class representing audit settings on success
-        //: ------------------------------------------------
         inline profile* get_audit_profile() { return m_profile_audit; }
-        //: ------------------------------------------------
-        //: \brief   get the prod settings values
-        //: \details The returned pointer is only valid as long as waf_config
-        //:          object is alive
-        //: \return  The class representing prod settings on success
-        //:          NULL is compiler hasn't been validated yet
-        //: ------------------------------------------------
         inline profile* get_prod_profile() { return m_profile_prod; }
         enforcement_list_t &get_mutable_prod_enfx_list(void);
-        int32_t load_config(const char *a_buf,
-                            uint32_t a_buf_len,
-                            bool a_leave_compiled_file = false);
-        int32_t load_config(void *a_js,
-                            bool a_leave_compiled_file = false);
-        int32_t process(waflz_pb::event **ao_audit_event,
+        int32_t load(const char *a_buf, uint32_t a_buf_len);
+        int32_t load(void *a_js);
+        int32_t process(const waflz_pb::enforcement **ao_enf,
+                        waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
+                        part_mk_t a_part_mk,
                         const rqst_ctx_callbacks *a_callbacks,
                         rqst_ctx **ao_rqst_ctx);
-        int32_t process_part(waflz_pb::event **ao_audit_event,
-                             waflz_pb::event **ao_prod_event,
-                             void *a_ctx,
-                             part_mk_t a_part_mk,
-                             const rqst_ctx_callbacks *a_callbacks,
-                             rqst_ctx **ao_rqst_ctx);
 private:
         // -------------------------------------------------
         // private methods
@@ -122,13 +100,6 @@ private:
         std::string m_customer_id;
         profile *m_profile_audit;
         profile *m_profile_prod;
-        bool m_leave_compiled_file;
-        // -------------------------------------------------
-        // *************************************************
-        // geoip2 support
-        // *************************************************
-        // -------------------------------------------------
-        geoip2_mmdb &m_geoip2_mmdb;
 };
 }
 #endif

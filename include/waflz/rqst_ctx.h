@@ -88,7 +88,7 @@ typedef struct {
 //! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 class waf;
-class regex;
+class geoip2_mmdb;
 //! ----------------------------------------------------------------------------
 //! types
 //! ----------------------------------------------------------------------------
@@ -126,9 +126,11 @@ public:
         rqst_ctx(void *a_ctx,
                  uint32_t a_body_len_max,
                  const rqst_ctx_callbacks *a_callbacks,
+                 bool a_parse_xml = false,
                  bool a_parse_json = false);
         ~rqst_ctx();
-        int32_t init_phase_1(const pcre_list_t *a_il_query = NULL,
+        int32_t init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
+                             const pcre_list_t *a_il_query = NULL,
                              const pcre_list_t *a_il_header = NULL,
                              const pcre_list_t *a_il_cookie = NULL);
         int32_t init_phase_2(const ctype_parser_map_t &a_ctype_parser_map);
@@ -164,7 +166,8 @@ public:
         const uint32_t m_body_len_max;
         char *m_body_data;
         uint32_t m_body_len;
-        uint32_t m_content_length;
+        uint64_t m_content_length;
+        bool m_parse_xml;
         bool m_parse_json;
         std::string m_cookie_mutated;
         data_t m_req_uuid;
@@ -172,8 +175,11 @@ public:
         uint32_t m_bytes_in;
         mutable_data_t m_token;
         uint32_t m_resp_status;
+        bool m_signal_enf;
+        // -------------------------------------------------
+        // TODO FIX!!! -not thread safe...
+        // -------------------------------------------------
         const waflz_pb::limit* m_limit;
-        const waflz_pb::condition_group* m_condition_group;
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------
@@ -201,7 +207,18 @@ public:
         // xpath optimization
         // -------------------------------------------------
         xpath_cache_map_t *m_xpath_cache_map;
+        // -------------------------------------------------
+        // request ctx callbacks struct
+        // -------------------------------------------------
         const rqst_ctx_callbacks *m_callbacks;
+        // -------------------------------------------------
+        // extensions
+        // -------------------------------------------------
+        uint32_t m_src_asn;
+        // TODO use uint32???
+        mutable_data_t m_src_asn_str;
+        data_t m_geo_cn2;
+        bool m_xml_capture_xxe;
 private:
         // -------------------------------------------------
         // private methods

@@ -52,9 +52,7 @@
     fprintf(stdout, "\n");\
     fflush(stdout); \
   }\
-  snprintf(s_err_msg, JSPB_ERR_LEN, "%s.%s.%d: ",__FILE__,__FUNCTION__,__LINE__); \
-  int _len = strlen(s_err_msg); \
-  snprintf(s_err_msg + _len, JSPB_ERR_LEN - _len, __VA_ARGS__); \
+  snprintf(s_err_msg, JSPB_ERR_LEN, __VA_ARGS__); \
 }while(0)
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
@@ -466,7 +464,7 @@ static int32_t update_field(google::protobuf::Message& ao_msg,
         JSPB_TRACE("update_field\n");
         if (!((a_val.*a_checker)()))
         {
-                JSPB_PERROR("expecting type: %s for field: '%s'\n", a_type, a_field->full_name().c_str());
+                JSPB_PERROR("expecting type: %s for field: '%s'", a_field->type_name(), a_field->full_name().c_str());
                 return JSPB_ERROR;
         }
         (a_ref->*a_updater)(&ao_msg, a_field, (a_val.*a_accessor)());
@@ -802,6 +800,7 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         }
         case google::protobuf::FieldDescriptor::TYPE_FLOAT:
         {
+                JSPB_TRACE("case: float\n");
                 l_s = update_repeated_field(ao_msg,
                                             a_ref,
                                             a_field,
@@ -815,6 +814,7 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_SFIXED64:
         case google::protobuf::FieldDescriptor::TYPE_SINT64:
         {
+                JSPB_TRACE("case: int64\n");
                 l_s = update_repeated_field(ao_msg,
                                             a_ref,
                                             a_field,
@@ -827,6 +827,7 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_UINT64:
         case google::protobuf::FieldDescriptor::TYPE_FIXED64:
         {
+                JSPB_TRACE("case: uint64\n");
                 l_s = update_repeated_field(ao_msg,
                                             a_ref,
                                             a_field,
@@ -840,6 +841,7 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_SFIXED32:
         case google::protobuf::FieldDescriptor::TYPE_SINT32:
         {
+                JSPB_TRACE("case: int32\n");
                 l_s = update_repeated_field(ao_msg,
                                             a_ref,
                                             a_field,
@@ -852,6 +854,7 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_FIXED32:
         case google::protobuf::FieldDescriptor::TYPE_UINT32:
         {
+                JSPB_TRACE("case: uint32\n");
                 l_s = update_repeated_field(ao_msg,
                                             a_ref,
                                             a_field,
@@ -863,6 +866,7 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         }
         case google::protobuf::FieldDescriptor::TYPE_BOOL:
         {
+                JSPB_TRACE("case: bool\n");
                 l_s = update_repeated_field(ao_msg,
                                             a_ref,
                                             a_field,
@@ -874,6 +878,7 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         }
         case google::protobuf::FieldDescriptor::TYPE_STRING:
         {
+                JSPB_TRACE("case: string\n");
                 l_s = update_repeated_field(ao_msg,
                                             a_ref,
                                             a_field,

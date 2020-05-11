@@ -25,12 +25,22 @@
 //: ----------------------------------------------------------------------------
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#if !defined(__APPLE__) && !defined(__darwin__)
+    #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
+
+#if defined(__APPLE__) || defined(__darwin__)
+    #include <libkern/OSByteOrder.h>
+    #define be64toh(x) OSSwapBigToHostInt64(x)
+#endif
+
 #include <kchashdb.h>
 #pragma GCC diagnostic pop
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "support/time_util.h"
 #include "support/ndebug.h"
-#include "waflz/db/kycb_db.h"
+#include "waflz/kycb_db.h"
 #include "waflz/def.h"
 #include <errno.h>
 #include <string.h>
@@ -338,7 +348,7 @@ int32_t kycb_db::print_all_keys(void)
         {
                 // :(
                 int64_t i_val = static_cast <const int64_t>(be64toh(static_cast <const uint64_t>(*reinterpret_cast <const int64_t*>(l_val.data()))));
-                NDBG_OUTPUT("| %s: %ld\n", l_key.c_str(), i_val);
+                NDBG_OUTPUT("| %s: %" PRId64 "\n", l_key.c_str(), i_val);
         }
         NDBG_OUTPUT("+-------------------------------------+\n");
         return WAFLZ_STATUS_OK;

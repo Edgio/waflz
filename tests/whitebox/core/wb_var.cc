@@ -26,15 +26,17 @@
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/geoip2_mmdb.h"
 #include "core/var.h"
 #include "support/ndebug.h"
 #include <string.h>
+#include <unistd.h>
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
 static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
-        static const char s_uri[] = "243.49.2.0";
+        static const char s_uri[] = "172.217.5.206";
         *a_data = s_uri;
         *a_len = strlen(s_uri);
         return 0;
@@ -236,6 +238,7 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
 //: parse
 //: ----------------------------------------------------------------------------
 TEST_CASE( "test var", "[var]" ) {
+        ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         ns_waflz::init_var_cb_vector();
         
         static ns_waflz::rqst_ctx_callbacks s_callbacks = {
@@ -264,7 +267,24 @@ TEST_CASE( "test var", "[var]" ) {
                 NULL //get_cust_id_cb
         };
         ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true);
-
+        // -----------------------------------------
+        // geoip
+        // -----------------------------------------
+        char l_cwd[1024];
+        if(getcwd(l_cwd, sizeof(l_cwd)) != NULL)
+        {
+                //fprintf(stdout, "Current working dir: %s\n", cwd);
+        }
+        std::string l_geoip2_city_file = l_cwd;
+        std::string l_geoip2_asn_file = l_cwd;
+        l_geoip2_city_file += "/../../../../tests/data/waf/db/GeoLite2-City.mmdb";
+        //l_geoip2_city_file += "/../tests/data/waf/db/GeoLite2-City.mmdb";
+        l_geoip2_asn_file += "/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb";
+        //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
+        int32_t l_s;
+        l_s = l_geoip2_mmdb.init(l_geoip2_city_file, l_geoip2_asn_file);
+        UNUSED(l_s);
+        //REQUIRE((l_s == WAFLZ_STATUS_OK));
         // -------------------------------------------------
         // *************************************************
         //         Content-Type --> parser map
@@ -276,7 +296,7 @@ TEST_CASE( "test var", "[var]" ) {
         l_ctype_parser_map["application/xml"]                   = ns_waflz::PARSER_XML;
         l_ctype_parser_map["application/json"]                  = ns_waflz::PARSER_JSON;
         l_ctype_parser_map["multipart/form-data"]               = ns_waflz::PARSER_MULTIPART;
-        l_rqst_ctx->init_phase_1();
+        l_rqst_ctx->init_phase_1(l_geoip2_mmdb);
         l_rqst_ctx->init_phase_2(l_ctype_parser_map);
         // -------------------------------------------------
         // ARGS
@@ -308,7 +328,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 2:
                         {
-                                REQUIRE((strncmp(i_a->m_key, ".monkeys", i_a->m_key_len) == 0));
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "monkeys", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "bananas", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -323,7 +345,7 @@ TEST_CASE( "test var", "[var]" ) {
                 // w/ match
                 // -----------------------------------------
                 ::waflz_pb::variable_t_match_t* l_m = l_var->add_match();
-                l_m->set_value(".seamonkeys");
+                l_m->set_value("seamonkeys");
                 l_al.clear();
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -337,7 +359,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, ".seamonkeys", i_a->m_key_len) == 0));
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "seamonkeys", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "plankton", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -382,8 +406,10 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 2:
                         {
-                                REQUIRE((strncmp(i_a->m_key, ".monkeys", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, ".monkeys", i_a->m_val_len) == 0));
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "monkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "monkeys", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:
@@ -397,7 +423,7 @@ TEST_CASE( "test var", "[var]" ) {
                 // w/ match
                 // -----------------------------------------
                 ::waflz_pb::variable_t_match_t* l_m = l_var->add_match();
-                l_m->set_value(".seamonkeys");
+                l_m->set_value("seamonkeys");
                 l_al.clear();
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -411,8 +437,10 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, ".seamonkeys", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, ".seamonkeys", i_a->m_val_len) == 0));
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "seamonkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "seamonkeys", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:
@@ -456,6 +484,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 1:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "screws", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "loose", i_a->m_val_len) == 0));
                                 break;
@@ -485,6 +515,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "you", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "crazy", i_a->m_val_len) == 0));
                                 break;
@@ -530,6 +562,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 1:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "screws", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "screws", i_a->m_val_len) == 0));
                                 break;
@@ -559,6 +593,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "you", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "you", i_a->m_val_len) == 0));
                                 break;
@@ -605,7 +641,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, ".monkeys", i_a->m_key_len) == 0));
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "monkeys", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "bananas", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -619,7 +657,7 @@ TEST_CASE( "test var", "[var]" ) {
                 // w/ match
                 // -----------------------------------------
                 ::waflz_pb::variable_t_match_t* l_m = l_var->add_match();
-                l_m->set_value(".seamonkeys");
+                l_m->set_value("seamonkeys");
                 l_al.clear();
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -634,7 +672,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, ".seamonkeys", i_a->m_key_len) == 0));
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "seamonkeys", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "plankton", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -679,8 +719,10 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, ".monkeys", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, ".monkeys", i_a->m_val_len) == 0));
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "monkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "monkeys", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:
@@ -693,7 +735,7 @@ TEST_CASE( "test var", "[var]" ) {
                 // w/ match
                 // -----------------------------------------
                 ::waflz_pb::variable_t_match_t* l_m = l_var->add_match();
-                l_m->set_value(".seamonkeys");
+                l_m->set_value("seamonkeys");
                 l_al.clear();
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -708,8 +750,10 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, ".seamonkeys", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, ".seamonkeys", i_a->m_val_len) == 0));
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "seamonkeys", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "seamonkeys", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:
@@ -748,13 +792,14 @@ TEST_CASE( "test var", "[var]" ) {
                     i_a != l_al.end();
                     ++i_a, ++i_idx)
                 {
-                        //NDBG_PRINT("%.*s: %.*s\n", i_a->m_key_len, i_a->m_key, i_a->m_val_len, i_a->m_val);
                         switch(i_idx)
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "ARGS_COMBINED_SIZE", i_a->m_key_len) == 0));
-                                REQUIRE((i_a->m_val_len == 70));
+                                REQUIRE((i_a->m_val_len == 67));
                                 break;
                         }
                         default:
@@ -798,7 +843,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "QUERY_STRING", i_a->m_key_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "QUERY_STRING", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "you=crazy&screws=loose", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -843,7 +890,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "REQUEST_BASENAME", i_a->m_key_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REQUEST_BASENAME", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "info.html", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -888,7 +937,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "REQUEST_FILENAME", i_a->m_key_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REQUEST_FILENAME", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "/800050/origin.testsuite.com/sec_arg_check/info.html", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -933,6 +984,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 1:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "__cookie_b", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "b_value", i_a->m_val_len) == 0));
                                 break;
@@ -962,6 +1015,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "__cookie_c", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "c_value", i_a->m_val_len) == 0));
                                 break;
@@ -1007,6 +1062,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 1:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "__cookie_b", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "__cookie_b", i_a->m_val_len) == 0));
                                 break;
@@ -1036,6 +1093,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "__cookie_c", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "__cookie_c", i_a->m_val_len) == 0));
                                 break;
@@ -1081,6 +1140,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 1:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "Accept", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "my_cool_accept_value", i_a->m_val_len) == 0));
                                 break;
@@ -1110,6 +1171,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "Referer", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "my_cool_referer_value", i_a->m_val_len) == 0));
                                 break;
@@ -1155,6 +1218,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 1:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "Accept", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "Accept", i_a->m_val_len) == 0));
                                 break;
@@ -1184,6 +1249,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "Referer", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "Referer", i_a->m_val_len) == 0));
                                 break;
@@ -1229,7 +1296,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "REQUEST_LINE", i_a->m_key_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REQUEST_LINE", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "GET /800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose HTTP/1.1", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -1274,7 +1343,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "REQUEST_METHOD", i_a->m_key_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REQUEST_METHOD", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "GETZ", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -1319,7 +1390,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "REQUEST_PROTOCOL", i_a->m_key_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REQUEST_PROTOCOL", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "HTTP/1.1", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -1364,7 +1437,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "REQUEST_URI", i_a->m_key_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REQUEST_URI", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "/800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -1409,7 +1484,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "REQUEST_URI_RAW", i_a->m_key_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REQUEST_URI_RAW", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "bananas.com/800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose", i_a->m_val_len) == 0));
                                 break;
                         }
@@ -1459,6 +1536,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "PANDAS", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "TREES", i_a->m_val_len) == 0));
                                 break;
@@ -1506,6 +1585,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "MONKEYS", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "BANANAS", i_a->m_val_len) == 0));
                                 break;
@@ -1553,6 +1634,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "MONKEYS", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "BANANAS", i_a->m_val_len) == 0));
                                 break;
@@ -1600,6 +1683,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "MONKEYS", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "MONKEYS", i_a->m_val_len) == 0));
                                 break;
@@ -1647,6 +1732,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "MONKEYS", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "MONKEYS", i_a->m_val_len) == 0));
                                 break;
@@ -1685,7 +1772,7 @@ TEST_CASE( "test var", "[var]" ) {
                         l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true);
                 }
                 l_rqst_ctx->m_content_type_list.clear();
-                l_rqst_ctx->init_phase_1();
+                l_rqst_ctx->init_phase_1(l_geoip2_mmdb);
                 l_rqst_ctx->init_phase_2(l_ctype_parser_map);
                 // -----------------------------------------
                 // get all
@@ -1704,6 +1791,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "XML", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "[XML document tree]", i_a->m_val_len) == 0));
                                 break;
@@ -1733,6 +1822,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "/monkeys/mandrill", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "dooby", i_a->m_val_len) == 0));
                                 break;
@@ -1777,7 +1868,7 @@ TEST_CASE( "test var", "[var]" ) {
                         l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true);
                 }
                 l_rqst_ctx->m_content_type_list.clear();
-                l_rqst_ctx->init_phase_1();
+                l_rqst_ctx->init_phase_1(l_geoip2_mmdb);
                 l_rqst_ctx->init_phase_2(l_ctype_parser_map);
                 // -----------------------------------------
                 // get all
@@ -1796,6 +1887,8 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
                                 REQUIRE((strncmp(i_a->m_key, "REQBODY_ERROR", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "1", i_a->m_val_len) == 0));
                                 REQUIRE(i_a->m_val_len == 1);
@@ -1847,7 +1940,9 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "REQUEST_BODY", i_a->m_key_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REQUEST_BODY", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, g_body_str, i_a->m_val_len) == 0));
                                 break;
                         }
@@ -1892,8 +1987,103 @@ TEST_CASE( "test var", "[var]" ) {
                         {
                         case 0:
                         {
-                                REQUIRE((strncmp(i_a->m_key, "REMOTE_ADDR", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, "243.49.2.0", i_a->m_val_len) == 0));
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REMOTE_ADDR", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "172.217.5.206", i_a->m_val_len) == 0));
+                                break;
+                        }
+                        default:
+                        {
+                                break;
+                        }
+                        }
+                }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_var) { delete l_var; l_var = NULL; }
+        }
+        // -------------------------------------------------
+        // REMOTE_ASN
+        // -------------------------------------------------
+        SECTION("REMOTE_ASN") {
+                ns_waflz::get_var_t l_cb = NULL;
+                l_cb = ns_waflz::get_var_cb(waflz_pb::variable_t_type_t_REMOTE_ASN);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::const_arg_list_t l_al;
+                waflz_pb::variable_t *l_var = new waflz_pb::variable_t();
+                l_var->set_type(waflz_pb::variable_t_type_t_REMOTE_ASN);
+                int32_t l_s;
+                uint32_t l_count = 0;
+                uint32_t i_idx = 0;
+                // -----------------------------------------
+                // get all
+                // -----------------------------------------
+                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 1));
+                i_idx = 0;
+                for(ns_waflz::const_arg_list_t::iterator i_a = l_al.begin();
+                    i_a != l_al.end();
+                    ++i_a, ++i_idx)
+                {
+                        switch(i_idx)
+                        {
+                        case 0:
+                        {
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "REMOTE_ASN", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "15169", i_a->m_val_len) == 0));
+                                break;
+                        }
+                        default:
+                        {
+                                break;
+                        }
+                        }
+                }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_var) { delete l_var; l_var = NULL; }
+        }
+        // -------------------------------------------------
+        // GEO:COUNTRY
+        // -------------------------------------------------
+        SECTION("GEO:COUNTRY_CODE") {
+                ns_waflz::get_var_t l_cb = NULL;
+                l_cb = ns_waflz::get_var_cb(waflz_pb::variable_t_type_t_GEO);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::const_arg_list_t l_al;
+                waflz_pb::variable_t *l_var = new waflz_pb::variable_t();
+                l_var->set_type(waflz_pb::variable_t_type_t_GEO);
+                l_var->add_match()->set_value("COUNTRY_CODE");
+                int32_t l_s;
+                uint32_t l_count = 0;
+                uint32_t i_idx = 0;
+                // -----------------------------------------
+                // get all
+                // -----------------------------------------
+                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 1));
+                i_idx = 0;
+                for(ns_waflz::const_arg_list_t::iterator i_a = l_al.begin();
+                    i_a != l_al.end();
+                    ++i_a, ++i_idx)
+                {
+                        switch(i_idx)
+                        {
+                        case 0:
+                        {
+                                //REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                //REQUIRE((strncmp(i_a->m_key, "GEO:COUNTRY", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "US", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:

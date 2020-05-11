@@ -62,6 +62,7 @@ namespace ns_waflz
 class regex;
 class ac;
 class macro;
+class geoip2_mmdb;
 //: ----------------------------------------------------------------------------
 //: engine
 //: ----------------------------------------------------------------------------
@@ -73,12 +74,15 @@ public:
         // -------------------------------------------------
         engine();
         ~engine();
-        int32_t init(void);
+        int32_t init();
         macro &get_macro(void){ return *m_macro;}
         const ctype_parser_map_t &get_ctype_parser_map(void) { return m_ctype_parser_map;}
-        int32_t compile(compiled_config_t &ao_cx_cfg, waflz_pb::sec_config_t &a_config);
+        int32_t compile(compiled_config_t &ao_cx_cfg, waflz_pb::sec_config_t &a_config, const std::string& a_ruleset_dir);
+        geoip2_mmdb& get_geoip2_mmdb(void) { return *m_geoip2_mmdb; }
         const char *get_err_msg(void) { return m_err_msg; }
-        void set_ruleset_dir(std::string a_ruleset_dir) { m_ruleset_dir = a_ruleset_dir; }
+        void set_ruleset_dir(std::string a_ruleset_dir) { m_ruleset_root_dir = a_ruleset_dir; }
+        void set_geoip2_dbs(const std::string& a_geoip2_db, const std::string& a_geoip2_isp_db);
+        const std::string& get_ruleset_dir(void) { return m_ruleset_root_dir;}
 private:
         // -------------------------------------------------
         // private methods
@@ -86,7 +90,7 @@ private:
         // Disallow copy/assign
         engine(const engine &);
         engine& operator=(const engine &);
-        int32_t process_include(compiled_config_t **ao_cx_cfg, const std::string &a_include, waflz_pb::sec_config_t &a_config);
+        int32_t process_include(compiled_config_t **ao_cx_cfg, const std::string &a_include, waflz_pb::sec_config_t &a_config, const std::string& a_ruleset_dir);
         int32_t merge(compiled_config_t &ao_cx_cfg, const compiled_config_t &a_cx_cfg);
         // -------------------------------------------------
         // private members
@@ -103,7 +107,15 @@ private:
         config_list_t m_config_list;
         compiled_config_map_t m_compiled_config_map;
         ctype_parser_map_t m_ctype_parser_map;
-        std::string m_ruleset_dir;
+        std::string m_ruleset_root_dir;
+        // -------------------------------------------------
+        // *************************************************
+        // geoip2 support
+        // *************************************************
+        // -------------------------------------------------
+        geoip2_mmdb *m_geoip2_mmdb;
+        std::string m_geoip2_db;
+        std::string m_geoip2_isp_db;
         char m_err_msg[WAFLZ_ERR_LEN];
 };
 #endif

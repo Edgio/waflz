@@ -30,6 +30,7 @@
 #include "is2/support/nbq.h"
 #include "is2/support/data.h"
 #include "support/ndebug.h"
+#include <errno.h>
 #include <string.h>
 #include <arpa/inet.h>
 namespace ns_waflz_server {
@@ -237,6 +238,25 @@ int32_t get_rqst_port_cb(uint32_t *a_val, void *a_ctx)
 //: ----------------------------------------------------------------------------
 int32_t get_rqst_host_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
+        ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
+        if(!l_ctx)
+        {
+                return -1;
+        }
+        ns_is2::rqst *l_rqst = l_ctx->m_rqst;
+        if(!l_rqst)
+        {
+                return -1;
+        }
+        const ns_is2::mutable_data_map_list_t& l_hm = l_rqst->get_header_map();
+        const ns_is2::mutable_data_map_list_t& l_headers(l_ctx->m_rqst->get_header_map());
+        ns_is2::mutable_data_t i_hdr;
+        if(ns_is2::find_first(i_hdr, l_headers, "Host", sizeof("Host")))
+        {
+                *a_data = i_hdr.m_data;
+                a_len = i_hdr.m_len;
+                return 0;
+        }
         *a_data = "localhost";
         *a_len = strlen("localhost");
         return 0;
@@ -320,11 +340,11 @@ int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 //: ----------------------------------------------------------------------------
 //: get_rqst_id_cb
 //: ----------------------------------------------------------------------------
+#define _UUID_STR  "aabbccddeeff"
 int32_t get_rqst_id_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
-        const char s_line[] = "aabbccddeeff";
-        *a_data = s_line;
-        *a_len = strlen(s_line);
+        *a_data = _UUID_STR;
+        *a_len = strlen(_UUID_STR);
         return 0;
 }
 //: ----------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+![waflz-ci](https://github.com/VerizonDigital/waflz/workflows/waflz-ci/badge.svg)
 
 <p align="center">
 <img src="/docs/_images/waflz_white.svg" title="waflz" width="200"/>
@@ -20,7 +21,7 @@ The open source standard implementation of the [ModSecurity Rules Engine](https:
 ## Packages
 
 ```sh
-$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev python-pip
+$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev python-pip
 ```
 
 ## Python Packages
@@ -40,6 +41,9 @@ brew install openssl
 brew install protobuf
 brew install libxml2
 brew install pcre
+brew install kyoto-cabinet
+brew install hiredis
+brew install dpkg
 ```
 
 ### Building the tools

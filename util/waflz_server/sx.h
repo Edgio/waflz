@@ -55,13 +55,13 @@ public:
         {};
         virtual ~sx(void) {};
         virtual int32_t init(void) = 0;
-        virtual ns_is2::h_resp_t handle_rqst(const waflz_pb::enforcement **ao_enf,
+        virtual ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
                                              ns_waflz::rqst_ctx **ao_ctx,
                                              ns_is2::session &a_session,
                                              ns_is2::rqst &a_rqst,
                                              const ns_is2::url_pmap_t &a_url_pmap) = 0;
         static ns_is2::h_resp_t s_handle_rqst(sx &a_sx,
-                                              const waflz_pb::enforcement **ao_enf,
+                                              waflz_pb::enforcement **ao_enf,
                                               ns_waflz::rqst_ctx **ao_ctx,
                                               ns_is2::session &a_session,
                                               ns_is2::rqst &a_rqst,

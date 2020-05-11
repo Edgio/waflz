@@ -26,8 +26,9 @@
 #include "catch/catch.hpp"
 #include "jspb/jspb.h"
 #include "support/ndebug.h"
-#include "waflz/limit/enforcer.h"
+#include "waflz/enforcer.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/geoip2_mmdb.h"
 #include "waflz/def.h"
 #include "limit.pb.h"
 #include <string.h>
@@ -35,104 +36,232 @@
 //: ----------------------------------------------------------------------------
 //: Config
 //: ----------------------------------------------------------------------------
-#define VALID_ENFORCEMENT_CONFIG_JSON "{"\
-    "\"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\"," \
-    "\"enabled_date\": \"02/19/2016\"," \
-    "\"tuples\": ["\
-        "{\"rules\": ["\
-          "{\"variable\": [{\"type\": \"REMOTE_ADDR\"}],"\
-           "\"operator\": {\"type\": \"STREQ\", \"is_negated\": false, \"value\": \"192.16.26.2\"}," \
-           "\"chained_rule\": [" \
-               "{\"variable\": [{\"type\": \"REQUEST_HEADERS\", \"match\": [{\"value\": \"User-Agent\"}]}]," \
-                "\"operator\": {\"type\": \"STREQ\", \"is_negated\": false, \"value\": \"braddock version ASS.KICK.IN\"}}" \
-        "]}]," \
-         "\"enforcements\": [" \
-             "{\"name\": \"COOL ACTION NAME\", \"url\": \"https://www.google.com\", \"duration_sec\": 140, \"percentage\": 75.0, \"type\": \"redirect-302\", \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\"}]," \
-         "\"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\"," \
-         "\"disabled\": false, "\
-         "\"start_epoch_msec\": 1455848485000}]," \
-  "\"customer_id\": \"DEADDEAD\"," \
-  "\"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\"," \
-  "\"type\": \"ddos-enforcement\"" \
+#define VALID_ENFORCEMENT_CONFIG_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\","\
+"  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
+"  \"type\": \"ENFORCER\","\
+"  \"customer_id\": \"DEADDEAD\","\
+"  \"enabled_date\": \"02/19/2016\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
+"      \"disabled\": false,"\
+"      \"start_epoch_msec\": 1582764295072,"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REMOTE_ADDR\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"IPMATCH\","\
+"                \"value\": \"192.16.26.2\","\
+"                \"is_negated\": false"\
+"              }"\
+"            },"\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_HEADERS\","\
+"                \"value\": \"User-Agent\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"braddock version ASS.KICK.IN\","\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\","\
+"        \"name\": \"COOL ACTION NAME\","\
+"        \"type\": \"redirect-302\","\
+"        \"percentage\": 75,"\
+"        \"duration_sec\": 140,"\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
 "}"
 //: ----------------------------------------------------------------------------
 //: Config
 //: ----------------------------------------------------------------------------
-#define MATCH_URI_CONFIG "{"\
-    "\"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\"," \
-    "\"enabled_date\": \"02/19/2016\"," \
-    "\"tuples\": ["\
-        "{\"rules\": ["\
-          "{\"variable\": [{\"type\": \"REQUEST_URI\"}],"\
-           "\"operator\": {\"type\": \"STREQ\", \"is_negated\": false, \"value\": \"/bananas/monkey\"}" \
-        "}]," \
-         "\"enforcements\": [" \
-             "{\"name\": \"COOL ACTION NAME\", \"url\": \"https://www.google.com\", \"duration_sec\": 2, \"percentage\": 75.0, \"type\": \"redirect-302\", \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\"}]," \
-         "\"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\"," \
-         "\"disabled\": false, "\
-         "\"start_epoch_msec\": 1455848485000}]," \
-  "\"customer_id\": \"DEADDEAD\"," \
-  "\"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\"," \
-  "\"type\": \"ddos-enforcement\"" \
+#define MATCH_URI_CONFIG \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\","\
+"  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
+"  \"type\": \"ENFORCER\","\
+"  \"customer_id\": \"DEADDEAD\","\
+"  \"enabled_date\": \"02/19/2016\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
+"      \"disabled\": false,"\
+"      \"start_epoch_msec\": 1582764317918,"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_URI\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"/bananas/monkey\","\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\","\
+"        \"name\": \"COOL ACTION NAME\","\
+"        \"type\": \"redirect-302\","\
+"        \"percentage\": 75,"\
+"        \"duration_sec\": 2,"\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
 "}"
 //: ----------------------------------------------------------------------------
 //: Config
 //: ----------------------------------------------------------------------------
-#define MATCH_URI_OR_CONFIG "{"\
-    "\"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\"," \
-    "\"enabled_date\": \"02/19/2016\"," \
-    "\"tuples\": ["\
-        "{\"rules\": ["\
-            "{\"variable\": [{\"type\": \"REQUEST_URI\"}],"\
-             "\"operator\": {\"type\": \"STREQ\", \"is_negated\": false, \"value\": \"/bananas/monkey\"}},"\
-             "{\"variable\": [{\"type\": \"REQUEST_URI\"}],"\
-             "\"operator\": {\"type\": \"STREQ\", \"is_negated\": false, \"value\": \"/bonkers/monkey\"}}"\
-         "]," \
-         "\"enforcements\": [" \
-             "{\"name\": \"COOL ACTION NAME\", \"url\": \"https://www.google.com\", \"duration_sec\": 140, \"percentage\": 75.0, \"type\": \"redirect-302\", \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\"}]," \
-         "\"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\"," \
-         "\"disabled\": false, "\
-         "\"start_epoch_msec\": 1455848485000}]," \
-  "\"customer_id\": \"DEADDEAD\"," \
-  "\"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\"," \
-  "\"type\": \"ddos-enforcement\"" \
+#define MATCH_URI_OR_CONFIG \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\","\
+"  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
+"  \"type\": \"ENFORCER\","\
+"  \"customer_id\": \"DEADDEAD\","\
+"  \"enabled_date\": \"02/19/2016\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
+"      \"disabled\": false,"\
+"      \"start_epoch_msec\": 1582764338177,"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_URI\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"/bananas/monkey\","\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        },"\
+"        {"\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_URI\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"STREQ\","\
+"                \"value\": \"/bonkers/monkey\","\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\","\
+"        \"name\": \"COOL ACTION NAME\","\
+"        \"type\": \"redirect-302\","\
+"        \"percentage\": 75,"\
+"        \"duration_sec\": 140,"\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
 "}"
 //: ----------------------------------------------------------------------------
 //: Config
 //: ----------------------------------------------------------------------------
-#define MATCH_URI_REGEX_CONFIG "{"\
-    "\"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\"," \
-    "\"enabled_date\": \"02/19/2016\"," \
-    "\"tuples\": ["\
-        "{\"rules\": ["\
-          "{\"variable\": [{\"type\": \"REQUEST_URI\"}],"\
-           "\"operator\": {\"type\": \"RX\", \"is_negated\": false, \"value\": \"/bananas*\", \"is_regex\": true}" \
-        "}]," \
-         "\"enforcements\": [" \
-             "{\"name\": \"COOL ACTION NAME\", \"url\": \"https://www.google.com\", \"duration_sec\": 140, \"percentage\": 75.0, \"type\": \"redirect-302\", \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\"}]," \
-         "\"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\"," \
-         "\"disabled\": false, "\
-         "\"start_epoch_msec\": 1455848485000}]," \
-  "\"customer_id\": \"DEADDEAD\"," \
-  "\"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\"," \
-  "\"type\": \"ddos-enforcement\"" \
+#define MATCH_URI_REGEX_CONFIG \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\","\
+"  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
+"  \"type\": \"ENFORCER\","\
+"  \"customer_id\": \"DEADDEAD\","\
+"  \"enabled_date\": \"02/19/2016\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
+"      \"disabled\": false,"\
+"      \"start_epoch_msec\": 1582764358577,"\
+"      \"condition_groups\": ["\
+"        {"\
+"          \"conditions\": ["\
+"            {"\
+"              \"target\": {"\
+"                \"type\": \"REQUEST_URI\""\
+"              },"\
+"              \"op\": {"\
+"                \"type\": \"RX\","\
+"                \"value\": \"/bananas*\","\
+"                \"is_regex\": true,"\
+"                \"is_negated\": false"\
+"              }"\
+"            }"\
+"          ]"\
+"        }"\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\","\
+"        \"name\": \"COOL ACTION NAME\","\
+"        \"type\": \"redirect-302\","\
+"        \"percentage\": 75,"\
+"        \"duration_sec\": 140,"\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
 "}"
 //: ----------------------------------------------------------------------------
 //: Config
 //: ----------------------------------------------------------------------------
-#define MATCH_NO_RULES_CONFIG "{"\
-    "\"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\"," \
-    "\"enabled_date\": \"02/19/2016\"," \
-    "\"tuples\": ["\
-         "{"\
-         "\"enforcements\": [" \
-             "{\"name\": \"COOL ACTION NAME\", \"url\": \"https://www.google.com\", \"duration_sec\": 140, \"percentage\": 75.0, \"type\": \"redirect-302\", \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\"}]," \
-         "\"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\"," \
-         "\"disabled\": false, "\
-         "\"start_epoch_msec\": 1455848485000}]," \
-  "\"customer_id\": \"DEADDEAD\"," \
-  "\"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\"," \
-  "\"type\": \"ddos-enforcement\"" \
+#define MATCH_NO_RULES_CONFIG \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\","\
+"  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
+"  \"type\": \"ENFORCER\","\
+"  \"customer_id\": \"DEADDEAD\","\
+"  \"enabled_date\": \"02/19/2016\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
+"      \"disabled\": false,"\
+"      \"start_epoch_msec\": 1582764377095,"\
+"      \"action\": {"\
+"        \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\","\
+"        \"name\": \"COOL ACTION NAME\","\
+"        \"type\": \"redirect-302\","\
+"        \"percentage\": 75,"\
+"        \"duration_sec\": 140,"\
+"        \"url\": \"https://www.google.com\","\
+"        \"enf_type\": \"REDIRECT_302\""\
+"      }"\
+"    }"\
+"  ]"\
 "}"
 //: ----------------------------------------------------------------------------
 //: enforcer
@@ -315,8 +444,9 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 int32_t l_s;
                 ns_waflz::enforcer l_e;
                 l_s = l_e.load(MATCH_NO_RULES_CONFIG, sizeof(MATCH_NO_RULES_CONFIG));
-                //printf("err: %s\n", l_e.get_err_msg());
+                //NDBG_PRINT("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
+                //NDBG_PRINT("l_e.get_pb(): %s\n", l_e.get_pb()->ShortDebugString().c_str());
                 const waflz_pb::enforcement* l_enfx = NULL;
                 ns_waflz::rqst_ctx l_ctx(NULL, 0, NULL);
                 l_s = l_e.process(&l_enfx, &l_ctx);

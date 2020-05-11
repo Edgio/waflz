@@ -5,7 +5,6 @@
   "ruleset_version": "2018-10-04",
   "general_settings": 
   {
-    "engine": "anomaly",
     "paranoia_level": 4,
     "anomaly_threshold": 1
   },

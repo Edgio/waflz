@@ -26,7 +26,6 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/rqst_ctx.h"
 #include <strings.h>
 #include <string>
 #include <set>
@@ -42,7 +41,6 @@ namespace waflz_pb {
 namespace ns_waflz {
 class regex;
 class nms;
-class geoip2_mmdb;
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
@@ -55,16 +53,22 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        acl(geoip2_mmdb &a_geoip2_mmdb);
+        acl(void);
         ~acl();
-        int32_t compile();
-        int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx, const rqst_ctx_callbacks *a_callbacks, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t load(const char *a_buf, uint32_t a_buf_len);
+        int32_t load(const waflz_pb::acl* a_pb);
+        int32_t load(void* a_js);
+        int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx, rqst_ctx &a_rqst_ctx);
         int32_t process_whitelist(bool &ao_match, rqst_ctx &a_ctx);
+        int32_t process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         int32_t process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         int32_t process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------
+        const std::string& get_id(void) { return m_id; }
+        const std::string& get_cust_id(void) { return m_cust_id; }
+        const std::string& get_name(void) { return m_name; }
         //: ------------------------------------------------
         //: \details Get last error message string
         //: \return  last error message (in buffer)
@@ -73,7 +77,7 @@ public:
         {
                 return m_err_msg;
         }
-        waflz_pb::acl *get_pb(void) { return m_pb; }
+        const waflz_pb::acl* get_pb(void) { return m_pb; }
 private:
         // -------------------------------------------------
         // private types
@@ -93,40 +97,46 @@ private:
         // -------------------------------------------------
         // private methods
         // -------------------------------------------------
+        int32_t init();
         // disallow copy/assign
         acl(const acl &);
         acl& operator=(const acl &);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
+        bool m_init;
         char m_err_msg[WAFLZ_ERR_LEN];
         waflz_pb::acl *m_pb;
-        // -------------------------------------------------
-        // *************************************************
-        // geoip2 support
-        // *************************************************
-        // -------------------------------------------------
-        geoip2_mmdb &m_geoip2_mmdb;
+        std::string m_id;
+        std::string m_cust_id;
+        std::string m_name;
         // ip
         nms *m_ip_whitelist;
+        nms *m_ip_accesslist;
         nms *m_ip_blacklist;
         // country
         stri_set_t m_country_whitelist;
+        stri_set_t m_country_accesslist;
         stri_set_t m_country_blacklist;
         // asn
         asn_set_t m_asn_whitelist;
+        asn_set_t m_asn_accesslist;
         asn_set_t m_asn_blacklist;
         // url
         regex *m_url_rx_whitelist;
+        regex *m_url_rx_accesslist;
         regex *m_url_rx_blacklist;
         // user-agent
         regex *m_ua_rx_whitelist;
+        regex *m_ua_rx_accesslist;
         regex *m_ua_rx_blacklist;
         // referer
         regex *m_referer_rx_whitelist;
+        regex *m_referer_rx_accesslist;
         regex *m_referer_rx_blacklist;
         // cookie
         regex *m_cookie_rx_whitelist;
+        regex *m_cookie_rx_accesslist;
         regex *m_cookie_rx_blacklist;
         // methods
         stri_set_t m_allowed_http_methods;

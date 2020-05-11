@@ -33,7 +33,6 @@
 #include "is2/srvr/api_resp.h"
 #include "is2/srvr/srvr.h"
 #include "jspb/jspb.h"
-#include "support/geoip2_mmdb.h"
 #include "support/file_util.h"
 #include "event.pb.h"
 //: ----------------------------------------------------------------------------
@@ -59,7 +58,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         if(!m_profile)
         {
                 //NDBG_PRINT("...\n");
-                //TRC_ERROR("g_profile == NULL\n");
+                TRC_ERROR("g_profile == NULL\n");
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
         uint64_t l_buf_len = a_rqst.get_body_len();
@@ -71,11 +70,11 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         // TODO get status
         //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
         int32_t l_s;
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
+        l_s = m_profile->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                //NDBG_PRINT("...\n");
-                //TRC_ERROR("performing g_profile->load_config: reason: %s\n", m_profile->get_err_msg());
+
+                TRC_ERROR("performing g_profile->load: reason: %s\n", m_profile->get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -101,8 +100,10 @@ sx_profile::sx_profile(void):
         m_engine(NULL),
         m_profile(NULL),
         m_update_profile_h(NULL),
-        m_geoip2_mmdb(NULL),
-        m_action(NULL)
+        m_action(NULL),
+        m_ruleset_dir(),
+        m_geoip2_db(),
+        m_geoip2_isp_db()
 {
         // -------------------------------------------------
         // set up default enforcement
@@ -123,7 +124,6 @@ sx_profile::~sx_profile(void)
         if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_profile) { delete m_profile; m_profile = NULL; }
         if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
-        if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL; }
         if(m_action) { delete m_action; m_action = NULL; }
 }
 //: ----------------------------------------------------------------------------
@@ -138,24 +138,12 @@ int32_t sx_profile::init(void)
         // engine
         // -------------------------------------------------
         m_engine = new ns_waflz::engine();
+        m_engine->set_ruleset_dir(m_ruleset_dir);
+        m_engine->set_geoip2_dbs(m_geoip2_db, m_geoip2_isp_db);
         l_s = m_engine->init();
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error initializing engine. reason: %s\n", m_engine->get_err_msg());
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // geoip db
-        // -------------------------------------------------
-        m_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        l_s = m_geoip2_mmdb->init(ns_waflz::profile::s_geoip2_db,
-                                  ns_waflz::profile::s_geoip2_isp_db);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing geoip2 db's city: %s asn: %s: reason: %s\n",
-                           ns_waflz::profile::s_geoip2_db.c_str(),
-                           ns_waflz::profile::s_geoip2_isp_db.c_str(),
-                           m_geoip2_mmdb->get_err_msg());
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -173,9 +161,9 @@ int32_t sx_profile::init(void)
         // -------------------------------------------------
         // load profile
         // -------------------------------------------------
-        m_profile = new ns_waflz::profile(*m_engine, *m_geoip2_mmdb);
+        m_profile = new ns_waflz::profile(*m_engine);
         //NDBG_PRINT("load profile: %s\n", l_profile_file.c_str());
-        l_s = m_profile->load_config(l_buf, l_buf_len, true);
+        l_s = m_profile->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error loading config: %s. reason: %s\n",
@@ -207,7 +195,7 @@ int32_t sx_profile::init(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_profile::handle_rqst(waflz_pb::enforcement **ao_enf,
                                          ns_waflz::rqst_ctx **ao_ctx,
                                          ns_is2::session &a_session,
                                          ns_is2::rqst &a_rqst,
@@ -226,7 +214,7 @@ ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // process profile
         // -------------------------------------------------
-        l_s = m_profile->process(&l_event, &a_session, m_callbacks, &l_ctx);
+        l_s = m_profile->process(&l_event, &a_session, ns_waflz::PART_MK_ALL, m_callbacks, &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error processing config. reason: %s\n",
@@ -240,6 +228,7 @@ ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_NONE;
         }
+        l_ctx->m_event = l_event;
         // -------------------------------------------------
         // serialize event...
         // -------------------------------------------------
@@ -261,7 +250,6 @@ ns_is2::h_resp_t sx_profile::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(l_event) { delete l_event; l_event = NULL; }
         if(ao_ctx)
         {
                 *ao_ctx = l_ctx;

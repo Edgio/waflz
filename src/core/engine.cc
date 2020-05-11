@@ -26,7 +26,9 @@
 #include "waflz/def.h"
 #include "waflz/config_parser.h"
 #include "waflz/engine.h"
+#include "waflz/geoip2_mmdb.h"
 #include "support/string_util.h"
+#include "support/ndebug.h"
 #include "op/regex.h"
 #include "op/ac.h"
 #include "op/nms.h"
@@ -91,7 +93,11 @@ engine::engine():
         m_config_list(),
         m_compiled_config_map(),
         m_ctype_parser_map(),
-        m_ruleset_dir()
+        m_ruleset_root_dir("/oc/local/waf/ruleset/"),
+        m_geoip2_mmdb(),
+        m_geoip2_db(),
+        m_geoip2_isp_db(),
+        m_err_msg()
 {
 }
 //: ----------------------------------------------------------------------------
@@ -130,15 +136,29 @@ engine::~engine()
                 delete m_macro;
                 m_macro = NULL;
         }
+        // -------------------------------------------------
+        // *************************************************
+        //                  geoip2 dbs
+        // *************************************************
+        // -------------------------------------------------
+        if(m_geoip2_mmdb)
+        {
+                delete m_geoip2_mmdb;
+                m_geoip2_mmdb = NULL;
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t engine::init(void)
+int32_t engine::init()
 {
         int32_t l_s;
+        // -------------------------------------------------
+        // 
+        // -------------------------------------------------
+
         // -------------------------------------------------
         // macro...
         // -------------------------------------------------
@@ -175,6 +195,18 @@ int32_t engine::init(void)
         // *************************************************
         // -------------------------------------------------
         xmlInitParser();
+        // -------------------------------------------------
+        // *************************************************
+        //                  geoip2 dbs
+        // *************************************************
+        // -------------------------------------------------
+        m_geoip2_mmdb = new geoip2_mmdb();
+        l_s = m_geoip2_mmdb->init(m_geoip2_db, m_geoip2_isp_db);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                 WAFLZ_PERROR(m_err_msg,"error intialiting");
+                 return WAFLZ_STATUS_OK;
+        }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -183,7 +215,8 @@ int32_t engine::init(void)
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 int32_t engine::compile(compiled_config_t &ao_cx_cfg,
-                        waflz_pb::sec_config_t &a_config)
+                        waflz_pb::sec_config_t &a_config,
+                        const std::string& a_ruleset_dir)
 {
         // -------------------------------------------------
         // clear all
@@ -207,7 +240,8 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                         compiled_config_t *l_cx_cfg = NULL;
                         l_s = process_include(&l_cx_cfg,
                                               l_d.include(),
-                                              a_config);
+                                              a_config,
+                                              a_ruleset_dir);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 // TODO log reason???
@@ -422,7 +456,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 {
                                         int32_t l_s;
                                         nms *l_nms = NULL;
-                                        std::string l_f_path = m_ruleset_dir;
+                                        std::string l_f_path = a_ruleset_dir;
                                         l_f_path.append(l_rule->operator_().value());
                                         l_s = create_nms_from_file(&l_nms, l_f_path);
                                         if(l_s != WAFLZ_STATUS_OK)
@@ -459,7 +493,7 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 {
                                         int32_t l_s;
                                         ac *l_ac = NULL;
-                                        std::string l_f_path = m_ruleset_dir;
+                                        std::string l_f_path = a_ruleset_dir;
                                         l_f_path.append(l_rule->operator_().value());
                                         l_s = create_ac_from_file(&l_ac, l_f_path);
                                         if(l_s != WAFLZ_STATUS_OK)
@@ -583,7 +617,8 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
 //: ----------------------------------------------------------------------------
 int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
                                 const std::string &a_include,
-                                waflz_pb::sec_config_t &a_config)
+                                waflz_pb::sec_config_t &a_config,
+                                const std::string& a_ruleset_dir)
 {
         // -------------------------------------------------
         // find include in config map...
@@ -600,13 +635,13 @@ int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
         // -------------------------------------------------
         waflz_pb::sec_config_t *l_cfg = new waflz_pb::sec_config_t();
         config_parser *l_parser = new config_parser();
-        // -----------------------------------------
+        // -------------------------------------------------
         // default format is modsec
-        // -----------------------------------------
+        // -------------------------------------------------
         config_parser::format_t l_format = config_parser::MODSECURITY;
-        // -----------------------------------------
+        // -------------------------------------------------
         // Get the file ext to decide format
-        // -----------------------------------------
+        // -------------------------------------------------
         if(strncmp(get_file_ext(a_include).c_str(), "json", sizeof("json")) == 0)
         {
                 l_format = config_parser::JSON;
@@ -625,12 +660,12 @@ int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
         // TODO remove -debug...
         //l_parser->show_status();
         if(l_parser) { delete l_parser; l_parser = NULL;}
-        // -----------------------------------------
+        // -------------------------------------------------
         // compile
-        // -----------------------------------------
+        // -------------------------------------------------
         compiled_config_t *l_new_cx_cfg = NULL;
         l_new_cx_cfg = new compiled_config_t();
-        l_s = compile(*l_new_cx_cfg, *l_cfg);
+        l_s = compile(*l_new_cx_cfg, *l_cfg, a_ruleset_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_new_cx_cfg) { delete l_new_cx_cfg; l_new_cx_cfg = NULL;}
@@ -712,5 +747,14 @@ extern "C" int32_t engine_cleanup(engine *a_engine)
                 a_engine = NULL;
         }
         return WAFLZ_STATUS_OK;
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+void engine::set_geoip2_dbs(const std::string& a_geoip2_db,
+                            const std::string& a_geoip2_isp_db)
+{
+        m_geoip2_db = a_geoip2_db;
+        m_geoip2_isp_db = a_geoip2_isp_db;
 }
 }

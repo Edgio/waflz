@@ -54,20 +54,26 @@
 #ifndef WAFLZ_ERR_LEN
   #define WAFLZ_ERR_LEN 4096
 #endif
+
+#ifndef CONFIG_DATE_FORMAT
+  #if defined(__APPLE__) || defined(__darwin__)
+    #define CONFIG_DATE_FORMAT "%Y-%m-%dT%H:%M:%S"
+  #else
+    #define CONFIG_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
+  #endif
+#endif 
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
 #ifndef WAFLZ_PERROR
 #define WAFLZ_PERROR(_str, ...) do { \
-  int _len = strlen(_str); \
-  snprintf(_str + _len, WAFLZ_ERR_LEN - _len, "%s.%s.%d: ",__FILE__,__FUNCTION__,__LINE__); \
-  snprintf(_str + _len, WAFLZ_ERR_LEN - _len, __VA_ARGS__); \
+  snprintf(_str, WAFLZ_ERR_LEN, __VA_ARGS__); \
 } while(0)
 #endif
 #ifndef WAFLZ_AERROR
 #define WAFLZ_AERROR(_str, ...) do { \
   int _len = strlen(_str); \
-  snprintf(_str + _len, WAFLZ_ERR_LEN - _len, __VA_ARGS__); \
+  snprintf(_str + _len, WAFLZ_ERR_LEN - _len - 1, __VA_ARGS__); \
 } while(0)
 #endif
 //: ----------------------------------------------------------------------------
@@ -76,9 +82,11 @@
 #ifdef __cplusplus
 namespace ns_waflz {
 typedef enum {
-	PART_MK_ACL = 1,
-	PART_MK_WAF = 2,
-	PART_MK_ALL = 3,
+        PART_MK_ACL = 1,
+        PART_MK_WAF = 2,
+        PART_MK_RULES = 4,
+        PART_MK_LIMITS = 8,
+        PART_MK_ALL = 15,
 } part_mk_t;
 #endif
 // callbacks
@@ -115,6 +123,8 @@ struct data_case_i_comp
         }
 };
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
+// version string
+const char *get_version(void);
 }
 #endif
 #endif

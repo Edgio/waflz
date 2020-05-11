@@ -23,16 +23,15 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#include "waflz/limit/rl_obj.h"
+#include "waflz/rl_obj.h"
 #include "waflz/rqst_ctx.h"
-#include "support/base64.h"
+#include "waflz/scopes.h"
 #include "support/time_util.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "support/md5.h"
+#include "support/base64.h"
 #include "op/regex.h"
 #include "op/nms.h"
-#include "limit/rl_op.h"
 #include "limit.pb.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
@@ -205,63 +204,12 @@ int32_t rl_obj::compile_limit(waflz_pb::limit &ao_limit)
         // -------------------------------------------------
         if(ao_limit.has_action())
         {
-                waflz_pb::enforcement *l_e = ao_limit.mutable_action();
-                // -----------------------------------------
-                // coerce type string into enum
-                // -----------------------------------------
-                if(!l_e->has_enf_type() &&
-                   l_e->has_type())
+                waflz_pb::enforcement *l_a = ao_limit.mutable_action();
+                int32_t l_s;
+                l_s = compile_action(*l_a, m_err_msg);
+                if(l_s != WAFLZ_STATUS_OK)
                 {
-                        const std::string &l_type = l_e->type();
-#define _ELIF_TYPE(_str, _type) else \
-if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
-        l_e->set_enf_type(waflz_pb::enforcement_type_t_##_type); \
-}
-                        if(0) {}
-                        _ELIF_TYPE("REDIRECT_302", REDIRECT_302)
-                        _ELIF_TYPE("REDIRECT-302", REDIRECT_302)
-                        _ELIF_TYPE("REDIRECT_JS", REDIRECT_JS)
-                        _ELIF_TYPE("REDIRECT-JS", REDIRECT_JS)
-                        _ELIF_TYPE("HASHCASH", HASHCASH)
-                        _ELIF_TYPE("CUSTOM_RESPONSE", CUSTOM_RESPONSE)
-                        _ELIF_TYPE("CUSTOM-RESPONSE", CUSTOM_RESPONSE)
-                        _ELIF_TYPE("DROP_REQUEST", DROP_REQUEST)
-                        _ELIF_TYPE("DROP-REQUEST", DROP_REQUEST)
-                        _ELIF_TYPE("DROP_CONNECTION", DROP_CONNECTION)
-                        _ELIF_TYPE("DROP-CONNECTION", DROP_CONNECTION)
-                        _ELIF_TYPE("NOP", NOP)
-                        _ELIF_TYPE("ALERT", ALERT)
-                        _ELIF_TYPE("BLOCK_REQUEST", BLOCK_REQUEST)
-                        _ELIF_TYPE("BLOCK-REQUEST", BLOCK_REQUEST)
-                        _ELIF_TYPE("BROWSER_CHALLENGE", BROWSER_CHALLENGE)
-                        _ELIF_TYPE("BROWSER-CHALLENGE", BROWSER_CHALLENGE)
-                        else
-                        {
-                                WAFLZ_PERROR(m_err_msg, "unrecognized enforcement type string: %s", l_type.c_str());
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-                // -----------------------------------------
-                // convert b64 encoded resp
-                // -----------------------------------------
-                if(!l_e->has_response_body() &&
-                   l_e->has_response_body_base64() &&
-                   !l_e->response_body_base64().empty())
-                {
-                        const std::string& l_b64 = l_e->response_body_base64();
-                        char* l_body = NULL;
-                        size_t l_body_len = 0;
-                        int32_t l_s;
-                        l_s = b64_decode(&l_body, l_body_len, l_b64.c_str(), l_b64.length());
-                        if(!l_body ||
-                           !l_body_len ||
-                           (l_s != WAFLZ_STATUS_OK))
-                        {
-                                WAFLZ_PERROR(m_err_msg, "decoding response_body_base64 string: %s", l_b64.c_str());
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                        l_e->mutable_response_body()->assign(l_body, l_body_len);
-                        if(l_body) { free(l_body); l_body = NULL; }
+                        return WAFLZ_STATUS_ERROR;
                 }
         }
         return WAFLZ_STATUS_OK;
@@ -300,7 +248,7 @@ int32_t rl_obj::compile_op(::waflz_pb::op_t& ao_op)
                 l_s = l_rx->init(l_val.c_str(), l_val.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "failed to compile regex: '%s'.\n", l_val.c_str());
+                        WAFLZ_PERROR(m_err_msg, "failed to compile regex: '%s'.", l_val.c_str());
                         delete l_rx;
                         l_rx = NULL;
                         return WAFLZ_STATUS_ERROR;
@@ -432,12 +380,12 @@ int32_t rl_obj::compile_op(::waflz_pb::op_t& ao_op)
                 l_s = create_nms_from_ip_str_list(&l_nms, l_ip_str_list);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "failed to compile ip_list\n");
+                        WAFLZ_PERROR(m_err_msg, "failed to compile ip_list");
                         return WAFLZ_STATUS_ERROR;
                 }
                 if(!l_nms)
                 {
-                        WAFLZ_PERROR(m_err_msg, "failed to compile ip_list\n");
+                        WAFLZ_PERROR(m_err_msg, "failed to compile ip_list");
                         return WAFLZ_STATUS_ERROR;
                 }
                 ao_op.set__reserved_1((uint64_t)(l_nms));
@@ -779,282 +727,6 @@ int32_t rl_obj::extract(const char **ao_data,
                 // do nothing
                 break;
         }
-        }
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details check if request "in scope"
-//: \return  true if in scope
-//:          false if not in scope
-//: \param   a_scope TODO
-//: \param   a_ctx   TODO
-//: ----------------------------------------------------------------------------
-int32_t rl_obj::in_scope(bool &ao_match,
-                         const waflz_pb::scope &a_scope,
-                         rqst_ctx *a_ctx)
-{
-        ao_match = false;
-        if(!a_ctx)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // host
-        // -------------------------------------------------
-        if(a_scope.has_host() &&
-           a_scope.host().has_type() &&
-           (a_scope.host().has_value() ||
-            a_scope.host().values_size()))
-        {
-                const data_t &l_d = a_ctx->m_host;
-                if(!l_d.m_data ||
-                   !l_d.m_len)
-                {
-                        return WAFLZ_STATUS_OK;
-                }
-                bool l_matched = false;
-                int32_t l_s;
-                l_s = rl_run_op(l_matched,
-                                a_scope.host(),
-                                l_d.m_data,
-                                l_d.m_len,
-                                true);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "performing rl_run_op");
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(!l_matched)
-                {
-                        return WAFLZ_STATUS_OK;
-                }
-        }
-        // -------------------------------------------------
-        // path
-        // -------------------------------------------------
-        if(a_scope.has_path() &&
-           a_scope.path().has_type() &&
-           (a_scope.path().has_value() ||
-            a_scope.path().values_size()))
-        {
-                data_t l_d = a_ctx->m_uri;
-                if(!l_d.m_data ||
-                   !l_d.m_len)
-                {
-                        return WAFLZ_STATUS_OK;
-                }
-                // use length w/o q string
-                // use length w/o q string
-                if(a_ctx->m_uri_path_len)
-                {
-                        l_d.m_len = a_ctx->m_uri_path_len;
-                }
-                bool l_matched = false;
-                int32_t l_s;
-                l_s = rl_run_op(l_matched,
-                                a_scope.path(),
-                                l_d.m_data,
-                                l_d.m_len,
-                                true);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "performing run_op");
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(!l_matched)
-                {
-                        return WAFLZ_STATUS_OK;
-                }
-        }
-        ao_match = true;
-        return WAFLZ_STATUS_OK;
-}
-//! ----------------------------------------------------------------------------
-//! @details TODO
-//! @return  0 on success
-//!          -1 on error
-//! @param   TODO
-//! ----------------------------------------------------------------------------
-int32_t rl_obj::convertv1(waflz_pb::config& ao_cfg,
-                          const waflz_pb::enforcer& a_enfcr)
-{
-#define _SET_IF(_from, _to, _field) do { \
-        if(_from.has_##_field()) { \
-                _to.set_##_field(_from._field()); \
-        } \
-} while(0)
-        // -------------------------------------------------
-        // type
-        // -------------------------------------------------
-        if(a_enfcr.has_type())
-        {
-                const std::string &l_t = a_enfcr.type();
-                if(strncasecmp(l_t.c_str(), "ddos-coordinator", l_t.length()) == 0)
-                {
-                        ao_cfg.set_type(waflz_pb::config_type_t_CONFIG);
-                }
-                else if(strncasecmp(l_t.c_str(), "ddos-enforcement", l_t.length()) == 0)
-                {
-                        ao_cfg.set_type(waflz_pb::config_type_t_ENFORCER);
-                }
-                else
-                {
-                        ao_cfg.set_type(waflz_pb::config_type_t_CONFIG);
-                }
-        }
-        else
-        {
-                ao_cfg.set_type(waflz_pb::config_type_t_CONFIG);
-        }
-        // -------------------------------------------------
-        // properties
-        // -------------------------------------------------
-        ao_cfg.set_version(2);
-        _SET_IF(a_enfcr, ao_cfg, id);
-        _SET_IF(a_enfcr, ao_cfg, name);
-        _SET_IF(a_enfcr, ao_cfg, customer_id);
-        _SET_IF(a_enfcr, ao_cfg, enabled_date);
-        _SET_IF(a_enfcr, ao_cfg, last_modified_date);
-        _SET_IF(a_enfcr, ao_cfg, hostname);
-        // -------------------------------------------------
-        // foreach tuple...
-        // -------------------------------------------------
-        for(int i_t = 0; i_t < a_enfcr.tuples_size(); ++i_t)
-        {
-                const waflz_pb::tuple& l_t = a_enfcr.tuples(i_t);
-                ::waflz_pb::limit& l_limit = *ao_cfg.add_limits();
-                // -----------------------------------------
-                // properties
-                // -----------------------------------------
-                _SET_IF(l_t, l_limit, id);
-                _SET_IF(l_t, l_limit, name);
-                _SET_IF(l_t, l_limit, disabled);
-                _SET_IF(l_t, l_limit, start_epoch_msec);
-                _SET_IF(l_t, l_limit, end_epoch_msec);
-                _SET_IF(l_t, l_limit, duration_sec);
-                _SET_IF(l_t, l_limit, always_on);
-                // -----------------------------------------
-                // limit to num
-                // -----------------------------------------
-                if(l_t.has_limit())
-                {
-                        l_limit.set_num(l_t.limit());
-                }
-                // -----------------------------------------
-                // keys...
-                // -----------------------------------------
-                for(int i_d = 0; i_d < l_t.dimensions_size(); ++i_d)
-                {
-                        ::waflz_pb::tuple_dimension_t l_d = l_t.dimensions(i_d);
-                        switch(l_d)
-                        {
-                        case ::waflz_pb::tuple_dimension_t_IP:
-                        {
-                                l_limit.add_keys(::waflz_pb::limit_key_t_IP);
-                                break;
-                        }
-                        case ::waflz_pb::tuple_dimension_t_USER_AGENT:
-                        {
-                                l_limit.add_keys(::waflz_pb::limit_key_t_USER_AGENT);
-                                break;
-                        }
-                        default:
-                        {
-                                break;
-                        }
-                        }
-                }
-                // -----------------------------------------
-                // add scope...
-                // -----------------------------------------
-                if(l_t.has_scope())
-                {
-                        l_limit.mutable_scope()->CopyFrom(l_t.scope());
-                }
-                // -----------------------------------------
-                // add action...
-                // -----------------------------------------
-                if(l_t.enforcements_size())
-                {
-                        l_limit.mutable_action()->CopyFrom(l_t.enforcements(0));
-                }
-                // -----------------------------------------
-                // foreach rule...
-                // -----------------------------------------
-                for(int i_r = 0; i_r < l_t.rules_size(); ++i_r)
-                {
-                        ::waflz_pb::condition_group* l_cg = l_limit.add_condition_groups();
-                        const ::waflz_pb::rule& l_rs = l_t.rules(i_r);
-                        const waflz_pb::rule* l_rule = NULL;
-                        int32_t l_chained_rule_idx = -1;
-                        do {
-                                if(l_chained_rule_idx == -1)
-                                {
-                                        l_rule = &l_rs;
-                                }
-                                else if((l_chained_rule_idx >= 0) &&
-                                        (l_chained_rule_idx < l_rs.chained_rule_size()))
-                                {
-                                        l_rule = &(l_rs.chained_rule(l_chained_rule_idx));
-                                }
-                                // -------------------------
-                                // add condition
-                                // -------------------------
-                                ::waflz_pb::condition& l_m = *(l_cg->add_conditions());
-                                const waflz_pb::rule& l_r = *l_rule;
-                                // -------------------------
-                                // operator
-                                // -------------------------
-                                if(l_r.has_operator_())
-                                {
-                                        l_m.mutable_op()->CopyFrom(l_r.operator_());
-                                }
-                                // -------------------------
-                                // target
-                                // -------------------------
-                                if(l_r.variable_size() &&
-                                   l_r.variable(0).has_type())
-                                {
-                                        ::waflz_pb::condition_target_t* l_tgt = l_m.mutable_target();
-                                        const ::waflz_pb::rule_variable_t& l_v = l_r.variable(0);
-                                        // -----------------
-                                        // type
-                                        // -----------------
-                                        switch(l_v.type())
-                                        {
-#define _CASE_TYPE(_field) \
-        case ::waflz_pb::rule_variable_t_type_t_##_field: { \
-                l_tgt->set_type(::waflz_pb::condition_target_t_type_t_##_field); \
-                break; \
-        }
-                                        _CASE_TYPE(REMOTE_ADDR)
-                                        _CASE_TYPE(REQUEST_HOST)
-                                        _CASE_TYPE(REQUEST_URI)
-                                        _CASE_TYPE(REQUEST_METHOD)
-                                        _CASE_TYPE(REQUEST_HEADERS)
-                                        _CASE_TYPE(QUERY_STRING)
-                                        _CASE_TYPE(ARGS_GET)
-                                        _CASE_TYPE(FILE_EXT)
-                                        default:
-                                        {
-                                                break;
-                                        }
-                                        }
-                                        // -----------------
-                                        // value
-                                        // -----------------
-                                        if(l_v.match_size())
-                                        {
-                                                const ::waflz_pb::rule_variable_t_match_t& l_mx = l_v.match(0);
-                                                if(l_mx.has_value())
-                                                {
-                                                        l_tgt->set_value(l_mx.value());
-                                                }
-                                        }
-                                }
-                                ++l_chained_rule_idx;
-                        } while(l_chained_rule_idx < l_rs.chained_rule_size());
-                }
         }
         return WAFLZ_STATUS_OK;
 }

@@ -29,11 +29,12 @@
 #include "support/string_util.h"
 #include "support/ndebug.h"
 #include "waflz/def.h"
-#include "waflz/limit/config.h"
-#include "waflz/limit/configs.h"
-#include "waflz/limit/challenge.h"
-#include "waflz/db/kycb_db.h"
+#include "waflz/config.h"
+#include "waflz/configs.h"
+#include "waflz/challenge.h"
+#include "waflz/kycb_db.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/geoip2_mmdb.h"
 #include "limit.pb.h"
 #include <string.h>
 #include <unistd.h>
@@ -48,52 +49,96 @@ static std::string g_ec_cookie_val = "";
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define CONFIG_W_BROWSER_CHALLENGE_ENFORCEMENT_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"last_modified_date\":\"2016-08-25T00:45:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"GLOB\",\"is_negated\":false,\"value\":\"*.cats.*.com\"},"\
-              "\"path\": {\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"/cats.html\"}"\
-          "},"\
-          "\"enforcements\":[{\"type\":\"browser-challenge\",\"name\":\"bc-enforcement\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\",\"status\":403, \"duration_sec\":3, \"valid_for_sec\": 1}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define CONFIG_W_BROWSER_CHALLENGE_ENFORCEMENT_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"last_modified_date\": \"2016-08-25T00:45:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"bc-enforcement\","\
+"        \"type\": \"browser-challenge\","\
+"        \"duration_sec\": 3,"\
+"        \"enf_type\": \"BROWSER_CHALLENGE\","\
+"        \"status\": 403,"\
+"        \"valid_for_sec\": 1"\
+"      },"\
+"      \"scope\": {"\
+"        \"host\": {"\
+"          \"type\": \"GLOB\","\
+"          \"value\": \"*.cats.*.com\","\
+"          \"is_negated\": false"\
+"        },"\
+"        \"path\": {"\
+"          \"type\": \"STREQ\","\
+"          \"value\": \"/cats.html\","\
+"          \"is_negated\": false"\
+"        }"\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
-#define CONFIG_W_ALWAYS_ON_MODE_BROWSER_CHALLENGE_JSON "{"\
-     "\"name\":\"name\","\
-     "\"enabled_date\":\"2016-07-20T00:44:20.744583Z\","\
-     "\"last_modified_date\":\"2016-08-25T00:45:20.744583Z\","\
-     "\"tuples\":["\
-         "{"\
-          "\"scope\": {"\
-              "\"host\": {\"type\":\"GLOB\",\"is_negated\":false,\"value\":\"*.cats.*.com\"},"\
-              "\"path\": {\"type\":\"STREQ\",\"is_negated\":false,\"value\":\"/cats.html\"}"\
-          "},"\
-          "\"always_on\":true,"\
-          "\"enforcements\":[{\"type\":\"browser-challenge\",\"name\":\"bc-enforcement\",\"id\":\"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\",\"status\":403, \"duration_sec\":10, \"valid_for_sec\": 1}],"\
-          "\"dimensions\":[\"IP\"],"\
-          "\"disabled\":false,"\
-          "\"duration_sec\":1,"\
-          "\"limit\":5,"\
-          "\"id\":\"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-          "\"name\":\"RULE_STUFF\"}"\
-          "],"\
-     "\"customer_id\":\"16715\","\
-     "\"type\":\"ddos-coordinator\","\
-     "\"id\":\"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\"}"
+#define CONFIG_W_ALWAYS_ON_MODE_BROWSER_CHALLENGE_JSON \
+"{"\
+"  \"version\": 2,"\
+"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
+"  \"name\": \"name\","\
+"  \"type\": \"CONFIG\","\
+"  \"customer_id\": \"16715\","\
+"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
+"  \"last_modified_date\": \"2016-08-25T00:45:20.744583Z\","\
+"  \"limits\": ["\
+"    {"\
+"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
+"      \"name\": \"RULE_STUFF\","\
+"      \"disabled\": false,"\
+"      \"duration_sec\": 1,"\
+"      \"num\": 5,"\
+"      \"keys\": ["\
+"        \"IP\""\
+"      ],"\
+"      \"always_on\": true,"\
+"      \"action\": {"\
+"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
+"        \"name\": \"bc-enforcement\","\
+"        \"type\": \"browser-challenge\","\
+"        \"duration_sec\": 10,"\
+"        \"enf_type\": \"BROWSER_CHALLENGE\","\
+"        \"status\": 403,"\
+"        \"valid_for_sec\": 1"\
+"      },"\
+"      \"scope\": {"\
+"        \"host\": {"\
+"          \"type\": \"GLOB\","\
+"          \"value\": \"*.cats.*.com\","\
+"          \"is_negated\": false"\
+"        },"\
+"        \"path\": {"\
+"          \"type\": \"STREQ\","\
+"          \"value\": \"/cats.html\","\
+"          \"is_negated\": false"\
+"        }"\
+"      }"\
+"    }"\
+"  ]"\
+"}"
 //! ----------------------------------------------------------------------------
 //! sample challenge json
 //! ----------------------------------------------------------------------------
@@ -230,6 +275,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                         NULL, //get_rqst_req_id_cb,
                         NULL //get_cust_id_cb
         };
+        ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         // -------------------------------------------------
         // verify browser challenge for 'always_on' mode
         // -------------------------------------------------
@@ -272,7 +318,9 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // process - first request. should
@@ -313,7 +361,9 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // w/ wrong cookie, verify gets an another
@@ -342,7 +392,9 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // verify no match
@@ -399,7 +451,9 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // set correct cookie.
@@ -459,7 +513,9 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // verify no enforcer
@@ -513,7 +569,9 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // validate get challenge for bad resp
@@ -538,7 +596,9 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
-                l_s = l_ctx->init_phase_1(NULL, NULL, NULL);
+                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 //------------------------------------------
                 // set correct cookie. verify no enforcer

@@ -23,25 +23,26 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#include "config.pb.h"
+#include "profile.pb.h"
 #include "action.pb.h"
 #include "request_info.pb.h"
 #include "acl.pb.h"
 #include "event.pb.h"
 #include "jspb/jspb.h"
 #include "support/ndebug.h"
-#include "support/trace_internal.h"
 #include "support/file_util.h"
 #include "support/string_util.h"
 #include "support/time_util.h"
-#include "waflz/engine.h"
 #include "op/regex.h"
 #include "op/nms.h"
-#include "cityhash/city.h"
 #include "waflz/def.h"
+#include "waflz/city.h"
+#include "waflz/engine.h"
+#include "waflz/limit.h"
 #include "waflz/profile.h"
 #include "waflz/acl.h"
 #include "waflz/waf.h"
+#include "waflz/rqst_ctx.h"
 #include "waflz/config_parser.h"
 #include <string.h>
 #include <errno.h>
@@ -49,7 +50,7 @@
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
-#define CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE (1<<20)
+#define _CONFIG_PROFILE_MAX_SIZE (1<<20)
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------
@@ -60,17 +61,6 @@
         } \
 } while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: Class Variables
-//: ----------------------------------------------------------------------------
-// in an unreserved block
-uint_fast32_t profile::s_next_ec_rule_id = 430000;
-const std::string profile::s_default_name("");
-std::string profile::s_ruleset_dir("/oc/local/waf/ruleset/");
-std::string profile::s_geoip_db;
-std::string profile::s_geoip_isp_db;
-std::string profile::s_geoip2_db;
-std::string profile::s_geoip2_isp_db;
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -94,21 +84,18 @@ static void clear_ignore_list(pcre_list_t &a_pcre_list)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-profile::profile(engine &a_engine,
-                 geoip2_mmdb &a_geoip2_mmdb):
+profile::profile(engine &a_engine):
         m_init(false),
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
-        m_geoip2_mmdb(a_geoip2_mmdb),
         m_acl(NULL),
         m_waf(NULL),
         m_id(),
-        m_name(profile::s_default_name),
+        m_cust_id(),
+        m_name(),
         m_resp_header_name(),
-        m_ruleset_dir(),
         m_action(waflz_pb::enforcement_type_t_NOP),
-        m_leave_compiled_file(false),
         m_owasp_ruleset_version(229),
         m_paranoia_level(1),
         m_il_query(),
@@ -116,9 +103,7 @@ profile::profile(engine &a_engine,
         m_il_cookie()
 {
         m_pb = new waflz_pb::profile();
-        m_acl = new acl(a_geoip2_mmdb);
-        ns_waflz::trc_log_level_set(ns_waflz::TRC_LOG_LEVEL_DEBUG);
-        ns_waflz::trc_log_file_open("/tmp/waflz.log");
+        m_acl = new acl();
 }
 //: ----------------------------------------------------------------------------
 //: \details dtor
@@ -153,19 +138,16 @@ void profile::set_pb(waflz_pb::profile *a_pb)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t profile::load_config(const char *a_buf,
-                             uint32_t a_buf_len,
-                             bool a_leave_compiled_file)
+int32_t profile::load(const char *a_buf, uint32_t a_buf_len)
 {
-        if(a_buf_len > CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE)
+        if(a_buf_len > _CONFIG_PROFILE_MAX_SIZE)
         {
                 WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
                              a_buf_len,
-                             CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE);
+                             _CONFIG_PROFILE_MAX_SIZE);
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        m_leave_compiled_file = a_leave_compiled_file;
         if(m_pb)
         {
                 delete m_pb;
@@ -176,17 +158,17 @@ int32_t profile::load_config(const char *a_buf,
                 delete m_acl;
                 m_acl = NULL;
         }
-        m_acl = new acl(m_geoip2_mmdb);
+        m_acl = new acl();
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------
         m_pb = new waflz_pb::profile();
         int32_t l_s;
         l_s = update_from_json(*m_pb, a_buf, a_buf_len);
-//        TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
+        //NDBG_PRINT("whole config %s", m_pb->DebugString().c_str());
         if(l_s != JSPB_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "parsing json. reason: %s", get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -204,8 +186,36 @@ int32_t profile::load_config(const char *a_buf,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t profile::load_config(const waflz_pb::profile *a_pb,
-                             bool a_leave_compiled_file)
+int32_t profile::load(void* a_js)
+{
+        m_init = false;
+        const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
+        int32_t l_s;
+        if(m_pb)
+        {
+                delete m_pb;
+                m_pb = NULL;
+        }
+        m_pb = new waflz_pb::profile();
+        l_s = update_from_json(*m_pb, l_js);
+        if(l_s != JSPB_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
+                return WAFLZ_STATUS_ERROR;
+        }
+        l_s = init();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t profile::load(const waflz_pb::profile *a_pb)
 {
         if(!a_pb)
         {
@@ -213,7 +223,6 @@ int32_t profile::load_config(const waflz_pb::profile *a_pb,
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        m_leave_compiled_file = a_leave_compiled_file;
         if(m_pb)
         {
                 delete m_pb;
@@ -240,23 +249,6 @@ int32_t profile::load_config(const waflz_pb::profile *a_pb,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-void set_acl_wl_bl(::waflz_pb::acl_lists_t *ao_list,
-                   const waflz_pb::profile_access_settings_t_lists_t &a_list)
-{
-        for(int32_t i_t = 0; i_t < a_list.whitelist_size(); ++i_t)
-        {
-                ao_list->add_whitelist(a_list.whitelist(i_t));
-        }
-        for(int32_t i_t = 0; i_t < a_list.blacklist_size(); ++i_t)
-        {
-                ao_list->add_blacklist(a_list.blacklist(i_t));
-        }
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
 int32_t profile::regex_list_add(const std::string &a_regex,
                                 pcre_list_t &a_pcre_list)
 {
@@ -270,7 +262,7 @@ int32_t profile::regex_list_add(const std::string &a_regex,
                 l_regex->get_err_info(&l_err_ptr, l_err_off);
                 delete l_regex;
                 l_regex = NULL;
-                //WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in access_settings ignore list. Reason: %s -offset: %d\n",
+                //WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in access_settings ignore list. Reason: %s -offset: %d",
                 //            a_regex.c_str(),
                 //            l_err_ptr,
                 //            l_err_off);
@@ -316,18 +308,27 @@ int32_t profile::init(void)
         m_waf->set_name(m_name);
         m_waf->set_owasp_ruleset_version(m_owasp_ruleset_version);
         m_waf->set_paranoia_level(m_paranoia_level);
-        // Json parser
+        // -------------------------------------------------
+        // json parser
+        // -------------------------------------------------
         if(m_pb->general_settings().has_json_parser())
         {
                 m_waf->set_parse_json(m_pb->general_settings().json_parser());
         }
         // -------------------------------------------------
+        // xml parser
+        // -------------------------------------------------
+        if(m_pb->general_settings().has_xml_parser())
+        {
+                m_waf->set_parse_xml(m_pb->general_settings().xml_parser());
+        }
+        // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = m_waf->init(*this, m_leave_compiled_file);
+        l_s = m_waf->init(*this);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "waf init reason: %s", m_waf->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -335,11 +336,63 @@ int32_t profile::init(void)
         //                  I G N O R E
         // *************************************************
         // -------------------------------------------------
-        const ::waflz_pb::profile_access_settings_t& l_as = m_pb->access_settings();
+        const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
         // -------------------------------------------------
         // ignore query args
         // -------------------------------------------------
-        if(l_as.ignore_query_args_size())
+        for(int32_t i_q = 0;
+            i_q < l_gs.ignore_query_args_size();
+            ++i_q)
+        {
+                std::string l_query_arg = l_gs.ignore_query_args(i_q);
+                l_s = regex_list_add(l_query_arg, m_il_query);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // ignore headers
+        // -------------------------------------------------
+        for(int32_t i_h = 0;
+            i_h < l_gs.ignore_header_size();
+            ++i_h)
+        {
+                std::string l_header = l_gs.ignore_header(i_h);
+                l_s = regex_list_add(l_header, m_il_header);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // ignore cookies
+        // -------------------------------------------------
+        for(int32_t i_c = 0;
+            i_c < l_gs.ignore_cookie_size();
+            ++i_c)
+        {
+                std::string l_cookie = l_gs.ignore_cookie(i_c);
+                l_s = regex_list_add(l_cookie, m_il_cookie);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                     A C L
+        // *************************************************
+        // -------------------------------------------------
+        if(!m_pb->has_access_settings())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        const ::waflz_pb::acl& l_as = m_pb->access_settings();
+        // -------------------------------------------------
+        // ignore query args
+        // -------------------------------------------------
+        if(m_il_query.empty())
         {
                 for(int32_t i_q = 0;
                     i_q < l_as.ignore_query_args_size();
@@ -356,7 +409,7 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // ignore headers
         // -------------------------------------------------
-        if(l_as.ignore_header_size())
+        if(m_il_header.empty())
         {
                 for(int32_t i_h = 0;
                     i_h < l_as.ignore_header_size();
@@ -373,7 +426,7 @@ int32_t profile::init(void)
         // -------------------------------------------------
         // ignore cookies
         // -------------------------------------------------
-        if(l_as.ignore_cookie_size())
+        if(m_il_cookie.empty())
         {
                 for(int32_t i_c = 0;
                     i_c < l_as.ignore_cookie_size();
@@ -388,72 +441,18 @@ int32_t profile::init(void)
                 }
         }
         // -------------------------------------------------
+        // compile
+        // -------------------------------------------------
+        ::waflz_pb::acl *l_acl_pb = new ::waflz_pb::acl();
+        l_acl_pb->CopyFrom(l_as);
+        // -------------------------------------------------
         // *************************************************
-        //                     A C L
+        //              general settings
         // *************************************************
         // -------------------------------------------------
-        const ::waflz_pb::profile &l_pb = *m_pb;
-        if(!l_pb.has_access_settings())
-        {
-                WAFLZ_PERROR(m_err_msg, "pb missing access settings");
-                return WAFLZ_STATUS_ERROR;
-        }
-        // Get acl proto so that we copy over from profile
-        ::waflz_pb::acl *l_acl_pb = m_acl->get_pb();
-        // TODO: Remove copy once we switch to acl json
-        // **************************************************
-        //              access settings
-        // **************************************************
-        if(l_as.has_country())
-        {
-                ::waflz_pb::acl_lists_t* l_c =  l_acl_pb->mutable_country();
-                set_acl_wl_bl(l_c, l_as.country());
-        }
-        if(l_as.has_ip())
-        {
-                ::waflz_pb::acl_lists_t* l_ip =  l_acl_pb->mutable_ip();
-                set_acl_wl_bl(l_ip, l_as.ip());
-        }
-        if(l_as.has_referer())
-        {
-                ::waflz_pb::acl_lists_t* l_url =  l_acl_pb->mutable_referer();
-                set_acl_wl_bl(l_url, l_as.referer());
-        }
-        if(l_as.has_url())
-        {
-                ::waflz_pb::acl_lists_t* l_url =  l_acl_pb->mutable_url();
-                set_acl_wl_bl(l_url, l_as.url());
-        }
-        if(l_as.has_user_agent())
-        {
-                ::waflz_pb::acl_lists_t* l_ua =  l_acl_pb->mutable_user_agent();
-                set_acl_wl_bl(l_ua, l_as.user_agent());
-        }
-        if(l_as.has_cookie())
-        {
-                ::waflz_pb::acl_lists_t* l_cki =  l_acl_pb->mutable_cookie();
-                set_acl_wl_bl(l_cki, l_as.cookie());
-        }
-        if(l_as.has_asn())
-        {
-                ::waflz_pb::acl_lists_asn_t* l_asn =  l_acl_pb->mutable_asn();
-                for(int32_t i_t = 0; i_t < l_as.asn().whitelist_size(); ++i_t)
-                {
-                        l_asn->add_whitelist(l_as.asn().whitelist(i_t));
-                }
-                for(int32_t i_t = 0; i_t < l_as.asn().blacklist_size(); ++i_t)
-                {
-                        l_asn->add_blacklist(l_as.asn().blacklist(i_t));
-                }
-        }
-        // **************************************************
-        //              general settings
-        // **************************************************
-        const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
 #define _SET_ACL(_field) \
-for(int32_t i_t = 0; i_t < l_gs._field##_size(); ++i_t) { \
-l_acl_pb->add_##_field(l_gs._field(i_t)); \
-}
+        for(int32_t i_t = 0; i_t < l_gs._field##_size(); ++i_t) { \
+        l_acl_pb->add_##_field(l_gs._field(i_t)); }
         if(l_gs.allowed_http_methods_size())
         {
                 _SET_ACL(allowed_http_methods);
@@ -478,13 +477,15 @@ l_acl_pb->add_##_field(l_gs._field(i_t)); \
         {
                 l_acl_pb->set_max_file_size(l_gs.max_file_size());
         }
-        l_s = m_acl->compile();
+        l_s = m_acl->load(l_acl_pb);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "access settings: reason: %s", m_acl->get_err_msg());
+                WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());
+                if(l_acl_pb) { delete l_acl_pb; l_acl_pb = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = true;
+        if(l_acl_pb) { delete l_acl_pb; l_acl_pb = NULL; }
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -533,6 +534,12 @@ int32_t profile::validate(void)
         }
         m_id = m_pb->id();
         m_name = m_pb->name();
+        //TODO: Throw waflz error once customer_id
+        // field is added to all profiles
+        if(m_pb->has_customer_id())
+        {
+                m_cust_id = m_pb->customer_id();
+        }
         // -------------------------------------------------
         // general settings
         // -------------------------------------------------
@@ -551,33 +558,13 @@ int32_t profile::validate(void)
         VERIFY_HAS(l_gs, total_arg_length);
         VERIFY_HAS(l_gs, max_file_size);
         VERIFY_HAS(l_gs, combined_file_sizes);
-        // set...
+        VERIFY_HAS(l_gs, anomaly_threshold);
+        // -------------------------------------------------
+        // set resp header name
+        // -------------------------------------------------
         if(l_gs.has_response_header_name())
         {
                 m_resp_header_name = l_gs.response_header_name();
-        }
-        // -------------------------------------------------
-        // access settings
-        // -------------------------------------------------
-        VERIFY_HAS(l_pb, access_settings);
-        const ::waflz_pb::profile_access_settings_t& l_as = l_pb.access_settings();
-        VERIFY_HAS(l_as, country);
-        VERIFY_HAS(l_as, ip);
-        VERIFY_HAS(l_as, url);
-        VERIFY_HAS(l_as, referer);
-        // -------------------------------------------------
-        // anomaly settings
-        // -------------------------------------------------
-        if(!l_gs.has_anomaly_threshold())
-        {
-                VERIFY_HAS(l_gs, anomaly_settings);
-                const ::waflz_pb::profile_general_settings_t_anomaly_settings_t& l_ax = l_gs.anomaly_settings();
-                VERIFY_HAS(l_ax, critical_score);
-                VERIFY_HAS(l_ax, error_score);
-                VERIFY_HAS(l_ax, warning_score);
-                VERIFY_HAS(l_ax, notice_score);
-                VERIFY_HAS(l_ax, inbound_threshold);
-                VERIFY_HAS(l_ax, outbound_threshold);
         }
         // -------------------------------------------------
         // disabled rules
@@ -621,43 +608,13 @@ int32_t profile::validate(void)
 //: ----------------------------------------------------------------------------
 int32_t profile::process(waflz_pb::event **ao_event,
                          void *a_ctx,
+                         part_mk_t a_part_mk,
                          const rqst_ctx_callbacks *a_callbacks,
                          rqst_ctx **ao_rqst_ctx)
 {
-        return process_part(ao_event, a_ctx, PART_MK_ALL, a_callbacks, ao_rqst_ctx);
-}
-int32_t profile::process_request_plugin(char **ao_event, 
-                                 void *a_ctx,
-                                 rqst_ctx **ao_rqst_ctx)
-{
-        waflz_pb::event *a_event = NULL;
-        int32_t l_s;
-        
-        l_s = process_part(&a_event, a_ctx, PART_MK_ACL, NULL, ao_rqst_ctx);
-        if(a_event)
-        {
-                
-                int32_t l_len = strlen(a_event->DebugString().c_str());
-                char *l_event = (char*)malloc(sizeof(char*) * l_len);
-                strncpy(l_event, a_event->DebugString().c_str(), l_len);
-                *ao_event = l_event;
-        }
-        return l_s;
-}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t profile::process_part(waflz_pb::event **ao_event,
-                              void *a_ctx,
-                              part_mk_t a_part_mk,
-                              const rqst_ctx_callbacks *a_callbacks,
-                              rqst_ctx **ao_rqst_ctx)
-{
-        
         if(!ao_event)
         {
+                WAFLZ_PERROR(m_err_msg, "ao_event == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
@@ -678,7 +635,11 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                 {
                         l_body_size_max = m_waf->get_request_body_in_memory_limit();
                 }
-                l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, a_callbacks, m_waf->get_parse_json());
+                l_rqst_ctx = new rqst_ctx(a_ctx,
+                                          l_body_size_max,
+                                          a_callbacks,
+                                          m_waf->get_parse_xml(),
+                                          m_waf->get_parse_json());
                 if(ao_rqst_ctx)
                 {
                         *ao_rqst_ctx = l_rqst_ctx;
@@ -687,10 +648,10 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------
-        l_s = l_rqst_ctx->init_phase_1(&m_il_query, &m_il_header, &m_il_cookie);
+        l_s = l_rqst_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), &m_il_query, &m_il_header, &m_il_cookie);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                // TODO -log error???
+                WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::init_phase_1");
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -701,10 +662,10 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
         if(a_part_mk & PART_MK_ACL)
         {
                 bool l_whitelist = false;
-                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, a_callbacks, &l_rqst_ctx);
+                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, *l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        // TODO log error reason???
+                        WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());
                         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -723,14 +684,24 @@ int32_t profile::process_part(waflz_pb::event **ao_event,
                 }
         }
         // -------------------------------------------------
+        // optionally set xml capture xxe
+        // TODO remove or move this elsewhere later
+        // -------------------------------------------------
+        if(m_pb->has_general_settings() &&
+           m_pb->general_settings().has_xml_capture_xxe() &&
+           m_pb->general_settings().xml_capture_xxe())
+        {
+                l_rqst_ctx->m_xml_capture_xxe = true;
+        }
+        // -------------------------------------------------
         // process waf...
         // -------------------------------------------------
         if(a_part_mk & PART_MK_WAF)
         {
-                l_s = m_waf->process(&l_event, a_ctx, a_callbacks, &l_rqst_ctx);
+                l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        // TODO log error reason???
+                        WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());
                         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -744,7 +715,7 @@ done:
                 l_s = l_rqst_ctx->append_rqst_info(*l_event);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        // TODO log error reason???
+                        WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info");
                         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -754,37 +725,6 @@ done:
                 *ao_event = l_event;
         }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details C bindings for nginx module
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-extern "C" profile *create_profile(engine *a_engine, geoip2_mmdb *a_geoip2_mmdb)
-{
-        return new profile(*a_engine, *a_geoip2_mmdb);
-}
-extern "C" int32_t load_config(profile *a_profile, const char *a_buf, uint32_t a_len)
-{
-        return a_profile->load_config(a_buf, a_len);
-}
-extern "C" int32_t set_ruleset(profile *a_profile, char *a_ruleset_dir)
-{
-        a_profile->set_ruleset_dir(a_ruleset_dir);
-        return WAFLZ_STATUS_OK;
-}
-extern "C" int32_t process_request(profile *a_profile, void *ao_ctx, rqst_ctx *a_rqst_ctx, char **ao_event)
-{
-        return a_profile->process_request_plugin(ao_event, ao_ctx, &a_rqst_ctx);
-}
-extern "C" int32_t cleanup_profile(profile *a_profile)
-{
-        if(a_profile)
-        {
-                delete a_profile;
-                a_profile = NULL;
-        }
         return WAFLZ_STATUS_OK;
 }
 }

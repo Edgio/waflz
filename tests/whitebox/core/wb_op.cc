@@ -1307,10 +1307,6 @@ TEST_CASE( "test op", "[op]" ) {
                 // -----------------------------------------
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 if(l_rx) { delete l_rx; l_rx = NULL; }
-                // -----------------------------------------
-                // cleanup
-                // -----------------------------------------
-                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         }
         // -------------------------------------------------
         // VALIDATEBYTERANGE

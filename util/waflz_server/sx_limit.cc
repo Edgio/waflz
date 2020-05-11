@@ -25,12 +25,15 @@
 //: ----------------------------------------------------------------------------
 #include "sx_limit.h"
 #include "is2/support/ndebug.h"
-#include "waflz/db/kycb_db.h"
-#include "waflz/db/redis_db.h"
-#include "waflz/limit/configs.h"
-#include "waflz/limit/config.h"
-#include "waflz/limit/challenge.h"
+#include "waflz/kycb_db.h"
+#include "waflz/redis_db.h"
+#include "waflz/configs.h"
+#include "waflz/config.h"
+#include "waflz/geoip2_mmdb.h"
+#include "waflz/challenge.h"
 #include "support/file_util.h"
+#include <errno.h>
+#include <stdlib.h>
 #include <unistd.h>
 //: ----------------------------------------------------------------------------
 //: constants
@@ -51,7 +54,9 @@ sx_limit::sx_limit(void):
         m_redis_host(),
         m_challenge_file(),
         m_configs(NULL),
-        m_cust_id(0)
+        m_cust_id(0),
+        m_db(NULL),
+        m_challenge(NULL)
 {
 }
 //: ----------------------------------------------------------------------------
@@ -61,6 +66,9 @@ sx_limit::sx_limit(void):
 //: ----------------------------------------------------------------------------
 sx_limit::~sx_limit(void)
 {
+        if(m_db) { delete m_db; m_db = NULL; }
+        if(m_challenge) { delete m_challenge; m_challenge = NULL; }
+        if(m_configs) { delete m_configs; m_configs = NULL; }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -69,8 +77,6 @@ sx_limit::~sx_limit(void)
 //: ----------------------------------------------------------------------------
 int32_t sx_limit::init(void)
 {
-        ns_waflz::kv_db *l_db = NULL;
-        ns_waflz::challenge* l_challenge = NULL;
         char *l_buf;
         uint32_t l_buf_len;
         int32_t l_s;
@@ -79,7 +85,7 @@ int32_t sx_limit::init(void)
         // -------------------------------------------------
         if(!m_redis_host.empty())
         {
-                l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::redis_db());
+                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::redis_db());
                 // -----------------------------------------
                 // parse host
                 // -----------------------------------------
@@ -104,15 +110,15 @@ int32_t sx_limit::init(void)
                 // TODO -error checking
                 l_port = (uint16_t)strtoul(l_port_str.c_str(), NULL, 10);
                 // TODO -check status
-                l_db->set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_host.c_str(), l_host.length());
-                l_db->set_opt(ns_waflz::redis_db::OPT_REDIS_PORT, NULL, l_port);
+                m_db->set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_host.c_str(), l_host.length());
+                m_db->set_opt(ns_waflz::redis_db::OPT_REDIS_PORT, NULL, l_port);
                 // -----------------------------------------
                 // init db
                 // -----------------------------------------
-                l_s = l_db->init();
+                l_s = m_db->init();
                 if(l_s != STATUS_OK)
                 {
-                        NDBG_PRINT("error performing db init: Reason: %s\n", l_db->get_err_msg());
+                        NDBG_PRINT("error performing db init: Reason: %s\n", m_db->get_err_msg());
                         return STATUS_ERROR;
                 }
                 NDBG_PRINT("USING REDIS\n");
@@ -129,7 +135,7 @@ int32_t sx_limit::init(void)
                 //l_db_options |= kyotocabinet::HashDB::TSMALL;
                 //l_db_options |= kyotocabinet::HashDB::TLINEAR;
                 //l_db_options |= kyotocabinet::HashDB::TCOMPRESS;
-                l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::kycb_db());
+                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::kycb_db());
                 errno = 0;
                 l_s = mkstemps(l_db_file,9);
                 if(l_s == -1)
@@ -142,25 +148,25 @@ int32_t sx_limit::init(void)
                         return STATUS_ERROR;
                 }
                 unlink(l_db_file);
-                l_db->set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                m_db->set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
                 //NDBG_PRINT("l_db_file: %s\n", l_db_file);
-                l_s = l_db->init();
+                l_s = m_db->init();
                 if(l_s != STATUS_OK)
                 {
-                        NDBG_PRINT("error performing initialize_cb: Reason: %s\n", l_db->get_err_msg());
+                        NDBG_PRINT("error performing initialize_cb: Reason: %s\n", m_db->get_err_msg());
                         return STATUS_ERROR;
                 }
         }
         // -------------------------------------------------
         // init browser challenges if provided
         // -------------------------------------------------
-        l_challenge = new ns_waflz::challenge();
+        m_challenge = new ns_waflz::challenge();
         if(!m_challenge_file.empty())
         {
-                l_s = l_challenge->load_file(m_challenge_file.c_str(), m_challenge_file.length());
+                l_s = m_challenge->load_file(m_challenge_file.c_str(), m_challenge_file.length());
                 if(l_s != STATUS_OK)
                 {
-                        NDBG_PRINT("Error:%s", l_challenge->get_err_msg());
+                        NDBG_PRINT("Error:%s", m_challenge->get_err_msg());
                 }
         }
         // -------------------------------------------------
@@ -177,7 +183,7 @@ int32_t sx_limit::init(void)
         // -------------------------------------------------
         // load config
         // -------------------------------------------------
-        m_configs = new ns_waflz::configs(*l_db, *l_challenge);
+        m_configs = new ns_waflz::configs(*m_db, *m_challenge);
         l_s = m_configs->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
@@ -197,7 +203,7 @@ int32_t sx_limit::init(void)
                 NDBG_PRINT("error performing get_first_id: Reason: %s\n", m_configs->get_err_msg());
                 if(m_configs) { delete m_configs; m_configs = NULL;}
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                if(l_db) { delete l_db; l_db = NULL;}
+                if(m_db) { delete m_db; m_db = NULL;}
                 return STATUS_ERROR;
         }
         m_cust_id = l_first_id;
@@ -208,7 +214,7 @@ int32_t sx_limit::init(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_limit::handle_rqst(const waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_limit::handle_rqst(waflz_pb::enforcement **ao_enf,
                                        ns_waflz::rqst_ctx **ao_ctx,
                                        ns_is2::session &a_session,
                                        ns_is2::rqst &a_rqst,
@@ -234,9 +240,20 @@ ns_is2::h_resp_t sx_limit::handle_rqst(const waflz_pb::enforcement **ao_enf,
                 NDBG_PRINT("error performing get_coordinator_config.  Reason: %s\n", m_configs->get_err_msg());
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
-        // -----------------------------------------
+        // -------------------------------------------------
+        // init rqst processing
+        // -------------------------------------------------
+        l_ctx = new ns_waflz::rqst_ctx((void *)&a_session, 0, false, false);
+        ns_waflz::geoip2_mmdb l_geoip2_mmdb;
+        l_s = l_ctx->init_phase_1(l_geoip2_mmdb);
+        if(l_s != STATUS_OK)
+        {
+                NDBG_PRINT("error performing init_phase_1.\n");
+                return ns_is2::H_RESP_SERVER_ERROR;
+        }
+        // -------------------------------------------------
         // process
-        // -----------------------------------------
+        // -------------------------------------------------
         const waflz_pb::enforcement *l_enfcmnt = NULL;
         const waflz_pb::limit *l_limit = NULL;
         l_s = l_config->process(&l_enfcmnt,
@@ -253,7 +270,7 @@ ns_is2::h_resp_t sx_limit::handle_rqst(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         if(ao_enf)
         {
-                *ao_enf = l_enfcmnt;
+                *ao_enf = const_cast<waflz_pb::enforcement *>(l_enfcmnt);
         }
         // -------------------------------------------------
         // cleanup

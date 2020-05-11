@@ -5,27 +5,53 @@ package waflz_pb;
 //: ----------------------------------------------------------------------------
 message acl {
         // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        optional string version = 1;
+        optional string id = 2;
+        optional string name = 3;
+        optional string customer_id = 4;
+        optional string last_modified_date = 5;
+        optional string last_modified_by = 6;
+        // -------------------------------------------------
         // lists
         // -------------------------------------------------
         message lists_t {
                 repeated string blacklist = 1;
                 repeated string whitelist = 2;
+                repeated string accesslist = 3;
         }
         message lists_asn_t {
                 repeated uint32 blacklist = 1;
                 repeated uint32 whitelist = 2;
+                repeated uint32 accesslist = 3;
         }
-        optional lists_t country = 1;
-        optional lists_t ip = 2;
-        optional lists_t referer = 3;
-        optional lists_t url = 4;
-        optional lists_t cookie = 5;
-        optional lists_t user_agent = 6;
-        optional lists_asn_t asn = 7;
-        repeated string allowed_http_methods = 8;
-        repeated string allowed_http_versions = 9;
-        repeated string allowed_request_content_types = 10;
-        repeated string disallowed_extensions = 11;
-        repeated string disallowed_headers = 12;
-        optional uint64 max_file_size = 13;
+        // -------------------------------------------------
+        // acl's...
+        // -------------------------------------------------
+        optional lists_t country = 100;
+        optional lists_t ip = 102;
+        optional lists_t referer = 103;
+        optional lists_t url = 104;
+        optional lists_t cookie = 105;
+        optional lists_t user_agent = 106;
+        optional lists_asn_t asn = 107;
+        // -------------------------------------------------
+        // request properties
+        // -------------------------------------------------
+        repeated string allowed_http_methods = 108;
+        repeated string allowed_http_versions = 109;
+        repeated string allowed_request_content_types = 110;
+        repeated string disallowed_extensions = 111;
+        repeated string disallowed_headers = 112;
+        optional uint64 max_file_size = 113;
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // *************************************************
+        // deprecated:
+        // move to general_settings
+        // *************************************************
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        repeated string ignore_cookie = 9001;
+        repeated string ignore_header = 9002;
+        repeated string ignore_query_args = 9003;
 }

@@ -124,20 +124,6 @@ int32_t convert_hex_to_uint(uint64_t &ao_val, const char *a_str)
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details parse cookie string:
-//:          format: 'key1=val1; key2; key3=val3; key4\0'
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-static bool is_char_in_set(const char *a_arr, uint32_t a_arr_len, char a_char)
-{
-        for(uint32_t i_c = 0; i_c < a_arr_len; ++i_c)
-        {
-                if(a_char == a_arr[i_c]) return true;
-        }
-        return false;
-}
-//: ----------------------------------------------------------------------------
 //: \details Find the first occurrence of find in s, where the search is limited
 //:          to the first slen characters of s.
 //: \return  TODO
@@ -181,10 +167,10 @@ char *strnstr(const char *s, const char *find, size_t slen)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t strntol(const char *a_str, size_t a_size, char **ao_end, int a_base)
+long int strntol(const char *a_str, size_t a_size, char **ao_end, int a_base)
 {
         char l_buf[24];
-        int32_t l_ret;
+        long int l_ret;
         const char *l_begin = a_str;
         // catch up leading spaces
         for(; l_begin && a_size && (*l_begin == ' '); ++l_begin, --a_size);
@@ -194,7 +180,7 @@ int32_t strntol(const char *a_str, size_t a_size, char **ao_end, int a_base)
                 {
                         *ao_end = (char *)a_str;
                 }
-                return (int32_t)LONG_MIN;
+                return LONG_MIN;
         }
         memcpy(l_buf, l_begin, a_size);
         l_buf[a_size] = '\0';
@@ -250,10 +236,10 @@ int64_t strntoll(const char *a_str, size_t a_size, char **ao_end, int a_base)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-uint32_t strntoul(const char *a_str, size_t a_size, char **ao_end, int a_base)
+unsigned long int strntoul(const char *a_str, size_t a_size, char **ao_end, int a_base)
 {
         char l_buf[24];
-        uint32_t l_ret;
+        unsigned long int l_ret;
         const char *l_begin = a_str;
         // catch up leading spaces
         for(; l_begin && a_size && (*l_begin == ' '); ++l_begin, --a_size);
@@ -312,6 +298,51 @@ uint64_t strntoull(const char *a_str, size_t a_size, char **ao_end, int a_base)
         return l_ret;
 }
 //: ----------------------------------------------------------------------------
+//: \details Appends src to string dst of size dsize
+//:          (unlike strncat, dsize is full size of dst, not space left).
+//:          At most dsize-1 characters will be copied.
+//:          Always NULL terminates (unless dsize <= strlen(dst)).
+//: \return  strlen(src) + MIN(dsize, strlen(initial dst)).
+//:          If retval >= dsize, truncation occurred.
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+size_t strlcat(char *a_dst, const char *a_src, size_t a_dsize)
+{
+        const char *l_odst = a_dst;
+        const char *l_osrc = a_src;
+        size_t l_n = a_dsize;
+        size_t l_dlen;
+        // -------------------------------------------------
+        // Find the end of a_dst and adjust bytes left but
+        /// don't go past end.
+        // -------------------------------------------------
+        while(l_n-- != 0 &&
+              *a_dst != '\0')
+        {
+                ++a_dst;
+        }
+        l_dlen = a_dst - l_odst;
+        l_n = a_dsize - l_dlen;
+        if (l_n-- == 0)
+        {
+                return(l_dlen + strlen(a_src));
+        }
+        while (*a_src != '\0')
+        {
+                if (l_n != 0)
+                {
+                        *a_dst++ = *a_src;
+                        l_n--;
+                }
+                ++a_src;
+        }
+        *a_dst = '\0';
+        // -------------------------------------------------
+        // count does not include NULL
+        // -------------------------------------------------
+        return(l_dlen + (a_src - l_osrc));
+}
+//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
@@ -336,16 +367,6 @@ void * memrchr(const void *s, int c, size_t n)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-#define WAFLZ_FG_COLOR_LIST_LENGTH 6
-const char g_color_off[16] = ANSI_COLOR_OFF;
-const char g_color_fg_list[WAFLZ_FG_COLOR_LIST_LENGTH][16] = {
-        ANSI_COLOR_FG_RED,
-        ANSI_COLOR_FG_GREEN,
-        ANSI_COLOR_FG_YELLOW,
-        ANSI_COLOR_FG_BLUE,
-        ANSI_COLOR_FG_MAGENTA,
-        ANSI_COLOR_FG_CYAN
-};
 typedef struct {
         char m_token[32];
         char m_color[32];
@@ -395,5 +416,13 @@ int32_t colorize_string(std::string &ao_string)
                 l_str_ptr = (char *)(ao_string.data() + l_last_offt);
         }
         return 0;
+}
+//: ----------------------------------------------------------------------------
+//: \details: return version string
+//: \return:  version string
+//: ----------------------------------------------------------------------------
+const char *get_version(void)
+{
+        return WAFLZ_VERSION;
 }
 }

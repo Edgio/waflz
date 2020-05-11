@@ -106,6 +106,10 @@ typedef struct _node {
                 }
                 if(!a_top_down) { a_cb(this); }
         }
+private:
+        // disallow copy/assign
+        _node(const _node &);
+        _node& operator=(const _node &);
 } node_t;
 #ifdef AC_DEBUG
 uint32_t node_t::s_id = 0;
@@ -545,7 +549,7 @@ bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data)
         if(!m_finalized)
         {
                 // TODO log error reason???
-                return NULL;
+                return false;
         }
         node_t *l_n = m_root;
         const char *l_end = a_buf + a_len;

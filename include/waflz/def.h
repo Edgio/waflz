@@ -89,6 +89,10 @@ typedef enum {
         PART_MK_ALL = 15,
 } part_mk_t;
 #endif
+//: ----------------------------------------------------------------------------
+//: constants
+//: ----------------------------------------------------------------------------
+#define DEFAULT_BODY_SIZE_MAX (128*1024)
 // callbacks
 typedef int32_t (*get_rqst_data_size_cb_t)(uint32_t *a, void *);
 typedef int32_t (*get_rqst_data_cb_t)(const char **, uint32_t *, void *);

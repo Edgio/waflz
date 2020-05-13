@@ -25,7 +25,6 @@
 //: ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
-#include "waflz/profile.h"
 #include "waflz/geoip2_mmdb.h"
 #include "support/ndebug.h"
 #include <unistd.h>

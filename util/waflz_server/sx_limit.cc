@@ -243,7 +243,7 @@ ns_is2::h_resp_t sx_limit::handle_rqst(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // init rqst processing
         // -------------------------------------------------
-        l_ctx = new ns_waflz::rqst_ctx((void *)&a_session, 0, false, false);
+        l_ctx = new ns_waflz::rqst_ctx((void *)&a_session, 0, m_callbacks, false, false);
         ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         l_s = l_ctx->init_phase_1(l_geoip2_mmdb);
         if(l_s != STATUS_OK)

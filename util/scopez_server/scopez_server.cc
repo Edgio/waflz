@@ -964,21 +964,31 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // callbacks request context
         // -------------------------------------------------
-        ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = ns_waflz_server::get_rqst_ip_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_line_cb = ns_waflz_server::get_rqst_line_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_scheme_cb = ns_waflz_server::get_rqst_scheme_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_port_cb = ns_waflz_server::get_rqst_port_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_host_cb = ns_waflz_server::get_rqst_host_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_method_cb = ns_waflz_server::get_rqst_method_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_protocol_cb = ns_waflz_server::get_rqst_protocol_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_url_cb = ns_waflz_server::get_rqst_url_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_uri_cb = ns_waflz_server::get_rqst_uri_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_path_cb = ns_waflz_server::get_rqst_path_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_query_str_cb = ns_waflz_server::get_rqst_query_str_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_uuid_cb = ns_waflz_server::get_rqst_uuid_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = ns_waflz_server::get_rqst_header_size_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = ns_waflz_server::get_rqst_header_w_idx_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_body_str_cb = ns_waflz_server::get_rqst_body_str_cb;
+        static ns_waflz::rqst_ctx_callbacks s_callbacks = {
+                ns_waflz_server::get_rqst_ip_cb,
+                ns_waflz_server::get_rqst_host_cb,
+                ns_waflz_server::get_rqst_port_cb,
+                ns_waflz_server::get_rqst_scheme_cb,
+                ns_waflz_server::get_rqst_protocol_cb,
+                ns_waflz_server::get_rqst_line_cb,
+                ns_waflz_server::get_rqst_method_cb,
+                ns_waflz_server::get_rqst_url_cb,
+                ns_waflz_server::get_rqst_uri_cb,
+                ns_waflz_server::get_rqst_path_cb,
+                ns_waflz_server::get_rqst_query_str_cb,
+                ns_waflz_server::get_rqst_header_size_cb,
+                NULL, //get_rqst_header_w_key_cb,
+                ns_waflz_server::get_rqst_header_w_idx_cb,
+                ns_waflz_server::get_rqst_id_cb,
+                ns_waflz_server::get_rqst_body_str_cb,
+                NULL, //get_rqst_local_addr_cb,
+                NULL, //get_rqst_canonical_port_cb,
+                NULL, //get_rqst_apparent_cache_status_cb,
+                NULL, //get_rqst_bytes_out_cb,
+                NULL, //get_rqst_bytes_in_cb,
+                NULL, //get_rqst_req_id_cb,
+                NULL //get_cust_id_cb
+        };
 #ifdef ENABLE_PROFILER
         // -------------------------------------------------
         // start profiler(s)
@@ -1066,6 +1076,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
                 g_sx_scopes->m_b_challenge_file = l_b_challenge_file;
+                g_sx_scopes->m_callbacks = &s_callbacks;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
@@ -1082,6 +1093,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
                 g_sx_scopes->m_b_challenge_file = l_b_challenge_file;
+                g_sx_scopes->m_callbacks = &s_callbacks;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;

@@ -796,6 +796,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
+                s_header_referer = "http://gp1.can.transactcdn.com/0016715";
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------

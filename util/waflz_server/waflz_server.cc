@@ -1286,6 +1286,7 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_modsecurity *l_sx_msx = new ns_waflz_server::sx_modsecurity();
                 l_sx_msx->m_lsnr = l_lsnr;
                 l_sx_msx->m_config = l_config_file;
+                l_sx_msx->m_callbacks = &s_callbacks;
                 g_sx = l_sx_msx;
                 break;
         }

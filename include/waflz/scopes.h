@@ -27,6 +27,7 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/city.h"
+#include "waflz/rqst_ctx.h"
 #include <string>
 #include <inttypes.h>
 #include <list>
@@ -136,6 +137,7 @@ public:
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
                         part_mk_t a_part_mk,
+                        const rqst_ctx_callbacks *a_callbacks,
                         rqst_ctx **ao_rqst_ctx);
 private:
         // -------------------------------------------------

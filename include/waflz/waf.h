@@ -33,7 +33,6 @@
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
-#define DEFAULT_BODY_SIZE_MAX (128*1024)
 #define WAFLZ_NATIVE_ANOMALY_MODE 1
 //: ----------------------------------------------------------------------------
 //: fwd decl's -proto
@@ -101,7 +100,7 @@ public:
         // -------------------------------------------------
         waf(engine &a_engine);
         ~waf();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx, const rqst_ctx_callbacks *a_callbacks, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
         int32_t init(profile &a_profile);
         int32_t init(config_parser::format_t a_format, const std::string &a_path, bool a_apply_defaults = false);
         int32_t init(void* a_js, bool a_apply_defaults = false);

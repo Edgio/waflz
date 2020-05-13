@@ -254,7 +254,7 @@ int32_t get_rqst_host_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         if(ns_is2::find_first(i_hdr, l_headers, "Host", sizeof("Host")))
         {
                 *a_data = i_hdr.m_data;
-                a_len = i_hdr.m_len;
+                *a_len = i_hdr.m_len;
                 return 0;
         }
         *a_data = "localhost";

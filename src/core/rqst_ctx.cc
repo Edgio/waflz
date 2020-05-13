@@ -506,7 +506,7 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         {
                 int32_t l_s;
                 l_s = m_callbacks->s_get_rqst_id_cb(&m_req_uuid.m_data,
-                                                    m_req_uuid.m_len,
+                                                    &m_req_uuid.m_len,
                                                     m_ctx);
                 if(l_s != 0)
                 {
@@ -1333,7 +1333,7 @@ extern "C" int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx)
                 delete a_rqst_ctx;
                 a_rqst_ctx = NULL;
         }
+        return WAFLZ_STATUS_OK;
 }
-
 }
 

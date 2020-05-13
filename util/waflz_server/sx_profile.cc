@@ -211,10 +211,12 @@ ns_is2::h_resp_t sx_profile::handle_rqst(waflz_pb::enforcement **ao_enf,
         int32_t l_s;
         ns_waflz::rqst_ctx *l_ctx = NULL;
         waflz_pb::event *l_event = NULL;
+        //l_ctx = new ns_waflz::rqst_ctx(ao_ctx, DEFAULT_BODY_SIZE_MAX, m_callbacks);
         // -------------------------------------------------
         // process profile
         // -------------------------------------------------
-        l_s = m_profile->process(&l_event, &a_session, ns_waflz::PART_MK_ALL, m_callbacks, &l_ctx);
+        l_ctx = new ns_waflz::rqst_ctx((void *)&a_session, DEFAULT_BODY_SIZE_MAX, m_callbacks, false, false);
+        l_s = m_profile->process(&l_event, &a_session, ns_waflz::PART_MK_ALL, &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error processing config. reason: %s\n",

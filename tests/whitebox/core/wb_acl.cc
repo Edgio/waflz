@@ -430,7 +430,6 @@ TEST_CASE( "acl test", "[acl]" )
                 void *l_ctx = NULL;
                 waflz_pb::event *l_event = NULL;
                 ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
-                s_ip = "200.163.1.17";
                 // *****************************************
                 // -----------------------------------------
                 //             I P   T E S T
@@ -440,7 +439,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist
                 // -----------------------------------------
                 s_ip = "243.49.2.7";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
@@ -453,7 +453,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist cidr
                 // -----------------------------------------
                 s_ip = "212.43.8.7";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
@@ -467,7 +468,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate whitelist
                 // -----------------------------------------
                 s_ip = "200.162.133.3";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
                 REQUIRE(l_rqst_ctx->m_wl == true);
@@ -476,7 +478,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate whitelist cidr
                 // -----------------------------------------
                 s_ip = "199.167.1.17";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
                 REQUIRE(l_rqst_ctx->m_wl == true);
@@ -485,7 +488,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate whitelist included in blacklist
                 // -----------------------------------------
                 s_ip = "199.167.1.1";
-                        l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
                 REQUIRE(l_rqst_ctx->m_wl == true);
@@ -503,7 +507,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist
                 // -----------------------------------------
                 s_ip = "45.249.212.124";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
                 REQUIRE((l_event != NULL));
@@ -517,7 +522,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate whitelist
                 // -----------------------------------------
                 s_ip = "202.32.115.5";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
@@ -535,7 +541,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist
                 // -----------------------------------------
                 s_ip = "160.153.43.133";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
                 REQUIRE((l_event != NULL));
@@ -549,7 +556,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate whitelist
                 // -----------------------------------------
                 s_ip = "72.21.92.7";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
@@ -567,7 +575,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist
                 // -----------------------------------------
                 s_uri = "/login-confirm/index.html";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -581,7 +590,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist regex
                 // -----------------------------------------
                 s_uri = "/banana/monkey.html";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -595,7 +605,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate whitelist
                 // -----------------------------------------
                 s_uri = "/chickenkiller/kill_chickenzz.html";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
@@ -614,7 +625,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist
                 // -----------------------------------------
                 s_header_user_agent = "cats are really cool dude";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -628,7 +640,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist regex
                 // -----------------------------------------
                 s_header_user_agent = "curl/7.47.0";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -642,7 +655,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate whitelist
                 // -----------------------------------------
                 s_header_user_agent = "monkeys luv bananas";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
@@ -660,7 +674,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist
                 // -----------------------------------------
                 s_header_referer = "bad reefer";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -674,7 +689,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist regex
                 // -----------------------------------------
                 s_header_referer = "really/bad/reefer";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -688,7 +704,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate whitelist
                 // -----------------------------------------
                 s_header_referer = "monkeys luv referers";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
@@ -706,7 +723,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist key
                 // -----------------------------------------
                 s_header_cookie = "__cookie_a=a_value; wonky_key=b_value; __cookie_c=c_value;";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -720,7 +738,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist value
                 // -----------------------------------------
                 s_header_cookie = "__cookie_a=a_value; __cookie_b=wonky_value; __cookie_c=c_value;";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -734,7 +753,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate blacklist regex
                 // -----------------------------------------
                 s_header_cookie = "__cookie_a=a_value; bad_7_key=b_value; __cookie_c=c_value;";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -748,7 +768,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate whitelist
                 // -----------------------------------------
                 s_header_cookie = "__cookie_a=a_value; monkeys_cookie=b_value; __cookie_c=c_value;";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == true);
                 REQUIRE((l_event == NULL));
@@ -766,7 +787,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate block
                 // -----------------------------------------
                 s_method = "HEAD";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -782,7 +804,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // -----------------------------------------
                 s_method = "GET";
                 s_host = "www.google.com";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -801,7 +824,8 @@ TEST_CASE( "acl test", "[acl]" )
                 s_header_content_type = "garbage type";
                 s_header_content_length = "120";
                 s_method = "POST";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -818,7 +842,8 @@ TEST_CASE( "acl test", "[acl]" )
                 s_method = "GET";
                 s_host = "www.google.com";
                 s_header_content_length = NULL;
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == false);
                 REQUIRE((l_event == NULL));
@@ -829,7 +854,8 @@ TEST_CASE( "acl test", "[acl]" )
                 s_method = "OPTIONS";
                 s_host = "www.google.com";
                 s_header_content_length = NULL;
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == false);
                 REQUIRE((l_event == NULL));
@@ -850,7 +876,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate block
                 // -----------------------------------------
                 s_path = "my/path/is/abc.def.php";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -866,7 +893,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // -----------------------------------------
                 s_host = "www.google.com";
                 s_path = "my/path/is/abc.html";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -889,7 +917,8 @@ TEST_CASE( "acl test", "[acl]" )
                 s_method = "POST";
                 s_header_content_length = "1048577";
                 NDBG_PRINT("FILE SIZE CHECK TEST\n");
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
@@ -907,7 +936,8 @@ TEST_CASE( "acl test", "[acl]" )
                 s_header_content_type = "text/xml";
                 s_header_content_length = "120";
                 s_host = "www.google.com";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == false);
                 REQUIRE((l_event == NULL));
@@ -928,7 +958,8 @@ TEST_CASE( "acl test", "[acl]" )
                 // -----------------------------------------
                 s_test_header = "test";
                 s_host = "www.google.com";
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
@@ -944,7 +975,8 @@ TEST_CASE( "acl test", "[acl]" )
                 s_method = "GET";
                 s_host = "www.google.com";
                 s_test_header = NULL;
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &s_callbacks, &l_rqst_ctx);
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE(l_rqst_ctx->m_wl == false);
                 REQUIRE((l_event == NULL));

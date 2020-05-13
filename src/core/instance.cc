@@ -30,7 +30,7 @@
 #include "support/ndebug.h"
 #include "waflz/def.h"
 #include "waflz/instance.h"
-#include "waflz/profile.h"
+#include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"
 #include <dirent.h>
 #include <string.h>
@@ -377,6 +377,9 @@ int32_t instance::process(const waflz_pb::enforcement **ao_enf,
         *ao_prod_event = NULL;
         int32_t l_s;
         rqst_ctx *l_rqst_ctx = NULL;
+        // TODO -fix args!!!
+        //l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
+        l_rqst_ctx = new rqst_ctx(a_ctx, DEFAULT_BODY_SIZE_MAX, a_callbacks);
         // -------------------------------------------------
         // *************************************************
         //                    A U D I T
@@ -386,7 +389,7 @@ int32_t instance::process(const waflz_pb::enforcement **ao_enf,
         {
                 goto process_prod;
         }
-        l_s = m_profile_audit->process(ao_audit_event, a_ctx, a_part_mk, a_callbacks, &l_rqst_ctx);
+        l_s = m_profile_audit->process(ao_audit_event, a_ctx, a_part_mk, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -418,7 +421,7 @@ process_prod:
         {
                 goto done;
         }
-        l_s = m_profile_prod->process(ao_prod_event, a_ctx, a_part_mk, a_callbacks, &l_rqst_ctx);
+        l_s = m_profile_prod->process(ao_prod_event, a_ctx, a_part_mk, &l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }

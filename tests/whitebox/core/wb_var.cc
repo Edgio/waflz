@@ -266,7 +266,7 @@ TEST_CASE( "test var", "[var]" ) {
                 NULL, //get_rqst_req_id_cb,
                 NULL //get_cust_id_cb
         };
-        ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true);
+        ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true, true);
         // -----------------------------------------
         // geoip
         // -----------------------------------------

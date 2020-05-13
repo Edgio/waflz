@@ -29,6 +29,7 @@
 #ifdef __cplusplus
 #include <waflz/arg.h>
 #include <waflz/parser.h>
+#include <waflz/profile.h>
 #include <list>
 #include <map>
 #include <strings.h>
@@ -103,7 +104,7 @@ typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <std::string, uint32_t> count_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 typedef std::list<data_t> data_list_t;
-typedef std::list<regex *> pcre_list_t;
+//typedef std::list<regex *> pcre_list_t;
 typedef std::list <std::string> str_list_t;
 //! ----------------------------------------------------------------------------
 //! xpath optimization
@@ -138,6 +139,12 @@ public:
         int32_t append_rqst_info(waflz_pb::event &ao_event);
         void show(void);
         // -------------------------------------------------
+        // setters
+        // -------------------------------------------------
+        void set_body_max_len(uint32_t a_body_len_max) { m_body_len_max = a_body_len_max; }
+        void set_parse_xml(bool a_parse_xml) { m_parse_xml = a_parse_xml; }
+        void set_parse_json(bool a_parse_json) { m_parse_json = a_parse_json; }
+        // -------------------------------------------------
         // public members
         // -------------------------------------------------
         data_t m_src_addr;
@@ -163,7 +170,7 @@ public:
         uint32_t m_apparent_cache_status;
         data_list_t m_content_type_list;
         uint32_t m_uri_path_len;
-        const uint32_t m_body_len_max;
+        uint32_t m_body_len_max;
         char *m_body_data;
         uint32_t m_body_len;
         uint64_t m_content_length;

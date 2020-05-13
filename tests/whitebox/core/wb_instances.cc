@@ -228,8 +228,6 @@ TEST_CASE( "instances test", "[instances]" ) {
                 l_geoip2_city_file += "/../../../../tests/data/waf/db/GeoLite2-City.mmdb";
                 l_geoip2_asn_file += "/../../../../tests/data/waf/db/GeoLite2-ASN.mmdb";
                 //l_geoip2_asn_file += "/../tests/data/waf/db/GeoLite2-ASN.mmdb";
-                ns_waflz::profile::s_geoip2_db = l_geoip2_city_file;
-                ns_waflz::profile::s_geoip2_isp_db = l_geoip2_asn_file;
                 // waf
                 static ns_waflz::rqst_ctx_callbacks s_callbacks = {
                         get_rqst_src_addr_cb,

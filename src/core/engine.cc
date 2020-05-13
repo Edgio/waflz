@@ -730,6 +730,16 @@ int32_t engine::merge(compiled_config_t &ao_cx_cfg,
         }
         return WAFLZ_STATUS_OK;
 }
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+void engine::set_geoip2_dbs(const std::string& a_geoip2_db,
+                            const std::string& a_geoip2_isp_db)
+{
+        m_geoip2_db = a_geoip2_db;
+        m_geoip2_isp_db = a_geoip2_isp_db;
+}
 //: ----------------------------------------------------------------------------
 //: \details C bindings for nginx module
 //: \return  TODO
@@ -747,14 +757,5 @@ extern "C" int32_t engine_cleanup(engine *a_engine)
                 a_engine = NULL;
         }
         return WAFLZ_STATUS_OK;
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-void engine::set_geoip2_dbs(const std::string& a_geoip2_db,
-                            const std::string& a_geoip2_isp_db)
-{
-        m_geoip2_db = a_geoip2_db;
-        m_geoip2_isp_db = a_geoip2_isp_db;
 }
 }

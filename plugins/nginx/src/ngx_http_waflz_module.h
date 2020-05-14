@@ -33,9 +33,8 @@
 // -----------------------------------------------
 // waflz includes
 // -----------------------------------------------
-#include <waflz/profile.h>
+#include <waflz/scopes.h>
 #include <waflz/engine.h>
-#include <geoip2_mmdb.h>
 #include <waflz/rqst_ctx.h>
 #include <waflz/def.h>
 //: ----------------------------------------------------------------------------
@@ -43,10 +42,10 @@
 typedef struct {
     void                    *pool;
     engine                  *m_engine;
-    geoip2_mmdb             *m_geoip2_db;
     // Config values
     ngx_flag_t              enable;
     ngx_str_t               m_ruleset_dir;
+    ngx_str_t               m_config_dir;
     ngx_str_t               m_city_mmdb_path;
     ngx_str_t               m_asn_mmdb_path;
 } ngx_http_waflz_conf_t;
@@ -54,9 +53,9 @@ typedef struct {
 
 typedef struct {
     void                    *pool;
-    profile                 *m_profile;
+    scopes                  *m_scopes;
     // Config values
-    ngx_str_t               m_profile_file;
+    ngx_str_t               m_scopes_file;
 } ngx_http_waflz_loc_conf_t;
 char *ngx_str_to_char(ngx_str_t a, ngx_pool_t *p);
 #endif // header

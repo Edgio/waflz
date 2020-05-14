@@ -124,8 +124,11 @@ private:
 extern "C" {
 #endif
 
-engine *init_engine(void);
-int32_t engine_cleanup(engine *a_engine);
+engine *create_waflz_engine(void);
+void set_waflz_ruleset_dir(engine *a_engine, char *a_ruleset_dir);
+void set_waflz_geoip2_dbs(engine *a_engine, char *a_geoip2_db, char *a_geoip2_isp_db);
+int32_t init_waflz_engine(engine *a_engine);
+int32_t waflz_engine_cleanup(engine *a_engine);
 
 #ifdef __cplusplus
 }

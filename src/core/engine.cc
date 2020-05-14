@@ -745,11 +745,23 @@ void engine::set_geoip2_dbs(const std::string& a_geoip2_db,
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-extern "C" engine *init_engine(void)
+extern "C" engine *create_waflz_engine(void)
 {
         return new engine();
 }
-extern "C" int32_t engine_cleanup(engine *a_engine)
+extern "C" void set_waflz_ruleset_dir(engine *a_engine, char *a_ruleset_dir)
+{
+        a_engine->set_ruleset_dir(a_ruleset_dir);;
+}
+extern "C" void set_waflz_geoip2_dbs(engine *a_engine, char *a_geoip2_db, char *a_geoip2_isp_db )
+{
+        a_engine->set_geoip2_dbs(a_geoip2_db, a_geoip2_isp_db);;
+}
+extern "C" int32_t init_waflz_engine(engine *a_engine)
+{
+        return a_engine->init();;
+}
+extern "C" int32_t waflz_engine_cleanup(engine *a_engine)
 {
         if(a_engine)
         {

@@ -44,7 +44,7 @@ static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *chil
 //: routines for cleanup
 //: ----------------------------------------------------------------------------
 static void ngx_http_waflz_cleanup_engine(void *data);
-static void ngx_http_waflz_cleanup_profile(void *data);
+static void ngx_http_waflz_cleanup_scopes(void *data);
 //: ----------------------------------------------------------------------------
 //: filters
 //: ----------------------------------------------------------------------------
@@ -135,12 +135,39 @@ static int32_t get_rqst_src_addr_cb(const char **ao_data,
         {
                 return -1;
         }
+        /*
+            this is not the best way to get src_addr. get it later
+        */
         ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
-        ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)l_txn->connection->log, 0, "in callback\n");
-        *ao_data = (const char *)l_txn->connection->addr_text.data;
+        *ao_data = ngx_str_to_char(l_txn->connection->addr_text, l_txn->pool);
         *ao_data_len = l_txn->connection->addr_text.len;
         return 0;
 }
+int32_t get_rqst_host_cb(const char **ao_data, uint32_t *ao_data_len, void *a_ctx)
+{
+        if(!a_ctx)
+        {
+                return -1;
+        }
+        ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
+        *ao_data = (const char *)l_txn->headers_in.host->value.data;
+        *ao_data_len = l_txn->headers_in.host->value.len;
+        return 0;
+
+
+}
+int32_t get_rqst_uri_cb(const char **ao_data, uint32_t *ao_data_len, void *a_ctx)
+{
+        if(!a_ctx)
+        {
+                return -1;
+        }
+        ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
+        *ao_data = (const char *)l_txn->uri.data;
+        *ao_data_len = l_txn->uri.len;
+        return 0;
+}
+
 //: ----------------------------------------------------------------------------
 //: \details callback struct definition
 //: \return  TODO
@@ -148,14 +175,14 @@ static int32_t get_rqst_src_addr_cb(const char **ao_data,
 //: ----------------------------------------------------------------------------
 static rqst_ctx_callbacks s_callbacks = {
                 get_rqst_src_addr_cb,
-                NULL,//get_rqst_host_cb,
+                get_rqst_host_cb,//get_rqst_host_cb,
                 NULL,//get_rqst_port_cb,
                 NULL,//get_rqst_scheme_cb,
                 NULL,//get_rqst_protocol_cb,
                 NULL,//get_rqst_line_cb,
                 NULL,//get_rqst_method_cb,
                 NULL,//get_rqst_url_cb,
-                NULL,//get_rqst_uri_cb,
+                get_rqst_uri_cb,//get_rqst_uri_cb,
                 NULL,//get_rqst_path_cb, 
                 NULL,//get_rqst_query_str_cb,
                 NULL,//get_rqst_header_size_cb,
@@ -185,19 +212,27 @@ static ngx_command_t ngx_http_waflz_commands[] = {
                 NULL
         },
         {
-                ngx_string("profile"),
+                ngx_string("scopes"),
                 NGX_HTTP_LOC_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1, // take exactly 1
                 ngx_conf_set_str_slot, // Turn it on/off
                 NGX_HTTP_LOC_CONF_OFFSET, // Where to save this value
-                offsetof(ngx_http_waflz_loc_conf_t, m_profile_file),
+                offsetof(ngx_http_waflz_loc_conf_t, m_scopes_file),
                 NULL
         },
         {
-                ngx_string("ruleset_dir"),
+                ngx_string("waflz_ruleset_dir"),
                 NGX_HTTP_LOC_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
                 ngx_conf_set_str_slot, // Turn it on/off
                 NGX_HTTP_MAIN_CONF_OFFSET, // Where to save this value
                 offsetof(ngx_http_waflz_conf_t, m_ruleset_dir),
+                NULL
+        },
+        {
+                ngx_string("waflz_config_dir"),
+                NGX_HTTP_LOC_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
+                ngx_conf_set_str_slot, // Turn it on/off
+                NGX_HTTP_MAIN_CONF_OFFSET, // Where to save this value
+                offsetof(ngx_http_waflz_conf_t, m_config_dir),
                 NULL
         },
         {
@@ -282,11 +317,11 @@ ngx_int_t ngx_http_waflz_handler(ngx_http_request_t *r)
                 ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)r->connection->log, 0, "loc conf null");
                 return NGX_DECLINED;
         }
-        rqst_ctx *l_rqst_ctx = init_rqst_ctx(r, DEFAULT_BODY_SIZE_MAX, &s_callbacks, true);
+        rqst_ctx *l_rqst_ctx = NULL;
         // process_request
         char *l_event = NULL;
         ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)r->connection->log, 0, "processing");
-        process_request(l_loc_conf->m_profile, r, l_rqst_ctx, &l_event);
+        process_waflz(l_loc_conf->m_scopes, r, l_rqst_ctx, &s_callbacks, &l_event);
         if(l_event)
         {
             r->headers_out.status = NGX_HTTP_FORBIDDEN;
@@ -377,11 +412,9 @@ static void * ngx_http_waflz_create_main_conf(ngx_conf_t *cf)
         }
         cln->handler = ngx_http_waflz_cleanup_engine;
         cln->data = cf->pool;
-        // instantiate engine and dbs
-        mcf->m_engine = init_engine();
-        mcf->m_geoip2_db = get_geoip();
-        if(!mcf->m_engine ||
-           !mcf->m_geoip2_db)
+        // instantiate engine
+        mcf->m_engine = create_waflz_engine();
+        if(!mcf->m_engine)
         {
                 return NGX_CONF_ERROR;
         }
@@ -398,14 +431,15 @@ static char *ngx_http_waflz_init_main_conf(ngx_conf_t *cf, void *conf)
         ngx_pool_t                   *old_pool;
         old_pool = ngx_http_waflz_pcre_malloc_init(cf->pool);
         mcf = (ngx_http_waflz_conf_t *) conf;
-        // Initialize obj with db files
         int32_t l_s = 0;
-        l_s = init_db(mcf->m_geoip2_db, ngx_str_to_char(mcf->m_city_mmdb_path, cf->pool), ngx_str_to_char(mcf->m_asn_mmdb_path, cf->pool));
-        ngx_http_waflz_pcre_malloc_done(old_pool);
+        set_waflz_ruleset_dir(mcf->m_engine, ngx_str_to_char(mcf->m_ruleset_dir, cf->pool));
+        set_waflz_geoip2_dbs(mcf->m_engine, ngx_str_to_char(mcf->m_city_mmdb_path, cf->pool), ngx_str_to_char(mcf->m_asn_mmdb_path, cf->pool));
+        l_s = init_waflz_engine(mcf->m_engine);
         if(l_s != 0)
         {
               return NGX_CONF_ERROR;  
         }
+        ngx_http_waflz_pcre_malloc_done(old_pool);
         return NGX_CONF_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -427,7 +461,7 @@ static void * ngx_http_waflz_create_loc_conf(ngx_conf_t *cf)
         {
                 return NGX_CONF_ERROR;
         }
-        cln->handler = ngx_http_waflz_cleanup_profile;
+        cln->handler = ngx_http_waflz_cleanup_scopes;
         cln->data = cf->pool;
         return clcf;
 }
@@ -441,17 +475,16 @@ static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *chil
         ngx_http_waflz_loc_conf_t *l_p = parent;
         ngx_http_waflz_loc_conf_t *l_c = child;
         ngx_pool_t                *old_pool;
-        ngx_http_waflz_conf_t *l_main_conf;
+        ngx_http_waflz_conf_t     *l_main_conf;
         uint32_t l_s;
         old_pool = ngx_http_waflz_pcre_malloc_init(cf->pool);
         char *l_buf = NULL;
         uint32_t l_len = 0;
-        ngx_conf_merge_str_value(l_p->m_profile_file, l_c->m_profile_file, "waf_prof.json");
+        ngx_conf_merge_str_value(l_p->m_scopes_file, l_c->m_scopes_file, "scopes.json");
         l_main_conf = ngx_http_conf_get_module_main_conf(cf, ngx_http_waflz_module);
-        // create a profile for this loc block
-        l_c->m_profile = create_profile(l_main_conf->m_engine, l_main_conf->m_geoip2_db);
-        set_ruleset(l_c->m_profile, ngx_str_to_char(l_main_conf->m_ruleset_dir, cf->pool));
-        FILE *f = fopen(ngx_str_to_char(l_c->m_profile_file, cf->pool), "rb");
+        // create a scopes for this loc block
+        l_c->m_scopes = create_scopes(l_main_conf->m_engine);
+        FILE *f = fopen(ngx_str_to_char(l_c->m_scopes_file, cf->pool), "rb");
         if(f)
         {
                 fseek (f, 0, SEEK_END);
@@ -471,7 +504,7 @@ static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *chil
         }
         if(l_buf)
         {
-                l_s = load_config(l_c->m_profile, l_buf, l_len);
+                l_s = load_config(l_c->m_scopes, l_buf, l_len, ngx_str_to_char(l_main_conf->m_config_dir, cf->pool));
                 if(l_s !=0)
                 {
                         return NGX_CONF_ERROR;
@@ -479,7 +512,7 @@ static char * ngx_http_waflz_merge_conf(ngx_conf_t *cf, void *parent, void *chil
         }
         // pcre jazz
         ngx_http_waflz_pcre_malloc_done(old_pool);
-        if(!l_c->m_profile)
+        if(!l_c->m_scopes)
         {
                 return NGX_CONF_ERROR;
         }
@@ -516,25 +549,24 @@ static void ngx_http_waflz_cleanup_engine(void *data)
 
         mmcf = (ngx_http_waflz_conf_t *) data;
         old_pool = ngx_http_waflz_pcre_malloc_init(mmcf->pool);
-        engine_cleanup(mmcf->m_engine);
+        waflz_engine_cleanup(mmcf->m_engine);
         ngx_http_waflz_pcre_malloc_done(old_pool);
-        cleanup_db(mmcf->m_geoip2_db);
 }
 //: ----------------------------------------------------------------------------
 //: \details cleanup location conf
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-static void ngx_http_waflz_cleanup_profile(void *data)
+static void ngx_http_waflz_cleanup_scopes(void *data)
 {
         ngx_pool_t                  *old_pool;
         ngx_http_waflz_loc_conf_t   *clcf;
 
         clcf = (ngx_http_waflz_loc_conf_t *) data;
         old_pool = ngx_http_waflz_pcre_malloc_init(clcf->pool);
-        if(clcf->m_profile)
+        if(clcf->m_scopes)
         {
-                cleanup_profile(clcf->m_profile);
+                cleanup_scopes(clcf->m_scopes);
         }
         ngx_http_waflz_pcre_malloc_done(old_pool);
 }

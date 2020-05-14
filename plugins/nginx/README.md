@@ -12,14 +12,15 @@ server {
 
         
         
-        ruleset_dir   /tmp/waf/ruleset/;
+        waflz_ruleset_dir   /tmp/waf/ruleset/;
+        waflz_conf_dir  /tmp/waf/conf/
         city_mmdb_path /tmp/maxmind_dbs/GeoIP2City.mmdb;
         asn_mmdb_path /tmp/maxmind_dbs/GeoIP2ISP.mmdb;
 
         access_log   logs/access_log  main;
 
         location / {
-            profile       test.wafprof.json;
+            scopes       testscopes.json;
             root /tmp/www/;
             index  index.html index.htm;
         }

@@ -20,6 +20,8 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
+#ifndef _SCOPES_H_
+#define _SCOPES_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
@@ -37,8 +39,6 @@
     #include <tr1/unordered_map>
 #endif
 #endif
-#ifndef _SCOPES_H_
-#define _SCOPES_H_
 #ifndef __cplusplus
 #include "waflz/rqst_ctx.h"
 typedef struct engine_t engine;
@@ -232,12 +232,10 @@ int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg);
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 scopes *create_scopes(engine *a_engine);
 int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir);
 int32_t process_waflz(scopes *a_scope, void *ao_ctx, rqst_ctx *a_rqst_ctx, const rqst_ctx_callbacks *a_callbacks, char **ao_event);
 int32_t cleanup_scopes(scopes *a_scopes);
-
 #ifdef __cplusplus
 }
 } // namespace waflz

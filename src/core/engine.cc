@@ -730,6 +730,7 @@ int32_t engine::merge(compiled_config_t &ao_cx_cfg,
         }
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
@@ -741,26 +742,52 @@ void engine::set_geoip2_dbs(const std::string& a_geoip2_db,
         m_geoip2_isp_db = a_geoip2_isp_db;
 }
 //: ----------------------------------------------------------------------------
-//: \details C bindings for nginx module
-//: \return  TODO
-//: \param   TODO
+//: \details C binding for third party lib to create an engine obj
+//: \return  an engine object
+//: \param   void
 //: ----------------------------------------------------------------------------
 extern "C" engine *create_waflz_engine(void)
 {
         return new engine();
 }
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to set the ruleset directory of
+//:          waf rulesets for a given scopes config.
+//: \return  an engine object
+//: \param   a_engine: engine object
+//: \param   a_ruleset_dir: location of ruleset directory
+//: ----------------------------------------------------------------------------
 extern "C" void set_waflz_ruleset_dir(engine *a_engine, char *a_ruleset_dir)
 {
         a_engine->set_ruleset_dir(a_ruleset_dir);;
 }
-extern "C" void set_waflz_geoip2_dbs(engine *a_engine, char *a_geoip2_db, char *a_geoip2_isp_db )
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to set geoip db paths
+//: \return  void
+//: \param   a_engine: engine obj
+//: \param   a_geoip2_db: location of geoip city mmdb file
+//: \param   a_geoip2_isp_db: location of geoip isp mmdb file
+//: ----------------------------------------------------------------------------
+extern "C" void set_waflz_geoip2_dbs(engine *a_engine, char *a_geoip2_db, char *a_geoip2_isp_db)
 {
         a_engine->set_geoip2_dbs(a_geoip2_db, a_geoip2_isp_db);;
 }
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party initiate engine obj, this will set
+//:          ruleset dir, geoip db, paths, compile waf rules etc
+//: \return  0 on success
+//:          -1 on failure
+//: \param   a_engine: engine object
+//: ----------------------------------------------------------------------------
 extern "C" int32_t init_waflz_engine(engine *a_engine)
 {
         return a_engine->init();;
 }
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to cleanup engine obj
+//: \return  0: success
+//: \param   a_engine: engine obj
+//: ----------------------------------------------------------------------------
 extern "C" int32_t waflz_engine_cleanup(engine *a_engine)
 {
         if(a_engine)

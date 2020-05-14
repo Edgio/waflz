@@ -2270,9 +2270,9 @@ int32_t in_scope(bool &ao_match,
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details C bindings for nginx module
-//: \return  TODO
-//: \param   TODO
+//: \details C binding for third party lib to create a scopes obj
+//: \return  a scopes object
+//: \param   a_engine: waflz engine object
 //: ----------------------------------------------------------------------------
 extern "C" scopes *create_scopes(engine *a_engine)
 {
@@ -2280,15 +2280,42 @@ extern "C" scopes *create_scopes(engine *a_engine)
         ns_waflz::challenge *l_c = NULL;
         return new scopes(*a_engine, *l_db, *l_c);
 }
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to load a scopes config in json frmt
+//: \return  0 on success
+//:          -1 on failure
+//: \param   a_scope: scopes object
+//: \param   a_buf: a char pointer to contents of a scopes config file
+//: \param   a_len: length of a_buf
+//: \param   a_conf_dir: the location of acl, waf, rules config
+//:          which are part of a scope config
+//: ----------------------------------------------------------------------------
 extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir)
 {
         std::string l_conf_dir(a_conf_dir);
         return a_scope->load(a_buf, a_len, l_conf_dir);
 }
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to process a request through waflz
+//: \return  0 on success
+//:          -1 on failure
+//: \param   a_scope: scopes object
+//: \param   ao_ctx: void pointer of the request ctx of the calling http library
+//: \param   a_rqst_ctx: object of waflz rqst_ctx class, which holds all 
+//:          the pieces of a http request
+//: \param   a_callbacks: callback struct which tells rqst_ctx where to get 
+//:          the peices of a http request from the given ao_ctx
+//: \param   ao_event: event details, if there was an action taken by waflz
+//: ----------------------------------------------------------------------------
 extern "C" int32_t process_waflz(scopes *a_scope, void *ao_ctx, rqst_ctx *a_rqst_ctx, const rqst_ctx_callbacks *a_callbacks, char **ao_event)
 {
         return a_scope->process_request_plugin(ao_event, ao_ctx, a_callbacks, &a_rqst_ctx);
 }
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to do a graceful cleanup of scopes object
+//: \return  0: success
+//: \param   a_scope: scopes object
+//: ----------------------------------------------------------------------------
 extern "C" int32_t cleanup_scopes(scopes *a_scopes)
 {
         if(a_scopes)

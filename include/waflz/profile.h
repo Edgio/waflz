@@ -26,6 +26,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
+#include "waflz/rqst_ctx.h"
 #include <string>
 #include <list>
 #include <set>

@@ -28,6 +28,7 @@
 #include "waflz/def.h"
 #include "waflz/limit.h"
 #include "waflz/challenge.h"
+#include "waflz/rqst_ctx.h"
 #include <pthread.h>
 #include <string>
 #if defined(__APPLE__) || defined(__darwin__)
@@ -78,6 +79,7 @@ public:
                         void *a_ctx,
                         uint64_t a_id,
                         part_mk_t a_part_mk,
+                        const rqst_ctx_callbacks *a_callbacks,
                         rqst_ctx **ao_rqst_ctx);
         bool check_id(uint64_t a_cust_id);
         const char *get_err_msg(void) { return m_err_msg; }

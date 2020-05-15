@@ -26,6 +26,7 @@
 #include "sx_modsecurity.h"
 #include "waflz/waf.h"
 #include "waflz/engine.h"
+#include "waflz/profile.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"
 #include "is2/support/trace.h"
@@ -228,6 +229,7 @@ ns_is2::h_resp_t sx_modsecurity::handle_rqst(waflz_pb::enforcement **ao_enf,
         int32_t l_s;
         ns_waflz::rqst_ctx *l_ctx = NULL;
         waflz_pb::event *l_event = NULL;
+        l_ctx = new ns_waflz::rqst_ctx((void *)&a_session, DEFAULT_BODY_SIZE_MAX, m_callbacks, false, false);
         // -------------------------------------------------
         // process
         // -------------------------------------------------

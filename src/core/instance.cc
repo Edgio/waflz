@@ -30,7 +30,7 @@
 #include "support/ndebug.h"
 #include "waflz/def.h"
 #include "waflz/instance.h"
-#include "waflz/profile.h"
+#include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"
 #include <dirent.h>
 #include <string.h>
@@ -362,6 +362,7 @@ int32_t instance::process(const waflz_pb::enforcement **ao_enf,
                           waflz_pb::event **ao_prod_event,
                           void *a_ctx,
                           part_mk_t a_part_mk,
+                          const rqst_ctx_callbacks *a_callbacks,
                           rqst_ctx **ao_rqst_ctx)
 {
         // sanity checking...
@@ -376,6 +377,9 @@ int32_t instance::process(const waflz_pb::enforcement **ao_enf,
         *ao_prod_event = NULL;
         int32_t l_s;
         rqst_ctx *l_rqst_ctx = NULL;
+        // TODO -fix args!!!
+        //l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
+        l_rqst_ctx = new rqst_ctx(a_ctx, DEFAULT_BODY_SIZE_MAX, a_callbacks);
         // -------------------------------------------------
         // *************************************************
         //                    A U D I T

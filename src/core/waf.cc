@@ -2412,7 +2412,9 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx)
+int32_t waf::process(waflz_pb::event **ao_event,
+                     void *a_ctx,
+                     rqst_ctx **ao_rqst_ctx)
 {
         if(!m_pb)
         {
@@ -2433,18 +2435,15 @@ int32_t waf::process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst
         }
         if(!l_ctx)
         {
-                // get body size max
-                uint32_t l_body_size_max = DEFAULT_BODY_SIZE_MAX;
-                if(m_pb->has_request_body_in_memory_limit())
-                {
-                        l_body_size_max = m_pb->request_body_in_memory_limit();
-                }
-                l_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_parse_xml, m_parse_json);
-                if(ao_rqst_ctx)
-                {
-                        *ao_rqst_ctx = l_ctx;
-                }
+                WAFLZ_PERROR(m_err_msg, "ao_rqst_ctx == NULL");
+                return WAFLZ_STATUS_ERROR;
         }
+        if(m_pb->has_request_body_in_memory_limit())
+        {
+                l_ctx->set_body_max_len(m_pb->request_body_in_memory_limit());
+        }
+        l_ctx->set_parse_xml(m_parse_xml);
+        l_ctx->set_parse_json(m_parse_json);
         // -------------------------------------------------
         // *************************************************
         //                   P H A S E  1

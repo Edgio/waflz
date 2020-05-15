@@ -25,13 +25,20 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
+#ifdef __cplusplus
 #include "waflz/def.h"
 #include <string>
+#endif
+#ifndef __cplusplus
+typedef struct geoip2_mmdb_t geoip2_mmdb;
+#endif
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 struct MMDB_s;
+#ifdef __cplusplus
 namespace ns_waflz {
+
 //: ----------------------------------------------------------------------------
 //: geoip2_mmdb
 //: ----------------------------------------------------------------------------
@@ -84,5 +91,15 @@ private:
         MMDB_s* m_city_mmdb;
         MMDB_s* m_asn_mmdb;
 };
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+geoip2_mmdb *get_geoip(void);
+int32_t init_db(geoip2_mmdb *a_geoip2_mmdb, char * a_city_mmdb_path, char *a_asn_mmdb_path);
+int32_t cleanup_db(geoip2_mmdb *a_geoip);
+#ifdef __cplusplus
 }
+}// namespace
+#endif
 #endif

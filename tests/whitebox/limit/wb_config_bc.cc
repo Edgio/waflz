@@ -157,88 +157,79 @@ static std::string g_ec_cookie_val = "";
 //! ----------------------------------------------------------------------------
 //! get ip callback
 //! ----------------------------------------------------------------------------
-static int32_t get_rqst_ip_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+//! ----------------------------------------------------------------------------
+//! get ip callback
+//! ----------------------------------------------------------------------------
+static const char *s_ip = "192.16.26.2";
+static int32_t get_rqst_ip_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
-        static const char s_uri[] = "192.16.26.2";
-        *a_data = s_uri;
-        a_len = strlen(s_uri);
+        *a_data = s_ip;
+        *a_len = strlen(s_ip);
         return 0;
 }
 //! ----------------------------------------------------------------------------
 //! get uri callback
 //! ----------------------------------------------------------------------------
-static int32_t get_rqst_uri_cats_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static const char *s_uri = "/8019AE6/ssc-www.autozonepro.com/catalog/parts/index.js";
+static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
-        static const char s_uri[] = "/cats.html";
+        
         *a_data = s_uri;
-        a_len = strlen(s_uri);
+        *a_len = strlen(s_uri);
         return 0;
 }
 //! ----------------------------------------------------------------------------
-//! get uri callback
+//! get host callback
 //! ----------------------------------------------------------------------------
-static int32_t get_rqst_host_cats_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static const char *s_host = "www.bats.dogs.com";
+static int32_t get_rqst_host_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
-        static const char s_uri[] = "www.cats.dogs.com";
-        *a_data = s_uri;
-        a_len = strlen(s_uri);
+        *a_data = s_host;
+        *a_len = strlen(s_host);
         return 0;
 }
 //! ----------------------------------------------------------------------------
 //! get header callbacks
 //! ----------------------------------------------------------------------------
-static int32_t get_rqst_header_size_bc_cb(uint32_t& a_val, void* a_ctx)
+static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
-        a_val = 1;
+        *a_val = 2;
         return 0;
 }
-//! ----------------------------------------------------------------------------
-//! get_rqst_header_w_idx_bc_cb
-//! ----------------------------------------------------------------------------
-static int32_t get_rqst_header_w_idx_bc_cb(const char **ao_key,
-                                           uint32_t &ao_key_len,
-                                           const char **ao_val,
-                                           uint32_t &ao_val_len,
-                                           void *a_ctx,
-                                           uint32_t a_idx)
+static const char *s_header_user_agent = "monkey";
+static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
+                                        uint32_t *ao_key_len,
+                                        const char **ao_val,
+                                        uint32_t *ao_val_len,
+                                        void *a_ctx,
+                                        uint32_t a_idx)
 {
-        *ao_key = "User-Agent";
-        ao_key_len = strlen("User-Agent");
-        *ao_val = "monkey";
-        ao_val_len = strlen("monkey");
-        return 0;
-}
-//! ----------------------------------------------------------------------------
-//! get_rqst_header_size_cb - size 2
-//! ----------------------------------------------------------------------------
-static int32_t get_rqst_header_size_2_bc_cb(uint32_t& a_val, void* a_ctx)
-{
-        a_val = 2;
-        return 0;
-}
-//! ----------------------------------------------------------------------------
-//! get_rqst_header_w_idx_bc_cb - both ua and cookie
-//! ----------------------------------------------------------------------------
-static int32_t get_rqst_header_w_idx_bc_cookie_cb(const char **ao_key,
-                                                  uint32_t &ao_key_len,
-                                                  const char **ao_val,
-                                                  uint32_t &ao_val_len,
-                                                  void *a_ctx,
-                                                  uint32_t a_idx)
-{
-        if(a_idx == 0)
+        *ao_key = NULL;
+        *ao_key_len = 0;
+        *ao_val = NULL;
+        *ao_val_len = 0;
+        switch(a_idx)
+        {
+        case 0:
         {
                 *ao_key = "User-Agent";
-                ao_key_len = strlen("User-Agent");
-                *ao_val = "monkey";
-                ao_val_len = strlen("monkey");
+                *ao_key_len = strlen("User-Agent") - 1;
+                *ao_val = s_header_user_agent;
+                *ao_val_len = strlen(s_header_user_agent);
+                break;
         }
-        else
+        case 1:
         {
                 *ao_key = "Cookie";
-                ao_key_len = strlen("Cookie");
+                *ao_key_len = strlen("Cookie") - 1;
                 *ao_val = g_ec_cookie_val.c_str();
-                ao_val_len = g_ec_cookie_val.length();
+                *ao_val_len = g_ec_cookie_val.length();
+                break;
+        }
+        default:
+        {
+                break;
+        }
         }
         return 0;
 }
@@ -259,6 +250,31 @@ int32_t strip_token(std::string &ao_token, const char *a_resp, uint32_t a_resp_l
 //! config tests
 //! ----------------------------------------------------------------------------
 TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
+        static ns_waflz::rqst_ctx_callbacks s_callbacks = {
+                        get_rqst_ip_cb,
+                        get_rqst_host_cb,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        get_rqst_uri_cb,
+                        NULL,
+                        NULL,
+                        get_rqst_header_size_cb,
+                        NULL, //get_rqst_header_w_key_cb,
+                        get_rqst_header_w_idx_cb,
+                        NULL, //get_rqst_id_cb,
+                        NULL,
+                        NULL, //get_rqst_local_addr_cb,
+                        NULL, //get_rqst_canonical_port_cb,
+                        NULL, //get_rqst_apparent_cache_status_cb,
+                        NULL, //get_rqst_bytes_out_cb,
+                        NULL, //get_rqst_bytes_in_cb,
+                        NULL, //get_rqst_req_id_cb,
+                        NULL //get_cust_id_cb
+        };
         ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         // -------------------------------------------------
         // verify browser challenge for 'always_on' mode
@@ -295,17 +311,16 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_ip_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_host_cb = get_rqst_host_cats_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cats_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_bc_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_bc_cb;
+                s_host = "www.cats.dogs.com";
+                s_uri = "/cats.html";
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // process - first request. should
@@ -342,17 +357,13 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 g_ec_cookie_val += "ec_answer=";
                 g_ec_cookie_val += "200";
                 // -----------------------------------------
-                // set new header callbacks
-                // for getting cookie
-                // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_2_bc_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_bc_cookie_cb;
-                // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // w/ wrong cookie, verify gets an another
@@ -380,8 +391,10 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // verify no match
@@ -437,8 +450,10 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // set correct cookie.
@@ -490,17 +505,17 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 // set rqst_ctx
                 // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_ip_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_host_cb = get_rqst_host_cats_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cats_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_bc_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_bc_cb;
+                s_host = "www.cats.dogs.com";
+                s_uri = "/cats.html";
+                g_ec_cookie_val.clear();
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // verify no enforcer
@@ -541,12 +556,6 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 strip_token(l_token, l_resp, l_resp_len);
                 if(l_resp) { free(l_resp); l_resp = NULL; l_resp_len = 0; }
                 // -----------------------------------------
-                // set new header callbacks
-                // for getting cookie
-                // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_2_bc_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_bc_cookie_cb;
-                // -----------------------------------------
                 // create cookie
                 // -----------------------------------------
                 g_ec_cookie_val.clear();
@@ -559,8 +568,10 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // validate get challenge for bad resp
@@ -584,8 +595,10 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 //------------------------------------------
                 // set correct cookie. verify no enforcer

@@ -25,22 +25,30 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
+#ifdef __cplusplus
 #include <stdint.h>
 #include <list>
 #include <string>
 #include <map>
 #include "waflz/waf.h"
 #include "waflz/parser.h"
+#endif
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
 //: fwd decl's -proto
 //: ----------------------------------------------------------------------------
+#ifndef __cplusplus
+typedef struct engine_t engine;
+#endif
+#ifdef __cplusplus
 namespace waflz_pb {
 class directive_t;
 class sec_config_t;
 };
+#endif
+#ifdef __cplusplus
 namespace ns_waflz
 {
 //: ----------------------------------------------------------------------------
@@ -105,5 +113,17 @@ private:
         std::string m_geoip2_isp_db;
         char m_err_msg[WAFLZ_ERR_LEN];
 };
-}
 #endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+engine *create_waflz_engine(void);
+void set_waflz_ruleset_dir(engine *a_engine, char *a_ruleset_dir);
+void set_waflz_geoip2_dbs(engine *a_engine, char *a_geoip2_db, char *a_geoip2_isp_db);
+int32_t init_waflz_engine(engine *a_engine);
+int32_t waflz_engine_cleanup(engine *a_engine);
+#ifdef __cplusplus
+}
+}
+#endif // namespace
+#endif // header

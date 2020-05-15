@@ -32,6 +32,7 @@
 #include "sx_limit.h"
 #endif
 #include "waflz/rqst_ctx.h"
+#include "waflz/profile.h"
 #include "waflz/render.h"
 #include "waflz/engine.h"
 #include "waflz/trace.h"
@@ -522,11 +523,12 @@ public:
 #ifdef WAFLZ_RATE_LIMITING
                 if(l_enf
                    // only enforcements for limit mode
-                   && (g_config_mode == CONFIG_MODE_LIMIT)
+                   && (!g_config_mode == CONFIG_MODE_LIMIT)
                    )
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
+
 #endif
                 if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
                 if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
@@ -1083,21 +1085,31 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // callbacks request context
         // -------------------------------------------------
-        ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = ns_waflz_server::get_rqst_ip_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_line_cb = ns_waflz_server::get_rqst_line_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_scheme_cb = ns_waflz_server::get_rqst_scheme_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_port_cb = ns_waflz_server::get_rqst_port_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_host_cb = ns_waflz_server::get_rqst_host_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_method_cb = ns_waflz_server::get_rqst_method_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_protocol_cb = ns_waflz_server::get_rqst_protocol_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_url_cb = ns_waflz_server::get_rqst_url_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_uri_cb = ns_waflz_server::get_rqst_uri_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_path_cb = ns_waflz_server::get_rqst_path_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_query_str_cb = ns_waflz_server::get_rqst_query_str_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_uuid_cb = ns_waflz_server::get_rqst_uuid_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = ns_waflz_server::get_rqst_header_size_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = ns_waflz_server::get_rqst_header_w_idx_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_body_str_cb = ns_waflz_server::get_rqst_body_str_cb;
+        static ns_waflz::rqst_ctx_callbacks s_callbacks = {
+                ns_waflz_server::get_rqst_ip_cb,
+                ns_waflz_server::get_rqst_host_cb,
+                ns_waflz_server::get_rqst_port_cb,
+                ns_waflz_server::get_rqst_scheme_cb,
+                ns_waflz_server::get_rqst_protocol_cb,
+                ns_waflz_server::get_rqst_line_cb,
+                ns_waflz_server::get_rqst_method_cb,
+                ns_waflz_server::get_rqst_url_cb,
+                ns_waflz_server::get_rqst_uri_cb,
+                ns_waflz_server::get_rqst_path_cb,
+                ns_waflz_server::get_rqst_query_str_cb,
+                ns_waflz_server::get_rqst_header_size_cb,
+                NULL, //get_rqst_header_w_key_cb,
+                ns_waflz_server::get_rqst_header_w_idx_cb,
+                ns_waflz_server::get_rqst_id_cb,
+                ns_waflz_server::get_rqst_body_str_cb,
+                NULL, //get_rqst_local_addr_cb,
+                NULL, //get_rqst_canonical_port_cb,
+                NULL, //get_rqst_apparent_cache_status_cb,
+                NULL, //get_rqst_bytes_out_cb,
+                NULL, //get_rqst_bytes_in_cb,
+                NULL, //get_rqst_req_id_cb,
+                NULL //get_cust_id_cb
+        };
 #ifdef ENABLE_PROFILER
         // -------------------------------------------------
         // start profiler(s)
@@ -1224,9 +1236,11 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_profile *l_sx_profile = new ns_waflz_server::sx_profile();
                 l_sx_profile->m_lsnr = l_lsnr;
                 l_sx_profile->m_config = l_config_file;
+                l_sx_profile->m_callbacks = &s_callbacks;
                 l_sx_profile->m_ruleset_dir = l_ruleset_dir;
                 l_sx_profile->m_geoip2_db = l_geoip_db;
                 l_sx_profile->m_geoip2_isp_db = l_geoip_isp_db;
+
                 g_sx = l_sx_profile;
                 break;
         }
@@ -1243,6 +1257,7 @@ int main(int argc, char** argv)
                 l_sx_instance->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_instance->m_is_dir_flag = true;
                 l_sx_instance->m_bg_load = l_bg_load;
+                l_sx_instance->m_callbacks = &s_callbacks;
                 g_sx = l_sx_instance;
                 break;
         }
@@ -1259,6 +1274,7 @@ int main(int argc, char** argv)
                 l_sx_instance->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_instance->m_is_dir_flag = false;
                 l_sx_instance->m_bg_load = l_bg_load;
+                l_sx_instance->m_callbacks = &s_callbacks;
                 g_sx = l_sx_instance;
                 break;
         }
@@ -1270,6 +1286,7 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_modsecurity *l_sx_msx = new ns_waflz_server::sx_modsecurity();
                 l_sx_msx->m_lsnr = l_lsnr;
                 l_sx_msx->m_config = l_config_file;
+                l_sx_msx->m_callbacks = &s_callbacks;
                 g_sx = l_sx_msx;
                 break;
         }
@@ -1282,6 +1299,8 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit();
                 l_sx_limit->m_lsnr = l_lsnr;
                 l_sx_limit->m_config = l_config_file;
+                l_sx_limit->m_callbacks = &s_callbacks;
+                // TODO ...
                 l_sx_limit->m_redis_host = l_redis_host;
                 g_sx = l_sx_limit;
                 break;

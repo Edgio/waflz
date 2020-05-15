@@ -33,6 +33,7 @@
 #include "waflz/limit.h"
 #include "waflz/enforcer.h"
 #include "waflz/challenge.h"
+#include "waflz/trace.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
 #include "support/file_util.h"
@@ -1086,6 +1087,32 @@ limit_action:
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
+//: \details extern function to call process and pass on event info
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t scopes::process_request_plugin(char **ao_event,
+                                       void *a_ctx,
+                                       const rqst_ctx_callbacks *a_callbacks,
+                                       rqst_ctx **ao_rqst_ctx)
+{
+        waflz_pb::event *l_audit_event = NULL;
+        waflz_pb::event *l_prod_event = NULL;
+        const waflz_pb::enforcement *l_enf = NULL;
+        int32_t l_s;
+        l_s = process(&l_enf, &l_audit_event, &l_prod_event, a_ctx, PART_MK_ALL, a_callbacks, ao_rqst_ctx);
+        // TODO: dev handle both audit and prod
+        if(l_prod_event)
+        {
+
+                int32_t l_len = strlen(l_prod_event->DebugString().c_str());
+                char *l_event = (char*)malloc(sizeof(char*) * l_len);
+                strncpy(l_event, l_prod_event->DebugString().c_str(), l_len);
+                *ao_event = l_event;
+        }
+        return l_s;
+}
+//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
@@ -1095,6 +1122,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
                         part_mk_t a_part_mk,
+                        const rqst_ctx_callbacks *a_callbacks,
                         rqst_ctx **ao_rqst_ctx)
 {
         if(!m_pb)
@@ -1108,7 +1136,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         rqst_ctx *l_ctx = NULL;
         // TODO -fix args!!!
         //l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
-        l_ctx = new rqst_ctx(a_ctx, 1024, true);
+        l_ctx = new rqst_ctx(a_ctx, DEFAULT_BODY_SIZE_MAX, a_callbacks);
         if(ao_rqst_ctx)
         {
                 *ao_rqst_ctx = l_ctx;
@@ -2239,6 +2267,62 @@ int32_t in_scope(bool &ao_match,
                 }
         }
         ao_match = true;
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to create a scopes obj
+//: \return  a scopes object
+//: \param   a_engine: waflz engine object
+//: ----------------------------------------------------------------------------
+extern "C" scopes *create_scopes(engine *a_engine)
+{
+        ns_waflz::kv_db* l_db = NULL;
+        ns_waflz::challenge *l_c = NULL;
+        return new scopes(*a_engine, *l_db, *l_c);
+}
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to load a scopes config in json frmt
+//: \return  0 on success
+//:          -1 on failure
+//: \param   a_scope: scopes object
+//: \param   a_buf: a char pointer to contents of a scopes config file
+//: \param   a_len: length of a_buf
+//: \param   a_conf_dir: the location of acl, waf, rules config
+//:          which are part of a scope config
+//: ----------------------------------------------------------------------------
+extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir)
+{
+        std::string l_conf_dir(a_conf_dir);
+        return a_scope->load(a_buf, a_len, l_conf_dir);
+}
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to process a request through waflz
+//: \return  0 on success
+//:          -1 on failure
+//: \param   a_scope: scopes object
+//: \param   ao_ctx: void pointer of the request ctx of the calling http library
+//: \param   a_rqst_ctx: object of waflz rqst_ctx class, which holds all 
+//:          the pieces of a http request
+//: \param   a_callbacks: callback struct which tells rqst_ctx where to get 
+//:          the peices of a http request from the given ao_ctx
+//: \param   ao_event: event details, if there was an action taken by waflz
+//: ----------------------------------------------------------------------------
+extern "C" int32_t process_waflz(scopes *a_scope, void *ao_ctx, rqst_ctx *a_rqst_ctx, const rqst_ctx_callbacks *a_callbacks, char **ao_event)
+{
+        return a_scope->process_request_plugin(ao_event, ao_ctx, a_callbacks, &a_rqst_ctx);
+}
+//: ----------------------------------------------------------------------------
+//: \details C binding for third party lib to do a graceful cleanup of scopes object
+//: \return  0: success
+//: \param   a_scope: scopes object
+//: ----------------------------------------------------------------------------
+extern "C" int32_t cleanup_scopes(scopes *a_scopes)
+{
+        if(a_scopes)
+        {
+                delete a_scopes;
+                a_scopes = NULL;
+        }
         return WAFLZ_STATUS_OK;
 }
 }

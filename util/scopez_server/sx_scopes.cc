@@ -771,6 +771,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                                         &a_session,
                                         l_id,
                                         ns_waflz::PART_MK_ALL,
+                                        m_callbacks,
                                         &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {

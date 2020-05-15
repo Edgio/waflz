@@ -279,19 +279,22 @@ set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
 # library
 # ------------------------------------------------------------------------------
 add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
+add_library(waflz SHARED ${SRCS} ${PB_SRCS})
 target_include_directories(waflzcore PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/proto/ ${CMAKE_BINARY_DIR}/)
+target_link_libraries(waflz ssl crypto pcre protobuf xml2 kyotocabinet hiredis)
 SET_TARGET_PROPERTIES(waflzcore
   PROPERTIES
   POSITION_INDEPENDENT_CODE ON
 )
 # Create symlink for libwaflz.so.<soversion>
-SET_TARGET_PROPERTIES(waflzcore
+SET_TARGET_PROPERTIES(waflz
   PROPERTIES
   SOVERSION 0
 )
 # Add install target for the library
 install(TARGETS waflzcore
   ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
   COMPONENT Libraries
 )
 # Add install target for header files

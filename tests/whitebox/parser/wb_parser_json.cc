@@ -43,7 +43,7 @@ TEST_CASE( "json parse basic test", "[json_parse_basic]" ) {
         // basic test
         // -------------------------------------------------
         SECTION("json parse basic") {
-                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 8096, true);
+                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 8096, NULL, true);
                 ns_waflz::parser_json *l_p_json = new ns_waflz::parser_json(l_rqst_ctx);
                 l_rqst_ctx->m_body_parser = l_p_json;
                 int32_t l_s;
@@ -86,7 +86,7 @@ TEST_CASE( "json parse basic test", "[json_parse_basic]" ) {
         // long field names
         // -------------------------------------------------
         SECTION("json parse long field names") {
-                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 8096, true);
+                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 8096, NULL, true);
                 ns_waflz::parser_json *l_p_json = new ns_waflz::parser_json(l_rqst_ctx);
                 l_rqst_ctx->m_body_parser = l_p_json;
                 int32_t l_s;
@@ -120,7 +120,7 @@ TEST_CASE( "json parse basic test", "[json_parse_basic]" ) {
         // long field names
         // -------------------------------------------------
         SECTION("json parse 256 byte prefix") {
-                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 8096, true);
+                ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 8096, NULL, true);
                 ns_waflz::parser_json *l_p_json = new ns_waflz::parser_json(l_rqst_ctx);
                 l_rqst_ctx->m_body_parser = l_p_json;
                 int32_t l_s;

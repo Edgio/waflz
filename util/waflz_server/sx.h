@@ -29,6 +29,7 @@
 #include "is2/srvr/session.h"
 #include "is2/srvr/rqst.h"
 #include "is2/srvr/lsnr.h"
+#include "waflz/rqst_ctx.h"
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
@@ -74,6 +75,7 @@ public:
         ns_is2::lsnr *m_lsnr;
         std::string m_config;
         std::string m_resp;
+        const ns_waflz::rqst_ctx_callbacks *m_callbacks;
 private:
 };
 }

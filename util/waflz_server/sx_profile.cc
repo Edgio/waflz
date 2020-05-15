@@ -55,9 +55,9 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
                                            ns_is2::rqst &a_rqst,
                                            const ns_is2::url_pmap_t &a_url_pmap)
 {
-        printf("update_profile\n");
         if(!m_profile)
         {
+                //NDBG_PRINT("...\n");
                 TRC_ERROR("g_profile == NULL\n");
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -73,6 +73,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         l_s = m_profile->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
+
                 TRC_ERROR("performing g_profile->load: reason: %s\n", m_profile->get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
                 return ns_is2::H_RESP_SERVER_ERROR;
@@ -210,9 +211,11 @@ ns_is2::h_resp_t sx_profile::handle_rqst(waflz_pb::enforcement **ao_enf,
         int32_t l_s;
         ns_waflz::rqst_ctx *l_ctx = NULL;
         waflz_pb::event *l_event = NULL;
+        //l_ctx = new ns_waflz::rqst_ctx(ao_ctx, DEFAULT_BODY_SIZE_MAX, m_callbacks);
         // -------------------------------------------------
         // process profile
         // -------------------------------------------------
+        l_ctx = new ns_waflz::rqst_ctx((void *)&a_session, DEFAULT_BODY_SIZE_MAX, m_callbacks, false, false);
         l_s = m_profile->process(&l_event, &a_session, ns_waflz::PART_MK_ALL, &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {

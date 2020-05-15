@@ -93,58 +93,58 @@ static waflz_pb::profile *init_std_profile_pb(void)
 //: TODO
 //: ----------------------------------------------------------------------------
 static const char *s_ip = "156.123.12.7";
-static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         *a_data = s_ip;
-        a_len = strlen(s_ip);
+        *a_len = strlen(s_ip);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_line_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "GET / HTTP/1.1";
         *a_data = s_line;
-        a_len = strlen(s_line);
+        *a_len = strlen(s_line);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
 static const char *s_uri = "cats.com";
-static int32_t get_rqst_uri_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         *a_data = s_uri;
-        a_len = strlen(s_uri);
+        *a_len = strlen(s_uri);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: get_rqst_header_size_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
+static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
-        a_val = 8;
+        *a_val = 8;
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: s_get_rqst_method_cb
 //: ----------------------------------------------------------------------------
 static const char *s_method = "GET";
-static int32_t get_rqst_method_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         *a_data = s_method;
-        a_len = strlen(s_method);
+        *a_len = strlen(s_method);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: s_get_rqst_path_cb
 //: ----------------------------------------------------------------------------
 static const char *s_path = "/my/cool/path_name.html";
-static int32_t get_rqst_path_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
+static int32_t get_rqst_path_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         *a_data = s_path;
-        a_len = strlen(s_path);
+        *a_len = strlen(s_path);
         return 0;
 }
 //: ----------------------------------------------------------------------------
@@ -165,48 +165,48 @@ static const char *s_header_content_length = NULL;
 static const char *s_host = NULL;
 static const char *s_test_header = NULL;
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
-                                        uint32_t &ao_key_len,
+                                        uint32_t *ao_key_len,
                                         const char **ao_val,
-                                        uint32_t &ao_val_len,
+                                        uint32_t *ao_val_len,
                                         void *a_ctx,
                                         uint32_t a_idx)
 {
         *ao_key = NULL;
-        ao_key_len = 0;
+        *ao_key_len = 0;
         *ao_val = NULL;
-        ao_val_len = 0;
+        *ao_val_len = 0;
         switch(a_idx)
         {
         case 0:
         {
                 *ao_key = "User-Agent";
-                ao_key_len = strlen("User-Agent");
+                *ao_key_len = strlen("User-Agent");
                 *ao_val = s_header_user_agent;
-                ao_val_len = strlen(s_header_user_agent);
+                *ao_val_len = strlen(s_header_user_agent);
                 break;
         }
         case 1:
         {
                 *ao_key = "Accept";
-                ao_key_len = strlen("Accept");
+                *ao_key_len = strlen("Accept");
                 *ao_val = s_header_accept;
-                ao_val_len = strlen(s_header_accept);
+                *ao_val_len = strlen(s_header_accept);
                 break;
         }
         case 2:
         {
                 *ao_key = "Referer";
-                ao_key_len = strlen("Referer");
+                *ao_key_len = strlen("Referer");
                 *ao_val = s_header_referer;
-                ao_val_len = strlen(s_header_referer);
+                *ao_val_len = strlen(s_header_referer);
                 break;
         }
         case 3:
         {
                 *ao_key = "Cookie";
-                ao_key_len = strlen("Cookie");
+                *ao_key_len = strlen("Cookie");
                 *ao_val = s_header_cookie;
-                ao_val_len = strlen(s_header_cookie);
+                *ao_val_len = strlen(s_header_cookie);
                 break;
         }
         case 4:
@@ -214,9 +214,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                 if(s_header_content_type)
                 {
                         *ao_key = "Content-Type";
-                        ao_key_len = strlen("Content-Type");
+                        *ao_key_len = strlen("Content-Type");
                         *ao_val = s_header_content_type;
-                        ao_val_len = strlen(s_header_content_type);
+                        *ao_val_len = strlen(s_header_content_type);
                 }
                 break;
         }
@@ -225,9 +225,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                 if(s_header_content_length)
                 {
                         *ao_key = "Content-Length";
-                        ao_key_len = strlen("Content-Length");
+                        *ao_key_len = strlen("Content-Length");
                         *ao_val = s_header_content_length;
-                        ao_val_len = strlen(s_header_content_length);
+                        *ao_val_len = strlen(s_header_content_length);
                 }
                 break;
         }
@@ -236,9 +236,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                 if(s_host)
                 {
                         *ao_key = "Host";
-                        ao_key_len = strlen("Host");
+                        *ao_key_len = strlen("Host");
                         *ao_val = s_host;
-                        ao_val_len = strlen(s_host);
+                        *ao_val_len = strlen(s_host);
                 }
                 break;
         }
@@ -247,9 +247,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                 if(s_test_header)
                 {
                         *ao_key = s_test_header;
-                        ao_key_len = strlen(s_test_header);
+                        *ao_key_len = strlen(s_test_header);
                         *ao_val = s_test_header;
-                        ao_val_len = strlen(s_test_header);
+                        *ao_val_len = strlen(s_test_header);
                 }
                 break;
         }
@@ -292,16 +292,34 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         int32_t l_s;
         l_s = l_engine->init();
         REQUIRE((l_s == WAFLZ_STATUS_OK));
-        // -------------------------------------------------
+        // -----------------------------------------
         // cb
-        // -------------------------------------------------
-        ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_line_cb = get_rqst_line_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_uri_cb = get_rqst_uri_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_method_cb = get_rqst_method_cb;
-        ns_waflz::rqst_ctx::s_get_rqst_path_cb = get_rqst_path_cb;
+        // -----------------------------------------
+        static ns_waflz::rqst_ctx_callbacks s_callbacks = {
+                get_rqst_src_addr_cb,
+                NULL, //get_rqst_host_cb,
+                NULL,
+                NULL,
+                NULL,
+                get_rqst_line_cb,
+                get_rqst_method_cb,
+                NULL,
+                get_rqst_uri_cb,
+                get_rqst_path_cb,
+                NULL,
+                get_rqst_header_size_cb,
+                NULL, //get_rqst_header_w_key_cb,
+                get_rqst_header_w_idx_cb,
+                NULL, //get_rqst_id_cb,
+                NULL,
+                NULL, //get_rqst_local_addr_cb,
+                NULL, //get_rqst_canonical_port_cb,
+                NULL, //get_rqst_apparent_cache_status_cb,
+                NULL, //get_rqst_bytes_out_cb,
+                NULL, //get_rqst_bytes_in_cb,
+                NULL, //get_rqst_req_id_cb,
+                NULL //get_cust_id_cb
+        };
         //--------------------------------------------------
         // accesslist ip+
         // -------------------------------------------------
@@ -395,6 +413,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // validate accesslist block
                 // -----------------------------------------
                 s_ip = "243.49.2.6";
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -408,6 +427,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // validate accesslist pass
                 // -----------------------------------------
                 s_ip = "243.49.2.7";
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -418,6 +438,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "212.43.2.5";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -428,6 +449,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "212.43.3.5";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -479,6 +501,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "59.106.218.87";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -489,6 +512,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "212.43.3.5";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -536,6 +560,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "59.106.218.87";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -546,6 +571,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "212.43.3.5";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -594,6 +620,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_uri = "/login-confirm/index.html";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -604,6 +631,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_uri = "/login-confirm/admin.php";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -618,6 +646,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_uri = "/banana/test.html";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -628,6 +657,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_uri = "/banana/xest.html";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -676,6 +706,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_header_user_agent = "cats are really cool dude";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -686,6 +717,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_header_user_agent = "dogs are really cool dude";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -700,6 +732,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_header_user_agent = "curl/test";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -710,6 +743,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_header_user_agent = "hurl/test";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -758,6 +792,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_header_referer = "bad reefer";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -768,6 +803,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_header_referer = "rad beefer";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -816,6 +852,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_header_cookie = "bad_4_key";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -826,6 +863,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_header_cookie = "bad_x_key";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -878,6 +916,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "20.43.2.5";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -888,6 +927,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "212.43.2.20";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -898,6 +938,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "123.43.2.4";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -908,6 +949,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "100.43.3.5";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -922,6 +964,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "212.43.2.5";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -932,6 +975,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "212.43.2.10";
                 l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));

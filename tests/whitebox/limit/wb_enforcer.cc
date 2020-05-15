@@ -331,7 +331,7 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 const waflz_pb::enforcement* l_enfx = NULL;
-                ns_waflz::rqst_ctx l_ctx(NULL, 0);
+                ns_waflz::rqst_ctx l_ctx(NULL, 0, NULL);
                 // Verify match
                 l_ctx.m_uri.m_data = "/bananas/monkey";
                 l_ctx.m_uri.m_len = strlen("/bananas/monkey");
@@ -356,7 +356,7 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 const waflz_pb::enforcement* l_enfx = NULL;
-                ns_waflz::rqst_ctx l_ctx(NULL, 0);
+                ns_waflz::rqst_ctx l_ctx(NULL, 0, NULL);
                 // -----------------------------------------
                 // add user-agent
                 // -----------------------------------------
@@ -395,7 +395,7 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 const waflz_pb::enforcement* l_enfx = NULL;
-                ns_waflz::rqst_ctx l_ctx(NULL, 0);
+                ns_waflz::rqst_ctx l_ctx(NULL, 0, NULL);
                 l_ctx.m_uri.m_data = "/bananas/monkey";
                 l_ctx.m_uri.m_len = strlen("/bananas/monkey");
                 l_s = l_e.process(&l_enfx, &l_ctx);
@@ -421,7 +421,7 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 const waflz_pb::enforcement* l_enfx = NULL;
-                ns_waflz::rqst_ctx l_ctx(NULL, 0);
+                ns_waflz::rqst_ctx l_ctx(NULL, 0, NULL);
                 // verify match
                 l_ctx.m_uri.m_data = "/bananas/monkey";
                 l_ctx.m_uri.m_len = strlen("/bananas/monkey");
@@ -448,7 +448,7 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 //NDBG_PRINT("l_e.get_pb(): %s\n", l_e.get_pb()->ShortDebugString().c_str());
                 const waflz_pb::enforcement* l_enfx = NULL;
-                ns_waflz::rqst_ctx l_ctx(NULL, 0);
+                ns_waflz::rqst_ctx l_ctx(NULL, 0, NULL);
                 l_s = l_e.process(&l_enfx, &l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_enfx != NULL));
@@ -468,7 +468,7 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 const waflz_pb::enforcement* l_enfx = NULL;
-                ns_waflz::rqst_ctx l_ctx(NULL, 0);
+                ns_waflz::rqst_ctx l_ctx(NULL, 0, NULL);
                 l_e.update_start_time();
                 // verify match
                 l_ctx.m_uri.m_data = "/bananas/monkey";

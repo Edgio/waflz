@@ -38,6 +38,7 @@
 //: ----------------------------------------------------------------------------
 //: Config
 //: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
 #define COORDINATOR_CONFIG_JSON_NO_RULES \
 "{"\
 "  \"version\": 2,"\
@@ -71,65 +72,80 @@
 //: ----------------------------------------------------------------------------
 //: get_rqst_header_size_cb
 //: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
+static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
-        a_val = 1;
+        *a_val = 1;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_w_idx_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_w_idx_1_cb(const char **ao_key,
-                                          uint32_t &ao_key_len,
-                                          const char **ao_val,
-                                          uint32_t &ao_val_len,
-                                          void *a_ctx,
-                                          uint32_t a_idx)
+static const char *s_header_user_agent = "monkey";
+
+static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
+                                        uint32_t *ao_key_len,
+                                        const char **ao_val,
+                                        uint32_t *ao_val_len,
+                                        void *a_ctx,
+                                        uint32_t a_idx)
 {
-        if(a_idx == 0)
+        *ao_key = NULL;
+        *ao_key_len = 0;
+        *ao_val = NULL;
+        *ao_val_len = 0;
+        switch(a_idx)
+        {
+        case 0:
         {
                 *ao_key = "User-Agent";
-                ao_key_len = sizeof("User-Agent");
-                *ao_val = "monkey";
-                ao_val_len = sizeof("monkey");
+                *ao_key_len = strlen("User-Agent");
+                *ao_val = s_header_user_agent;
+                *ao_val_len = strlen(s_header_user_agent);
+                break;
+        }
+        default:
+        {
+                break;
+        }
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_w_idx_cb
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_header_w_idx_2_cb(const char **ao_key,
-                                          uint32_t &ao_key_len,
-                                          const char **ao_val,
-                                          uint32_t &ao_val_len,
-                                          void *a_ctx,
-                                          uint32_t a_idx)
+//! ----------------------------------------------------------------------------
+//! get ip callback
+//! ----------------------------------------------------------------------------
+static const char *s_ip = "233.87.123.171";
+static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
-        if(a_idx == 0)
-        {
-                *ao_key = "User-Agent";
-                ao_key_len = sizeof("User-Agent");
-                *ao_val = "banana";
-                ao_val_len = sizeof("banana");
-        }
-        return 0;
-}
-//: ----------------------------------------------------------------------------
-//: get ip callback
-//: ----------------------------------------------------------------------------
-static int32_t get_rqst_src_addr_cb(const char **a_data,
-                                    uint32_t &a_len,
-                                    void *a_ctx)
-{
-        static const char s_ip[] = "233.87.123.171";
         *a_data = s_ip;
-        a_len = strlen(s_ip);
+        *a_len = strlen(s_ip);
         return 0;
 }
 //: ----------------------------------------------------------------------------
 //: config tests
 //: ----------------------------------------------------------------------------
 TEST_CASE( "no rules test", "[no_rules]" ) {
+        static ns_waflz::rqst_ctx_callbacks s_callbacks = {
+                        get_rqst_src_addr_cb,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        get_rqst_header_size_cb,
+                        NULL, //get_rqst_header_w_key_cb,
+                        get_rqst_header_w_idx_cb,
+                        NULL, //get_rqst_id_cb,
+                        NULL,
+                        NULL, //get_rqst_local_addr_cb,
+                        NULL, //get_rqst_canonical_port_cb,
+                        NULL, //get_rqst_apparent_cache_status_cb,
+                        NULL, //get_rqst_bytes_out_cb,
+                        NULL, //get_rqst_bytes_in_cb,
+                        NULL, //get_rqst_req_id_cb,
+                        NULL //get_cust_id_cb
+        };
         ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         // -------------------------------------------------
         // Valid config
@@ -164,17 +180,13 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 const ::waflz_pb::enforcement *l_enf = NULL;
                 const ::waflz_pb::limit* l_limit = NULL;
                 // -----------------------------------------
-                // set rqst_ctx
-                // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_src_addr_cb = get_rqst_src_addr_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_size_cb = get_rqst_header_size_cb;
-                ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_1_cb;
-                // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // run requests
@@ -203,12 +215,12 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 // switch user agent
                 // verify no enforcement
                 // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_2_cb;
+                s_header_user_agent = "banana";
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
@@ -221,13 +233,15 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 // switch user agent back
                 // verify enforcement
                 // -----------------------------------------
-                ns_waflz::rqst_ctx::s_get_rqst_header_w_idx_cb = get_rqst_header_w_idx_1_cb;
+                s_header_user_agent = "monkey";
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0);
+                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
                 l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
+                
+
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
                 // verify match

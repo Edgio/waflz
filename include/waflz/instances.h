@@ -27,6 +27,7 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/city.h"
+#include "waflz/rqst_ctx.h"
 #include <pthread.h>
 #include <string>
 #include <vector>
@@ -79,6 +80,7 @@ public:
                         void *a_ctx,
                         const std::string &a_id,
                         part_mk_t a_part_mk,
+                        const rqst_ctx_callbacks *a_callbacks,
                         rqst_ctx **ao_rqst_ctx);
         void set_locking(bool a_enable_locking) { m_enable_locking = a_enable_locking; }
         void get_first_id(std::string &ao_id);

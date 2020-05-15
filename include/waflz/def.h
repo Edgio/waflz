@@ -25,9 +25,16 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
+#ifdef __cplusplus
 #include <stdint.h>
 #include <list>
 #include <map>
+#endif
+
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+
 #if defined(__APPLE__) || defined(__darwin__)
   #include <strings.h>
 #else
@@ -72,20 +79,28 @@
 //: ----------------------------------------------------------------------------
 //: types
 //: ----------------------------------------------------------------------------
+#ifdef __cplusplus
 namespace ns_waflz {
 typedef enum {
-	PART_MK_ACL = 1,
-	PART_MK_WAF = 2,
+        PART_MK_ACL = 1,
+        PART_MK_WAF = 2,
         PART_MK_RULES = 4,
         PART_MK_LIMITS = 8,
-	PART_MK_ALL = 15,
+        PART_MK_ALL = 15,
 } part_mk_t;
+#endif
+//: ----------------------------------------------------------------------------
+//: constants
+//: ----------------------------------------------------------------------------
+#define DEFAULT_BODY_SIZE_MAX (128*1024)
 // callbacks
-typedef int32_t (*get_rqst_data_size_cb_t)(uint32_t &, void *);
-typedef int32_t (*get_rqst_data_cb_t)(const char **, uint32_t &, void *);
-typedef int32_t (*get_rqst_data_w_key_cb_t)(const char **, uint32_t &, void *, const char *, uint32_t);
-typedef int32_t (*get_rqst_kv_w_idx_cb_t)(const char **, uint32_t &, const char **, uint32_t &, void *, uint32_t);
-typedef int32_t (*get_rqst_body_data_cb_t)(char *, uint32_t &, bool &, void *, uint32_t);
+typedef int32_t (*get_rqst_data_size_cb_t)(uint32_t *a, void *);
+typedef int32_t (*get_rqst_data_cb_t)(const char **, uint32_t *, void *);
+typedef int32_t (*get_rqst_data_w_key_cb_t)(const char **, uint32_t *, void *, const char *, uint32_t);
+typedef int32_t (*get_rqst_kv_w_idx_cb_t)(const char **, uint32_t *, const char **, uint32_t *, void *, uint32_t);
+typedef int32_t (*get_rqst_body_data_cb_t)(char *, uint32_t *, bool , void *, uint32_t *);
+
+#ifdef __cplusplus
 typedef struct _data {
         const char *m_data;
         uint32_t m_len;
@@ -115,4 +130,5 @@ typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 // version string
 const char *get_version(void);
 }
+#endif
 #endif

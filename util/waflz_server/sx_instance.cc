@@ -27,6 +27,7 @@
 #include "waflz/instances.h"
 #include "waflz/instance.h"
 #include "waflz/engine.h"
+#include "waflz/profile.h"
 #include "waflz/rqst_ctx.h"
 #include "is2/support/trace.h"
 #include "is2/support/nbq.h"
@@ -323,7 +324,7 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // process
         // -------------------------------------------------
-        l_s = m_instances->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, l_id, ns_waflz::PART_MK_ALL, &l_ctx);
+        l_s = m_instances->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, l_id, ns_waflz::PART_MK_ALL, m_callbacks, &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error processing config. reason: %s\n", m_instances->get_err_msg());

@@ -401,6 +401,7 @@ int32_t instances::process(waflz_pb::enforcement **ao_enf,
                            void *a_ctx,
                            const std::string &a_id,
                            part_mk_t a_part_mk,
+                           const rqst_ctx_callbacks *a_callbacks,
                            rqst_ctx **ao_rqst_ctx)
 {
         if(m_enable_locking)
@@ -425,7 +426,7 @@ int32_t instances::process(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
-        l_s = l_instance->process(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, ao_rqst_ctx);
+        l_s = l_instance->process(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)

@@ -178,20 +178,15 @@ int32_t rules::process(waflz_pb::event **ao_event,
         }
         if(!l_rqst_ctx)
         {
-                uint32_t l_body_size_max = DEFAULT_BODY_SIZE_MAX;
-                if(m_waf->get_request_body_in_memory_limit() > 0)
-                {
-                        l_body_size_max = m_waf->get_request_body_in_memory_limit();
-                }
-                l_rqst_ctx = new rqst_ctx(a_ctx,
-                                          l_body_size_max,
-                                          m_waf->get_parse_xml(),
-                                          m_waf->get_parse_json());
-                if(ao_rqst_ctx)
-                {
-                        *ao_rqst_ctx = l_rqst_ctx;
-                }
+                WAFLZ_PERROR(m_err_msg, "ao_rqst_ctx == NULL");
+                return WAFLZ_STATUS_ERROR;
         }
+        if(m_waf->get_request_body_in_memory_limit() > 0)
+        {
+                l_rqst_ctx->set_body_max_len(m_waf->get_request_body_in_memory_limit());
+        }
+        l_rqst_ctx->set_parse_xml(m_waf->get_parse_xml());
+        l_rqst_ctx->set_parse_json(m_waf->get_parse_json());
         // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------

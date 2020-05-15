@@ -28,11 +28,11 @@
 #include "waflz/parser.h"
 #include <waflz/config_parser.h>
 #include "waflz/def.h"
+#include "waflz/rqst_ctx.h"
 #include <set>
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
-#define DEFAULT_BODY_SIZE_MAX (128*1024)
 #define WAFLZ_NATIVE_ANOMALY_MODE 1
 //: ----------------------------------------------------------------------------
 //: fwd decl's -proto

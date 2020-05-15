@@ -19,22 +19,29 @@
 //!   See the License for the specific language governing permissions and
 //!   limitations under the License.
 //:
-//! ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 #ifndef _RQST_CTX_H
 #define _RQST_CTX_H
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
 #include <waflz/def.h>
+#ifdef __cplusplus
 #include <waflz/arg.h>
 #include <waflz/parser.h>
 #include <waflz/profile.h>
 #include <list>
 #include <map>
 #include <strings.h>
+#endif
+
 //! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
+#ifndef __cplusplus
+typedef struct rqst_ctx_t rqst_ctx;
+#endif
+#ifdef __cplusplus
 namespace waflz_pb {
 class event;
 }
@@ -43,9 +50,42 @@ class limit;
 class condition_group;
 }
 namespace ns_waflz {
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef struct {
+        get_rqst_data_cb_t m_get_rqst_src_addr_cb;
+        get_rqst_data_cb_t m_get_rqst_host_cb;
+        get_rqst_data_size_cb_t m_get_rqst_port_cb;
+        get_rqst_data_cb_t m_get_rqst_scheme_cb;
+        get_rqst_data_cb_t m_get_rqst_protocol_cb;
+        get_rqst_data_cb_t m_get_rqst_line_cb;
+        get_rqst_data_cb_t m_get_rqst_method_cb;
+        get_rqst_data_cb_t m_get_rqst_url_cb;
+        get_rqst_data_cb_t m_get_rqst_uri_cb;
+        get_rqst_data_cb_t m_get_rqst_path_cb;
+        get_rqst_data_cb_t m_get_rqst_query_str_cb;
+        get_rqst_data_size_cb_t m_get_rqst_header_size_cb;
+        get_rqst_data_w_key_cb_t m_get_rqst_header_w_key_cb;
+        get_rqst_kv_w_idx_cb_t m_get_rqst_header_w_idx_cb;
+        get_rqst_data_cb_t m_get_rqst_id_cb;
+        get_rqst_body_data_cb_t m_get_rqst_body_str_cb;
+        get_rqst_data_cb_t m_get_rqst_local_addr_cb;
+        get_rqst_data_size_cb_t m_get_rqst_canonical_port_cb;
+        get_rqst_data_size_cb_t m_get_rqst_apparent_cache_status_cb;
+        get_rqst_data_size_cb_t m_get_rqst_bytes_out_cb;
+        get_rqst_data_size_cb_t m_get_rqst_bytes_in_cb;
+        get_rqst_data_size_cb_t m_get_rqst_req_id_cb;
+        get_rqst_data_size_cb_t m_get_cust_id_cb;
+}rqst_ctx_callbacks;
+#ifdef __cplusplus
+}
+#endif
 //! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
+#ifdef __cplusplus
 class waf;
 class geoip2_mmdb;
 //! ----------------------------------------------------------------------------
@@ -62,6 +102,8 @@ typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <std::string, uint32_t> count_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 typedef std::list<data_t> data_list_t;
+//typedef std::list<regex *> pcre_list_t;
+typedef std::list <std::string> str_list_t;
 //! ----------------------------------------------------------------------------
 //! xpath optimization
 //! ----------------------------------------------------------------------------
@@ -74,32 +116,6 @@ class rqst_ctx
 {
 public:
         // -------------------------------------------------
-        // callbacks
-        // -------------------------------------------------
-        static get_rqst_data_cb_t s_get_rqst_src_addr_cb;
-        static get_rqst_data_cb_t s_get_rqst_host_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_port_cb;
-        static get_rqst_data_cb_t s_get_rqst_scheme_cb;
-        static get_rqst_data_cb_t s_get_rqst_protocol_cb;
-        static get_rqst_data_cb_t s_get_rqst_line_cb;
-        static get_rqst_data_cb_t s_get_rqst_method_cb;
-        static get_rqst_data_cb_t s_get_rqst_url_cb;
-        static get_rqst_data_cb_t s_get_rqst_uri_cb;
-        static get_rqst_data_cb_t s_get_rqst_path_cb;
-        static get_rqst_data_cb_t s_get_rqst_query_str_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_header_size_cb;
-        static get_rqst_data_w_key_cb_t s_get_rqst_header_w_key_cb;
-        static get_rqst_kv_w_idx_cb_t s_get_rqst_header_w_idx_cb;
-        static get_rqst_body_data_cb_t s_get_rqst_body_str_cb;
-        static get_rqst_data_cb_t s_get_rqst_local_addr_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_canonical_port_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_apparent_cache_status_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_bytes_out_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_bytes_in_cb;
-        static get_rqst_data_size_cb_t s_get_rqst_id_cb;
-        static get_rqst_data_cb_t s_get_rqst_uuid_cb;
-        static get_rqst_data_size_cb_t s_get_cust_id_cb;
-        // -------------------------------------------------
         // static members
         // -------------------------------------------------
         static uint32_t s_body_arg_len_cap;
@@ -108,6 +124,7 @@ public:
         // -------------------------------------------------
         rqst_ctx(void *a_ctx,
                  uint32_t a_body_len_max,
+                 const rqst_ctx_callbacks *a_callbacks,
                  bool a_parse_xml = false,
                  bool a_parse_json = false);
         ~rqst_ctx();
@@ -119,6 +136,12 @@ public:
         int32_t reset_phase_1();
         int32_t append_rqst_info(waflz_pb::event &ao_event);
         void show(void);
+        // -------------------------------------------------
+        // setters
+        // -------------------------------------------------
+        void set_body_max_len(uint32_t a_body_len_max) { m_body_len_max = a_body_len_max; }
+        void set_parse_xml(bool a_parse_xml) { m_parse_xml = a_parse_xml; }
+        void set_parse_json(bool a_parse_json) { m_parse_json = a_parse_json; }
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
@@ -145,7 +168,7 @@ public:
         uint32_t m_apparent_cache_status;
         data_list_t m_content_type_list;
         uint32_t m_uri_path_len;
-        const uint32_t m_body_len_max;
+        uint32_t m_body_len_max;
         char *m_body_data;
         uint32_t m_body_len;
         uint64_t m_content_length;
@@ -190,6 +213,10 @@ public:
         // -------------------------------------------------
         xpath_cache_map_t *m_xpath_cache_map;
         // -------------------------------------------------
+        // request ctx callbacks struct
+        // -------------------------------------------------
+        const rqst_ctx_callbacks *m_callbacks;
+        // -------------------------------------------------
         // extensions
         // -------------------------------------------------
         uint32_t m_src_asn;
@@ -209,5 +236,14 @@ private:
         // -------------------------------------------------
         void *m_ctx;
 };
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+rqst_ctx *init_rqst_ctx(void *a_ctx, const uint32_t a_max_body_len, const rqst_ctx_callbacks *a_callbacks, bool a_parse_json);
+int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx);
+#ifdef __cplusplus
 }
+}
+#endif
 #endif

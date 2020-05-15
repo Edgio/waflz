@@ -25,8 +25,10 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
+#ifdef __cplusplus
 #include "waflz/def.h"
 #include "waflz/city.h"
+#include "waflz/rqst_ctx.h"
 #include <string>
 #include <inttypes.h>
 #include <list>
@@ -36,9 +38,17 @@
 #else
     #include <tr1/unordered_map>
 #endif
+#endif
+#ifndef __cplusplus
+#include "waflz/rqst_ctx.h"
+typedef struct engine_t engine;
+typedef struct scopes_t scopes;
+typedef struct rqst_ctx_t rqst_ctx;
+#endif
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
+#ifdef __cplusplus
 namespace waflz_pb {
         class enforcement;
         class scope_config;
@@ -49,6 +59,8 @@ namespace waflz_pb {
         class limit;
         class condition_group;
 }
+#endif
+#ifdef __cplusplus
 namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 //: fwd decl's
@@ -136,7 +148,12 @@ public:
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
                         part_mk_t a_part_mk,
+                        const rqst_ctx_callbacks *a_callbacks,
                         rqst_ctx **ao_rqst_ctx);
+        int32_t process_request_plugin(char **ao_event,
+                                       void *a_ctx,
+                                       const rqst_ctx_callbacks *a_callbacks,
+                                       rqst_ctx **ao_rqst_ctx);
 private:
         // -------------------------------------------------
         // private methods
@@ -211,5 +228,16 @@ int32_t in_scope(bool &ao_match,
 //: get/convert enforcement
 //: ----------------------------------------------------------------------------
 int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg);
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+scopes *create_scopes(engine *a_engine);
+int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir);
+int32_t process_waflz(scopes *a_scope, void *ao_ctx, rqst_ctx *a_rqst_ctx, const rqst_ctx_callbacks *a_callbacks, char **ao_event);
+int32_t cleanup_scopes(scopes *a_scopes);
+#ifdef __cplusplus
 }
+} // namespace waflz
+#endif
 #endif

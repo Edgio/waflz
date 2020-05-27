@@ -132,7 +132,7 @@ get_rqst_src_addr_cb(const char **ao_data, uint32_t *ao_data_len, void *a_ctx)
     return 0;
 }
 /*
- * \details callback for getting src ip
+ * \details callback for getting host
  * \return  TODO
  * \param   TODO
  */
@@ -148,7 +148,7 @@ get_rqst_host_cb(const char **ao_data, uint32_t *ao_data_len, void *a_ctx)
     return 0;
 }
 /*
- * \details callback for getting src ip
+ * \details callback for getting uri
  * \return  TODO
  * \param   TODO
  */
@@ -159,8 +159,69 @@ get_rqst_uri_cb(const char **ao_data, uint32_t *ao_data_len, void *a_ctx)
         return -1;
     }
     ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
-    *ao_data = (const char *)l_txn->uri.data;
-    *ao_data_len = l_txn->uri.len;
+    *ao_data = (const char *)l_txn->unparsed_uri.data;
+    *ao_data_len = l_txn->unparsed_uri.len;
+    return 0;
+}
+/*
+ * \details callback for getting no. of headers
+ * \return  TODO
+ * \param   TODO
+ */
+static int32_t
+get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
+{
+    if(!a_ctx){
+        return -1;
+    }
+    ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
+    *a_val = l_txn->headers_in.headers.part.nelts;
+    return 0;
+}
+/*
+ * \details callback for getting header based on index [idx]
+ * \return  TODO
+ * \param   TODO
+ */
+static int32_t
+get_rqst_header_w_idx_cb(const char **ao_key,
+                         uint32_t *ao_key_len,
+                         const char **ao_val,
+                         uint32_t *ao_val_len,
+                         void *a_ctx,
+                         uint32_t a_idx)
+{
+    if(!a_ctx){
+        return -1;
+    }
+    ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
+    *ao_key = NULL;
+    *ao_key_len = 0;
+    *ao_val = NULL;
+    *ao_val_len = 0;
+
+    ngx_list_part_t *part = &l_txn->headers_in.headers.part;
+    ngx_table_elt_t *data = part->elts;
+    *ao_key = (const char *) data[a_idx].key.data;
+    *ao_key_len = data[a_idx].key.len;
+    *ao_val = (const char *) data[a_idx].value.data;
+    *ao_val_len = data[a_idx].value.len;
+    return 0;
+}
+/*
+ * \details callback for getting header based on index [idx]
+ * \return  TODO
+ * \param   TODO
+ */
+int32_t
+get_rqst_method_cb(const char **ao_data, uint32_t *ao_len, void *a_ctx)
+{
+    if(!a_ctx){
+        return -1;
+    }
+    ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
+    *ao_data = (const char *)l_txn->method_name.data;
+    *ao_len = l_txn->method_name.len;
     return 0;
 }
 /*
@@ -169,20 +230,20 @@ get_rqst_uri_cb(const char **ao_data, uint32_t *ao_data_len, void *a_ctx)
  * \param   TODO
  */
 static rqst_ctx_callbacks s_callbacks = {
-    get_rqst_src_addr_cb,
+    get_rqst_src_addr_cb,           /* get_rqst_src_addr_cb */
     get_rqst_host_cb,               /* get_rqst_host_cb */
     NULL,                           /* get_rqst_port_cb */
     NULL,                           /* get_rqst_scheme_cb */
     NULL,                           /* get_rqst_protocol_cb */
     NULL,                           /* get_rqst_line_cb */
-    NULL,                           /* get_rqst_method_cb */
+    get_rqst_method_cb,             /* get_rqst_method_cb */
     NULL,                           /* get_rqst_url_cb */
     get_rqst_uri_cb,                /* get_rqst_uri_cb */
     NULL,                           /* get_rqst_path_cb */
     NULL,                           /* get_rqst_query_str_cb */
-    NULL,                           /* get_rqst_header_size_cb */
+    get_rqst_header_size_cb,        /* get_rqst_header_size_cb */
     NULL,                           /* get_rqst_header_w_key_cb */
-    NULL,                           /* get_rqst_header_w_idx_cb */
+    get_rqst_header_w_idx_cb,       /* get_rqst_header_w_idx_cb */
     NULL,                           /* get_rqst_id_cb */
     NULL,                           /* get_rqst_body_str_cb */
     NULL,                           /* get_rqst_local_addr_cb */

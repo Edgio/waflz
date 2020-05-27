@@ -411,7 +411,14 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
-                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s", l_rx.c_str());
+                                                const char *l_err_ptr;
+                                                int l_err_off;
+                                                l_pcre->get_err_info(&l_err_ptr, l_err_off);
+                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s. Reason: %s -offset: %d",
+                                                             l_rx.c_str(),
+                                                             l_err_ptr,
+                                                             l_err_off);
+                                                if(l_pcre) { delete l_pcre; l_pcre = NULL; }
                                                 return WAFLZ_STATUS_ERROR;
                                         }
                                         ao_cx_cfg.m_regex_list.push_back(l_pcre);
@@ -528,7 +535,13 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
-                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s", l_rx.c_str());
+                                                const char *l_err_ptr;
+                                                int l_err_off;
+                                                l_pcre->get_err_info(&l_err_ptr, l_err_off);
+                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s. Reason: %s -offset: %d",
+                                                             l_rx.c_str(),
+                                                             l_err_ptr,
+                                                             l_err_off);
                                                 if(l_pcre) { delete l_pcre; l_pcre = NULL; }
                                                 return WAFLZ_STATUS_ERROR;
                                         }
@@ -548,7 +561,13 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
-                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s", l_rx.c_str());
+                                                const char *l_err_ptr;
+                                                int l_err_off;
+                                                l_pcre->get_err_info(&l_err_ptr, l_err_off);
+                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s. Reason: %s -offset: %d",
+                                                             l_rx.c_str(),
+                                                             l_err_ptr,
+                                                             l_err_off);
                                                 if(l_pcre) { delete l_pcre; l_pcre = NULL; }
                                                 return WAFLZ_STATUS_ERROR;
                                         }

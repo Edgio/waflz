@@ -94,16 +94,14 @@ int32_t regex::init(const char* a_buf, uint32_t a_len)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        const char *l_err_ptr;
-        int l_err_off;
         m_regex_str.assign(a_buf, a_len);
         // -------------------------------------------------
         // compile
         // -------------------------------------------------
         m_regex = pcre_compile(m_regex_str.c_str(),
                                PCRE_DUPNAMES|PCRE_DOTALL|PCRE_MULTILINE,
-                               &l_err_ptr,
-                               &l_err_off,
+                               &m_err_ptr,
+                               &m_err_off,
                                NULL);
         if(!m_regex)
         {

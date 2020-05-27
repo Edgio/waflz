@@ -138,16 +138,6 @@ static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_
         return 0;
 }
 //: ----------------------------------------------------------------------------
-//: s_get_rqst_path_cb
-//: ----------------------------------------------------------------------------
-static const char *s_path = "/my/cool/path_name.html";
-static int32_t get_rqst_path_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
-{
-        *a_data = s_path;
-        *a_len = strlen(s_path);
-        return 0;
-}
-//: ----------------------------------------------------------------------------
 //: get_rqst_header_w_idx_cb
 //: ----------------------------------------------------------------------------
 #if 0
@@ -396,7 +386,7 @@ TEST_CASE( "acl test", "[acl]" )
                 // load
                 // -----------------------------------------
                 l_s = l_profile->load(l_pb);
-                NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 // -----------------------------------------
@@ -412,7 +402,7 @@ TEST_CASE( "acl test", "[acl]" )
                         get_rqst_method_cb,
                         NULL,
                         get_rqst_uri_cb,
-                        get_rqst_path_cb,
+                        NULL,
                         NULL,
                         get_rqst_header_size_cb,
                         NULL, //get_rqst_header_w_key_cb,
@@ -875,7 +865,7 @@ TEST_CASE( "acl test", "[acl]" )
                 // -----------------------------------------
                 // validate block
                 // -----------------------------------------
-                s_path = "my/path/is/abc.def.php";
+                s_uri = "my/path/is/abc.def.php";
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -892,7 +882,7 @@ TEST_CASE( "acl test", "[acl]" )
                 // validate allow
                 // -----------------------------------------
                 s_host = "www.google.com";
-                s_path = "my/path/is/abc.html";
+                s_uri = "my/path/is/abc.html";
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());

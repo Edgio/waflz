@@ -570,23 +570,15 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                 }
         }
         // -------------------------------------------------
-        // url
-        // -------------------------------------------------
-        if(m_callbacks && m_callbacks->m_get_rqst_url_cb)
-        {
-                int32_t l_s;
-                // get uri
-                l_s = m_callbacks->m_get_rqst_url_cb(&m_url.m_data,
-                                        &m_url.m_len,
-                                        m_ctx);
-                if(l_s != 0)
-                {
-                        // TODO log reason???
-                        return WAFLZ_STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // uri
+        // get uri, url and quert string
+        // According to modsecurity:
+        // (REQUEST_URI) : This variable holds the full request URL including the query string data
+        // (e.g., /index.php?p=X). However, it will never contain a domain name, even if it was provided on the request line.
+        // (REQUEST_URI_RAW): This will contain the domain name
+        // if it was provided on the request line (e.g., http://www.example.com/index.php?p=X
+        // The domain name depends on request line. Most common form is origin-form
+        // according to https://tools.ietf.org/html/rfc7230#section-5.3.1
+        // We only support origin form at this moment, which means uri=uri in this case
         // -------------------------------------------------
         if(m_callbacks && m_callbacks->m_get_rqst_uri_cb)
         {
@@ -600,6 +592,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
                 }
+                // set url
+                m_url.m_data = m_uri.m_data;
+                m_url.m_len = m_uri.m_len;
                 // -----------------------------------------
                 // get path length w/o q string
                 // -----------------------------------------
@@ -609,23 +604,17 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                 if(l_q)
                 {
                         m_uri_path_len = l_q - m_uri.m_data;
+                        // -----------------------------------------
+                        // get query string
+                        // -----------------------------------------
+                        m_query_str.m_data = l_q + 1;
+                        m_query_str.m_len = m_uri.m_len - m_uri_path_len - 1;
                 }
-        }
-        // -------------------------------------------------
-        // uri_raw
-        // -------------------------------------------------
-        if(m_callbacks && m_callbacks->m_get_rqst_path_cb)
-        {
-                int32_t l_s;
-                // get raw uri
-                l_s = m_callbacks->m_get_rqst_path_cb(&m_path.m_data,
-                                         &m_path.m_len,
-                                         m_ctx);
-                if(l_s != 0)
-                {
-                        // TODO log reason???
-                        return WAFLZ_STATUS_ERROR;
-                }
+                // -----------------------------------------
+                // get path
+                // -----------------------------------------
+                m_path.m_data = m_uri.m_data;
+                m_path.m_len = m_uri_path_len;
                 // -----------------------------------------
                 // get base
                 // -----------------------------------------
@@ -654,44 +643,33 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                                 m_file_ext.m_len = m_base.m_len - ((uint32_t)((const char *)l_ptr - m_base.m_data));
                         }
                 }
-        }
-        // -------------------------------------------------
-        // query string...
-        // -------------------------------------------------
-        if(m_callbacks && m_callbacks->m_get_rqst_query_str_cb)
-        {
-                int32_t l_s;
-                // get q string
-                l_s = m_callbacks->m_get_rqst_query_str_cb(&m_query_str.m_data,
-                                              &m_query_str.m_len,
-                                              m_ctx);
-                if(l_s != 0)
+                // parse query args
+                if(m_query_str.m_data &&
+                   m_query_str.m_len)
                 {
-                        // TODO log reason???
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // parse args
-                uint32_t l_invalid_cnt = 0;
-                l_s = parse_args(m_query_arg_list,
-                                 l_invalid_cnt,
-                                 m_query_str.m_data,
-                                 m_query_str.m_len,
-                                 '&');
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // TODO log reason???
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // remove ignored
-                // -----------------------------------------
-                if(a_il_query)
-                {
-                        l_s = remove_ignored(m_query_arg_list, *a_il_query);
+                        // parse args
+                        uint32_t l_invalid_cnt = 0;
+                        l_s = parse_args(m_query_arg_list,
+                                         l_invalid_cnt,
+                                         m_query_str.m_data,
+                                         m_query_str.m_len,
+                                         '&');
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 // TODO log reason???
                                 return WAFLZ_STATUS_ERROR;
+                        }
+                        // -----------------------------------------
+                        // remove ignored
+                        // -----------------------------------------
+                        if(a_il_query)
+                        {
+                                l_s = remove_ignored(m_query_arg_list, *a_il_query);
+                                if(l_s != WAFLZ_STATUS_OK)
+                                {
+                                        // TODO log reason???
+                                        return WAFLZ_STATUS_ERROR;
+                                }
                         }
                 }
         }

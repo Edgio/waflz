@@ -262,10 +262,10 @@ int32_t profile::regex_list_add(const std::string &a_regex,
                 l_regex->get_err_info(&l_err_ptr, l_err_off);
                 delete l_regex;
                 l_regex = NULL;
-                //WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in access_settings ignore list. Reason: %s -offset: %d",
-                //            a_regex.c_str(),
-                //            l_err_ptr,
-                //            l_err_off);
+                WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in access_settings ignore list. Reason: %s -offset: %d",
+                            a_regex.c_str(),
+                            l_err_ptr,
+                            l_err_off);
                 return WAFLZ_STATUS_ERROR;
         }
         // add to map

@@ -332,13 +332,13 @@ string(REPLACE ";" ", " CPACK_DEBIAN_PACKAGE_BUILDS_DEPENDS "${CPACK_DEBIAN_PACK
 # ------------------------------------------------------------------------------
 # Version
 # ------------------------------------------------------------------------------
-EXECUTE_PROCESS(COMMAND git describe --tags OUTPUT_VARIABLE VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+EXECUTE_PROCESS(COMMAND git describe --tags OUTPUT_VARIABLE WAFLZ_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
 # TODO removing requirement for now
-#if(NOT ${VERSION} MATCHES ^[0-9]+.[0-9]+)
-#        message(FATAL_ERROR "Most recent tag '${VERSION}' does not match required version regex: ^[0-9]+.[0-9]+
+#if(NOT ${WAFLZ_VERSION} MATCHES ^[0-9]+.[0-9]+)
+#        message(FATAL_ERROR "Most recent tag '${WAFLZ_VERSION}' does not match required version regex: ^[0-9]+.[0-9]+
 #Does it start with a number?")
 #endif()
-add_definitions(-DWAFLZ_VERSION="${VERSION}")
+add_definitions(-DWAFLZ_VERSION="${WAFLZ_VERSION}")
 # ------------------------------------------------------------------------------
 # Debian Package Support
 # ------------------------------------------------------------------------------
@@ -348,7 +348,7 @@ else()
   EXECUTE_PROCESS(COMMAND lsb_release -cs OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 SET(CPACK_GENERATOR "DEB")
-SET(CPACK_DEBIAN_PACKAGE_VERSION "${VERSION}-${DISTRIBUTION}")
+SET(CPACK_DEBIAN_PACKAGE_VERSION "${WAFLZ_VERSION}-${DISTRIBUTION}")
 SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 if(BUILD_ASAN)
     SET(CPACK_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-debug")

@@ -209,7 +209,7 @@ get_rqst_header_w_idx_cb(const char **ao_key,
     return 0;
 }
 /*
- * \details callback for getting header based on index [idx]
+ * \details callback for getting method
  * \return  TODO
  * \param   TODO
  */

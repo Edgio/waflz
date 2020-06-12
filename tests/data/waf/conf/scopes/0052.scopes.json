@@ -103,6 +103,28 @@
       "status": 403,
       "type": "custom-response"
     }
+  },
+  {
+    "id":"wHyMHxV7",
+    "name": "Scopes to test bot config",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "mybot.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+   "bots_id" : "wHyMHxV7",
+   "bots_action": {
+      "id": "TDWqQxfx",
+      "name": "action_name",
+      "type": "browser-challenge",
+      "valid_for_sec" : 5,
+      "status":200
+   }
   }
 ]
 }

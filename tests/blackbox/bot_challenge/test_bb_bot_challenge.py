@@ -95,7 +95,7 @@ def solve_challenge(a_html):
     l_ectoken = l_ectoken_p.group(0)
     return 'ec_answer = ' + str(l_solution) + ';' + l_ectoken[:-1]
 # ------------------------------------------------------------------------------
-# test bot challenge
+# test bot challenge in custom_rule
 # ------------------------------------------------------------------------------
 def test_bot_challenge_in_custom_rule(setup_scopez_server_action):
     # ------------------------------------------------------
@@ -127,7 +127,7 @@ def test_bot_challenge_in_custom_rule(setup_scopez_server_action):
     # ------------------------------------------------------
     assert l_r_json['errors'][0]['message'] == 'OK'
 # ------------------------------------------------------------------------------
-# test bot challenge
+# test bot challenge order and expiry in custom_rule
 # ------------------------------------------------------------------------------
 def test_bot_challenge_order_and_expiry_in_scopes(setup_scopez_server_action):
     # ------------------------------------------------------
@@ -189,3 +189,8 @@ def test_bot_challenge_order_and_expiry_in_scopes(setup_scopez_server_action):
     l_parser = html_parse()
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
+# ------------------------------------------------------------------------------
+# test bot challenge in bot config
+# ------------------------------------------------------------------------------
+def test_bot_challenge_in_bot_config(setup_scopez_server_action):
+  

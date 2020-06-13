@@ -122,8 +122,8 @@
       "id": "TDWqQxfx",
       "name": "action_name",
       "type": "browser-challenge",
-      "valid_for_sec" : 5,
-      "status":200
+      "valid_for_sec" : 3,
+      "status":401
    }
   }
 ]

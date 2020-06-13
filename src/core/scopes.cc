@@ -782,11 +782,9 @@ acl_prod_action:
                 l_s = l_bots->load_file(l_path.c_str(), l_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("error loading rules (prod) conf file: %s. reason: %s\n",
+                        NDBG_PRINT("error loading bots (prod) conf file: %s. reason: %s\n",
                                    l_path.c_str(),
-                                   "__na__");
-                                   // TODO -get reason...
-                                   //l_wafl->get_err_msg());
+                                   l_bots->get_err_msg());
                         if(l_bots) { delete l_bots; l_bots = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }

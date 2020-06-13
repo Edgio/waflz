@@ -175,7 +175,7 @@ def test_bot_challenge_order_and_expiry_in_scopes(setup_scopez_server_action):
     # sleep for 3 seconds for challenge to expire
     # ------------------------------------------------------
     time.sleep(3)
-     # ------------------------------------------------------
+    # ------------------------------------------------------
     # test with previous solved challenge, new challenge
     # should be returned
     # ------------------------------------------------------
@@ -193,4 +193,53 @@ def test_bot_challenge_order_and_expiry_in_scopes(setup_scopez_server_action):
 # test bot challenge in bot config
 # ------------------------------------------------------------------------------
 def test_bot_challenge_in_bot_config(setup_scopez_server_action):
-  
+    # ------------------------------------------------------
+    # test for recieving a bot challenge
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    # ------------------------------------------------------
+    # solve challenge
+    # ------------------------------------------------------
+    l_parser = html_parse()
+    l_parser.feed(l_r.text)
+    assert 'function' in l_parser.m_data
+    l_solution_cookies = solve_challenge(l_parser.m_data)
+    # ------------------------------------------------------
+    # test again with solved challenge and cookies
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    #-------------------------------------------------------
+    # check no event is returned
+    # ------------------------------------------------------
+    assert l_r_json['errors'][0]['message'] == 'OK'
+    #-------------------------------------------------------
+    # sleep for 3 seconds for challenge to expire
+    # ------------------------------------------------------
+    time.sleep(3)
+    # ------------------------------------------------------
+    # test with previous solved challenge, new challenge
+    # should be returned
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    l_parser = html_parse()
+    l_parser.feed(l_r.text)
+    assert 'function' in l_parser.m_data
+

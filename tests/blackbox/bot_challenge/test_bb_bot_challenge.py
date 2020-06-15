@@ -242,4 +242,125 @@ def test_bot_challenge_in_bot_config(setup_scopez_server_action):
     l_parser = html_parse()
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
+# ------------------------------------------------------------------------------
+# test bot challenge with limits
+# ------------------------------------------------------------------------------
+def test_bot_challenge_with_limits(setup_scopez_server_action):
+    # ------------------------------------------------------
+    # test for recieving a bot challenge
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    # ------------------------------------------------------
+    # solve challenge
+    # ------------------------------------------------------
+    l_parser = html_parse()
+    l_parser.feed(l_r.text)
+    assert 'function' in l_parser.m_data
+    l_solution_cookies = solve_challenge(l_parser.m_data)
+    # ------------------------------------------------------
+    # send the solved challenge thrice
+    # rate limiting should block the request
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == "ddos enforcement from bot config\n"
+    # ------------------------------------------------------
+    # sleep for 3 seconds for challenge and rate limiting
+    # enforcement to expire
+    # ------------------------------------------------------
+    time.sleep(3)
+    # ------------------------------------------------------
+    # test with previous solved challenge, new challenge
+    # should be returned
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    l_parser = html_parse()
+    l_parser.feed(l_r.text)
+    assert 'function' in l_parser.m_data
+# ------------------------------------------------------------------------------
+# test bot challenge with profile
+# ------------------------------------------------------------------------------
+def test_bot_challenge_with_profile(setup_scopez_server_action):
+    # ------------------------------------------------------
+    # test for recieving a bot challenge with attack vector
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    # ------------------------------------------------------
+    # solve challenge
+    # ------------------------------------------------------
+    l_parser = html_parse()
+    l_parser.feed(l_r.text)
+    assert 'function' in l_parser.m_data
+    l_solution_cookies = solve_challenge(l_parser.m_data)
+    # ------------------------------------------------------
+    # send the solved challenge with attack vector
+    # should get custoem response from profile
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    assert l_r.text == 'This is profile custom response\n'
+    # ------------------------------------------------------
+    # send the solved challenge without attack vector
+    # request should go through
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    #-------------------------------------------------------
+    # check no event is returned
+    # ------------------------------------------------------
+    assert l_r_json['errors'][0]['message'] == 'OK'
+    #-------------------------------------------------------
+    # sleep for 3 seconds for challenge to expire
+    # ------------------------------------------------------
+    time.sleep(3)
+    # ------------------------------------------------------
+    # test with previous solved challenge, new challenge
+    # should be returned
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    l_parser = html_parse()
+    l_parser.feed(l_r.text)
+    assert 'function' in l_parser.m_data
 

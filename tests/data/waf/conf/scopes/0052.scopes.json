@@ -117,14 +117,36 @@
       "type": "GLOB",
       "value": "*"
     },
-   "bots_id" : "wHyMHxV7",
-   "bots_action": {
+    "limits":[{
+       "id":"selWEB8I",
+       "action":{
+          "id":"zeAXrllT",
+          "name":"ddos-action",
+          "status": 403,
+          "duration_sec": 2,
+          "type": "custom-response",
+          "response_body_base64": "ZGRvcyBlbmZvcmNlbWVudCBmcm9tIGJvdCBjb25maWcK"
+       }
+    }],
+   "bots_prod_id" : "wHyMHxV7",
+   "bots_prod_action": {
       "id": "TDWqQxfx",
       "name": "action_name",
       "type": "browser-challenge",
       "valid_for_sec" : 3,
       "status":401
-   }
+   },
+    "profile_prod_id": "KsdoThsq",
+    "profile_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64": "VGhpcyBpcyBwcm9maWxlIGN1c3RvbSByZXNwb25zZQo=",
+      "response_headers": {
+        "x-ec-rules": "rejected"
+      },
+      "status": 403,
+      "type": "custom-response"
+    }
   }
 ]
 }

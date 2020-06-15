@@ -71,6 +71,12 @@ message scope {
         optional uint64 _profile_prod__reserved = 3110;
         optional enforcement profile_prod_action = 3120;
         // -------------------------------------------------
+        // bot
+        // -------------------------------------------------
+        optional string bots_prod_id = 3121;
+        optional uint64 _bots_prod__reserved = 3122;
+        optional enforcement bots_prod_action = 3123;
+        // -------------------------------------------------
         // limits
         // -------------------------------------------------
         message limit_config {

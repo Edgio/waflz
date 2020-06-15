@@ -86,7 +86,8 @@ typedef enum {
         PART_MK_WAF = 2,
         PART_MK_RULES = 4,
         PART_MK_LIMITS = 8,
-        PART_MK_ALL = 15,
+        PART_MK_BOTS = 16,
+        PART_MK_ALL = 31
 } part_mk_t;
 #endif
 //: ----------------------------------------------------------------------------

@@ -291,6 +291,7 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_id_rules_map(),
         m_id_profile_map(),
         m_id_limit_map(),
+        m_id_bots_map(),
         m_enfx(NULL),
         m_challenge(a_challenge)
 {
@@ -318,6 +319,7 @@ scopes::~scopes()
         _DEL_MAP(id_rules_map_t, m_id_rules_map);
         _DEL_MAP(id_profile_map_t, m_id_profile_map);
         _DEL_MAP(id_limit_map_t, m_id_limit_map);
+        _DEL_MAP(id_bots_map_t, m_id_bots_map);
         // -------------------------------------------------
         // destruct m_regex_list
         // -------------------------------------------------
@@ -735,7 +737,7 @@ acl_audit_action:
         }
 acl_prod_action:
         // -------------------------------------------------
-        // acl audit action
+        // acl prod action
         // -------------------------------------------------
         if(a_scope.has_acl_prod_action())
         {
@@ -746,6 +748,65 @@ acl_prod_action:
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
+        }
+        // -------------------------------------------------
+        // bots prod
+        // -------------------------------------------------
+        if(a_scope.has_bots_prod_id())
+        {
+                // -----------------------------------------
+                // check exist
+                // -----------------------------------------
+                id_bots_map_t::iterator i_bots = m_id_bots_map.find(a_scope.bots_prod_id());
+                if(i_bots != m_id_bots_map.end())
+                {
+                        a_scope.set__bots_prod__reserved((uint64_t)i_bots->second);
+                        goto bots_prod_action;
+                }
+                //TODO: remove after config migration
+                std::string l_path;
+                size_t l_pos = a_scope.bots_prod_id().find(m_cust_id);
+                if(l_pos == std::string::npos)
+                {
+                        l_path = a_conf_dir_path + "/bots/" + m_cust_id + "-" + a_scope.bots_prod_id() +".bots.json";
+                }
+                else
+                {
+                        l_path = a_conf_dir_path + "/bots/" + a_scope.bots_prod_id() + ".bots.json";
+                }
+                // -----------------------------------------
+                // make bots obj
+                // -----------------------------------------
+                rules* l_bots = new rules(m_engine);
+                int32_t l_s;
+                l_s = l_bots->load_file(l_path.c_str(), l_path.length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error loading bots (prod) conf file: %s. reason: %s\n",
+                                   l_path.c_str(),
+                                   l_bots->get_err_msg());
+                        if(l_bots) { delete l_bots; l_bots = NULL;}
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // add to map
+                // -----------------------------------------
+                a_scope.set__bots_prod__reserved((uint64_t)l_bots);
+                m_id_bots_map[a_scope.bots_prod_id()] = l_bots;
+        }
+bots_prod_action:
+        // -------------------------------------------------
+        //  bots prod action
+        // -------------------------------------------------
+        if(a_scope.has_bots_prod_action())
+        {
+                waflz_pb::enforcement *l_a = a_scope.mutable_bots_prod_action();
+                int32_t l_s;
+                l_s = compile_action(*l_a, m_err_msg);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }       
         }
         // -------------------------------------------------
         // rules audit
@@ -1673,80 +1734,144 @@ limits:
         // -------------------------------------------------
         if(a_part_mk & PART_MK_LIMITS)
         {
-        for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
+                for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
+                {
+                        const ::waflz_pb::scope_limit_config& l_slc = a_scope.limits(i_l);
+                        if(!l_slc.has__reserved_1())
+                        {
+                                continue;
+                        }
+                        limit *l_limit = (limit *)l_slc._reserved_1();
+                        bool l_exceeds = false;
+                        const waflz_pb::condition_group *l_cg = NULL;
+                        l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
+                        if(!l_exceeds)
+                        {
+                                continue;
+                        }
+                        if(!l_slc.has_action())
+                        {
+                                continue;
+                        }
+                        // -----------------------------------------
+                        // signal new enforcemnt
+                        // -----------------------------------------
+                        (*ao_rqst_ctx)->m_signal_enf = true;
+                        // -----------------------------------------
+                        // add new exceeds
+                        // -----------------------------------------
+                        const waflz_pb::enforcement& l_axn = l_slc.action();
+                        int32_t l_s;
+                        waflz_pb::config *l_cfg = NULL;
+                        l_s = add_exceed_limit(&l_cfg,
+                                               *(l_limit->get_pb()),
+                                               l_cg,
+                                               l_axn,
+                                               a_scope,
+                                               *ao_rqst_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                WAFLZ_PERROR(m_err_msg, "performing add_exceed_limit");
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                        //const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
+                        // -----------------------------------------
+                        // merge enforcement
+                        // -----------------------------------------
+                        //NDBG_OUTPUT("l_enfx: %s\n", l_enfcr->ShortDebugString().c_str());
+                        l_s = m_enfx->merge(*l_cfg);
+                        // TODO -return enforcer...
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                WAFLZ_PERROR(m_err_msg, "%s", m_enfx->get_err_msg());
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                        if(l_cfg) { delete l_cfg; l_cfg = NULL; }
+                        // -----------------------------------------
+                        // process enforcer
+                        // -----------------------------------------
+                        l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                        // -----------------------------------------
+                        // enforced???
+                        // -----------------------------------------
+                        if(*ao_enf)
+                        {
+                                if((*ao_enf)->has_status())
+                                {
+                                        (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
+                                }
+                                goto done;
+                        }
+                }
+        }
+        // -------------------------------------------------
+        // bots
+        // -------------------------------------------------
+        if((a_part_mk & PART_MK_BOTS) &&
+           a_scope.has__bots_prod__reserved())
         {
-                const ::waflz_pb::scope_limit_config& l_slc = a_scope.limits(i_l);
-                if(!l_slc.has__reserved_1())
-                {
-                        continue;
-                }
-                limit *l_limit = (limit *)l_slc._reserved_1();
-                bool l_exceeds = false;
-                const waflz_pb::condition_group *l_cg = NULL;
-                l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
-                if(!l_exceeds)
-                {
-                        continue;
-                }
-                if(!l_slc.has_action())
-                {
-                        continue;
-                }
                 // -----------------------------------------
-                // signal new enforcemnt
+                // process
                 // -----------------------------------------
-                (*ao_rqst_ctx)->m_signal_enf = true;
-                // -----------------------------------------
-                // add new exceeds
-                // -----------------------------------------
-                const waflz_pb::enforcement& l_axn = l_slc.action();
+                rules* l_bots = (rules*)a_scope._bots_prod__reserved();
+                waflz_pb::event *l_event = NULL;
                 int32_t l_s;
-                waflz_pb::config *l_cfg = NULL;
-                l_s = add_exceed_limit(&l_cfg,
-                                       *(l_limit->get_pb()),
-                                       l_cg,
-                                       l_axn,
-                                       a_scope,
-                                       *ao_rqst_ctx);
+                l_s = l_bots->process(&l_event, a_ctx, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "performing add_exceed_limit");
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        WAFLZ_PERROR(m_err_msg, "%s", l_bots->get_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
-                //const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
-                // -----------------------------------------
-                // merge enforcement
-                // -----------------------------------------
-                //NDBG_OUTPUT("l_enfx: %s\n", l_enfcr->ShortDebugString().c_str());
-                l_s = m_enfx->merge(*l_cfg);
-                // TODO -return enforcer...
-                if(l_s != WAFLZ_STATUS_OK)
+                if(!l_event)
                 {
-                        WAFLZ_PERROR(m_err_msg, "%s", m_enfx->get_err_msg());
-                        return WAFLZ_STATUS_ERROR;
+                        goto prod_rules;
                 }
-                if(l_cfg) { delete l_cfg; l_cfg = NULL; }
+                *ao_prod_event = l_event;
                 // -----------------------------------------
-                // process enforcer
+                // Check for enforcement type
+                // if its browser challenge, verify challenge
                 // -----------------------------------------
-                l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                const waflz_pb::enforcement *l_enf = &(a_scope.bots_prod_action());
+                bool l_pass = false;
+                if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
                 {
-                        return WAFLZ_STATUS_ERROR;
+                        // -----------------------------------------
+                        // check cookie -verify browser challenge
+                        // -----------------------------------------
+                        // default to valid for 10 min
+                        uint32_t l_valid_for_s = 600;
+                        if(l_enf->has_valid_for_sec())
+                        {
+                                l_valid_for_s = l_enf->valid_for_sec();
+                        }
+                        int32_t l_s;
+                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                // do nothing -re-issue challenge
+                        }
+                        if(l_pass)
+                        {
+                                // Challenge passed, move on to next step
+                                goto prod_rules;
+                        }
                 }
-                // -----------------------------------------
-                // enforced???
-                // -----------------------------------------
-                if(*ao_enf)
+                if(a_scope.has_bots_prod_action())
                 {
+                        *ao_enf = l_enf;
                         if((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
                         }
-                        goto done;
                 }
+                goto done;
         }
-        }
+prod_rules:
         // -------------------------------------------------
         // rules
         // -------------------------------------------------

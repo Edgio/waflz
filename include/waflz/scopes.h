@@ -121,11 +121,13 @@ public:
         typedef std::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
         typedef std::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
         typedef std::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
+        typedef std::unordered_map<std::string, rules*, str_hash> id_bots_map_t;
 #else
         typedef std::tr1::unordered_map<std::string, acl*, str_hash> id_acl_map_t;
         typedef std::tr1::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
         typedef std::tr1::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
         typedef std::tr1::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
+        typedef std::tr1::unordered_map<std::string, rules*, str_hash> id_bots_map_t;
 #endif
         // -------------------------------------------------
         // Public methods
@@ -201,6 +203,7 @@ private:
         id_rules_map_t m_id_rules_map;
         id_profile_map_t m_id_profile_map;
         id_limit_map_t m_id_limit_map;
+        id_bots_map_t m_id_bots_map;
         // -------------------------------------------------
         // enforcements
         // -------------------------------------------------

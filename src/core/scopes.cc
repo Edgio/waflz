@@ -737,7 +737,7 @@ acl_audit_action:
         }
 acl_prod_action:
         // -------------------------------------------------
-        // acl audit action
+        // acl prod action
         // -------------------------------------------------
         if(a_scope.has_acl_prod_action())
         {

@@ -236,9 +236,13 @@ static int yajl_end_map_cb(void *a_ctx)
         // -------------------------------------------------
         if(l_sep)
         {
-                strncpy((char*)l_parser->m_prefix, (char *)(l_sep - (char *)l_parser->m_prefix), PARSER_JSON_PREFIX_LEN_MAX);
+                // strncpy((char*)l_parser->m_prefix, (char *)(l_sep - (char *)l_parser->m_prefix), PARSER_JSON_PREFIX_LEN_MAX);
+                // //NDBG_PRINT("l_parser->m_prefix: %s\n", l_parser->m_prefix);
+                // strncpy((char*)l_parser->m_current_key, l_sep + 1, PARSER_JSON_PREFIX_LEN_MAX);
+
+                memcpy((char*)l_parser->m_prefix, (char *)(l_sep - (char *)l_parser->m_prefix), PARSER_JSON_PREFIX_LEN_MAX);
                 //NDBG_PRINT("l_parser->m_prefix: %s\n", l_parser->m_prefix);
-                strncpy((char*)l_parser->m_current_key, l_sep + 1, PARSER_JSON_PREFIX_LEN_MAX);
+                memcpy((char*)l_parser->m_current_key, l_sep + 1, PARSER_JSON_PREFIX_LEN_MAX);                
         }
         else
         {

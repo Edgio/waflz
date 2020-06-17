@@ -165,7 +165,7 @@ if(BUILD_UBUNTU AND BUILD_CUSTOM_OPENSSL)
   set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libcrypto.so")
   add_definitions(-DBUILD_CUSTOM_OPENSSL=1)
 elseif(BUILD_UBUNTU)
-  #set(LIBRARIES ${LIBRARIES} pthread ssl crypto)
+  #set(LIBRARIES ${LIBRARIES} pthread ssl cryto)
 else()
   set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
 endif()
@@ -207,6 +207,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # --------------------------------------------------------
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+LIST(APPEND LIBRARIES kyotocabinet)
+LIST(APPEND LIBRARIES hiredis)
 # ------------------------------------------------------------------------------
 # ASAN
 # ------------------------------------------------------------------------------

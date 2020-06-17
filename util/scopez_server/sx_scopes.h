@@ -178,6 +178,7 @@ public:
         update_scopes_h *m_update_scopes_h;
         update_acl_h* m_update_acl_h;
         update_rules_h* m_update_rules_h;
+        update_bots_h* m_update_bots_h;  
         update_profile_h* m_update_profile_h;
         update_limit_h* m_update_limit_h;
         ns_waflz::scopes_configs *m_scopes_configs;

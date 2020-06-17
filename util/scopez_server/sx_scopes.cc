@@ -158,6 +158,7 @@ typedef struct _waf_rules_bg_update {
         uint32_t m_buf_len;
         ns_waflz::scopes_configs* m_scopes_configs;
 } waf_rules_bg_update_t;
+
 typedef struct _waf_bots_bg_update {
         char* m_buf;
         uint32_t m_buf_len;

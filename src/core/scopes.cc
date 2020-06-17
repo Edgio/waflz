@@ -1511,11 +1511,6 @@ int32_t scopes::load_bots(ns_waflz::rules* a_bots)
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-                if(l_sc.has_rules_audit_id() &&
-                   l_sc.rules_audit_id() == l_id)
-                {
-                        l_sc.set__rules_audit__reserved((uint64_t)a_bots);
-                }
                 if(l_sc.has_bots_prod_id() &&
                    l_sc.bots_prod_id() == l_id)
                 {

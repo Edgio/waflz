@@ -1470,6 +1470,65 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+int32_t scopes::load_bots(ns_waflz::rules* a_bots)
+{
+        if(!a_bots)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        const std::string& l_id = a_bots->get_id();
+        //-------------------------------------------
+        // check id in map
+        //-------------------------------------------
+        id_bots_map_t::iterator i_t = m_id_bots_map.find(l_id);
+        if(i_t == m_id_bots_map.end())
+        {
+                WAFLZ_PERROR(m_err_msg, "bots id %s not attached to any scopes", l_id.c_str());
+                return WAFLZ_STATUS_ERROR;
+        }
+        //-------------------------------------------
+        // check if bots is latest
+        //-------------------------------------------
+        const waflz_pb::sec_config_t* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::sec_config_t* l_new_pb = a_bots->get_pb();
+        if((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        if(a_bots) { delete a_bots; a_bots = NULL; }
+                        return WAFLZ_STATUS_OK;
+                }
+        }
+        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        i_t->second = a_bots;
+        //-------------------------------------------
+        // update scope's reserved fields
+        //-------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+                if(l_sc.has_rules_audit_id() &&
+                   l_sc.rules_audit_id() == l_id)
+                {
+                        l_sc.set__rules_audit__reserved((uint64_t)a_bots);
+                }
+                if(l_sc.has_bots_prod_id() &&
+                   l_sc.bots_prod_id() == l_id)
+                {
+                        l_sc.set__bots_prod__reserved((uint64_t)a_bots);
+                }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
 int32_t scopes::load_profile(ns_waflz::profile* a_profile)
 {
         if(!a_profile)

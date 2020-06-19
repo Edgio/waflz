@@ -341,7 +341,7 @@ int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 //: get_rqst_id_cb
 //: ----------------------------------------------------------------------------
 #define _UUID_STR  "aabbccddeeff"
-int32_t get_rqst_id_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
+int32_t get_rqst_uuid_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         *a_data = _UUID_STR;
         *a_len = strlen(_UUID_STR);

@@ -1,7 +1,7 @@
  {
   "directive": [
     {
-      "sec_rule": {
+        "sec_rule": {
         "action": {
           "action_type": "BLOCK",
           "id": "960008",
@@ -41,6 +41,7 @@
       }
     }
   ],
+     "customer_id": "0052",     
   "last_modified_date": "2019-04-18T19:48:25.142172Z",
-  "id":"wHyMHxV7"
+  "id":"TA5jUD3J"
 }

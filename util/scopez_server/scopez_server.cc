@@ -706,6 +706,7 @@ int main(int argc, char** argv)
         bool l_action_mode = false;
         bool l_bg = false;
 #ifdef ENABLE_PROFILER
+        printf("Profiler Enabled");
         std::string l_hprof_file;
         std::string l_cprof_file;
 #endif
@@ -1060,12 +1061,12 @@ int main(int argc, char** argv)
                 break;
         }
         }
-        //fprintf(stdout,"%d\n", l_config_mode);
+        fprintf(stdout,"%d\n", l_config_mode);
         switch(l_config_mode)
         {
         // -------------------------------------------------
         //  single scope
-        // -------------------------------------------------  
+        // -------------------------------------------------
         case(CONFIG_MODE_SCOPES):
         {
                 g_sx_scopes = new ns_scopez_server::sx_scopes();

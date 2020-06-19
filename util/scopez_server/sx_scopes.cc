@@ -442,6 +442,7 @@ ns_is2::h_resp_t update_rules_h::do_post(ns_is2::session &a_session,
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
+#include <iostream>
 ns_is2::h_resp_t update_bots_h::do_post(ns_is2::session &a_session,
                                          ns_is2::rqst &a_rqst,
                                          const ns_is2::url_pmap_t &a_url_pmap)
@@ -459,8 +460,20 @@ ns_is2::h_resp_t update_bots_h::do_post(ns_is2::session &a_session,
         l_q->read(l_buf, l_buf_len);
         int32_t l_s;
         if(!m_bg_load)
-        {
+          {
+            
+            printf("You are in update_bots_h::do_post\n");
+            printf("m_bg_load from do_posts: %s\n", m_bg_load?"true":"false");
+            printf("l_buf: %s\n", l_buf);
+            std::cout << "l_buf: " << l_buf << std::endl;
+            
+            printf("l_buf_len: %ld\n", (long)l_buf_len);
+            printf("from do_post, calling load_bots(l_buf, l_buf_len)\n");
+            
                 l_s = m_scopes_configs->load_bots(l_buf, l_buf_len);
+                ///////////
+                // HMMMM //
+                ///////////
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         printf("update bots failed %s\n", m_scopes_configs->get_err_msg());
@@ -778,6 +791,10 @@ int32_t sx_scopes::init(void)
         m_update_bots_h = new update_bots_h();
         m_update_bots_h->m_scopes_configs = m_scopes_configs;
         m_update_bots_h->m_bg_load = m_bg_load;
+
+        printf("Ran m_lsnr->add_route /update_bots\n");
+        printf("m_bg_load: %s\n", m_bg_load?"true":"false");
+        
         m_lsnr->add_route("/update_bots", m_update_bots_h);
         
         m_update_profile_h = new update_profile_h();

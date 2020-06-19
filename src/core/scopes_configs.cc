@@ -641,6 +641,10 @@ int32_t scopes_configs::load_limit(void* a_js)
         }
         uint64_t l_id;
         const std::string& l_cust_id = l_limit->get_cust_id();
+
+        printf("l_id: %ld\n", (long)l_id);
+        printf("l_cust_id: %s\n", l_cust_id.c_str());
+        
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -982,18 +986,33 @@ int32_t scopes_configs::load_rules(const char* a_buf, uint32_t a_buf_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
+#include <iostream>
 int32_t scopes_configs::load_bots(void* a_js)
 {
+  printf("You are in load_bots(void a_js)\n");
         int32_t l_s;
         ns_waflz::rules* l_bots = new rules(m_engine);
+        printf("Calling l_bots->load(a_js)\n");
         l_s = l_bots->load(a_js);
+        printf("Done with l_bots->load(a_js)\n");
+        
         if(l_s != WAFLZ_STATUS_OK)
         {
+          printf("l_s did not return WAFLZ_STATUS_OK\n");
                 if(l_bots) { delete l_bots; l_bots = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
+
+        printf("Calling l_bots->set_cust_id()\n");
+
         uint64_t l_id;
         const std::string& l_cust_id = l_bots->get_cust_id();
+        // const std::string& l_cust_id = "0051"; // this is fake, just testing 
+        
+        printf("l_id: %ld\n", (long)l_id);
+        printf("l_cust_id: %s\n", l_cust_id.c_str());
+        std::cout << "l_cust_id: " << l_cust_id << std::endl;
+        
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -1017,6 +1036,8 @@ int32_t scopes_configs::load_bots(void* a_js)
                 if(l_bots) { delete l_bots; l_bots = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
+
+        printf("From load_bots(void* a_js) returning WAFLZ_STATUS_OK: ");
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -1026,6 +1047,7 @@ int32_t scopes_configs::load_bots(void* a_js)
 //: ----------------------------------------------------------------------------
 int32_t scopes_configs::load_bots(const char* a_buf, uint32_t a_buf_len)
 {
+  printf(":HIT load_bots(const char* a_buf, uint32_t a_buf_len)\n");
         // ---------------------------------------
         // parse
         // ---------------------------------------
@@ -1034,6 +1056,7 @@ int32_t scopes_configs::load_bots(const char* a_buf, uint32_t a_buf_len)
         l_ok = l_js->Parse(a_buf, a_buf_len);
         if (!l_ok)
         {
+          printf("load_bots l_ok is NOT ok from Parse method\n");
                 WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
                 if(l_js) { delete l_js; l_js = NULL;}
@@ -1054,8 +1077,10 @@ int32_t scopes_configs::load_bots(const char* a_buf, uint32_t a_buf_len)
         // -------------------------------------------------
         // object
         // -------------------------------------------------
+       printf("load_bots(2) Checking if l_js->IsObject()\n");
         if(l_js->IsObject())
         {
+          // problem happens in load_bots(1)
                 l_s = load_bots(l_js);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -1072,6 +1097,7 @@ int32_t scopes_configs::load_bots(const char* a_buf, uint32_t a_buf_len)
         // -------------------------------------------------
         else if(l_js->IsArray())
         {
+          printf("load_bots(2) checking if l_js->IsArray\n");          
                 for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];

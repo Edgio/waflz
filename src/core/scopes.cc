@@ -1481,7 +1481,6 @@ int32_t scopes::load_bots(ns_waflz::rules* a_bots)
         //-------------------------------------------
         // check id in map
         //-------------------------------------------
-        id_bots_map_t::iterator i_another;
         id_bots_map_t::iterator i_t = m_id_bots_map.find(l_id);
         if(i_t == m_id_bots_map.end())
         {

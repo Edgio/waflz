@@ -1006,7 +1006,6 @@ int32_t scopes_configs::load_bots(void* a_js)
         i_scopes = m_cust_id_scopes_map.find(l_id);
         if(i_scopes == m_cust_id_scopes_map.end())
         {
-
                 WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
                 if(l_bots) { delete l_bots; l_bots = NULL; }
                 return WAFLZ_STATUS_ERROR;

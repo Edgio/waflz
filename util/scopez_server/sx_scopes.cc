@@ -461,15 +461,6 @@ ns_is2::h_resp_t update_bots_h::do_post(ns_is2::session &a_session,
         int32_t l_s;
         if(!m_bg_load)
           {
-            
-            printf("You are in update_bots_h::do_post\n");
-            printf("m_bg_load from do_posts: %s\n", m_bg_load?"true":"false");
-            printf("l_buf: %s\n", l_buf);
-            std::cout << "l_buf: " << l_buf << std::endl;
-            
-            printf("l_buf_len: %ld\n", (long)l_buf_len);
-            printf("from do_post, calling load_bots(l_buf, l_buf_len)\n");
-            
                 l_s = m_scopes_configs->load_bots(l_buf, l_buf_len);
                 ///////////
                 // HMMMM //
@@ -585,7 +576,7 @@ sx_scopes::sx_scopes(void):
         m_update_scopes_h(NULL),
         m_update_acl_h(NULL),
         m_update_rules_h(NULL),
-        m_update_bots_h(NULL),        
+        m_update_bots_h(NULL),
         m_update_profile_h(NULL),
         m_update_limit_h(NULL),
         m_scopes_configs(NULL),
@@ -610,7 +601,7 @@ sx_scopes::~sx_scopes(void)
         if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
         if(m_update_acl_h) { delete m_update_acl_h; m_update_acl_h = NULL; }
         if(m_update_rules_h) { delete m_update_rules_h; m_update_rules_h = NULL; }
-        if(m_update_bots_h) { delete m_update_bots_h; m_update_bots_h = NULL; }        
+        if(m_update_bots_h) { delete m_update_bots_h; m_update_bots_h = NULL; }
         if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
         if(m_update_limit_h) {delete m_update_limit_h; m_update_limit_h = NULL; }
         if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
@@ -790,9 +781,9 @@ int32_t sx_scopes::init(void)
 
         m_update_bots_h = new update_bots_h();
         m_update_bots_h->m_scopes_configs = m_scopes_configs;
-        m_update_bots_h->m_bg_load = m_bg_load;        
+        m_update_bots_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_bots", m_update_bots_h);
-        
+
         m_update_profile_h = new update_profile_h();
         m_update_profile_h->m_scopes_configs = m_scopes_configs;
         m_update_profile_h->m_bg_load = m_bg_load;

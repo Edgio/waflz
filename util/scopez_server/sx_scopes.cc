@@ -442,7 +442,6 @@ ns_is2::h_resp_t update_rules_h::do_post(ns_is2::session &a_session,
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-#include <iostream>
 ns_is2::h_resp_t update_bots_h::do_post(ns_is2::session &a_session,
                                          ns_is2::rqst &a_rqst,
                                          const ns_is2::url_pmap_t &a_url_pmap)
@@ -462,12 +461,9 @@ ns_is2::h_resp_t update_bots_h::do_post(ns_is2::session &a_session,
         if(!m_bg_load)
           {
                 l_s = m_scopes_configs->load_bots(l_buf, l_buf_len);
-                ///////////
-                // HMMMM //
-                ///////////
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        printf("update bots failed %s\n", m_scopes_configs->get_err_msg());
+                        printf("update bots failed: %s\n", m_scopes_configs->get_err_msg());
                         if(l_buf) { free(l_buf); l_buf = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }

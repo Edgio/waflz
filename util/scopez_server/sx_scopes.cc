@@ -790,11 +790,7 @@ int32_t sx_scopes::init(void)
 
         m_update_bots_h = new update_bots_h();
         m_update_bots_h->m_scopes_configs = m_scopes_configs;
-        m_update_bots_h->m_bg_load = m_bg_load;
-
-        printf("Ran m_lsnr->add_route /update_bots\n");
-        printf("m_bg_load: %s\n", m_bg_load?"true":"false");
-        
+        m_update_bots_h->m_bg_load = m_bg_load;        
         m_lsnr->add_route("/update_bots", m_update_bots_h);
         
         m_update_profile_h = new update_profile_h();

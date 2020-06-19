@@ -900,8 +900,6 @@ rules_audit_action:
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
                 
-                printf("Path: %s\n", l_path.c_str());
-
                 l_s = l_rules->load_file(l_path.c_str(), l_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -1485,13 +1483,6 @@ int32_t scopes::load_bots(ns_waflz::rules* a_bots)
         //-------------------------------------------
         id_bots_map_t::iterator i_another;
         id_bots_map_t::iterator i_t = m_id_bots_map.find(l_id);
-        printf("Printing elements in id_bots_map_t::iterator\n");
-        for(i_another = m_id_bots_map.begin(); i_another != m_id_bots_map.end(); ++i_another){
-          std::cout << "i_another KEY: " << i_another->first << '\n'
-                    << "i_another VALUE: " << i_another->second << '\n'
-                    << "i_another VALUE TYPE: " << typeid(i_another->second).name()
-                    << std::endl;
-        }
         if(i_t == m_id_bots_map.end())
         {
                 WAFLZ_PERROR(m_err_msg, "bots id %s not attached to any scopes", l_id.c_str());

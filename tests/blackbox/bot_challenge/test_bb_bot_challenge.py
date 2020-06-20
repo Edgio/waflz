@@ -3,16 +3,14 @@
 # ------------------------------------------------------------------------------
 # Imports
 # ------------------------------------------------------------------------------
-import pytest
 import subprocess
 import os
-import sys
 import json
 import time
-import requests
-import base64
-import time
 import re
+import requests
+import pytest
+
 try:
     from html.parser import HTMLParser
 except ImportError:
@@ -39,7 +37,7 @@ def setup_scopez_server_action():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
-    l_cwd = os.getcwd()
+    # l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
@@ -72,7 +70,7 @@ def setup_scopez_server_action():
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
-    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    _, _, _ = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 
 class html_parse(HTMLParser):
@@ -391,7 +389,7 @@ def test_update_bots_endpoint(setup_scopez_server_action):
     l_json_payload = json.loads(l_test_payload)
 
     # check positive test
-    l_result = requests.post(l_url, json=l_json_payload)
+    l_result = requests.post(l_url, timeout=3, json=l_json_payload)
     assert l_result.status_code == 200
     assert l_result.json()['status'] == 'success'
 

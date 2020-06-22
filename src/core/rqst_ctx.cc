@@ -1036,9 +1036,9 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 uint32_t l_to_read = l_body_len-l_rd_count_total;
                 l_s = m_callbacks->m_get_rqst_body_str_cb(l_buf,
                                              &l_rd_count,
-                                             l_is_eos,
+                                             &l_is_eos,
                                              m_ctx,
-                                             &l_to_read);
+                                             l_to_read);
                 if(l_s != 0)
                 {
                         m_init_phase_2 = true;

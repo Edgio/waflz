@@ -127,13 +127,13 @@ static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void 
 static const char *g_body_str = _RQST_BODY_JSON;
 static int32_t get_rqst_body_str_cb(char *ao_data,
                                     uint32_t *ao_data_len,
-                                    bool ao_is_eos,
+                                    bool *ao_is_eos,
                                     void *a_ctx,
-                                    uint32_t *a_to_read)
+                                    uint32_t a_to_read)
 {
         *ao_data_len = strlen(g_body_str);
         memcpy(ao_data, g_body_str, *ao_data_len);
-        ao_is_eos = true;
+        *ao_is_eos = true;
         return 0;
 }
 //: ----------------------------------------------------------------------------

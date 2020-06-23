@@ -407,14 +407,13 @@ TEST_CASE( "acl test", "[acl]" )
                         get_rqst_header_size_cb,
                         NULL, //get_rqst_header_w_key_cb,
                         get_rqst_header_w_idx_cb,
-                        NULL, //get_rqst_id_cb,
                         NULL,
                         NULL, //get_rqst_local_addr_cb,
                         NULL, //get_rqst_canonical_port_cb,
                         NULL, //get_rqst_apparent_cache_status_cb,
                         NULL, //get_rqst_bytes_out_cb,
                         NULL, //get_rqst_bytes_in_cb,
-                        NULL, //get_rqst_req_id_cb,
+                        NULL, //get_rqst_uuid_cb,
                         NULL //get_cust_id_cb
                 };
                 void *l_ctx = NULL;

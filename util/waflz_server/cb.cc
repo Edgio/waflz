@@ -341,7 +341,7 @@ int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 //: get_rqst_id_cb
 //: ----------------------------------------------------------------------------
 #define _UUID_STR  "aabbccddeeff"
-int32_t get_rqst_id_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
+int32_t get_rqst_uuid_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         *a_data = _UUID_STR;
         *a_len = strlen(_UUID_STR);
@@ -407,9 +407,9 @@ int32_t get_rqst_header_w_idx_cb(const char **ao_key,
 //: ----------------------------------------------------------------------------
 int32_t get_rqst_body_str_cb(char *ao_data,
                              uint32_t *ao_data_len,
-                             bool ao_is_eos,
+                             bool *ao_is_eos,
                              void *a_ctx,
-                             uint32_t *a_to_read)
+                             uint32_t a_to_read)
 {
         //NDBG_PRINT(": ======================== \n");
         //NDBG_PRINT(": ao_data:     %p\n", ao_data);
@@ -419,41 +419,41 @@ int32_t get_rqst_body_str_cb(char *ao_data,
         //NDBG_PRINT(": a_to_read:   %u\n", a_to_read);
         if (NULL == a_ctx)
         {
-                ao_is_eos = true;
+                *ao_is_eos = true;
                 *ao_data_len = 0;
                 return 0;
         }
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
         if(!l_ctx)
         {
-                ao_is_eos = true;
+                *ao_is_eos = true;
                 *ao_data_len = 0;
                 return 0;
         }
         ns_is2::rqst *l_rqst = l_ctx->m_rqst;
         if(!l_rqst)
         {
-                ao_is_eos = true;
+                *ao_is_eos = true;
                 *ao_data_len = 0;
                 return 0;
         }
         ns_is2::nbq *l_q = l_rqst->get_body_q();
         if(!l_q)
         {
-                ao_is_eos = true;
+                *ao_is_eos = true;
                 *ao_data_len = 0;
                 return 0;
         }
         // -------------------------------------------------
         // set not done
         // -------------------------------------------------
-        ao_is_eos = false;
+        *ao_is_eos = false;
         *ao_data_len = 0;
         // -------------------------------------------------
         // cal how much to read
         // -------------------------------------------------
-        uint32_t l_left = *a_to_read;
-        if(*a_to_read > l_q->read_avail())
+        uint32_t l_left = a_to_read;
+        if(a_to_read > l_q->read_avail())
         {
                 l_left = l_q->read_avail();
         }
@@ -468,8 +468,8 @@ int32_t get_rqst_body_str_cb(char *ao_data,
                 if(l_read < 0)
                 {
                         // TODO error
-                        ao_is_eos = true;
-                        ao_data_len = 0;
+                        *ao_is_eos = true;
+                        *ao_data_len = 0;
                         return 0;
                 }
                 l_cur_ptr += (uint32_t)l_read;
@@ -478,7 +478,7 @@ int32_t get_rqst_body_str_cb(char *ao_data,
         }
         if(!l_q->read_avail())
         {
-                ao_is_eos = true;
+                *ao_is_eos = true;
         }
         //ns_is2::mem_display((const uint8_t *)ao_data, ao_data_len);
         //NDBG_PRINT(": ************************ \n");

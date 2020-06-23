@@ -249,11 +249,7 @@ get_rqst_body_str_cb(char *ao_data, uint32_t *ao_data_len, bool *ao_is_eos, void
         ao_data_len = 0;
         return -1;
     }
-    /**
-    * TODO: we assume that whole body is available.
-    * Need a check in request handler to return the state to next handlers
-    * if we are still reading body. We analyze once we have everything we need
-    */
+
     ngx_chain_t  *chain = l_txn->request_body->bufs;
     /* set not done */
     *ao_is_eos = false;
@@ -306,14 +302,13 @@ static rqst_ctx_callbacks s_callbacks = {
     get_rqst_header_size_cb,        /* get_rqst_header_size_cb */
     NULL,                           /* get_rqst_header_w_key_cb */
     get_rqst_header_w_idx_cb,       /* get_rqst_header_w_idx_cb */
-    NULL,                           /* get_rqst_id_cb */
     get_rqst_body_str_cb,           /* get_rqst_body_str_cb */
     NULL,                           /* get_rqst_local_addr_cb */
     NULL,                           /* get_rqst_canonical_port_cb */
     NULL,                           /* get_rqst_apparent_cache_status_cb */
     NULL,                           /* get_rqst_bytes_out_cb */
     NULL,                           /* get_rqst_bytes_in_cb */
-    NULL,                           /* get_rqst_req_id_cb */
+    NULL,                           /* get_rqst_uuid_cb */
     NULL                            /* get_cust_id_cb */
 };
 

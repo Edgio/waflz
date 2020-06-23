@@ -127,13 +127,13 @@ static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void 
 static const char *g_body_str = _RQST_BODY_JSON;
 static int32_t get_rqst_body_str_cb(char *ao_data,
                                     uint32_t *ao_data_len,
-                                    bool ao_is_eos,
+                                    bool *ao_is_eos,
                                     void *a_ctx,
-                                    uint32_t *a_to_read)
+                                    uint32_t a_to_read)
 {
         *ao_data_len = strlen(g_body_str);
         memcpy(ao_data, g_body_str, *ao_data_len);
-        ao_is_eos = true;
+        *ao_is_eos = true;
         return 0;
 }
 //: ----------------------------------------------------------------------------
@@ -246,14 +246,13 @@ TEST_CASE( "test var", "[var]" ) {
                 get_rqst_header_size_cb,
                 NULL, //get_rqst_header_w_key_cb,
                 get_rqst_header_w_idx_cb,
-                NULL, //get_rqst_id_cb,
                 get_rqst_body_str_cb,
                 NULL, //get_rqst_local_addr_cb,
                 NULL, //get_rqst_canonical_port_cb,
                 NULL, //get_rqst_apparent_cache_status_cb,
                 NULL, //get_rqst_bytes_out_cb,
                 NULL, //get_rqst_bytes_in_cb,
-                NULL, //get_rqst_req_id_cb,
+                NULL, //get_rqst_uuid_cb,
                 NULL //get_cust_id_cb
         };
         ns_waflz::rqst_ctx *l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true, true);

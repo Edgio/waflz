@@ -45,7 +45,7 @@ typedef struct {
     ngx_http_request_t *r;
     unsigned waiting_more_body:1;
     unsigned body_read:1;
-}ngx_http_waflz_ctx_t;
+} ngx_http_waflz_ctx_t;
 
 typedef struct {
     void                    *pool;

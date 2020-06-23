@@ -216,12 +216,74 @@ get_rqst_header_w_idx_cb(const char **ao_key,
 int32_t
 get_rqst_method_cb(const char **ao_data, uint32_t *ao_len, void *a_ctx)
 {
-    if(!a_ctx){
+    if(!a_ctx) {
         return -1;
     }
     ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
     *ao_data = (const char *)l_txn->method_name.data;
     *ao_len = l_txn->method_name.len;
+    return 0;
+}
+/*
+ * \details callback for request body. We will read body chain by chain
+ *          until a certain limit is reached, which is set in the config and sent by param a_to_read
+ * \return  TODO
+ * \param   ao_data: pointer to buffer which will hold body, allc'd in waflz
+ *          ao_data_len: len of the buf/chain read in this call
+ *          ao_is_eos: bool to indicated nothing else left to read
+ *          a_to_read: pointer to size of how much more this func can read
+ */
+int32_t
+get_rqst_body_str_cb(char *ao_data, uint32_t *ao_data_len, bool *ao_is_eos, void *a_ctx, uint32_t a_to_read)
+{
+    if((!a_ctx) ||
+      (!ao_data)) {
+        *ao_is_eos = true;
+        ao_data_len = 0;
+
+        return -1;
+    }
+    ngx_http_request_t *l_txn = (ngx_http_request_t *)a_ctx;
+    if (l_txn->request_body == NULL) {
+        *ao_is_eos = true;
+        ao_data_len = 0;
+        return -1;
+    }
+    /**
+    * TODO: we assume that whole body is available.
+    * Need a check in request handler to return the state to next handlers
+    * if we are still reading body. We analyze once we have everything we need
+    */
+    ngx_chain_t  *chain = l_txn->request_body->bufs;
+    /* set not done */
+    *ao_is_eos = false;
+    *ao_data_len = 0;
+
+    uint32_t l_left = a_to_read;
+    char *l_cur_ptr = ao_data;
+    /* read until limit or end of chain */
+    while(l_left &&
+          chain)
+    {
+        u_char *data = chain->buf->pos;
+        uint32_t chain_len = chain->buf->last - data;
+        uint32_t data_to_read = 0;
+        if(l_left > chain_len) {
+            data_to_read = chain_len;
+        }
+        else {
+            data_to_read = l_left;
+        }
+        memcpy(l_cur_ptr, data, data_to_read);
+        l_cur_ptr += data_to_read;
+        *ao_data_len += data_to_read;
+        l_left -= data_to_read;
+        if (chain->buf->last_buf) {
+            *ao_is_eos = true;
+            break;
+        }
+        chain = chain->next;
+    }
     return 0;
 }
 /*
@@ -245,7 +307,7 @@ static rqst_ctx_callbacks s_callbacks = {
     NULL,                           /* get_rqst_header_w_key_cb */
     get_rqst_header_w_idx_cb,       /* get_rqst_header_w_idx_cb */
     NULL,                           /* get_rqst_id_cb */
-    NULL,                           /* get_rqst_body_str_cb */
+    get_rqst_body_str_cb,           /* get_rqst_body_str_cb */
     NULL,                           /* get_rqst_local_addr_cb */
     NULL,                           /* get_rqst_canonical_port_cb */
     NULL,                           /* get_rqst_apparent_cache_status_cb */
@@ -333,6 +395,25 @@ ngx_module_t  ngx_http_waflz_module = {
     NULL,                                         /* exit master */
     NGX_MODULE_V1_PADDING
 };
+
+/*
+ * \details create a ctx per request for the module
+ * \return  TODO
+ * \param   TODO
+ */
+ngx_http_waflz_ctx_t *
+ngx_http_waflz_create_ctx(ngx_http_request_t *r)
+{
+    ngx_http_waflz_ctx_t        *ctx;
+    ctx = ngx_pcalloc(r->pool, sizeof(ngx_http_waflz_ctx_t));
+    if (ctx == NULL)
+    {
+        return NULL;
+    }
+    ngx_http_set_ctx(r, ctx, ngx_http_waflz_module);
+    /* Todo: need cleanup? */
+    return ctx;
+}
 /*
  * \details Module header filter. TODO: Doesnt do anything, can move acl here
  * \return  TODO
@@ -350,6 +431,24 @@ ngx_http_waflz_header_filter(ngx_http_request_t *r)
     return ngx_http_next_header_filter(r);
 }
 /*
+ * \details read request body if present and set ctx bools
+ * \return  TODO
+ * \param   TODO
+ */
+void
+ngx_http_waflz_request_read(ngx_http_request_t *r)
+{
+    ngx_http_waflz_ctx_t *ctx;
+
+    ctx = ngx_http_get_module_ctx(r, ngx_http_waflz_module);
+    if (ctx->waiting_more_body)
+    {
+        ctx->waiting_more_body = 0;
+        r->write_event_handler = ngx_http_core_run_phases;
+        ngx_http_core_run_phases(r);
+    }
+}
+/*
  * \details Run waflz
  * \return  TODO
  * \param   TODO
@@ -359,18 +458,24 @@ ngx_http_waflz_handler(ngx_http_request_t *r)
 {
     ngx_int_t rc;
     ngx_http_waflz_loc_conf_t *l_loc_conf;
-
+    ngx_http_waflz_ctx_t        *ctx;
     unsigned char * l_response;
     l_loc_conf = ngx_http_get_module_loc_conf(r, ngx_http_waflz_module);
     if(l_loc_conf == NULL){
         ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)r->connection->log, 0, "loc conf null");
         return NGX_DECLINED;
     }
+    ctx = ngx_http_waflz_create_ctx(r);
 
+    rc = ngx_http_read_client_request_body(r,
+            ngx_http_waflz_request_read);
+    if (rc == NGX_AGAIN){
+        ctx->waiting_more_body = 1;
+        return NGX_DONE;
+    }
     rqst_ctx *l_rqst_ctx = NULL;
     /* process_request */
     char *l_event = NULL;
-    ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)r->connection->log, 0, "processing");
     process_waflz(l_loc_conf->m_scopes, r, l_rqst_ctx, &s_callbacks, &l_event);
     if(l_event){
         r->headers_out.status = NGX_HTTP_FORBIDDEN;
@@ -411,7 +516,6 @@ ngx_http_waflz_handler(ngx_http_request_t *r)
 
     }
     rqst_ctx_cleanup(l_rqst_ctx);
-    ngx_log_error(NGX_LOG_ERR, (ngx_log_t *)r->connection->log, 0, "no errors");
 
     return NGX_OK;
 }

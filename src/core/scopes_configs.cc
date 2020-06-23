@@ -987,7 +987,6 @@ int32_t scopes_configs::load_bots(void* a_js)
         int32_t l_s;
         ns_waflz::rules* l_bots = new rules(m_engine);
         l_s = l_bots->load(a_js);
-        
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_bots) { delete l_bots; l_bots = NULL;}
@@ -1017,7 +1016,6 @@ int32_t scopes_configs::load_bots(void* a_js)
                 if(l_bots) { delete l_bots; l_bots = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

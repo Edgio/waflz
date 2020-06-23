@@ -3,16 +3,13 @@
 # ------------------------------------------------------------------------------
 # Imports
 # ------------------------------------------------------------------------------
-import pytest
 import subprocess
 import os
-import sys
 import json
 import time
-import requests
-import base64
-import time
 import datetime
+import requests
+import pytest
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -32,7 +29,6 @@ def setup_scopez_server_action():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
-    l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
@@ -64,7 +60,7 @@ def setup_scopez_server_action():
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
-    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    _, _, _ = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 
 def test_acl_config_update(setup_scopez_server_action):
@@ -146,7 +142,7 @@ def test_rules_config_update(setup_scopez_server_action):
             l_conf = json.load(l_f)
     except Exception as l_e:
         print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
-            l_conf_path, type(l_e), l_e, l_e.__doc__))
+            l_file_path, type(l_e), l_e, l_e.__doc__))
         assert False
     l_conf['directive'][1]['sec_rule']['operator']['value'] = 'donkeez'
     l_conf['last_modified_date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
@@ -258,7 +254,7 @@ def test_limit_config_update(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
-    for x in range(2):
+    for _ in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
     l_r = requests.get(l_uri, headers=l_headers)
@@ -268,7 +264,7 @@ def test_limit_config_update(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'test.limit.com',
                  'waf-scopes-id': '0050'}
-    for x in range(2):
+    for _ in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
     l_r = requests.get(l_uri, headers=l_headers)
@@ -311,7 +307,7 @@ def test_limit_config_update(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
-    for x in range(3):
+    for _ in range(3):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
     l_r = requests.get(l_uri, headers=l_headers)
@@ -324,7 +320,7 @@ def test_limit_config_update(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'test.limit.com',
                  'waf-scopes-id': '0050'}
-    for x in range(3):
+    for _ in range(3):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
     l_r = requests.get(l_uri, headers=l_headers)

@@ -59,7 +59,7 @@ main() {
         BUILD_RATE_LIMITING=ON
         NPROC=$(sysctl -n hw.ncpu)
     else
-        BUILD_UBUNTU=OFF
+        BUILD_UBUNTU=ON
         BUILD_RATE_LIMITING=ON
         NPROC=$(nproc)
     fi

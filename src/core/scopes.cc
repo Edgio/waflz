@@ -1168,7 +1168,7 @@ int32_t scopes::process_request_plugin(char **ao_event,
         {
 
                 int32_t l_len = strlen(l_prod_event->DebugString().c_str());
-                char *l_event = (char*)malloc(sizeof(char*) * l_len);
+                char *l_event = (char*)malloc(sizeof(char) * l_len + 1);
                 strncpy(l_event, l_prod_event->DebugString().c_str(), l_len);
                 *ao_event = l_event;
         }

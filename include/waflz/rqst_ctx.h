@@ -69,14 +69,13 @@ typedef struct {
         get_rqst_data_size_cb_t m_get_rqst_header_size_cb;
         get_rqst_data_w_key_cb_t m_get_rqst_header_w_key_cb;
         get_rqst_kv_w_idx_cb_t m_get_rqst_header_w_idx_cb;
-        get_rqst_data_cb_t m_get_rqst_id_cb;
         get_rqst_body_data_cb_t m_get_rqst_body_str_cb;
         get_rqst_data_cb_t m_get_rqst_local_addr_cb;
         get_rqst_data_size_cb_t m_get_rqst_canonical_port_cb;
         get_rqst_data_size_cb_t m_get_rqst_apparent_cache_status_cb;
         get_rqst_data_size_cb_t m_get_rqst_bytes_out_cb;
         get_rqst_data_size_cb_t m_get_rqst_bytes_in_cb;
-        get_rqst_data_size_cb_t m_get_rqst_req_id_cb;
+        get_rqst_data_cb_t m_get_rqst_uuid_cb;
         get_rqst_data_size_cb_t m_get_cust_id_cb;
 }rqst_ctx_callbacks;
 #ifdef __cplusplus

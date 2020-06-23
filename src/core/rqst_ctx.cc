@@ -500,14 +500,14 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                 }
         }
         // -------------------------------------------------
-        // request id
+        // request uuid
         // -------------------------------------------------
-        if(m_callbacks && m_callbacks->m_get_rqst_id_cb)
+        if(m_callbacks && m_callbacks->m_get_rqst_uuid_cb)
         {
                 int32_t l_s;
-                l_s = m_callbacks->m_get_rqst_id_cb(&m_req_uuid.m_data,
-                                                    &m_req_uuid.m_len,
-                                                    m_ctx);
+                l_s = m_callbacks->m_get_rqst_uuid_cb(&m_req_uuid.m_data,
+                                                      &m_req_uuid.m_len,
+                                                      m_ctx);
                 if(l_s != 0)
                 {
                         // TODO log reason???
@@ -1036,9 +1036,9 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 uint32_t l_to_read = l_body_len-l_rd_count_total;
                 l_s = m_callbacks->m_get_rqst_body_str_cb(l_buf,
                                              &l_rd_count,
-                                             l_is_eos,
+                                             &l_is_eos,
                                              m_ctx,
-                                             &l_to_read);
+                                             l_to_read);
                 if(l_s != 0)
                 {
                         m_init_phase_2 = true;
@@ -1204,21 +1204,6 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
                 }
                 l_request_info->set_bytes_in(l_bytes_in);
         }
-        // TODO FIX!!!
-#if 0
-        // -------------------------------------------------
-        // Request ID
-        // -------------------------------------------------
-        if(m_callbacks && m_callbacks->m_get_rqst_req_id_cb)
-        {
-                uint32_t l_req_id;
-                l_s =  m_callbacks->m_get_rqst_req_id_cb(&l_req_id, m_ctx);
-                if(l_s != 0)
-                {
-                        //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_req_id_cb");
-                }
-                l_request_info->set_request_id(l_req_id);
-        }
         // -------------------------------------------------
         // REQ_UUID
         // -------------------------------------------------
@@ -1229,7 +1214,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
         // -------------------------------------------------
         // Customer ID
         // -------------------------------------------------
-        if(s_get_cust_id_cb)
+        if(m_callbacks && m_callbacks->m_get_cust_id_cb)
         {
                 uint32_t l_cust_id;
                 l_s =  m_callbacks->m_get_cust_id_cb(&l_cust_id, m_ctx);
@@ -1239,7 +1224,6 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
                 }
                 l_request_info->set_customer_id(l_cust_id);
         }
-#endif
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

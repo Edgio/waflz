@@ -36,22 +36,25 @@ def setup_scopez_server_action():
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
+    l_bot_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
     l_subproc = subprocess.Popen([l_scopez_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
-                                  '-a',
-                                  '-b'])
+                                  '-c', l_bot_challenge,
+                                  '-a'
+                                  ])
     print('cmd: {}'.format(' '.join([l_scopez_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
-                                  '-a',
-                                  '-b'])))
+                                  '-c', l_bot_challenge,
+                                  '-a'])))
+                                  # '-b'])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
@@ -463,7 +466,7 @@ def test_update_bots_endpoint(setup_scopez_server_action):
                                                 '../../data/waf/conf/bots/0052-wHyMHxV7.bots.json'))
     l_test_payload = ''
 
-    import pdb;pdb.set_trace()
+
     
     # check setup
     assert os.path.exists(l_test_file), 'test file not found!'
@@ -482,7 +485,36 @@ def test_update_bots_endpoint(setup_scopez_server_action):
     assert l_result.status_code == 200
     assert l_result.json()['status'] == 'success'
 
+    # ------------------------------------------------------
+    # Check that challenge works
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+        
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    # ------------------------------------------------------
+    # Update the bot config
+    # ------------------------------------------------------    
+    l_json_payload['directive'][0]['sec_rule']['operator']['value'] = 'chowdah'
+    l_result = requests.post(l_url, timeout=3, json=l_json_payload)
+    assert l_result.status_code == 200
+    assert l_result.json()['status'] == 'success'
 
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+
+    time.sleep(1)
+    l_r = requests.get(l_uri, headers=l_headers)
+    print("With updated config")
+    print("l_r.status_code should be 200 since we updated user-agent: ", l_r.status_code)
+    assert l_r.status_code == 200, "expecting 200, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
+
+    
     # # check negative test - test id does not match scopes map
     # l_json_payload['id'] = '1d0ntex15t'
     # l_n1_result = requests.post(l_url, json=l_json_payload)
@@ -493,3 +525,4 @@ def test_update_bots_endpoint(setup_scopez_server_action):
     # l_n2_result = requests.post(l_url, json=l_json_payload)
     # assert l_n2_result.status_code == 500,\
     #     'expected 500 since customer_id {} is removed'.format(l_cust_id)
+#https://api.vdms.io/edge-insights/v0.7/access-log/top?field=url&size=10&start_time=1591221053&end_time=1591221353&filters=%7B%22an%22%3A%221A6BD%22%7D

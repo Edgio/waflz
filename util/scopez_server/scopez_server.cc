@@ -1064,7 +1064,7 @@ int main(int argc, char** argv)
         {
         // -------------------------------------------------
         //  single scope
-        // -------------------------------------------------  
+        // -------------------------------------------------
         case(CONFIG_MODE_SCOPES):
         {
                 g_sx_scopes = new ns_scopez_server::sx_scopes();

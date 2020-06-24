@@ -3,16 +3,14 @@
 # ------------------------------------------------------------------------------
 # Imports
 # ------------------------------------------------------------------------------
-import pytest
 import subprocess
 import os
-import sys
 import json
 import time
-import requests
-import base64
-import time
 import re
+import requests
+import pytest
+
 try:
     from html.parser import HTMLParser
 except ImportError:
@@ -39,7 +37,7 @@ def setup_scopez_server_action():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
-    l_cwd = os.getcwd()
+    # l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
@@ -72,7 +70,7 @@ def setup_scopez_server_action():
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
-    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    _, _, _ = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 
 class html_parse(HTMLParser):
@@ -131,7 +129,7 @@ def test_bot_challenge_in_custom_rule(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 def test_bot_challenge_order_and_expiry_in_scopes(setup_scopez_server_action):
     # ------------------------------------------------------
-    # test for recieving a bot challenge with an attack vector 
+    # test for recieving a bot challenge with an attack vector
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html?a=%27select%20*%20from%20testing%27'
     l_headers = {'host': 'mycoolbot.com',
@@ -363,4 +361,3 @@ def test_bot_challenge_with_profile(setup_scopez_server_action):
     l_parser = html_parse()
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
-

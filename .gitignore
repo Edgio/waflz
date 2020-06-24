@@ -11,3 +11,5 @@ CMakeCache.txt
 *.cbp
 CMakeFiles/
 *~
+TAGS
+*#

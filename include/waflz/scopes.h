@@ -143,6 +143,7 @@ public:
         int32_t load(void *a_js, const std::string& a_conf_dir_path);
         int32_t load_acl(ns_waflz::acl* a_acl);
         int32_t load_rules(ns_waflz::rules* a_rules);
+        int32_t load_bots(ns_waflz::rules* a_bots);
         int32_t load_profile(ns_waflz::profile* a_profile);
         int32_t load_limit(ns_waflz::limit* a_limit);
         int32_t process(const waflz_pb::enforcement **ao_enf,

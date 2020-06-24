@@ -3,16 +3,13 @@
 # ------------------------------------------------------------------------------
 # Imports
 # ------------------------------------------------------------------------------
-import pytest
 import subprocess
 import os
-import sys
 import json
 import time
-import requests
-import base64
-import time
 import datetime
+import requests
+import pytest
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -32,7 +29,6 @@ def setup_scopez_server_action():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
-    l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
@@ -40,22 +36,25 @@ def setup_scopez_server_action():
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
+    l_bot_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
     l_subproc = subprocess.Popen([l_scopez_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
-                                  '-a',
-                                  '-b'])
+                                  '-c', l_bot_challenge,
+                                  '-a'
+                                  ])
     print('cmd: {}'.format(' '.join([l_scopez_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
-                                  '-a',
-                                  '-b'])))
+                                  '-c', l_bot_challenge,
+                                  '-a'])))
+                                  # '-b'])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
@@ -64,7 +63,7 @@ def setup_scopez_server_action():
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
-    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    _, _, _ = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 
 def test_acl_config_update(setup_scopez_server_action):
@@ -146,7 +145,7 @@ def test_rules_config_update(setup_scopez_server_action):
             l_conf = json.load(l_f)
     except Exception as l_e:
         print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
-            l_conf_path, type(l_e), l_e, l_e.__doc__))
+            l_file_path, type(l_e), l_e, l_e.__doc__))
         assert False
     l_conf['directive'][1]['sec_rule']['operator']['value'] = 'donkeez'
     l_conf['last_modified_date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
@@ -258,7 +257,7 @@ def test_limit_config_update(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
-    for x in range(2):
+    for _ in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
     l_r = requests.get(l_uri, headers=l_headers)
@@ -268,7 +267,7 @@ def test_limit_config_update(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'test.limit.com',
                  'waf-scopes-id': '0050'}
-    for x in range(2):
+    for _ in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
     l_r = requests.get(l_uri, headers=l_headers)
@@ -311,7 +310,7 @@ def test_limit_config_update(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'limit.com',
                  'waf-scopes-id': '0050'}
-    for x in range(3):
+    for _ in range(3):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
     l_r = requests.get(l_uri, headers=l_headers)
@@ -324,7 +323,7 @@ def test_limit_config_update(setup_scopez_server_action):
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'test.limit.com',
                  'waf-scopes-id': '0050'}
-    for x in range(3):
+    for _ in range(3):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
     l_r = requests.get(l_uri, headers=l_headers)
@@ -452,4 +451,81 @@ def test_scopes_linkage_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is rules custom response\n'
-
+# ------------------------------------------------------------------------------
+# test /update_bots endpoint
+# ------------------------------------------------------------------------------
+def test_update_bots_endpoint(setup_scopez_server_action):
+    l_url = G_TEST_HOST + '/update_bots'
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_test_file = os.path.realpath(os.path.join(l_file_path,
+                                                '../../data/waf/conf/bots/0052-wHyMHxV7.bots.json'))
+    l_test_payload = ''
+    # ------------------------------------------------------
+    # check setup
+    # ------------------------------------------------------
+    assert os.path.exists(l_test_file), 'test file not found!'
+    # ------------------------------------------------------
+    # slurp test file
+    # ------------------------------------------------------
+    with open(l_test_file) as l_tf:
+        l_test_payload = l_tf.read()
+    # ------------------------------------------------------
+    # check setup
+    # ------------------------------------------------------
+    assert l_test_payload, 'payload is empty!'
+    l_json_payload = json.loads(l_test_payload)
+    # ------------------------------------------------------
+    # Check that challenge works
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    # ------------------------------------------------------
+    # Update the bot config
+    # ------------------------------------------------------
+    l_json_payload['directive'][0]['sec_rule']['operator']['value'] = 'chowdah'
+    # ------------------------------------------------------
+    # update the timestamp, else it will silently do nothing and return 200
+    # ref: scopes.cc:load_bots (compare time)
+    # ------------------------------------------------------
+    l_json_payload['last_modified_date'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+    l_result = requests.post(l_url, timeout=3, json=l_json_payload)
+    assert l_result.status_code == 200
+    assert l_result.json()['status'] == 'success'
+    # ------------------------------------------------------
+    # Expect 200
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200,\
+        "expecting 200, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
+    # ------------------------------------------------------
+    # Expect 401 due to new UA
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'chowdah',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401,\
+        "expecting 401, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
+    # ------------------------------------------------------
+    # test bad config behavior
+    # check negative test - test id does not match scopes map
+    # ------------------------------------------------------
+    l_json_payload['id'] = '1d0ntex15t'
+    l_n1_result = requests.post(l_url, json=l_json_payload)
+    assert l_n1_result.status_code == 500
+    # ------------------------------------------------------
+    # check negative test - missing customer_id field
+    # ------------------------------------------------------
+    l_cust_id = l_json_payload.pop('customer_id')
+    l_n2_result = requests.post(l_url, json=l_json_payload)
+    assert l_n2_result.status_code == 500,\
+        'expected 500 since customer_id {} is removed'.format(l_cust_id)

@@ -466,8 +466,6 @@ def test_update_bots_endpoint(setup_scopez_server_action):
                                                 '../../data/waf/conf/bots/0052-wHyMHxV7.bots.json'))
     l_test_payload = ''
 
-
-    
     # check setup
     assert os.path.exists(l_test_file), 'test file not found!'
 
@@ -492,13 +490,16 @@ def test_update_bots_endpoint(setup_scopez_server_action):
     l_headers = {'host': 'mybot.com',
                  'user-agent': 'bot-testing',
                  'waf-scopes-id': '0052'}
-        
+
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 401
     # ------------------------------------------------------
     # Update the bot config
-    # ------------------------------------------------------    
+    # ------------------------------------------------------
     l_json_payload['directive'][0]['sec_rule']['operator']['value'] = 'chowdah'
+    # update the timestamp, else it will silently do nothing and return 200
+    # ref: scopes.cc:load_bots (compare time)
+    l_json_payload['last_modified_date'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
     l_result = requests.post(l_url, timeout=3, json=l_json_payload)
     assert l_result.status_code == 200
     assert l_result.json()['status'] == 'success'
@@ -512,17 +513,18 @@ def test_update_bots_endpoint(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     print("With updated config")
     print("l_r.status_code should be 200 since we updated user-agent: ", l_r.status_code)
-    assert l_r.status_code == 200, "expecting 200, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
+    assert l_r.status_code == 200,\
+        "expecting 200, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
+    # ------------------------------------------------------
+    # test bad config behavior
+    # ------------------------------------------------------
+    # check negative test - test id does not match scopes map
+    l_json_payload['id'] = '1d0ntex15t'
+    l_n1_result = requests.post(l_url, json=l_json_payload)
+    assert l_n1_result.status_code == 500
 
-    
-    # # check negative test - test id does not match scopes map
-    # l_json_payload['id'] = '1d0ntex15t'
-    # l_n1_result = requests.post(l_url, json=l_json_payload)
-    # assert l_n1_result.status_code == 500
-
-    # # check negative test - missing customer_id field
-    # l_cust_id = l_json_payload.pop('customer_id')
-    # l_n2_result = requests.post(l_url, json=l_json_payload)
-    # assert l_n2_result.status_code == 500,\
-    #     'expected 500 since customer_id {} is removed'.format(l_cust_id)
-#https://api.vdms.io/edge-insights/v0.7/access-log/top?field=url&size=10&start_time=1591221053&end_time=1591221353&filters=%7B%22an%22%3A%221A6BD%22%7D
+    # check negative test - missing customer_id field
+    l_cust_id = l_json_payload.pop('customer_id')
+    l_n2_result = requests.post(l_url, json=l_json_payload)
+    assert l_n2_result.status_code == 500,\
+        'expected 500 since customer_id {} is removed'.format(l_cust_id)

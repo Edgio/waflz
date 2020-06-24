@@ -504,17 +504,34 @@ def test_update_bots_endpoint(setup_scopez_server_action):
     assert l_result.status_code == 200
     assert l_result.json()['status'] == 'success'
 
+    # Expect 200     
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'mybot.com',
                  'user-agent': 'bot-testing',
                  'waf-scopes-id': '0052'}
 
     time.sleep(1)
+
     l_r = requests.get(l_uri, headers=l_headers)
     print("With updated config")
     print("l_r.status_code should be 200 since we updated user-agent: ", l_r.status_code)
     assert l_r.status_code == 200,\
         "expecting 200, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
+
+    # Expect 401 due to new UA
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'chowdah',
+                 'waf-scopes-id': '0052'}
+
+    time.sleep(1)
+
+    l_r = requests.get(l_uri, headers=l_headers)
+    print("With updated config")
+    print("l_r.status_code should be 200 since we updated user-agent: ", l_r.status_code)
+    assert l_r.status_code == 401,\
+        "expecting 401, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
+
     # ------------------------------------------------------
     # test bad config behavior
     # ------------------------------------------------------

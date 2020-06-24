@@ -899,7 +899,6 @@ rules_audit_action:
                 // -----------------------------------------
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
-                
                 l_s = l_rules->load_file(l_path.c_str(), l_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {

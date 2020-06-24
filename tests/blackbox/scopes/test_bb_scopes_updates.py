@@ -451,38 +451,29 @@ def test_scopes_linkage_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is rules custom response\n'
-
 # ------------------------------------------------------------------------------
 # test /update_bots endpoint
 # ------------------------------------------------------------------------------
 def test_update_bots_endpoint(setup_scopez_server_action):
-    # ------------------------------------------------------
-    # test for recieving a bot challenge with attack vector
-    # ------------------------------------------------------
     l_url = G_TEST_HOST + '/update_bots'
-
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_test_file = os.path.realpath(os.path.join(l_file_path,
                                                 '../../data/waf/conf/bots/0052-wHyMHxV7.bots.json'))
     l_test_payload = ''
-
+    # ------------------------------------------------------
     # check setup
+    # ------------------------------------------------------
     assert os.path.exists(l_test_file), 'test file not found!'
-
+    # ------------------------------------------------------
     # slurp test file
+    # ------------------------------------------------------
     with open(l_test_file) as l_tf:
         l_test_payload = l_tf.read()
-
+    # ------------------------------------------------------
     # check setup
+    # ------------------------------------------------------
     assert l_test_payload, 'payload is empty!'
-
     l_json_payload = json.loads(l_test_payload)
-
-    # check positive test
-    l_result = requests.post(l_url, timeout=3, json=l_json_payload)
-    assert l_result.status_code == 200
-    assert l_result.json()['status'] == 'success'
-
     # ------------------------------------------------------
     # Check that challenge works
     # ------------------------------------------------------
@@ -490,57 +481,50 @@ def test_update_bots_endpoint(setup_scopez_server_action):
     l_headers = {'host': 'mybot.com',
                  'user-agent': 'bot-testing',
                  'waf-scopes-id': '0052'}
-
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 401
     # ------------------------------------------------------
     # Update the bot config
     # ------------------------------------------------------
     l_json_payload['directive'][0]['sec_rule']['operator']['value'] = 'chowdah'
+    # ------------------------------------------------------
     # update the timestamp, else it will silently do nothing and return 200
     # ref: scopes.cc:load_bots (compare time)
+    # ------------------------------------------------------
     l_json_payload['last_modified_date'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
     l_result = requests.post(l_url, timeout=3, json=l_json_payload)
     assert l_result.status_code == 200
     assert l_result.json()['status'] == 'success'
-
-    # Expect 200     
+    # ------------------------------------------------------
+    # Expect 200
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'mybot.com',
                  'user-agent': 'bot-testing',
                  'waf-scopes-id': '0052'}
-
-    time.sleep(1)
-
     l_r = requests.get(l_uri, headers=l_headers)
-    print("With updated config")
-    print("l_r.status_code should be 200 since we updated user-agent: ", l_r.status_code)
     assert l_r.status_code == 200,\
         "expecting 200, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
-
+    # ------------------------------------------------------
     # Expect 401 due to new UA
+    # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'mybot.com',
                  'user-agent': 'chowdah',
                  'waf-scopes-id': '0052'}
-
-    time.sleep(1)
-
     l_r = requests.get(l_uri, headers=l_headers)
-    print("With updated config")
-    print("l_r.status_code should be 200 since we updated user-agent: ", l_r.status_code)
     assert l_r.status_code == 401,\
         "expecting 401, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
-
     # ------------------------------------------------------
     # test bad config behavior
-    # ------------------------------------------------------
     # check negative test - test id does not match scopes map
+    # ------------------------------------------------------
     l_json_payload['id'] = '1d0ntex15t'
     l_n1_result = requests.post(l_url, json=l_json_payload)
     assert l_n1_result.status_code == 500
-
+    # ------------------------------------------------------
     # check negative test - missing customer_id field
+    # ------------------------------------------------------
     l_cust_id = l_json_payload.pop('customer_id')
     l_n2_result = requests.post(l_url, json=l_json_payload)
     assert l_n2_result.status_code == 500,\

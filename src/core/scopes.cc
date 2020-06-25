@@ -1609,6 +1609,24 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         *ao_audit_event = NULL;
         *ao_prod_event = NULL;
         // -------------------------------------------------
+        // Mark rquest as analyzed by waf if either acl or
+        // waf profiles are present for this scope. Custom
+        // rules configs are not being considered here on
+        // purpose. This will allow using old instance
+        // format as well as new scopes + custom rules only
+        // -------------------------------------------------
+        (*ao_rqst_ctx)->m_analyzed_waf = ( a_scope.has__acl_audit__reserved() ||
+                           a_scope.has__profile_audit__reserved() ||
+                           a_scope.has__acl_prod__reserved() ||
+                           a_scope.has__profile_prod__reserved());
+        // -------------------------------------------------
+        // if scope has limit, mark it analyzed for limit/rl
+        // -------------------------------------------------
+        if(a_scope.limits_size())
+        {
+                (*ao_rqst_ctx)->m_analyzed_limit = true;
+        }
+        // -------------------------------------------------
         // *************************************************
         //                   A U D I T
         // *************************************************

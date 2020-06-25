@@ -180,6 +180,8 @@ public:
         mutable_data_t m_token;
         uint32_t m_resp_status;
         bool m_signal_enf;
+        bool m_analyzed_waf;
+        bool m_analyzed_limit;
         // -------------------------------------------------
         // TODO FIX!!! -not thread safe...
         // -------------------------------------------------

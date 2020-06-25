@@ -192,6 +192,8 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_token(),
         m_resp_status(0),
         m_signal_enf(0),
+        m_analyzed_waf(false),
+        m_analyzed_limit(false),
         m_limit(NULL),
         m_body_parser(),
         // -------------------------------------------------

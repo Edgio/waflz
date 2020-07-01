@@ -1615,7 +1615,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         // purpose. This will allow using old instance
         // format as well as new scopes + custom rules only
         // -------------------------------------------------
-        (*ao_rqst_ctx)->m_analyzed_waf = ( a_scope.has__acl_audit__reserved() ||
+        (*ao_rqst_ctx)->m_waf_analyzed = ( a_scope.has__acl_audit__reserved() ||
                            a_scope.has__profile_audit__reserved() ||
                            a_scope.has__acl_prod__reserved() ||
                            a_scope.has__profile_prod__reserved());
@@ -1624,7 +1624,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         // -------------------------------------------------
         if(a_scope.limits_size())
         {
-                (*ao_rqst_ctx)->m_analyzed_limit = true;
+                (*ao_rqst_ctx)->m_limit_analyzed = true;
         }
         // -------------------------------------------------
         // *************************************************

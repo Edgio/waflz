@@ -31,6 +31,7 @@
 #include "waflz/rqst_ctx.h"
 #include <pthread.h>
 #include <string>
+#include <set>
 #if defined(__APPLE__) || defined(__darwin__)
     #include <unordered_map>
 #else
@@ -48,6 +49,7 @@ namespace ns_waflz {
 //: ----------------------------------------------------------------------------
 class scopes;
 class kv_db;
+typedef std::set <uint64_t> an_set_t;
 //: ----------------------------------------------------------------------------
 //: scopes_configs
 //: ----------------------------------------------------------------------------
@@ -74,6 +76,7 @@ public:
         int32_t load_rules(const char* a_buf, uint32_t a_buf_len);
         int32_t load_bots(const char* a_buf, uint32_t a_buf_len);
         int32_t load_profile(const char* a_buf, uint32_t a_buf_len);
+        int32_t load_an_list(const char* a_buf, uint32_t a_buf_len);
         int32_t process(waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
@@ -89,7 +92,6 @@ public:
         void set_conf_dir(const std::string& a_conf_dir) { m_conf_dir = a_conf_dir; }
         void get_first_id(uint64_t &ao_id);
         void get_rand_id(uint64_t &ao_id);
-        bool id_exists(uint64_t a_id);
         scopes_configs(engine& a_engine, kv_db& a_db, challenge& a_challenge, bool a_enable_locking);
         ~scopes_configs();
 private:
@@ -116,6 +118,7 @@ private:
         pthread_mutex_t m_mutex;
         bool m_enable_locking;
         std::string m_conf_dir;
+        an_set_t m_an_set;
         // -------------------------------------------------
         // bot challenge
         // -------------------------------------------------

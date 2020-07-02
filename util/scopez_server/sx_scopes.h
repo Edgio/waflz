@@ -188,6 +188,7 @@ public:
         std::string m_geoip2_isp_db;
         std::string m_conf_dir;
         std::string m_b_challenge_file;
+        std::string m_an_list_file;
 };
 }
 #endif

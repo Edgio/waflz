@@ -57,6 +57,7 @@ scopes_configs::scopes_configs(engine &a_engine,
         m_mutex(),
         m_enable_locking(a_enable_locking),
         m_conf_dir(),
+        m_an_set(),
         m_challenge(a_challenge)
 {
         // Initialize the mutex
@@ -86,15 +87,18 @@ scopes_configs::~scopes_configs()
         }
 }
 //: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
+//: \details loads scopes.json config files in the path specified.
+//  The file name is of the format <an>.scopes.json. If an exists in m_an_set,
+//  then load the scopes file or else ignore and continue
+//: \return  0: success
+//: \param   a_dir_path: path of directorry which contains scopes configs
+//           a_dir_path_len: strlen of a_dir_path
 //: ----------------------------------------------------------------------------
 int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len)
 {
         // -----------------------------------------------------------
         // this function should look through the given directory and
-        // look for all ddos.json files, open them and call
+        // look for all scopes.json files, open them and call
         // load_file() on it
         // -----------------------------------------------------------
         class is_conf_file
@@ -155,17 +159,43 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                 return WAFLZ_STATUS_ERROR;
         }
         // -----------------------------------------------------------
-        // we have a list of .ddos.conf files in the directory
+        // we have a list of .scopes.conf files in the directory
         // -----------------------------------------------------------
         for (int i_f = 0; i_f < l_num_files; ++i_f)
         {
                 // for each file
+                int32_t l_s;
+                std::string l_file_name(l_conf_list[i_f]->d_name);
+                size_t l_pos = l_file_name.find_first_of('.');
+                if(l_pos == std::string::npos)
+                {
+                        // failed to get AN from file name
+                        for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
+                        free(l_conf_list);
+                        return WAFLZ_STATUS_ERROR;
+                }
+                uint64_t l_id;
+                l_s = convert_hex_to_uint(l_id, l_file_name.substr(0, l_pos).c_str());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
+                        // failed to convert hex to int
+                        for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
+                        free(l_conf_list);
+                        return WAFLZ_STATUS_ERROR;
+                }
+                an_set_t::iterator i_an_list;
+                i_an_list = m_an_set.find(l_id);
+                // If the an is not in the set of allowed an's, skip
+                if(i_an_list == m_an_set.end())
+                {
+                        continue;
+                }
                 // TODO log?
                 //NDBG_PRINT("Found scope config file: %s", l_conf_list[i_f]->d_name );
                 std::string l_full_path(a_dir_path);
                 l_full_path.append("/");
                 l_full_path.append(l_conf_list[i_f]->d_name);
-                int32_t l_s;
                 l_s = load_file(l_full_path.c_str(),l_full_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -458,33 +488,7 @@ void scopes_configs::get_rand_id(uint64_t &ao_id)
                 pthread_mutex_unlock(&m_mutex);
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-bool scopes_configs::id_exists(uint64_t a_id)
-{
-        bool l_ret = false;
-        if(m_enable_locking)
-        {
-                pthread_mutex_lock(&m_mutex);
-        }
-        // -------------------------------------------------
-        // find id...
-        // -------------------------------------------------
-        cust_id_scopes_map_t::iterator i_i;
-        i_i = m_cust_id_scopes_map.find(a_id);
-        if (i_i != m_cust_id_scopes_map.end())
-        {
-                l_ret = true;
-        }
-        if(m_enable_locking)
-        {
-                pthread_mutex_unlock(&m_mutex);
-        }
-        return l_ret;
-}
+
 //: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
@@ -609,19 +613,36 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details check if customer has scopes
-//: \return  TODO
-//: \param   TODO
+//: \details check if customer has scopes. The an_list is the list of ans that
+//  are enabled to be inspected by scopes. We only add the check here, since
+//  we only want to avoid inspection. In load functions  for acl, limit etc
+//  we dont need to check an since our goal is only to avoid processing.
+//  The cust_id map is updated on a reload with a check for an list in load_dir func.
+//: \return  true: if id exists in both map and set
+//           false: if id is missing in either map or set
+//: \param   a_cust_id: unsigned integer customer id.
 //: ----------------------------------------------------------------------------
 bool scopes_configs::check_id(uint64_t a_cust_id)
 {
         cust_id_scopes_map_t::iterator i_scopes;
-        i_scopes = m_cust_id_scopes_map.find(a_cust_id);
-        if(i_scopes == m_cust_id_scopes_map.end())
+        an_set_t::iterator i_an_list;
+        bool l_ret = false;
+        if(m_enable_locking)
         {
-                return false;
+                pthread_mutex_lock(&m_mutex);
         }
-        return true;
+        i_scopes = m_cust_id_scopes_map.find(a_cust_id);
+        i_an_list = m_an_set.find(a_cust_id);
+        if(i_scopes != m_cust_id_scopes_map.end() &&
+           i_an_list != m_an_set.end())
+        {
+                l_ret = true;
+        }
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
+        return l_ret;
 }
 //: ----------------------------------------------------------------------------
 //: \details update scopes limit config
@@ -995,6 +1016,7 @@ int32_t scopes_configs::load_bots(void* a_js)
         uint64_t l_id;
         const std::string& l_cust_id = l_bots->get_cust_id();
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
+         NDBG_PRINT("hex to int id %lu\n", l_id);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
@@ -1209,6 +1231,51 @@ int32_t scopes_configs::load_profile(const char* a_buf, uint32_t a_buf_len)
         {
                 pthread_mutex_unlock(&m_mutex);
         }
+        return WAFLZ_STATUS_OK;
+}
+//: -----------------------------------------------------------------------------
+//: \details update profile config
+//: \return  TODO
+//: \param   TODO
+//: -----------------------------------------------------------------------------
+int32_t scopes_configs::load_an_list(const char* a_buf, uint32_t a_buf_len)
+{
+        // ---------------------------------------
+        // parse
+        // ---------------------------------------
+        rapidjson::Document *l_js = new rapidjson::Document();
+        rapidjson::ParseResult l_ok;
+        l_ok = l_js->Parse(a_buf, a_buf_len);
+        int32_t l_s;
+        if (!l_ok)
+        {
+                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
+                             rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
+                if(l_js) { delete l_js; l_js = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_js->IsArray())
+        {
+                WAFLZ_PERROR(m_err_msg, "error parsing json");
+                if(l_js) { delete l_js; l_js = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
+        {
+                rapidjson::Value &l_e = (*l_js)[i_e];
+                if(l_e.IsString())
+                {
+                        uint64_t l_cust_id = 0;
+                        l_s = convert_hex_to_uint(l_cust_id, l_e.GetString());
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint");
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                        m_an_set.insert(l_cust_id);
+                }
+        }
+        if(l_js) { delete l_js; l_js = NULL;}
         return WAFLZ_STATUS_OK;
 }
 }

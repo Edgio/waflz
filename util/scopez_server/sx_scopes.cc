@@ -727,6 +727,28 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         if(m_scopes_dir)
         {
+                if(m_an_list_file.empty())
+                {
+                        NDBG_PRINT("no an list file speified. set -l\n");
+                        return STATUS_ERROR;
+                }
+                char *l_buf = NULL;
+                uint32_t l_buf_len = 0;
+                l_s = ns_waflz::read_file(m_an_list_file.c_str(), &l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error read_file: %s\n", m_an_list_file.c_str());
+                        return STATUS_ERROR;
+                }
+                //set an map to allow loading of scopes config
+                l_s = m_scopes_configs->load_an_list(l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_scopes_configs->get_err_msg());
+                        if(l_buf) { free(l_buf); l_buf = NULL; }
+                        return STATUS_ERROR;
+                }
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 l_s = m_scopes_configs->load_dir(m_config.c_str(), m_config.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {

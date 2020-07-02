@@ -76,6 +76,7 @@ public:
         int32_t load_rules(const char* a_buf, uint32_t a_buf_len);
         int32_t load_bots(const char* a_buf, uint32_t a_buf_len);
         int32_t load_profile(const char* a_buf, uint32_t a_buf_len);
+        int32_t load_an_list_file(const char* a_file_path, uint32_t a_file_path_len);
         int32_t load_an_list(const char* a_buf, uint32_t a_buf_len);
         int32_t process(waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,

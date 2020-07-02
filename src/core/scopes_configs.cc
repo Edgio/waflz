@@ -1234,9 +1234,39 @@ int32_t scopes_configs::load_profile(const char* a_buf, uint32_t a_buf_len)
         return WAFLZ_STATUS_OK;
 }
 //: -----------------------------------------------------------------------------
-//: \details update profile config
+//: \details read a new AN list file and update AN set
 //: \return  TODO
-//: \param   TODO
+//: \param   a_file_path: file path
+//: \param   a_file_path_len: file path len
+//: -----------------------------------------------------------------------------
+int32_t scopes_configs::load_an_list_file(const char* a_file_path, uint32_t a_file_path_len)
+{
+        int32_t l_s;
+        char *l_buf = NULL;
+        uint32_t l_buf_len;
+        l_s = read_file(a_file_path, &l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, ":read_file[%s]: %s",
+                             a_file_path,
+                             ns_waflz::get_err_msg());
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        l_s = load_an_list(l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+        return WAFLZ_STATUS_OK;
+}
+//: -----------------------------------------------------------------------------
+//: \details update an set with new data
+//: \return  TODO
+//: \param   a_buf: json data
+//: \param   a_buf_len: size of json data
 //: -----------------------------------------------------------------------------
 int32_t scopes_configs::load_an_list(const char* a_buf, uint32_t a_buf_len)
 {
@@ -1256,10 +1286,14 @@ int32_t scopes_configs::load_an_list(const char* a_buf, uint32_t a_buf_len)
         }
         if(!l_js->IsArray())
         {
-                WAFLZ_PERROR(m_err_msg, "error parsing json");
+                WAFLZ_PERROR(m_err_msg, "invalid format of AN list, must be an array/list");
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
+        // ---------------------------------------
+        // clear the set and then insert new vals
+        // ---------------------------------------
+        m_an_set.clear();
         for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
         {
                 rapidjson::Value &l_e = (*l_js)[i_e];

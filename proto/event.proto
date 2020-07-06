@@ -108,6 +108,12 @@ message event {
         optional uint32 xss_score = 57;
         optional uint32 paranoia_level = 58;
         // -------------------------------------------------
+        // geoip fields
+        // -------------------------------------------------
+        optional string geoip_country_code2 = 70;
+        optional string geoip_country_name = 71;
+        optional string geoip_city_name = 72;
+        // -------------------------------------------------
         // child events
         // -------------------------------------------------
         repeated event sub_event = 100;

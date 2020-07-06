@@ -2055,6 +2055,29 @@ prod_profile:
         // cleanup
         // -------------------------------------------------
 done:
+        // -----------------------------------------
+        // access settings in older format still has response_header as a string
+        // To support that, if response_header exists in profile, add it in the event
+        // This will take of events generated from acls as well.
+        if((*ao_prod_event)
+            && a_scope.has__profile_prod__reserved())
+        {
+                profile *l_profile = (profile *)a_scope._profile_prod__reserved();
+                if (!l_profile->get_resp_header_name().empty())
+                {
+                        (*ao_prod_event)->set_response_header_name(l_profile->get_resp_header_name());
+                }
+        }
+        if((*ao_audit_event)
+            && a_scope.has__profile_audit__reserved())
+        {
+                profile *l_profile = (profile *)a_scope._profile_audit__reserved();
+                if (!l_profile->get_resp_header_name().empty())
+                {
+                        (*ao_audit_event)->set_response_header_name(l_profile->get_resp_header_name());
+                }
+        }
+
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

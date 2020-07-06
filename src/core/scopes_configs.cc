@@ -87,9 +87,12 @@ scopes_configs::~scopes_configs()
         }
 }
 //: ----------------------------------------------------------------------------
-//: \details loads scopes.json config files in the path specified.
-//  The file name is of the format <an>.scopes.json. If an exists in m_an_set,
-//  then load the scopes file or else ignore and continue
+//: \details: loads scopes.json config files in the path specified.
+//  The file name is of the format <an>.scopes.json. If AN exists in m_an_set,
+//  then load the scopes file or else ignore and continue. This function is called
+//  on startup, other load functions do not need to check m_an_set.
+//  If a scopes file is loaded only then the m_cust_id_scopes_map is updated.
+//  Hence we do not need a double check in other functions.
 //: \return  0: success
 //: \param   a_dir_path: path of directorry which contains scopes configs
 //           a_dir_path_len: strlen of a_dir_path
@@ -152,7 +155,9 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                                 alphasort);
         if(l_num_files < 0)
         {
+                // -----------------------------------------------------------
                 // failed to build the list of directory entries
+                // -----------------------------------------------------------
                 WAFLZ_PERROR(m_err_msg, "Failed to load scope config  Reason: failed to scan profile directory: %s: %s",
                              a_dir_path,
                              (errno == 0 ? "unknown" : strerror(errno)));
@@ -163,13 +168,17 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
         // -----------------------------------------------------------
         for (int i_f = 0; i_f < l_num_files; ++i_f)
         {
+                // -----------------------------------------------------------
                 // for each file
+                // -----------------------------------------------------------
                 int32_t l_s;
                 std::string l_file_name(l_conf_list[i_f]->d_name);
                 size_t l_pos = l_file_name.find_first_of('.');
                 if(l_pos == std::string::npos)
                 {
+                        // -----------------------------------------------------------
                         // failed to get AN from file name
+                        // -----------------------------------------------------------
                         for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
                         free(l_conf_list);
                         return WAFLZ_STATUS_ERROR;
@@ -179,19 +188,25 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
+                        // -----------------------------------------------------------
                         // failed to convert hex to int
+                        // -----------------------------------------------------------
                         for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
                         free(l_conf_list);
                         return WAFLZ_STATUS_ERROR;
                 }
                 an_set_t::iterator i_an_list;
                 i_an_list = m_an_set.find(l_id);
+                // -----------------------------------------------------------
                 // If the an is not in the set of allowed an's, skip
+                // -----------------------------------------------------------
                 if(i_an_list == m_an_set.end())
                 {
                         continue;
                 }
+                // -----------------------------------------------------------
                 // TODO log?
+                // -----------------------------------------------------------
                 //NDBG_PRINT("Found scope config file: %s", l_conf_list[i_f]->d_name );
                 std::string l_full_path(a_dir_path);
                 l_full_path.append("/");
@@ -199,7 +214,9 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                 l_s = load_file(l_full_path.c_str(),l_full_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
+                        // -----------------------------------------------------------
                         // failed to load a config file
+                        // -----------------------------------------------------------
                         for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
                         free(l_conf_list);
                         return WAFLZ_STATUS_ERROR;
@@ -613,10 +630,10 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details check if customer has scopes. The an_list is the list of ans that
+//: \details check if customer has scopes. The an_list is the list of ANs that
 //  are enabled to be inspected by scopes. We only add the check here, since
 //  we only want to avoid inspection. In load functions  for acl, limit etc
-//  we dont need to check an since our goal is only to avoid processing.
+//  we dont need to check AN since our goal is only to avoid processing.
 //  The cust_id map is updated on a reload with a check for an list in load_dir func.
 //: \return  true: if id exists in both map and set
 //           false: if id is missing in either map or set

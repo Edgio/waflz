@@ -1662,6 +1662,10 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
+                if (!l_acl->get_resp_header_name().empty())
+                {
+                       l_event->set_response_header_name(l_acl->get_resp_header_name());
+                }
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1722,6 +1726,10 @@ audit_profile:
                 {
                         goto prod;
                 }
+                if (!l_profile->get_resp_header_name().empty())
+                {
+                       l_event->set_response_header_name(l_profile->get_resp_header_name());
+                }
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1761,6 +1769,10 @@ prod:
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
+                }
+                if (!l_acl->get_resp_header_name().empty())
+                {
+                       l_event->set_response_header_name(l_acl->get_resp_header_name());
                 }
                 *ao_prod_event = l_event;
                 if(a_scope.has_acl_prod_action())
@@ -2040,6 +2052,10 @@ prod_profile:
                 {
                         goto done;
                 }
+                if (!l_profile->get_resp_header_name().empty())
+                {
+                       l_event->set_response_header_name(l_profile->get_resp_header_name());
+                }
                 *ao_prod_event = l_event;
                 if(a_scope.has_profile_prod_action())
                 {
@@ -2055,29 +2071,6 @@ prod_profile:
         // cleanup
         // -------------------------------------------------
 done:
-        // -----------------------------------------
-        // access settings in older format still has response_header as a string
-        // To support that, if response_header exists in profile, add it in the event
-        // This will take of events generated from acls as well.
-        if((*ao_prod_event)
-            && a_scope.has__profile_prod__reserved())
-        {
-                profile *l_profile = (profile *)a_scope._profile_prod__reserved();
-                if (!l_profile->get_resp_header_name().empty())
-                {
-                        (*ao_prod_event)->set_response_header_name(l_profile->get_resp_header_name());
-                }
-        }
-        if((*ao_audit_event)
-            && a_scope.has__profile_audit__reserved())
-        {
-                profile *l_profile = (profile *)a_scope._profile_audit__reserved();
-                if (!l_profile->get_resp_header_name().empty())
-                {
-                        (*ao_audit_event)->set_response_header_name(l_profile->get_resp_header_name());
-                }
-        }
-
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

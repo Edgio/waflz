@@ -45,6 +45,10 @@ message acl {
         repeated string disallowed_extensions = 111;
         repeated string disallowed_headers = 112;
         optional uint64 max_file_size = 113;
+        // -------------------------------------------------
+        // response
+        // -------------------------------------------------
+         optional string response_header_name = 200;
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // *************************************************
         // deprecated:
@@ -54,4 +58,5 @@ message acl {
         repeated string ignore_cookie = 9001;
         repeated string ignore_header = 9002;
         repeated string ignore_query_args = 9003;
+
 }

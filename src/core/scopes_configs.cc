@@ -176,6 +176,7 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                 size_t l_pos = l_file_name.find_first_of('.');
                 if(l_pos == std::string::npos)
                 {
+                        WAFLZ_PERROR(m_err_msg,"Invalid filename %s\n", l_file_name.c_str());
                         // -----------------------------------------------------------
                         // failed to get AN from file name
                         // -----------------------------------------------------------
@@ -1033,7 +1034,6 @@ int32_t scopes_configs::load_bots(void* a_js)
         uint64_t l_id;
         const std::string& l_cust_id = l_bots->get_cust_id();
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
-         NDBG_PRINT("hex to int id %lu\n", l_id);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
@@ -1287,9 +1287,9 @@ int32_t scopes_configs::load_an_list_file(const char* a_file_path, uint32_t a_fi
 //: -----------------------------------------------------------------------------
 int32_t scopes_configs::load_an_list(const char* a_buf, uint32_t a_buf_len)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // parse
-        // ---------------------------------------
+        // -------------------------------------------------
         rapidjson::Document *l_js = new rapidjson::Document();
         rapidjson::ParseResult l_ok;
         l_ok = l_js->Parse(a_buf, a_buf_len);
@@ -1307,9 +1307,9 @@ int32_t scopes_configs::load_an_list(const char* a_buf, uint32_t a_buf_len)
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // clear the set and then insert new vals
-        // ---------------------------------------
+        // -------------------------------------------------
         m_an_set.clear();
         for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
         {

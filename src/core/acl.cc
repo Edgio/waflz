@@ -89,6 +89,7 @@ acl::acl(void):
         m_id(),
         m_cust_id(),
         m_name(),
+        m_resp_header_name(),
         m_ip_whitelist(NULL),
         m_ip_accesslist(NULL),
         m_ip_blacklist(NULL),
@@ -320,6 +321,10 @@ int32_t acl::init()
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
         m_name = m_pb->name();
+        if(m_pb->has_response_header_name())
+        {
+                m_resp_header_name = m_pb->response_header_name();
+        }
         if(m_pb->has_ip())
         {
 #define _COMPILE_IP_LIST(_type) do { \

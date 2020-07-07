@@ -69,6 +69,7 @@ public:
         const std::string& get_id(void) { return m_id; }
         const std::string& get_cust_id(void) { return m_cust_id; }
         const std::string& get_name(void) { return m_name; }
+        const std::string& get_resp_header_name(void) { return m_resp_header_name; }
         //: ------------------------------------------------
         //: \details Get last error message string
         //: \return  last error message (in buffer)
@@ -110,6 +111,7 @@ private:
         std::string m_id;
         std::string m_cust_id;
         std::string m_name;
+        std::string m_resp_header_name;
         // ip
         nms *m_ip_whitelist;
         nms *m_ip_accesslist;

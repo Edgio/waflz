@@ -45,10 +45,12 @@ def setup_scopez_server_action():
     l_bot_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
+    l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
     l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
     l_subproc = subprocess.Popen([l_scopez_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
+                                  '-l', l_an_list,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,
@@ -57,6 +59,7 @@ def setup_scopez_server_action():
     print('cmd: {}'.format(' '.join([l_scopez_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
+                                  '-l', l_an_list,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-i', l_geoip2ISP_path,

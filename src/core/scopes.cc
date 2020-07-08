@@ -1365,8 +1365,8 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
         id_acl_map_t::iterator i_t = m_id_acl_map.find(l_id);
         if(i_t == m_id_acl_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "acl id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_acl) { delete a_acl; a_acl = NULL; }
+                return WAFLZ_STATUS_OK;
         }
         //-------------------------------------------
         // check if acl is latest
@@ -1424,8 +1424,8 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
         id_rules_map_t::iterator i_t = m_id_rules_map.find(l_id);
         if(i_t == m_id_rules_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "rules id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_rules) {delete a_rules; a_rules = NULL;}
+                return WAFLZ_STATUS_OK;
         }
         //-------------------------------------------
         // check if rules is latest
@@ -1483,8 +1483,8 @@ int32_t scopes::load_bots(ns_waflz::rules* a_bots)
         id_bots_map_t::iterator i_t = m_id_bots_map.find(l_id);
         if(i_t == m_id_bots_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "bots id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_bots) { delete a_bots; a_bots = NULL; }
+                return WAFLZ_STATUS_OK;
         }
         //-------------------------------------------
         // check if bots is latest
@@ -1537,8 +1537,8 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
         id_profile_map_t::iterator i_t = m_id_profile_map.find(l_id);
         if(i_t == m_id_profile_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "profile id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_profile) { delete a_profile; a_profile = NULL; }
+                return WAFLZ_STATUS_OK;
         }
         //-------------------------------------------
         // check if profile is latest

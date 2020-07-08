@@ -519,13 +519,6 @@ def test_update_bots_endpoint(setup_scopez_server_action):
     assert l_r.status_code == 401,\
         "expecting 401, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
     # ------------------------------------------------------
-    # test bad config behavior
-    # check negative test - test id does not match scopes map
-    # ------------------------------------------------------
-    l_json_payload['id'] = '1d0ntex15t'
-    l_n1_result = requests.post(l_url, json=l_json_payload)
-    assert l_n1_result.status_code == 500
-    # ------------------------------------------------------
     # check negative test - missing customer_id field
     # ------------------------------------------------------
     l_cust_id = l_json_payload.pop('customer_id')

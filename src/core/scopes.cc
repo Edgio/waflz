@@ -1301,18 +1301,18 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
                 return WAFLZ_STATUS_ERROR;
         }
         const std::string& l_id = a_limit->get_id();
-        //-------------------------------------------
+        // -------------------------------------------------
         // check id in map
-        //-------------------------------------------
+        // -------------------------------------------------
         id_limit_map_t::iterator i_t = m_id_limit_map.find(l_id);
         if(i_t == m_id_limit_map.end())
         {
                 WAFLZ_PERROR(m_err_msg, "limit id %s not attached to any scopes", l_id.c_str());
                 return WAFLZ_STATUS_ERROR;
         }
-        //-------------------------------------------
+        // -------------------------------------------------
         // check if limit is latest
-        //-------------------------------------------
+        // -------------------------------------------------
         const waflz_pb::limit* l_old_pb = i_t->second->get_pb();
         const waflz_pb::limit* l_new_pb = a_limit->get_pb();
         if((l_old_pb != NULL) &&
@@ -1329,9 +1329,9 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_limit;
-        //-------------------------------------------
+        // -------------------------------------------------
         // update scope's reserved fields
-        //-------------------------------------------
+        // -------------------------------------------------
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
@@ -1359,18 +1359,18 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
                 return WAFLZ_STATUS_ERROR;
         }
         const std::string& l_id = a_acl->get_id();
-        //-------------------------------------------
+        // -------------------------------------------------
         // check id in map
-        //-------------------------------------------
+        // -------------------------------------------------
         id_acl_map_t::iterator i_t = m_id_acl_map.find(l_id);
         if(i_t == m_id_acl_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "acl id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_acl) { delete a_acl; a_acl = NULL; }
+                return WAFLZ_STATUS_OK;
         }
-        //-------------------------------------------
+        // -------------------------------------------------
         // check if acl is latest
-        //-------------------------------------------
+        // -------------------------------------------------
         const waflz_pb::acl* l_old_pb = i_t->second->get_pb();
         const waflz_pb::acl* l_new_pb = a_acl->get_pb();
         if((l_old_pb != NULL) &&
@@ -1387,9 +1387,9 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_acl;
-        //-------------------------------------------
+        // -------------------------------------------------
         // update scope's reserved fields
-        //-------------------------------------------
+        // -------------------------------------------------
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
@@ -1418,18 +1418,18 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
                 return WAFLZ_STATUS_ERROR;
         }
         const std::string& l_id = a_rules->get_id();
-        //-------------------------------------------
+        // -------------------------------------------------
         // check id in map
-        //-------------------------------------------
+        // -------------------------------------------------
         id_rules_map_t::iterator i_t = m_id_rules_map.find(l_id);
         if(i_t == m_id_rules_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "rules id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_rules) {delete a_rules; a_rules = NULL;}
+                return WAFLZ_STATUS_OK;
         }
-        //-------------------------------------------
+        // -------------------------------------------------
         // check if rules is latest
-        //-------------------------------------------
+        // -------------------------------------------------
         const waflz_pb::sec_config_t* l_old_pb = i_t->second->get_pb();
         const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
         if((l_old_pb != NULL) &&
@@ -1446,9 +1446,9 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_rules;
-        //-------------------------------------------
+        // -------------------------------------------------
         // update scope's reserved fields
-        //-------------------------------------------
+        // -------------------------------------------------
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
@@ -1477,18 +1477,18 @@ int32_t scopes::load_bots(ns_waflz::rules* a_bots)
                 return WAFLZ_STATUS_ERROR;
         }
         const std::string& l_id = a_bots->get_id();
-        //-------------------------------------------
+        // -------------------------------------------------
         // check id in map
-        //-------------------------------------------
+        // -------------------------------------------------
         id_bots_map_t::iterator i_t = m_id_bots_map.find(l_id);
         if(i_t == m_id_bots_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "bots id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_bots) { delete a_bots; a_bots = NULL; }
+                return WAFLZ_STATUS_OK;
         }
-        //-------------------------------------------
+        // -------------------------------------------------
         // check if bots is latest
-        //-------------------------------------------
+        // -------------------------------------------------
         const waflz_pb::sec_config_t* l_old_pb = i_t->second->get_pb();
         const waflz_pb::sec_config_t* l_new_pb = a_bots->get_pb();
         if((l_old_pb != NULL) &&
@@ -1505,9 +1505,9 @@ int32_t scopes::load_bots(ns_waflz::rules* a_bots)
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_bots;
-        //-------------------------------------------
+        // -------------------------------------------------
         // update scope's reserved fields
-        //-------------------------------------------
+        // -------------------------------------------------
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
@@ -1531,18 +1531,18 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
                 return WAFLZ_STATUS_ERROR;
         }
         const std::string& l_id = a_profile->get_id();
-        //-------------------------------------------
+        // -------------------------------------------------
         // check id in map
-        //-------------------------------------------
+        // -------------------------------------------------
         id_profile_map_t::iterator i_t = m_id_profile_map.find(l_id);
         if(i_t == m_id_profile_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "profile id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_profile) { delete a_profile; a_profile = NULL; }
+                return WAFLZ_STATUS_OK;
         }
-        //-------------------------------------------
+        // -------------------------------------------------
         // check if profile is latest
-        //-------------------------------------------
+        // -------------------------------------------------
         const waflz_pb::profile* l_old_pb = i_t->second->get_pb();
         const waflz_pb::profile* l_new_pb = a_profile->get_pb();
         if((l_old_pb != NULL) &&
@@ -1559,9 +1559,9 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
         }
         if(i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_profile;
-        //-------------------------------------------
+        // -------------------------------------------------
         // update scope's reserved fields
-        //-------------------------------------------
+        // -------------------------------------------------
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));

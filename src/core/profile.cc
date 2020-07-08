@@ -715,6 +715,10 @@ done:
                 l_event->set_rule_intercept_status(403);
                 l_event->set_waf_profile_id(m_pb->id());
                 l_event->set_waf_profile_name(m_pb->name());
+                if(!m_resp_header_name.empty())
+                {
+                        l_event->set_response_header_name(m_resp_header_name);
+                }
                 *ao_event = l_event;
         }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }

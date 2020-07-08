@@ -657,6 +657,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
         fprintf(a_stream, "  -c, --bot-challenge json containing browser challenges\n");
+        fprintf(a_stream, "  -l, --an-list       json containing list of allowed ans \n");
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
         fprintf(a_stream, "  -i, --geoip-isp-db  geoip-isp-db\n");
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
@@ -703,6 +704,7 @@ int main(int argc, char** argv)
         std::string l_config_file;
         std::string l_redis_host;
         std::string l_b_challenge_file;
+        std::string l_an_list_file;
         bool l_action_mode = false;
         bool l_bg = false;
 #ifdef ENABLE_PROFILER
@@ -721,6 +723,7 @@ int main(int argc, char** argv)
                 { "bg" ,          0, 0, 'b' },
                 { "ruleset-dir",  1, 0, 'r' },
                 { "bot-challenge",1, 0, 'c' },
+                { "an-list",      1, 0, 'l' },
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 'i' },
                 { "redis-host",   1, 0, 'e' },
@@ -753,9 +756,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:H:C:c:";
+        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:H:C:c:l:";
 #else
-        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:c:";
+        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:c:l:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -831,6 +834,11 @@ int main(int argc, char** argv)
                 case 'c':
                 {
                         l_b_challenge_file = l_arg;
+                        break;
+                }
+                case 'l':
+                {
+                        l_an_list_file = l_arg;
                         break;
                 }
                 // -----------------------------------------
@@ -1092,6 +1100,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_action_mode = l_action_mode;
                 g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
                 g_sx_scopes->m_b_challenge_file = l_b_challenge_file;
+                g_sx_scopes->m_an_list_file = l_an_list_file;
                 g_sx_scopes->m_callbacks = &s_callbacks;
                 g_sx_scopes->m_geoip2_db = l_geoip_db;
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;

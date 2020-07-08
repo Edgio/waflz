@@ -110,6 +110,7 @@ private:
         std::string m_id;
         std::string m_cust_id;
         std::string m_name;
+        std::string m_resp_header_name;
         // ip
         nms *m_ip_whitelist;
         nms *m_ip_accesslist;

@@ -52,14 +52,14 @@
           "file": "0051-4fsYnj9c.rules",
           "id": "960008",
           "msg": "Request User-Agent is bananas",
-          "phase": 2,
+          "phase": 1,
           "rev": "2",
           "setvar": [
             {
-              "op": "INCREMENT",
               "scope": "TX",
-              "val": "%{tx.warning_anomaly_score}",
-              "var": "anomaly_score_pl1"
+              "var": "msg",
+              "op": "ASSIGN",
+              "val": "%{rule.msg}"
             }
           ],
           "severity": "4",

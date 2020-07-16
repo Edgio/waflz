@@ -9,14 +9,6 @@
           "msg": "Request Missing a Host Header",
           "phase": 2,
           "rev": "2",
-          "setvar": [
-            {
-              "op": "INCREMENT",
-              "scope": "TX",
-              "val": "%{tx.warning_anomaly_score}",
-              "var": "anomaly_score_pl1"
-            }
-          ],
           "severity": "4",
           "t": [
             "NONE"
@@ -54,14 +46,6 @@
           "msg": "Request User-Agent is monkeez",
           "phase": 2,
           "rev": "2",
-          "setvar": [
-            {
-              "op": "INCREMENT",
-              "scope": "TX",
-              "val": "%{tx.warning_anomaly_score}",
-              "var": "anomaly_score_pl1"
-            }
-          ],
           "severity": "4",
           "t": [
             "NONE"

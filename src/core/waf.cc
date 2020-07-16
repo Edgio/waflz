@@ -609,7 +609,8 @@ int32_t waf::compile(void)
 //: ----------------------------------------------------------------------------
 int32_t waf::init(config_parser::format_t a_format,
                   const std::string &a_path,
-                  bool a_apply_defaults)
+                  bool a_apply_defaults,
+                  bool a_custom_rules)
 {
         // Check if already is initd
         if(m_is_initd)
@@ -629,7 +630,7 @@ int32_t waf::init(config_parser::format_t a_format,
         if(a_apply_defaults)
         {
                 m_pb = new waflz_pb::sec_config_t();
-                l_s = set_defaults();
+                l_s = set_defaults(a_custom_rules);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "set_defaults failed");
@@ -691,7 +692,8 @@ int32_t waf::init(config_parser::format_t a_format,
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 int32_t waf::init(void* a_js,
-                  bool a_apply_defaults)
+                  bool a_apply_defaults,
+                  bool a_custom_rules)
 {
         // Check if already is initd
         if(m_is_initd)
@@ -711,7 +713,7 @@ int32_t waf::init(void* a_js,
         if(a_apply_defaults)
         {
                 m_pb = new waflz_pb::sec_config_t();
-                l_s = set_defaults();
+                l_s = set_defaults(a_custom_rules);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "set_defaults failed");
@@ -794,7 +796,7 @@ void set_var_tx(waflz_pb::sec_config_t &ao_conf_pb,
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t waf::set_defaults(void)
+int32_t waf::set_defaults(bool& a_custom_rules)
 {
         ::waflz_pb::sec_config_t& l_conf_pb = *m_pb;
         // -------------------------------------------------
@@ -808,7 +810,14 @@ int32_t waf::set_defaults(void)
         set_var_tx(l_conf_pb, "900002", "error_anomaly_score", "4");
         set_var_tx(l_conf_pb, "900003", "warning_anomaly_score", "3");
         set_var_tx(l_conf_pb, "900004", "notice_anomaly_score", "2");
-        set_var_tx(l_conf_pb, "900005", "anomaly_score", "0");
+        if(a_custom_rules)
+        {
+                set_var_tx(l_conf_pb, "900005", "anomaly_score", "1");
+        }
+        else
+        {
+                set_var_tx(l_conf_pb, "900005", "anomaly_score", "0");
+        }
         set_var_tx(l_conf_pb, "900006", "sql_injection_score", "0");
         set_var_tx(l_conf_pb, "900007", "xss_score", "0");
         set_var_tx(l_conf_pb, "900008", "inbound_anomaly_score", "0");
@@ -1854,6 +1863,7 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                         }
                         l_val_ref = &l_sv_val;
                 }
+
                 //------------------------------------------
                 // *****************************************
                 //               S C O P E

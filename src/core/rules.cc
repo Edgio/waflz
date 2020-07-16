@@ -185,8 +185,8 @@ int32_t rules::process(waflz_pb::event **ao_event,
         {
                 l_rqst_ctx->set_body_max_len(m_waf->get_request_body_in_memory_limit());
         }
-        l_rqst_ctx->set_parse_xml(m_waf->get_parse_xml());
-        l_rqst_ctx->set_parse_json(m_waf->get_parse_json());
+        l_rqst_ctx->set_parse_xml(true);
+        l_rqst_ctx->set_parse_json(true);
 
         // -------------------------------------------------
         // run phase 1 init
@@ -202,7 +202,7 @@ int32_t rules::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // process waf...
         // -------------------------------------------------
-        l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
+        l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());

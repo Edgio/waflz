@@ -810,18 +810,18 @@ int32_t waf::set_defaults(bool& a_custom_rules)
         set_var_tx(l_conf_pb, "900002", "error_anomaly_score", "4");
         set_var_tx(l_conf_pb, "900003", "warning_anomaly_score", "3");
         set_var_tx(l_conf_pb, "900004", "notice_anomaly_score", "2");
+        set_var_tx(l_conf_pb, "900005", "anomaly_score", "0");
         if(a_custom_rules)
         {
-                set_var_tx(l_conf_pb, "900005", "anomaly_score", "1");
+                set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", "0");
         }
         else
         {
-                set_var_tx(l_conf_pb, "900005", "anomaly_score", "0");
+                set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", "1");
         }
         set_var_tx(l_conf_pb, "900006", "sql_injection_score", "0");
         set_var_tx(l_conf_pb, "900007", "xss_score", "0");
         set_var_tx(l_conf_pb, "900008", "inbound_anomaly_score", "0");
-        set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", "1");
         set_var_tx(l_conf_pb, "900012", "inbound_anomaly_score_level", "1");
         set_var_tx(l_conf_pb, "900014", "anomaly_score_blocking", "on");
         // -------------------------------------------------
@@ -2292,11 +2292,6 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // -------------------------------------------------
         l_sub_event->set_rule_intercept_status(403);
         // -------------------------------------------------
-        // waf config specifics
-        // -------------------------------------------------
-        l_sub_event->set_waf_profile_id(m_id);
-        l_sub_event->set_waf_profile_name(m_name);
-        // -------------------------------------------------
         // check for no log
         // -------------------------------------------------
         if(m_no_log_matched)
@@ -2424,7 +2419,8 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
 //: ----------------------------------------------------------------------------
 int32_t waf::process(waflz_pb::event **ao_event,
                      void *a_ctx,
-                     rqst_ctx **ao_rqst_ctx)
+                     rqst_ctx **ao_rqst_ctx,
+                     bool a_custom_rules)
 {
         if(!m_pb)
         {
@@ -2542,19 +2538,25 @@ report:
         // *********************************
         // ---------------------------------
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
-        const char l_msg_macro[] = "Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}): Last Matched Message: %{tx.msg}";
-        std::string l_msg;
-        macro *l_macro =  &(m_engine.get_macro());
-        l_s = (*l_macro)(l_msg, l_msg_macro, l_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (!a_custom_rules)
         {
-                if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
-                return WAFLZ_STATUS_ERROR;
+                std::string l_msg;
+                const char l_msg_macro[] = "Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}): Last Matched Message: %{tx.msg}";
+                macro *l_macro =  &(m_engine.get_macro());
+                l_s = (*l_macro)(l_msg, l_msg_macro, l_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_event.set_rule_msg(l_msg);
         }
-        l_event.set_rule_msg(l_msg);
 #endif
-        l_event.set_waf_profile_id(m_id);
-        l_event.set_waf_profile_name(m_name);
+        if (!a_custom_rules)
+        {
+                l_event.set_waf_profile_id(m_id);
+                l_event.set_waf_profile_name(m_name);
+        }
         // ---------------------------------
         // add info from last subevent...
         // ---------------------------------
@@ -2580,6 +2582,14 @@ report:
                 if(l_se.has_matched_var())
                 {
                         l_event.mutable_matched_var()->CopyFrom(l_se.matched_var());
+                }
+                // -------------------------
+                // Custom rules wont have an anomaly score
+                // and setvar for rule msg. Set them here
+                // -------------------------
+                if (a_custom_rules)
+                {
+                        l_event.set_rule_msg(l_se.rule_msg());
                 }
                 // -------------------------
                 // op

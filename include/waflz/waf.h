@@ -145,7 +145,7 @@ private:
         int32_t process_action_dx(const waflz_pb::sec_action_t &a_action, rqst_ctx &a_ctx);
         int32_t process_match(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, rqst_ctx &a_ctx);
         int32_t compile(void);
-        int32_t set_defaults(bool& a_custom_rules);
+        int32_t set_defaults(bool a_custom_rules);
         // -------------------------------------------------
         // protobuf
         // -------------------------------------------------

@@ -796,7 +796,7 @@ void set_var_tx(waflz_pb::sec_config_t &ao_conf_pb,
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t waf::set_defaults(bool& a_custom_rules)
+int32_t waf::set_defaults(bool a_custom_rules)
 {
         ::waflz_pb::sec_config_t& l_conf_pb = *m_pb;
         // -------------------------------------------------

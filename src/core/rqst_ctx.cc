@@ -594,9 +594,6 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
                 }
-                // set url
-                m_url.m_data = m_uri.m_data;
-                m_url.m_len = m_uri.m_len;
                 // -----------------------------------------
                 // get path length w/o q string
                 // -----------------------------------------
@@ -673,6 +670,22 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                                         return WAFLZ_STATUS_ERROR;
                                 }
                         }
+                }
+        }
+        // -------------------------------------------------
+        // Url
+        // -------------------------------------------------
+        if(m_callbacks && m_callbacks->m_get_rqst_url_cb)
+        {
+                int32_t l_s;
+                // get uri
+                l_s = m_callbacks->m_get_rqst_url_cb(&m_url.m_data,
+                                        &m_url.m_len,
+                                        m_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
                 }
         }
         // -------------------------------------------------

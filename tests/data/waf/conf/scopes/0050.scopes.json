@@ -26,7 +26,7 @@
         "x-ec-rules": "rejected"
       },
       "status": 403,
-      "type": "custom-response"
+      "enf_type": "CUSTOM_RESPONSE"
     },
     "rules_prod_id": "ZrLf3KkQ",
     "rules_prod_action": {
@@ -37,7 +37,7 @@
         "x-ec-rules": "rejected"
       },
       "status": 403,
-      "type": "custom-response"
+      "enf_type": "CUSTOM_RESPONSE"
     },
     "profile_prod_id": "YrLf3KkQ",
     "profile_prod_action": {
@@ -48,7 +48,7 @@
         "x-ec-rules": "rejected"
       },
       "status": 403,
-      "type": "custom-response"
+      "enf_type": "CUSTOM_RESPONSE"
     }
   },
   {
@@ -77,7 +77,7 @@
         "x-ec-rules": "rejected"
       },
       "status": 403,
-      "type": "custom-response"
+      "enf_type": "CUSTOM_RESPONSE"
     },
     "rules_prod_id":"ZrLf3KkQ",
     "rules_prod_action": {
@@ -88,7 +88,7 @@
         "x-ec-rules": "rejected"
       },
       "status": 403,
-      "type": "custom-response"
+      "enf_type": "CUSTOM_RESPONSE"
     },
     "rules_audit_id":"0gG8osWJ",
     "rules_audit_action":{},
@@ -101,7 +101,7 @@
         "x-ec-rules": "rejected"
       },
       "status": 403,
-      "type": "custom-response"   
+      "enf_type": "CUSTOM_RESPONSE"
     },
     "profile_audit_id":"YrLf3KkQ",
     "profile_audit_action":{}
@@ -126,7 +126,7 @@
           "name":"ddos-action",
           "status": 403,
           "duration_sec": 2,
-          "type": "custom-response",
+          "enf_type": "CUSTOM_RESPONSE",
           "response_body_base64": "VGhpcyBpcyBkZG9zIGN1c3RvbSByZXNwb25zZQo="
        }
     }],
@@ -134,14 +134,14 @@
     "acl_prod_action":{
           "name": "acl-action",
           "status":403,
-          "type":"custom-response",
+          "enf_type": "CUSTOM_RESPONSE",
           "response_body_base64":"VGhpcyBpcyBhY2wgY3VzdG9tIHJlc3BvbnNlCg=="
     },
     "profile_prod_id":"YrLf3KkQ",
     "profile_prod_action":{
           "name":"profile-action",
           "status":403,
-          "type":"custom-response",
+          "enf_type": "CUSTOM_RESPONSE",
           "response_body_base64":"VGhpcyBpcyBwcm9maWxlIGN1c3RvbSByZXNwb25zZQo="
     }
   },
@@ -165,7 +165,7 @@
           "name":"ddos-action",
           "status": 403,
           "duration_sec": 2,
-          "type": "custom-response",
+          "enf_type": "CUSTOM_RESPONSE",
           "response_body_base64": "Y3VzdG9tIHJlc3BvbnNlIGZvciBsaW1pdHMgZnJvbSBsaW1pdF9pZF8yCg=="
        }
     }]

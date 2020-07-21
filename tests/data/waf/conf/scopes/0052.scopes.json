@@ -24,7 +24,7 @@
       "name": "ACTION",
       "response_body_base64":"YmFzaWMgY3VzdG9tIHJ1bGUgdHJpZ2dlcmVkCg==",
       "status": 403,
-      "type": "custom-response"
+      "enf_type": "CUSTOM_RESPONSE"
     }
   },
   {
@@ -46,7 +46,7 @@
       "name": "ACTION",
       "response_body_base64":"cmVzcG9uc2UgZnJvbSBjaGFpbmVkIGN1c3RvbSBydWxlcwo=",
       "status": 403,
-      "type": "custom-response"
+      "enf_type": "CUSTOM_RESPONSE"
     }
   },
   {
@@ -67,7 +67,7 @@
       "id": "uKlXttqm",
       "name": "ACTION",
       "status": 200,
-      "type": "browser-challenge",
+      "enf_type": "BROWSER_CHALLENGE",
       "valid_for_sec" : 5
     }
   },
@@ -89,7 +89,7 @@
       "id": "uKlXttqm",
       "name": "ACTION",
       "status": 200,
-      "type": "browser-challenge",
+      "enf_type": "BROWSER_CHALLENGE",
       "valid_for_sec" : 3
     },
     "profile_prod_id": "KsdoThsq",
@@ -101,7 +101,7 @@
         "x-ec-rules": "rejected"
       },
       "status": 403,
-      "type": "custom-response"
+      "enf_type": "CUSTOM_RESPONSE"
     }
   },
   {
@@ -124,7 +124,7 @@
           "name":"ddos-action",
           "status": 403,
           "duration_sec": 2,
-          "type": "custom-response",
+          "enf_type": "CUSTOM_RESPONSE",
           "response_body_base64": "ZGRvcyBlbmZvcmNlbWVudCBmcm9tIGJvdCBjb25maWcK"
        }
     }],
@@ -132,7 +132,7 @@
    "bots_prod_action": {
       "id": "TDWqQxfx",
       "name": "action_name",
-      "type": "browser-challenge",
+      "enf_type": "BROWSER_CHALLENGE",
       "valid_for_sec" : 3,
       "status":401
    },
@@ -145,7 +145,7 @@
         "x-ec-rules": "rejected"
       },
       "status": 403,
-      "type": "custom-response"
+      "enf_type": "CUSTOM_RESPONSE"
     }
   }
 ]

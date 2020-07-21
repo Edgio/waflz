@@ -100,10 +100,10 @@ public:
         // -------------------------------------------------
         waf(engine &a_engine);
         ~waf();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL, bool a_custom_rules = false);
         int32_t init(profile &a_profile);
-        int32_t init(config_parser::format_t a_format, const std::string &a_path, bool a_apply_defaults = false);
-        int32_t init(void* a_js, bool a_apply_defaults = false);
+        int32_t init(config_parser::format_t a_format, const std::string &a_path, bool a_apply_defaults = false, bool a_custom_rules = false);
+        int32_t init(void* a_js, bool a_apply_defaults = false, bool a_custom_rules = false);
         int32_t get_str(std::string &ao_str, config_parser::format_t a_format);
         const char *get_err_msg(void) { return m_err_msg; }
         waflz_pb::sec_config_t* get_pb(void) { return m_pb; }
@@ -145,7 +145,7 @@ private:
         int32_t process_action_dx(const waflz_pb::sec_action_t &a_action, rqst_ctx &a_ctx);
         int32_t process_match(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, rqst_ctx &a_ctx);
         int32_t compile(void);
-        int32_t set_defaults(void);
+        int32_t set_defaults(bool a_custom_rules);
         // -------------------------------------------------
         // protobuf
         // -------------------------------------------------

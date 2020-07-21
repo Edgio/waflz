@@ -90,7 +90,7 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
         std::string l_p;
         l_p.assign(a_buf, a_buf_len);
         int32_t l_s;
-        l_s = m_waf->init(config_parser::JSON, l_p, true);
+        l_s = m_waf->init(config_parser::JSON, l_p, true, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_AERROR(m_err_msg, "error loading conf file-reason: %s",
@@ -128,7 +128,7 @@ int32_t rules::load(void* a_js)
         if(m_waf) { delete m_waf; m_waf = NULL; }
         m_waf = new waf(m_engine);
         int32_t l_s;
-        l_s = m_waf->init(a_js, true);
+        l_s = m_waf->init(a_js, true, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_AERROR(m_err_msg, "error loading conf file-reason: %s",
@@ -185,8 +185,9 @@ int32_t rules::process(waflz_pb::event **ao_event,
         {
                 l_rqst_ctx->set_body_max_len(m_waf->get_request_body_in_memory_limit());
         }
-        l_rqst_ctx->set_parse_xml(m_waf->get_parse_xml());
-        l_rqst_ctx->set_parse_json(m_waf->get_parse_json());
+        l_rqst_ctx->set_parse_xml(true);
+        l_rqst_ctx->set_parse_json(true);
+
         // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------
@@ -201,7 +202,7 @@ int32_t rules::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // process waf...
         // -------------------------------------------------
-        l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx);
+        l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());

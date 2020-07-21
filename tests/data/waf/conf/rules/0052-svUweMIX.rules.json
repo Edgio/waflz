@@ -4,23 +4,10 @@
     {
       "sec_rule": {
         "action": {
+          "action_type": "BLOCK",
           "id": "hY41qM7f",
           "msg": "Request User-Agent is ruletest",
           "phase": 2,
-          "setvar": [
-            {
-              "op": "INCREMENT",
-              "scope": "TX",
-              "val": "%{tx.warning_anomaly_score}",
-              "var": "anomaly_score_pl1"
-            },
-            {
-              "scope": "TX",
-              "var": "msg",
-              "op": "ASSIGN",
-              "val": "%{rule.msg}"
-            }
-          ],
           "t": [
             "LOWERCASE"
           ]

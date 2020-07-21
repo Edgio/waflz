@@ -44,6 +44,16 @@ static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *
 //: ----------------------------------------------------------------------------
 //: TODO
 //: ----------------------------------------------------------------------------
+static int32_t get_rqst_url_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
+{
+        static const char s_line[] = "bananas.com/800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose";
+        *a_data = s_line;
+        *a_len = strlen(s_line);
+        return 0;
+}
+//: ----------------------------------------------------------------------------
+//: TODO
+//: ----------------------------------------------------------------------------
 static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "GET /800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose HTTP/1.1";
@@ -239,7 +249,7 @@ TEST_CASE( "test var", "[var]" ) {
                 get_rqst_protocol_cb,
                 get_rqst_line_cb,
                 get_rqst_method_cb,
-                NULL,
+                get_rqst_url_cb,
                 get_rqst_uri_cb,
                 get_rqst_path_cb,
                 get_rqst_query_str_cb,
@@ -1476,7 +1486,7 @@ TEST_CASE( "test var", "[var]" ) {
                                 //REQUIRE((i_a->m_key_len > 0));
                                 REQUIRE((i_a->m_val_len > 0));
                                 //REQUIRE((strncmp(i_a->m_key, "REQUEST_URI_RAW", i_a->m_key_len) == 0));
-                                REQUIRE((strncmp(i_a->m_val, "/800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose", i_a->m_val_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "bananas.com/800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:

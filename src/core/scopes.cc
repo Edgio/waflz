@@ -2103,21 +2103,15 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
                 waflz_pb::condition_group *l_cg = l_limit->add_condition_groups();
                 l_cg->CopyFrom(*a_condition_group);
         }
-        // -------------------------------------------------
-        // copy host and path from scopes
-        // This is not a optimised way to pass scopes
-        // to enforcer. TODO - fix later
-        // -------------------------------------------------
-        waflz_pb::scope* l_s = new waflz_pb::scope();
+        waflz_pb::scope* l_sc = l_limit->mutable_scope();
         if(a_scope.has_host())
         {
-                l_s->mutable_host()->CopyFrom(a_scope.host());
+                l_sc->mutable_host()->CopyFrom(a_scope.host());
         }
         if(a_scope.has_path())
         {
-                l_s->mutable_path()->CopyFrom(a_scope.path());
+                l_sc->mutable_path()->CopyFrom(a_scope.path());
         }
-        l_limit->mutable_scope()->CopyFrom(*l_s);
         // -------------------------------------------------
         // create limits for dimensions
         // -------------------------------------------------

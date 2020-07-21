@@ -119,7 +119,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
         // -------------------------------------------------
         // no enf
         // -------------------------------------------------
-        if(!a_enf.has_type())
+        if(!a_enf.has_enf_type())
         {
                 return ns_is2::H_RESP_NONE;
         }

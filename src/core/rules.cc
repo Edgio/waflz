@@ -187,7 +187,6 @@ int32_t rules::process(waflz_pb::event **ao_event,
         }
         l_rqst_ctx->set_parse_xml(true);
         l_rqst_ctx->set_parse_json(true);
-
         // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------

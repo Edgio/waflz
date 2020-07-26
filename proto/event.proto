@@ -117,6 +117,9 @@ message event {
         // child events
         // -------------------------------------------------
         repeated event sub_event = 100;
+        // -------------------------------------------------
+        // entity id and name
+        // -------------------------------------------------
         // waf instance specific
         optional string waf_instance_id = 200;
         optional string waf_instance_name = 201;
@@ -135,6 +138,9 @@ message event {
         // rules config specific
         optional string rules_config_id = 228;
         optional string rules_config_name = 229;
+        //bots config specific
+        optional string bots_config_id = 230;
+        optional string bots_config_name = 231;
         // -------------------------------------------------
         // !!!DEPRECATED!!!
         // -------------------------------------------------

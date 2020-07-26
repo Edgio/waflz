@@ -2112,6 +2112,14 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         {
                 l_sc->mutable_path()->CopyFrom(a_scope.path());
         }
+        if(a_scope.has_id())
+        {
+                l_sc->set_id(a_scope.id());
+        }
+        if(a_scope.has_name())
+        {
+                l_sc->set_name(a_scope.name());
+        }
         // -------------------------------------------------
         // create limits for dimensions
         // -------------------------------------------------

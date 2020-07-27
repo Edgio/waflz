@@ -221,8 +221,6 @@ int32_t rules::process(waflz_pb::event **ao_event,
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_event->set_rule_intercept_status(403);
-                l_event->set_rules_config_id(m_id);
-                l_event->set_rules_config_name(m_name);
                 *ao_event = l_event;
         }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }

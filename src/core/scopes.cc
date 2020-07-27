@@ -1687,6 +1687,8 @@ audit_rules:
                         goto audit_profile;
                 }
                 *ao_audit_event = l_event;
+                (*ao_audit_event)->set_rules_config_id(l_rules->get_id());
+                (*ao_audit_event)->set_rules_config_name(l_rules->get_name());
                 goto prod;
         }
         // -------------------------------------------------
@@ -1904,6 +1906,8 @@ limits:
                         goto prod_rules;
                 }
                 *ao_prod_event = l_event;
+                (*ao_prod_event)->set_bots_config_id(l_bots->get_id());
+                (*ao_prod_event)->set_bots_config_name(l_bots->get_name());
                 // -----------------------------------------
                 // Check for enforcement type
                 // if its browser challenge, verify challenge
@@ -1968,6 +1972,8 @@ prod_rules:
                         goto prod_profile;
                 }
                 *ao_prod_event = l_event;
+                (*ao_prod_event)->set_rules_config_id(l_rules->get_id());
+                (*ao_prod_event)->set_rules_config_name(l_rules->get_name());
                 // -----------------------------------------
                 // Check for enforcement type
                 // if its browser challenge, verify challenge

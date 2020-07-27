@@ -1686,6 +1686,8 @@ audit_rules:
                 {
                         goto audit_profile;
                 }
+                l_event->set_rules_config_id(l_rules->get_id());
+                l_event->set_rules_config_name(l_rules->get_name());
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1903,6 +1905,8 @@ limits:
                 {
                         goto prod_rules;
                 }
+                l_event->set_bots_config_id(l_bots->get_id());
+                l_event->set_bots_config_name(l_bots->get_name());
                 *ao_prod_event = l_event;
                 // -----------------------------------------
                 // Check for enforcement type
@@ -1967,6 +1971,8 @@ prod_rules:
                 {
                         goto prod_profile;
                 }
+                l_event->set_rules_config_id(l_rules->get_id());
+                l_event->set_rules_config_name(l_rules->get_name());
                 *ao_prod_event = l_event;
                 // -----------------------------------------
                 // Check for enforcement type
@@ -2111,6 +2117,14 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         if(a_scope.has_path())
         {
                 l_sc->mutable_path()->CopyFrom(a_scope.path());
+        }
+        if(a_scope.has_id())
+        {
+                l_sc->set_id(a_scope.id());
+        }
+        if(a_scope.has_name())
+        {
+                l_sc->set_name(a_scope.name());
         }
         // -------------------------------------------------
         // create limits for dimensions

@@ -31,11 +31,11 @@
 #include "is2/support/data.h"
 #include "support/ndebug.h"
 #include "support/string_util.h"
+#include "support/time_util.h"
 #include <errno.h>
 #include <string.h>
 #include<map>
 #include <stdlib.h>
-#include<time.h>
 #include <arpa/inet.h>
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
@@ -498,14 +498,14 @@ int32_t get_rqst_body_str_cb(char *ao_data,
 //: ----------------------------------------------------------------------------
 int32_t get_bot_ch_prob(std::string &ao_bot_challenge, uint32_t *ao_ans)
 {
-        int l_rand1, l_rand2 = 0;
-        srand (time(NULL));
-        l_rand1 = rand() % 100 + 100;
-        l_rand2 = rand() % 100 + 100;
-        ao_bot_challenge += ns_waflz::to_string(l_rand1);
+        int l_num_one, l_num_two = 0;
+        srand (ns_waflz::get_time_ms());
+        l_num_one = rand() % 100 + 100;
+        l_num_two = rand() % 100 + 100;
+        ao_bot_challenge += ns_waflz::to_string(l_num_one);
         ao_bot_challenge += "+";
-        ao_bot_challenge += ns_waflz::to_string(l_rand2);
-        *ao_ans = l_rand1 + l_rand2;
+        ao_bot_challenge += ns_waflz::to_string(l_num_two);
+        *ao_ans = l_num_one + l_num_two;
         return 0;
 }
 }

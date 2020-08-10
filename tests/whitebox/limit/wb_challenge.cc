@@ -144,7 +144,7 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 l_ua_chrome.m_data = "chrome";
                 l_ua_chrome.m_len = strlen(l_ua_chrome.m_data);
                 l_ctx.m_header_map[l_ua] = l_ua_chrome;
-                l_ch.set_ectoken(2, &l_ctx);
+                l_ch.set_ectoken(200, &l_ctx);
                 ns_waflz::data_t l_k;
                 ns_waflz::data_t l_v;
                 l_ctx.m_cookie_map.clear();

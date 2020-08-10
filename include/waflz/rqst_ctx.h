@@ -115,6 +115,10 @@ class rqst_ctx
 {
 public:
         // -------------------------------------------------
+        // callbacks
+        // -------------------------------------------------
+        static get_data_cb_t s_get_bot_ch_prob;
+        // -------------------------------------------------
         // static members
         // -------------------------------------------------
         static uint32_t s_body_arg_len_cap;
@@ -225,6 +229,11 @@ public:
         mutable_data_t m_src_asn_str;
         data_t m_geo_cn2;
         bool m_xml_capture_xxe;
+        // -------------------------------------------------
+        // bot challenge
+        // -------------------------------------------------
+        std::string m_bot_ch;
+        uint32_t m_ans;
 private:
         // -------------------------------------------------
         // private methods

@@ -49,6 +49,7 @@ typedef enum {
         FIELD_TIMESTAMP,
         FIELD_STATUS_CODE,
         FIELD_EC_TOKEN,
+        FIELD_BOT_PROB,
 } field_t;
 //! ----------------------------------------------------------------------------
 //! Types
@@ -83,7 +84,9 @@ const str_field_map_t::value_type g_str_field_map_pairs[]= {
         str_field_map_t::value_type("STATUS_CODE", FIELD_STATUS_CODE),
         str_field_map_t::value_type("STATUS-CODE", FIELD_STATUS_CODE),
         str_field_map_t::value_type("EC_TOKEN", FIELD_EC_TOKEN),
-        str_field_map_t::value_type("EC-TOKEN", FIELD_EC_TOKEN)
+        str_field_map_t::value_type("EC-TOKEN", FIELD_EC_TOKEN),
+        str_field_map_t::value_type("BOT-PROB", FIELD_BOT_PROB),
+        str_field_map_t::value_type("BOT_PROB", FIELD_BOT_PROB)
 };
 const str_field_map_t g_str_field_map(g_str_field_map_pairs,
                                       g_str_field_map_pairs + (sizeof(g_str_field_map_pairs)/sizeof(g_str_field_map_pairs[0])));
@@ -431,6 +434,24 @@ static int32_t rr_render(char* ao_buf,
                         {
                                 memcpy(l_buf, a_ctx->m_token.m_data, a_ctx->m_token.m_len);
                                 l_buf += a_ctx->m_token.m_len;
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // FIELD_BOT_PROB
+                // -----------------------------------------
+                case FIELD_BOT_PROB:
+                {
+                        if(!a_ctx ||
+                           a_ctx->m_bot_ch.empty())
+                        {
+                                break;
+                        }
+                        ao_len += a_ctx->m_bot_ch.length();
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, a_ctx->m_bot_ch.c_str(), a_ctx->m_bot_ch.length());
+                                l_buf += a_ctx->m_bot_ch.length();
                         }
                         break;
                 }

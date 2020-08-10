@@ -146,8 +146,7 @@ static std::string g_ec_cookie_val = "";
     "\"problems\": ["\
           "{"\
               "\"id\" : 1,"\
-              "\"answer\" : \"232\","\
-              "\"response_body_base64\" : \"PCFET0NUWVBFIEhUTUw/PGh0bWwgbGFuZz0iZW4tVVMiPjxoZWFkPjx0aXRsZT5WYWxpZGF0aW5nIHlvdXIgYnJvd3NlcjwvdGl0bGU/PHNjcmlwdD5mdW5jdGlvbiBjaGFsbGVuZ2UoKXt2YXIgdmFsID0gMTIxKzExMTt2YXIgY2tzPSJlY19zZWN1cmU9e3tFQ19UT0tFTn19Ijtkb2N1bWVudC5jb29raWU9Y2tzO2NrYT0iZWNfYW5zd2VyPSIrdmFsO2RvY3VtZW50LmNvb2tpZT1ja2E7bG9jYXRpb24ucmVsb2FkKCk7fTwvc2NyaXB0PjwvaGVhZD88Ym9keSBvbmxvYWQ9ImNoYWxsZW5nZSgpIj88dGFibGUgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgY2VsbHBhZGRpbmc9IjIwIj88dHI+PHRkIGFsaWduPSJjZW50ZXIiIHZhbGlnbj0ibWlkZGxlIj88ZGl2IGNsYXNzPSJicm93c2VyLXZlcmlmaWNhdGlvbiI+PG5vc2NyaXB0PjxoMSBkYXRhLXRyYW5zbGF0ZT0idHVybl9vbl9qcyIgc3R5bGU9ImNvbG9yOiNiZDI0MjY7Ij9QbGVhc2UgdHVybiBKYXZhU2NyaXB0IG9uIGFuZCByZWxvYWQgdGhlIHBhZ2UuPC9oMT88L25vc2NyaXB0PjwvZGl2PjwvdGQ+PC90cj88L3RhYmxlPjxoMT9WYWxpZGF0aW5nIHlvdXIgYnJvd3NlciE8L2gxPjwvYm9keT88L2h0bWw+\""\
+              "\"response_body_base64\" : \"PCFET0NUWVBFIEhUTUw+PGh0bWwgbGFuZz0iZW4tVVMiPjxoZWFkPjx0aXRsZT5WYWxpZGF0aW5nIHlvdXIgYnJvd3NlcjwvdGl0bGU+PHNjcmlwdD5mdW5jdGlvbiBjaGFsbGVuZ2UoKXt2YXIgdmFsID0ge3tCT1RfUFJPQn19O3ZhciBsX3Rva19jb29raWUgPSJlY19zZWN1cmU9e3tFQ19UT0tFTn19Ijt2YXIgbF9hbnNfY29va2llID0iZWNfYW5zd2VyPSIrdmFsO2RvY3VtZW50LmNvb2tpZSA9IGxfdG9rX2Nvb2tpZTtkb2N1bWVudC5jb29raWUgPSBsX2Fuc19jb29raWU7bG9jYXRpb24ucmVsb2FkKCk7fTwvc2NyaXB0PjwvaGVhZD48Ym9keSBvbmxvYWQ9ImNoYWxsZW5nZSgpIj48dGFibGUgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgY2VsbHBhZGRpbmc9IjIwIj48dHI+PHRkIGFsaWduPSJjZW50ZXIiIHZhbGlnbj0ibWlkZGxlIj48ZGl2IGNsYXNzPSJicm93c2VyLXZlcmlmaWNhdGlvbiI+PG5vc2NyaXB0PjxoMSBkYXRhLXRyYW5zbGF0ZT0idHVybl9vbl9qcyIgc3R5bGU9ImNvbG9yOiNiZDI0MjY7Ij5QbGVhc2UgdHVybiBKYXZhU2NyaXB0IG9uIGFuZCByZWxvYWQgdGhlIHBhZ2UuPC9oMT48L25vc2NyaXB0PjwvZGl2PjwvdGQ+PC90cj48L3RhYmxlPjxoMT5WYWxpZGF0aW5nIHlvdXIgYnJvd3NlciE8L2gxPjwvYm9keT48L2h0bWw+\""\
           "}"\
       "]"\
 "}"
@@ -233,6 +232,18 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         }
         return 0;
 }
+static int32_t get_bot_ch_prob(std::string &ao_bot_challenge, uint32_t *ao_ans)
+{
+        int l_rand1, l_rand2 = 0;
+        srand (time(NULL));
+        l_rand1 = rand() % 100 + 100;
+        l_rand2 = rand() % 100 + 100;
+        ao_bot_challenge += ns_waflz::to_string(l_rand1);
+        ao_bot_challenge += "+";
+        ao_bot_challenge += ns_waflz::to_string(l_rand2);
+        *ao_ans = l_rand1 + l_rand2;
+        return 0;
+}
 //! ----------------------------------------------------------------------------
 //! get_rqst_header_w_idx_bc_cb - both ua and cookie
 //! ----------------------------------------------------------------------------
@@ -274,6 +285,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                         NULL, //get_rqst_uuid_cb,
                         NULL //get_cust_id_cb
         };
+        ns_waflz::rqst_ctx::s_get_bot_ch_prob = get_bot_ch_prob;
         ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         // -------------------------------------------------
         // verify browser challenge for 'always_on' mode
@@ -344,6 +356,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // make a request again.
                 // -----------------------------------------
                 std::string l_token;
+                std::string l_ans = ns_waflz::to_string(l_ctx->m_ans);
                 strip_token(l_token, l_resp, l_resp_len);
                 if(l_resp) { free(l_resp); l_resp = NULL; l_resp_len = 0; }
                 // -----------------------------------------
@@ -355,6 +368,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 g_ec_cookie_val += "; ";
                 g_ec_cookie_val += "ec_answer=";
                 g_ec_cookie_val += "200";
+
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------
@@ -385,7 +399,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 g_ec_cookie_val += l_token.c_str();
                 g_ec_cookie_val += "; ";
                 g_ec_cookie_val += "ec_answer=";
-                g_ec_cookie_val += "232";
+                g_ec_cookie_val += l_ans;
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------
@@ -436,6 +450,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // -----------------------------------------
                 strip_token(l_token, l_resp, l_resp_len);
                 if(l_resp) { free(l_resp); l_resp = NULL; l_resp_len = 0; }
+                l_ans = ns_waflz::to_string(l_ctx->m_ans);
                 // -----------------------------------------
                 // set correct cookie.
                 // -----------------------------------------
@@ -444,7 +459,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 g_ec_cookie_val += l_token.c_str();
                 g_ec_cookie_val += "; ";
                 g_ec_cookie_val += "ec_answer=";
-                g_ec_cookie_val += "232";
+                g_ec_cookie_val += l_ans;
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------
@@ -552,6 +567,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 // make a request again.
                 // -----------------------------------------
                 std::string l_token;
+                std::string l_ans = ns_waflz::to_string(l_ctx->m_ans);
                 strip_token(l_token, l_resp, l_resp_len);
                 if(l_resp) { free(l_resp); l_resp = NULL; l_resp_len = 0; }
                 // -----------------------------------------
@@ -589,7 +605,7 @@ TEST_CASE( "config browser challenge tests", "[config(bc)]" ) {
                 g_ec_cookie_val += l_token.c_str();
                 g_ec_cookie_val += "; ";
                 g_ec_cookie_val += "ec_answer=";
-                g_ec_cookie_val += "232";
+                g_ec_cookie_val += l_ans;
                 // -----------------------------------------
                 // init rqst ctx
                 // -----------------------------------------

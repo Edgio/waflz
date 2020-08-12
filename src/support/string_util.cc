@@ -347,9 +347,9 @@ size_t strlcat(char *a_dst, const char *a_src, size_t a_dsize)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t convert_to_lower_case(char** ao_out, size_t& ao_len, const char* a_s, size_t a_len)
+int32_t convert_to_lower_case(char** ao_out, size_t& ao_len, const char* a_src, size_t a_len)
 {
-        if(!a_s ||!a_len ||!ao_out)
+        if(!a_src ||!a_len ||!ao_out)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -360,7 +360,7 @@ int32_t convert_to_lower_case(char** ao_out, size_t& ao_len, const char* a_s, si
         l_buf[a_len] = '\0';
         for(uint32 i = 0; i < a_len ; ++i)
         {
-                l_buf[i] = tolower((int)a_s[i]);
+                l_buf[i] = tolower((int)a_src[i]);
         }
         *ao_out = l_buf;
         ao_len = a_len;

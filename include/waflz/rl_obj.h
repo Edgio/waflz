@@ -27,7 +27,6 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
-#include "waflz/scopes.h"
 #include "string.h"
 #include <string>
 #include <map>

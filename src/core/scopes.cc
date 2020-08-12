@@ -2327,7 +2327,7 @@ int32_t rl_run_op(bool &ao_matched,
                 // -----------------------------------------
                 if(a_op.is_case_insensitive())
                 {
-                        ns_waflz::data_case_i_set_t *l_ds = (data_case_i_set_t *)(a_op._reserved_1());
+                        data_case_i_set_t *l_ds = (data_case_i_set_t *)(a_op._reserved_1());
                         if(!l_ds)
                         {
                                 return WAFLZ_STATUS_ERROR;
@@ -2338,7 +2338,7 @@ int32_t rl_run_op(bool &ao_matched,
                         data_t l_d;
                         l_d.m_data = a_data;
                         l_d.m_len = a_len;
-                        data_set_t::const_iterator i_d = l_ds->find(l_d);
+                        data_case_i_set_t::const_iterator i_d = l_ds->find(l_d);
                         if((i_d != l_ds->end()) &&
                            (i_d->m_len == l_d.m_len))
                         {
@@ -2350,7 +2350,7 @@ int32_t rl_run_op(bool &ao_matched,
                 // -----------------------------------------
                 else
                 {
-                       ns_waflz::data_set_t *l_ds = (data_set_t *)(a_op._reserved_1());
+                       data_set_t *l_ds = (data_set_t *)(a_op._reserved_1());
                         if(!l_ds)
                         {
                                 return WAFLZ_STATUS_ERROR;

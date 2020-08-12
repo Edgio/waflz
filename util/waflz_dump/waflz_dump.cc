@@ -24,11 +24,11 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "support/ndebug.h"
-#include "support/string_util.h"
 #include "waflz/engine.h"
 #include "waflz/waflz.h"
 #include "waflz/def.h"
 #include "waflz/waf.h"
+#include "waflz/string_util.h"
 #include "rule.pb.h"
 #include <sys/time.h>
 #include <sys/resource.h>

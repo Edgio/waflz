@@ -25,10 +25,10 @@
 //: ----------------------------------------------------------------------------
 #include "support/ndebug.h"
 #include "support/file_util.h"
-#include "support/string_util.h"
 #include "waflz/engine.h"
 #include "waflz/config_parser.h"
 #include "waflz/def.h"
+#include "waflz/string_util.h"
 #include "jspb/jspb.h"
 #include "rule.pb.h"
 #include <google/protobuf/descriptor.h>

@@ -2327,7 +2327,7 @@ int32_t rl_run_op(bool &ao_matched,
                 // -----------------------------------------
                 if(a_op.is_case_insensitive())
                 {
-                        data_case_i_set_t *l_ds = (data_case_i_set_t *)(a_op._reserved_1());
+                        ns_waflz::data_case_i_set_t *l_ds = (data_case_i_set_t *)(a_op._reserved_1());
                         if(!l_ds)
                         {
                                 return WAFLZ_STATUS_ERROR;
@@ -2350,7 +2350,7 @@ int32_t rl_run_op(bool &ao_matched,
                 // -----------------------------------------
                 else
                 {
-                        data_set_t *l_ds = (data_set_t *)(a_op._reserved_1());
+                       ns_waflz::data_set_t *l_ds = (data_set_t *)(a_op._reserved_1());
                         if(!l_ds)
                         {
                                 return WAFLZ_STATUS_ERROR;

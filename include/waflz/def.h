@@ -40,6 +40,8 @@
 #else
   #include <string.h>
 #endif
+#include "waflz/city.h"
+#include "waflz/string_util.h"
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
@@ -128,6 +130,58 @@ struct data_case_i_comp
         }
 };
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
+//: ----------------------------------------------------------------------------
+//: data_t comparators for unordered data structures
+//: ----------------------------------------------------------------------------
+struct data_comp_unordered
+{
+        bool operator()(const data_t& lhs, const data_t& rhs) const
+        {
+                if(lhs.m_len != rhs.m_len) { return false; }
+                uint32_t l_len = lhs.m_len > rhs.m_len ? rhs.m_len : lhs.m_len;
+                return strncmp(lhs.m_data, rhs.m_data, l_len) == 0;
+        }
+};
+struct data_case_i_comp_unordered
+{
+        bool operator()(const data_t& lhs, const data_t& rhs) const
+        {
+                if(lhs.m_len != rhs.m_len) { return false; }
+                uint32_t l_len = lhs.m_len > rhs.m_len ? rhs.m_len : lhs.m_len;
+                return strncasecmp(lhs.m_data, rhs.m_data, l_len) == 0;
+        }
+};
+//: ----------------------------------------------------------------------------
+//: data_t hash for unordered data structures
+//: ----------------------------------------------------------------------------
+struct data_t_hash
+{
+        inline std::size_t operator()(const data_t& a_key) const
+        {
+                return CityHash64(a_key.m_data, a_key.m_len);
+        }
+};
+struct data_t_case_hash
+{
+        std::size_t operator()(const data_t& a_key) const
+        {
+                char* l_data = NULL;
+                size_t l_data_len = 0;
+                int32_t l_s = convert_to_lower_case(&l_data, l_data_len, a_key.m_data, a_key.m_len);
+                if(l_s != WAFLZ_STATUS_OK ||
+                   !l_data ||
+                   !l_data_len)
+                {
+                        //can't return ERROR from operator,
+                        //so using length as hash value for
+                        //edge cases
+                        return a_key.m_len;
+                }
+                size_t l_hash = CityHash64(l_data, l_data_len);
+                if(l_data != NULL) { free(l_data); l_data = NULL; }
+                return l_hash; 
+        }
+};
 // version string
 const char *get_version(void);
 }

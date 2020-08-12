@@ -25,9 +25,10 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/string_util.h"
 #include "parser/parser_json.h"
 #include "support/ndebug.h"
-#include "support/string_util.h"
+
 //: ----------------------------------------------------------------------------
 //: macros
 //: ----------------------------------------------------------------------------

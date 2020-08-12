@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "support/ndebug.h"
-#include "support/string_util.h"
+#include "waflz/string_util.h"
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------

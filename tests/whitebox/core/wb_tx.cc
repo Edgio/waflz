@@ -25,10 +25,10 @@
 //: ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
+#include "waflz/string_util.h"
 #include "rule.pb.h"
 #include "core/tx.h"
 #include "support/ndebug.h"
-#include "support/string_util.h"
 #include <string.h>
 //: ----------------------------------------------------------------------------
 //: macros

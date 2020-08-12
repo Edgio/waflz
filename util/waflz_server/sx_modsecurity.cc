@@ -29,6 +29,7 @@
 #include "waflz/profile.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"
+#include "waflz/string_util.h"
 #include "is2/support/trace.h"
 #include "is2/support/nbq.h"
 #include "is2/support/ndebug.h"
@@ -36,7 +37,6 @@
 #include "is2/srvr/srvr.h"
 #include "jspb/jspb.h"
 #include "support/file_util.h"
-#include "support/string_util.h"
 #include "event.pb.h"
 #include <sys/types.h>
 #include <sys/stat.h>

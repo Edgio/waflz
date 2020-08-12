@@ -1163,6 +1163,11 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
                 }
                 //const rapidjson::GenericValue<rapidjson::UTF8<> >::ConstObject &i_v = i_m->value.GetObject();
                 const rapidjson::Value &i_v = i_m->value;
+                if(i_v.IsNull())
+                {
+                        JSPB_TRACE("member: %s NULL -skipping\n", i_k);
+                        continue;
+                }
                 switch (l_f->label())
                 {
                 case google::protobuf::FieldDescriptor::LABEL_OPTIONAL:

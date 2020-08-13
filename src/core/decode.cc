@@ -25,9 +25,9 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
+#include "waflz/string_util.h"
 #include "core/decode.h"
 #include "support/ndebug.h"
-#include "support/string_util.h"
 #include <string>
 #include <string.h>
 #include <stdlib.h>

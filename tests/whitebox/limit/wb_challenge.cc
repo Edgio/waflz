@@ -27,8 +27,8 @@
 #include "waflz/def.h"
 #include "waflz/challenge.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/string_util.h"
 #include "support/base64.h"
-#include "support/string_util.h"
 #include "support/ndebug.h"
 #include "limit.pb.h"
 #include <string.h>

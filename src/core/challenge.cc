@@ -24,6 +24,7 @@
 #include <inttypes.h>
 #include "waflz/challenge.h"
 #include "waflz/render.h"
+#include "waflz/string_util.h"
 #include "jspb/jspb.h"
 #include "limit.pb.h"
 #include "rapidjson/document.h"
@@ -33,7 +34,6 @@
 #include "support/file_util.h"
 #include "support/ndebug.h"
 #include "support/time_util.h"
-#include "support/string_util.h"
 #include "support/base64.h"
 #include "core/decode.h"
 //! ----------------------------------------------------------------------------

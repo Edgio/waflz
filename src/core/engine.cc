@@ -27,7 +27,7 @@
 #include "waflz/config_parser.h"
 #include "waflz/engine.h"
 #include "waflz/geoip2_mmdb.h"
-#include "support/string_util.h"
+#include "waflz/string_util.h"
 #include "support/ndebug.h"
 #include "op/regex.h"
 #include "op/ac.h"

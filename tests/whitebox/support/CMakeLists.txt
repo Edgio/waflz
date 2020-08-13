@@ -21,24 +21,7 @@
 # Project setup
 project(waflz)
 cmake_minimum_required(VERSION 3.5)
-# ----------------------------------------------------------
-# wb_file_util
-# ----------------------------------------------------------
-SET(SRCS
-  wb_file_util.cc
-)
 
-find_path(WAFLZ_INC waflz/def.h
-            PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../include )
-find_path(WAFLZ_SRC_DIR support/string_util.h
-            PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../src )
-
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/..
-  ${WAFLZ_INC}
-  ${WAFLZ_SRC_DIR}
-)
 add_waflz_wb_test(file_util)
 add_waflz_wb_test(string_util)
 add_waflz_wb_test(time_util)

@@ -215,6 +215,7 @@ TEST_CASE( "op test", "[op]" ) {
                 if(l_op) { delete(l_op); l_op = NULL; }
                 if(l_nms) { delete(l_nms); l_nms = NULL; }
         }
+        
         // -------------------------------------------------
         // test em case sensitive
         // -------------------------------------------------
@@ -227,10 +228,12 @@ TEST_CASE( "op test", "[op]" ) {
                 const char l_str_list[][32] = {
                                 "cat",
                                 "dog",
-                                "monkey"
+                                "monkey",
+                                "monkeysbananas",
+                                "monkey:443"
                 };
                 // -----------------------------------------
-                // init nms
+                // init data_set_t
                 // -----------------------------------------
                 l_ds = new ns_waflz::data_set_t();
                 for(uint32_t i = 0; i < ARRAY_SIZE(l_str_list); ++i)
@@ -264,14 +267,24 @@ TEST_CASE( "op test", "[op]" ) {
                 l_s = ns_waflz::rl_run_op(l_matched, *l_op, "monKey", strlen("monKey"), false);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_matched == false));
+                l_s = ns_waflz::rl_run_op(l_matched, *l_op, "monkeysbananas", strlen("monkeysbananas"), false);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_matched == true));
+                l_s = ns_waflz::rl_run_op(l_matched, *l_op, "monkey:443", strlen("monkey:443"), false);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_matched == true));
+                l_s = ns_waflz::rl_run_op(l_matched, *l_op, "MONKEY:443", strlen("MONKEY:443"), false);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_matched == false));
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
                 if(l_op) { delete(l_op); l_op = NULL; }
                 if(l_ds) { delete(l_ds); l_ds = NULL; }
+
         }
         // -------------------------------------------------
-        // test em case sensitive
+        // test em case insensitive
         // -------------------------------------------------
         SECTION("rl_run_op em test case insensitive") {
                 bool l_matched = false;
@@ -282,10 +295,12 @@ TEST_CASE( "op test", "[op]" ) {
                 const char l_str_list[][32] = {
                                 "cat",
                                 "dog",
-                                "monkey"
+                                "monkey",
+                                "monkey:443",
+                                "monkeys"
                 };
                 // -----------------------------------------
-                // init nms
+                // init data_case_i_set_t
                 // -----------------------------------------
                 l_ds = new ns_waflz::data_case_i_set_t();
                 for(uint32_t i = 0; i < ARRAY_SIZE(l_str_list); ++i)
@@ -317,7 +332,16 @@ TEST_CASE( "op test", "[op]" ) {
                 l_s = ns_waflz::rl_run_op(l_matched, *l_op, "monkey", strlen("monkey"), false);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_matched == true));
+                l_s = ns_waflz::rl_run_op(l_matched, *l_op, "monkey:443", strlen("monkey:443"), false);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_matched == true));
+                l_s = ns_waflz::rl_run_op(l_matched, *l_op, "MONKEY:443", strlen("MONKEY:443"), false);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_matched == true));
                 l_s = ns_waflz::rl_run_op(l_matched, *l_op, "monKey", strlen("monKey"), false);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_matched == true));
+                l_s = ns_waflz::rl_run_op(l_matched, *l_op, "monkeys", strlen("monkeys"), false);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_matched == true));
                 // -----------------------------------------

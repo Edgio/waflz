@@ -23,9 +23,9 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#include "support/string_util.h"
 #include "support/ndebug.h"
 #include "waflz/def.h"
+#include "waflz/string_util.h"
 #include <limits.h>
 #include <string.h>
 #include <regex.h>
@@ -341,6 +341,30 @@ size_t strlcat(char *a_dst, const char *a_src, size_t a_dsize)
         // count does not include NULL
         // -------------------------------------------------
         return(l_dlen + (a_src - l_osrc));
+}
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t convert_to_lower_case(char** ao_out, size_t& ao_len, const char* a_src, size_t a_len)
+{
+        if(!a_src ||!a_len ||!ao_out)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_out = NULL;
+        ao_len = 0;
+        char* l_buf= NULL;
+        l_buf = (char*)malloc(a_len+1);
+        l_buf[a_len] = '\0';
+        for(uint32 i = 0; i < a_len ; ++i)
+        {
+                l_buf[i] = tolower((int)a_src[i]);
+        }
+        *ao_out = l_buf;
+        ao_len = a_len;
+        return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
 //: \details TODO

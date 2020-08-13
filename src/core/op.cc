@@ -24,11 +24,11 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
+#include "waflz/string_util.h"
 #include "rule.pb.h"
 #include "core/op.h"
 #include "core/macro.h"
 #include "core/decode.h"
-#include "support/string_util.h"
 #include "support/ndebug.h"
 #include "op/regex.h"
 #include "op/ac.h"

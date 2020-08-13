@@ -25,11 +25,11 @@
 //: ----------------------------------------------------------------------------
 #include "support/time_util.h"
 #include "support/file_util.h"
-#include "support/string_util.h"
 #include "support/ndebug.h"
 #include "waflz/configs.h"
 #include "waflz/config.h"
 #include "waflz/kycb_db.h"
+#include "waflz/string_util.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"

@@ -26,9 +26,9 @@
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/arg.h"
+#include "waflz/string_util.h"
 #include "core/decode.h"
 #include "support/ndebug.h"
-#include "support/string_util.h"
 #include <string.h>
 //: ----------------------------------------------------------------------------
 //: macros

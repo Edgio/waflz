@@ -20,6 +20,8 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
+#ifndef _STRING_UTIL_H_
+#define _STRING_UTIL_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
@@ -44,6 +46,7 @@ int64_t strntoll(const char *a_str, size_t a_size, char **ao_end, int a_base);
 unsigned long int strntoul(const char *a_str, size_t a_size, char **ao_end, int a_base);
 uint64_t strntoull(const char *a_str, size_t a_size, char **ao_end, int a_base);
 size_t strlcat(char *a_dst, const char *a_src, size_t a_dsize);
+int32_t convert_to_lower_case(char** ao_out, size_t& ao_len, const char* a_src, size_t a_len);
 #if defined(__APPLE__) || defined(__darwin__)
 void * memrchr(const void *s, int c, size_t n);
 #endif
@@ -56,3 +59,4 @@ std::string to_string(const T& a_num)
 }
 int32_t colorize_string(std::string &ao_string);
 }
+#endif

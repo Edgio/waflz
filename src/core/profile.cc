@@ -31,7 +31,6 @@
 #include "jspb/jspb.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
-#include "support/string_util.h"
 #include "support/time_util.h"
 #include "op/regex.h"
 #include "op/nms.h"
@@ -44,6 +43,7 @@
 #include "waflz/waf.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/config_parser.h"
+#include "waflz/string_util.h"
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>

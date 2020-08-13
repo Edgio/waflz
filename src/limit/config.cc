@@ -27,7 +27,6 @@
 #include <inttypes.h>
 #include "support/time_util.h"
 #include "support/ndebug.h"
-#include "support/string_util.h"
 #include "support/base64.h"
 #include "jspb/jspb.h"
 #include "waflz/def.h"
@@ -38,6 +37,7 @@
 #include "waflz/scopes.h"
 #include "waflz/enforcer.h"
 #include "waflz/config.h"
+#include "waflz/string_util.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"

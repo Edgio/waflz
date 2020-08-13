@@ -32,7 +32,7 @@
 #include <string>
 #include <inttypes.h>
 #include <list>
-#include <set>
+#include <unordered_set>
 #if defined(__APPLE__) || defined(__darwin__)
     #include <unordered_map>
 #else
@@ -95,21 +95,10 @@ public:
                 }
         };
         // ----------------------------------------------------------------------------
-        // comparison operators
-        // ----------------------------------------------------------------------------
-        struct data_comp
-        {
-                bool operator()(const data_t& lhs, const data_t& rhs) const
-                {
-                        uint32_t l_len = lhs.m_len > rhs.m_len ? rhs.m_len : lhs.m_len;
-                        return strncmp(lhs.m_data, rhs.m_data, l_len) < 0;
-                }
-        };
-        // ----------------------------------------------------------------------------
         // types
         // ----------------------------------------------------------------------------
-        typedef std::set<data_t, data_comp> data_set_t;
-        typedef std::set<data_t, data_case_i_comp> data_case_i_set_t;
+        typedef std::unordered_set<data_t, data_t_hash, data_comp_unordered> data_set_t;
+        typedef std::unordered_set<data_t, data_t_case_hash, data_case_i_comp_unordered> data_case_i_set_t;
         // ----------------------------------------------------------------------------
         // compiled operators
         // ----------------------------------------------------------------------------

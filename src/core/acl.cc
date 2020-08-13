@@ -25,7 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "support/ndebug.h"
 #include "op/regex.h"
-#include "support/string_util.h"
+#include "waflz/string_util.h"
 #include "op/nms.h"
 #include "jspb/jspb.h"
 #include "waflz/def.h"

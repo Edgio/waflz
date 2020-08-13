@@ -27,8 +27,8 @@
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/render.h"
+#include "waflz/string_util.h"
 #include "support/ndebug.h"
-#include "support/string_util.h"
 #include "support/time_util.h"
 #include <string.h>
 #include <time.h>

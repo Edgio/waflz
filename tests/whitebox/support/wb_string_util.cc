@@ -25,7 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
-#include "support/string_util.h"
+#include "waflz/string_util.h"
 #include <string>
 #include <string.h>
 //: ----------------------------------------------------------------------------

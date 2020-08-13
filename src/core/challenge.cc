@@ -47,7 +47,7 @@
 #define _TOKEN_FIELD_IP "ip"
 #define _TOKEN_FIELD_UA "ua"
 #define _TOKEN_FIELD_TIME "time"
-#define _TOKEN_FIELD_PROB "prob_id"
+#define _TOKEN_FIELD_ANS "ans"
 //! ----------------------------------------------------------------------------
 //! macros
 //! ----------------------------------------------------------------------------
@@ -105,12 +105,6 @@ int32_t challenge::validate()
                 if(!i_p.has_id())
                 {
                         WAFLZ_PERROR(m_err_msg, "problem missing id");
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(!i_p.has_answer() ||
-                    i_p.answer().empty())
-                {
-                        WAFLZ_PERROR(m_err_msg, "problem missing answer");
                         return WAFLZ_STATUS_ERROR;
                 }
                 if(!i_p.has_response_body_base64() ||
@@ -305,12 +299,17 @@ int32_t challenge::get_challenge(const std::string** ao_html, rqst_ctx* a_ctx)
 //! ----------------------------------------------------------------------------
 int32_t challenge::get_challenge(const std::string **ao_html, int32_t a_prob_id, rqst_ctx* a_ctx)
 {
+        int32_t l_s;
+        if(!a_ctx)
+        {
+                WAFLZ_PERROR(m_err_msg, "rqst_ctx == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
         if(!ao_html)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_html = NULL;
-        int32_t l_s;
         // -------------------------------------------------
         // get challenge string using prob_id
         // -------------------------------------------------
@@ -323,10 +322,19 @@ int32_t challenge::get_challenge(const std::string **ao_html, int32_t a_prob_id,
         }
         const waflz_pb::problem &l_p = *(i_c->second);
         *ao_html = &(l_p.response_body_base64());
+        if(a_ctx->s_get_bot_ch_prob)
+        {
+                l_s = a_ctx->s_get_bot_ch_prob(a_ctx->m_bot_ch, &a_ctx->m_ans);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "failed to get bot challenge");
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
         // -------------------------------------------------
         // get ectoken
         // -------------------------------------------------
-        l_s = set_ectoken(a_prob_id, a_ctx);
+        l_s = set_ectoken(a_ctx->m_ans, a_ctx);
         if(l_s != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "set_ectoken failed");
@@ -341,7 +349,7 @@ int32_t challenge::get_challenge(const std::string **ao_html, int32_t a_prob_id,
 //! @param   <ao_prob_id> - prob id used in the ectoken
 //! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure
 //! ----------------------------------------------------------------------------
-int32_t challenge::set_ectoken(int32_t a_prob_id,
+int32_t challenge::set_ectoken(int32_t a_ans,
                                rqst_ctx* a_ctx)
 {
         int32_t l_s;
@@ -366,13 +374,13 @@ int32_t challenge::set_ectoken(int32_t a_prob_id,
         char *l_token_clr = NULL;
         int l_token_clr_len = 0;
         l_token_clr_len = asprintf(&l_token_clr,
-                                   "ip=%.*s&ua=%.*s&time=%" PRIu64 "&prob_id=%d",
+                                   "ip=%.*s&ua=%.*s&time=%" PRIu64 "&ans=%d",
                                    a_ctx->m_src_addr.m_len,
                                    a_ctx->m_src_addr.m_data,
                                    l_v.m_len,
                                    l_v.m_data,
                                    l_ct,
-                                   a_prob_id);
+                                   a_ans);
         if(l_token_clr_len < 0)
         {
                 if(l_token_clr) { free(l_token_clr); l_token_clr = NULL; }
@@ -585,28 +593,11 @@ int32_t challenge::verify_token(bool& ao_pass,
         // -------------------------------------------------
         // validate problem/answer
         // -------------------------------------------------
-        _GET_TOKEN_FIELD_FIELD(_TOKEN_FIELD_PROB);
-        int32_t l_id = 0;
-        l_id = (int32_t)strntol(i_t->second.m_data, i_t->second.m_len, NULL, 10);
-        if(l_id < 0)
-        {
-                WAFLZ_PERROR(m_err_msg, "prob_id is invalid int (%.*s)", i_t->second.m_len, i_t->second.m_data);
-                free_arg_list(l_tk_list);
-                return WAFLZ_STATUS_OK;
-        }
-        prob_map_t::const_iterator i_c = m_prob_map.begin();
-        i_c = m_prob_map.find(l_id);
-        if(i_c == m_prob_map.end())
-        {
-                WAFLZ_PERROR(m_err_msg, "%s", "problem id not found in the config");
-                free_arg_list(l_tk_list);
-                return WAFLZ_STATUS_OK;
-        }
-        const std::string& l_answer = i_c->second->answer();
+        _GET_TOKEN_FIELD_FIELD(_TOKEN_FIELD_ANS);
         // -------------------------------------------------
         // check solution...
         // -------------------------------------------------
-        if(strncmp(l_answer.c_str(), a_ans.m_data, a_ans.m_len) != 0)
+        if(strncmp(i_t->second.m_data, a_ans.m_data, a_ans.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "challenge verification failed");
                 free_arg_list(l_tk_list);

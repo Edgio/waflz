@@ -30,8 +30,12 @@
 #include "is2/support/nbq.h"
 #include "is2/support/data.h"
 #include "support/ndebug.h"
+#include "waflz/string_util.h"
+#include "support/time_util.h"
 #include <errno.h>
 #include <string.h>
+#include<map>
+#include <stdlib.h>
 #include <arpa/inet.h>
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
@@ -487,6 +491,21 @@ int32_t get_rqst_body_str_cb(char *ao_data,
         //NDBG_PRINT(": ao_is_eos:   %d\n", ao_is_eos);
         //NDBG_PRINT(": a_ctx:       %p\n", a_ctx);
         //NDBG_PRINT(": a_to_read:   %u\n", a_to_read);
+        return 0;
+}
+//: ----------------------------------------------------------------------------
+//: get_bot_ch_prob
+//: ----------------------------------------------------------------------------
+int32_t get_bot_ch_prob(std::string &ao_bot_challenge, uint32_t *ao_ans)
+{
+        int l_num_one, l_num_two = 0;
+        srand (ns_waflz::get_time_ms());
+        l_num_one = rand() % 100 + 100;
+        l_num_two = rand() % 100 + 100;
+        ao_bot_challenge += ns_waflz::to_string(l_num_one);
+        ao_bot_challenge += "+";
+        ao_bot_challenge += ns_waflz::to_string(l_num_two);
+        *ao_ans = l_num_one + l_num_two;
         return 0;
 }
 }

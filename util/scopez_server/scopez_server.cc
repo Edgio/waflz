@@ -996,6 +996,10 @@ int main(int argc, char** argv)
                 ns_waflz_server::get_rqst_uuid_cb, //get_rqst_req_id_cb,
                 NULL //get_cust_id_cb
         };
+        // -------------------------------------------------
+        // callbacks render bot challenge
+        // -------------------------------------------------
+        ns_waflz::rqst_ctx::s_get_bot_ch_prob = ns_waflz_server::get_bot_ch_prob;
 #ifdef ENABLE_PROFILER
         // -------------------------------------------------
         // start profiler(s)

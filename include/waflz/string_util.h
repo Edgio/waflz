@@ -53,7 +53,7 @@ void * memrchr(const void *s, int c, size_t n);
 template <typename T>
 std::string to_string(const T& a_num)
 {
-		std::stringstream l_s;
+	std::stringstream l_s;
         l_s << a_num;
         return l_s.str();
 }

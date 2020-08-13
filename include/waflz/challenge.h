@@ -62,7 +62,7 @@ public:
         int32_t get_rand_id(void);
         int32_t get_challenge(const std::string **ao_html, rqst_ctx* a_ctx);
         int32_t get_challenge(const std::string **ao_html, int32_t a_prob_id, rqst_ctx* a_ctx);
-        int32_t set_ectoken(int32_t a_prob_id, rqst_ctx* a_ctx);
+        int32_t set_ectoken(int32_t a_ans, rqst_ctx* a_ctx);
         int32_t render_challenge(char** ao_buf, uint32_t &ao_buf_len, rqst_ctx* a_ctx);
         const char* get_err_msg(void)
         {

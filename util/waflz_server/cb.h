@@ -26,7 +26,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include <stdint.h>
-#include "cb.h"
+#include <string>
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
 //: extern...
@@ -50,5 +50,6 @@ int32_t get_rqst_uuid_cb(const char **a_data, uint32_t *a_len, void *a_ctx);
 int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx);
 int32_t get_rqst_header_w_idx_cb(const char **ao_key, uint32_t *ao_key_len, const char **ao_val, uint32_t *ao_val_len, void *a_ctx, uint32_t a_idx);
 int32_t get_rqst_body_str_cb(char *ao_data, uint32_t *ao_data_len, bool *ao_is_eos, void *a_ctx, uint32_t a_to_read);
+int32_t get_bot_ch_prob(std::string &ao_bot_challenge, uint32_t *ao_ans);
 }
 #endif

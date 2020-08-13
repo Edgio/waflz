@@ -30,7 +30,7 @@
 #include "is2/support/nbq.h"
 #include "is2/support/data.h"
 #include "support/ndebug.h"
-#include "support/string_util.h"
+#include "waflz/string_util.h"
 #include "support/time_util.h"
 #include <errno.h>
 #include <string.h>

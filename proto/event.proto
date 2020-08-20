@@ -33,7 +33,7 @@ message event {
         // var
         // -------------------------------------------------
         message var_t {
-                optional string name = 1;
+                optional bytes name = 1;
                 optional bytes value = 2;
                 optional string param = 3;
                 optional bytes param_data = 4;

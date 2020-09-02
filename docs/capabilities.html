@@ -1,18 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Supported ModSecurity Functionality &#8212; Waflz 0.0.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Profiles" href="profiles.html" />
@@ -29,6 +29,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="supported-modsecurity-functionality">
@@ -36,118 +38,138 @@
 <div class="section" id="configuration-directives">
 <h2>Configuration Directives<a class="headerlink" href="#configuration-directives" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>SecAction</li>
-<li>SecMarker</li>
-<li>SecRule</li>
-<li>SecRuleUpdateTargetById</li>
+<li><p>SecAction</p></li>
+<li><p>SecMarker</p></li>
+<li><p>SecRule</p></li>
+<li><p>SecRuleUpdateTargetById</p></li>
 </ul>
 </div>
 <div class="section" id="variables">
 <h2>Variables<a class="headerlink" href="#variables" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>ARGS</li>
-<li>ARGS_COMBINED_SIZE</li>
-<li>ARGS_NAMES</li>
-<li>ARGS_GET</li>
-<li>ARGS_GET_NAMES</li>
-<li>ARGS_POST</li>
-<li>ARGS_POST_NAMES</li>
-<li>MATCHED_VAR</li>
-<li>MATCHED_VAR_NAME</li>
-<li>MATCHED_VARS</li>
-<li>MATCHED_VARS_NAMES</li>
-<li>QUERY_STRING</li>
-<li>REMOTE_ADDR</li>
-<li>REQUEST_BASENAME</li>
-<li>REQUEST_BODY</li>
-<li>REQUEST_COOKIES</li>
-<li>REQUEST_COOKIES_NAMES</li>
-<li>REQUEST_FILENAME</li>
-<li>REQUEST_HEADERS</li>
-<li>REQUEST_HEADERS_NAMES</li>
-<li>REQUEST_LINE</li>
-<li>REQUEST_METHOD</li>
-<li>REQUEST_PROTOCOL</li>
-<li>REQUEST_URI</li>
-<li>REQUEST_URI_RAW</li>
-<li>TX</li>
-<li>XML</li>
+<li><p>ARGS</p></li>
+<li><p>ARGS_COMBINED_SIZE</p></li>
+<li><p>ARGS_NAMES</p></li>
+<li><p>ARGS_GET</p></li>
+<li><p>ARGS_GET_NAMES</p></li>
+<li><p>ARGS_POST</p></li>
+<li><p>ARGS_POST_NAMES</p></li>
+<li><p>MATCHED_VAR</p></li>
+<li><p>MATCHED_VAR_NAME</p></li>
+<li><p>MATCHED_VARS</p></li>
+<li><p>MATCHED_VARS_NAMES</p></li>
+<li><p>QUERY_STRING</p></li>
+<li><p>REMOTE_ADDR</p></li>
+<li><p>REQUEST_BASENAME</p></li>
+<li><p>REQUEST_BODY</p></li>
+<li><p>REQUEST_COOKIES</p></li>
+<li><p>REQUEST_COOKIES_NAMES</p></li>
+<li><p>REQUEST_FILENAME</p></li>
+<li><p>REQUEST_HEADERS</p></li>
+<li><p>REQUEST_HEADERS_NAMES</p></li>
+<li><p>REQUEST_LINE</p></li>
+<li><p>REQUEST_METHOD</p></li>
+<li><p>REQUEST_PROTOCOL</p></li>
+<li><p>REQUEST_URI</p></li>
+<li><p>REQUEST_URI_RAW</p></li>
+<li><p>TX</p></li>
+<li><p>XML</p></li>
 </ul>
 </div>
 <div class="section" id="operators">
 <h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>BEGINSWITH</li>
-<li>CONTAINS</li>
-<li>CONTAINSWORD</li>
-<li>DETECTSQLI</li>
-<li>DETECTXSS</li>
-<li>ENDSWITH</li>
-<li>EQ</li>
-<li>GE</li>
-<li>GT</li>
-<li>IPMATCH</li>
-<li>IPMATCHF</li>
-<li>IPMATCHFROMFILE</li>
-<li>LE</li>
-<li>LT</li>
-<li>PM</li>
-<li>PMF</li>
-<li>PMFROMFILE</li>
-<li>RX</li>
-<li>STREQ</li>
-<li>STRMATCH</li>
-<li>VALIDATEBYTERANGE</li>
-<li>VALIDATEURLENCODING</li>
-<li>VALIDATEUTF8ENCODING</li>
-<li>VERIFYCC</li>
-<li>WITHIN</li>
+<li><p>BEGINSWITH</p></li>
+<li><p>CONTAINS</p></li>
+<li><p>CONTAINSWORD</p></li>
+<li><p>DETECTSQLI</p></li>
+<li><p>DETECTXSS</p></li>
+<li><p>ENDSWITH</p></li>
+<li><p>EQ</p></li>
+<li><p>GE</p></li>
+<li><p>GT</p></li>
+<li><p>IPMATCH</p></li>
+<li><p>IPMATCHF</p></li>
+<li><p>IPMATCHFROMFILE</p></li>
+<li><p>LE</p></li>
+<li><p>LT</p></li>
+<li><p>PM</p></li>
+<li><p>PMF</p></li>
+<li><p>PMFROMFILE</p></li>
+<li><p>RX</p></li>
+<li><p>STREQ</p></li>
+<li><p>STRMATCH</p></li>
+<li><p>VALIDATEBYTERANGE</p></li>
+<li><p>VALIDATEURLENCODING</p></li>
+<li><p>VALIDATEUTF8ENCODING</p></li>
+<li><p>VERIFYCC</p></li>
+<li><p>WITHIN</p></li>
 </ul>
 </div>
 <div class="section" id="transformations">
 <h2>Transformations<a class="headerlink" href="#transformations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>NONE</li>
-<li>LENGTH</li>
-<li>COMPRESSWHITESPACE</li>
-<li>REMOVEWHITESPACE</li>
-<li>REMOVENULLS</li>
-<li>HEXENCODE</li>
-<li>LOWERCASE</li>
-<li>NORMALISEPATH</li>
-<li>NORMALIZEPATH</li>
-<li>REPLACECOMMENTS</li>
-<li>REMOVECOMMENTS</li>
-<li>NORMALIZEPATHWIN</li>
-<li>SHA1</li>
-<li>MD5</li>
-<li>URLDECODEUNI</li>
-<li>URLDECODE</li>
-<li>HTMLENTITYDECODE</li>
-<li>JSDECODE</li>
-<li>CSSDECODE</li>
-<li>CMDLINE</li>
-<li>UTF8TOUNICODE</li>
+<li><p>NONE</p></li>
+<li><p>LENGTH</p></li>
+<li><p>COMPRESSWHITESPACE</p></li>
+<li><p>REMOVEWHITESPACE</p></li>
+<li><p>REMOVENULLS</p></li>
+<li><p>HEXENCODE</p></li>
+<li><p>LOWERCASE</p></li>
+<li><p>NORMALISEPATH</p></li>
+<li><p>NORMALIZEPATH</p></li>
+<li><p>REPLACECOMMENTS</p></li>
+<li><p>REMOVECOMMENTS</p></li>
+<li><p>NORMALIZEPATHWIN</p></li>
+<li><p>SHA1</p></li>
+<li><p>MD5</p></li>
+<li><p>URLDECODEUNI</p></li>
+<li><p>URLDECODE</p></li>
+<li><p>HTMLENTITYDECODE</p></li>
+<li><p>JSDECODE</p></li>
+<li><p>CSSDECODE</p></li>
+<li><p>CMDLINE</p></li>
+<li><p>UTF8TOUNICODE</p></li>
 </ul>
 </div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Supported ModSecurity Functionality</a><ul>
-<li><a class="reference internal" href="#configuration-directives">Configuration Directives</a></li>
-<li><a class="reference internal" href="#variables">Variables</a></li>
-<li><a class="reference internal" href="#operators">Operators</a></li>
-<li><a class="reference internal" href="#transformations">Transformations</a></li>
+<h1 class="logo"><a href="index.html">Waflz</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dedication.html">Dedication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building.html">Building</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Supported ModSecurity Functionality</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-directives">Configuration Directives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#variables">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operators">Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transformations">Transformations</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="profiles.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="waflz_server.html">waflz_server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="waflz_dump.html">Format Conversions with waflz_dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
 </ul>
+
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
@@ -157,35 +179,34 @@
   </ul></li>
 </ul>
 </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/capabilities.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2018, Reed Morrison, Devender Singh.
+      &copy;2020, Reed Morrison, Devender Singh.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/capabilities.rst.txt"

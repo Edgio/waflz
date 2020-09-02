@@ -2288,6 +2288,13 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
                 l_sub_event->add_rule_tag(l_action.tag(i_a));
         }
         // -------------------------------------------------
+        // rule files
+        // -------------------------------------------------
+        if(l_action.has_file())
+        {
+                 l_sub_event->set_rule_file(l_action.file());
+        }
+        // -------------------------------------------------
         // intercept status
         // -------------------------------------------------
         l_sub_event->set_rule_intercept_status(403);

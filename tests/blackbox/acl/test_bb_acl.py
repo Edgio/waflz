@@ -11,7 +11,6 @@ import sys
 import json
 import time
 import requests
-import base64
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -101,8 +100,7 @@ def test_bb_acl_03_block_headers_not_in_ignore_header_list(setup_waflz_server):
     assert len(l_r_json) > 0
     # detect a bash shellshock
     assert 'Bash shellshock attack detected' in l_r_json['sub_event'][0]['rule_msg']
-    l_decoded = base64.b64decode(l_r_json['sub_event'][0]['matched_var']['name'])
-    assert 'REQUEST_HEADERS' in str(l_decoded)
+    assert 'UkVRVUVTVF9IRUFERVJTOmtvb2t5LUhlYWRlcg==' in l_r_json['sub_event'][0]['matched_var']['name']
     assert 'ZnVuY3Rpb24gKCkgeyBkb2luZyB0aGlzIGlzIGtpbmRhIGR1bWI=' in l_r_json['sub_event'][0]['matched_var']['value']
 # ------------------------------------------------------------------------------
 # test_bb_acl_04_bypass_headers_in_ignore_header_list
@@ -152,8 +150,7 @@ def test_bb_acl_06_block_cookie_not_in_ignore_cookie_list(setup_waflz_server):
     assert len(l_r_json) > 0
     # detect a bash shellshock
     assert 'Bash shellshock attack detected' in l_r_json['sub_event'][0]['rule_msg']
-    l_decoded = base64.b64decode(l_r_json['sub_event'][0]['matched_var']['name'])
-    assert 'REQUEST_HEADERS' in str(l_decoded)
+    assert 'UkVRVUVTVF9IRUFERVJTOkNvb2tpZQ==' in l_r_json['sub_event'][0]['matched_var']['name']
 # ------------------------------------------------------------------------------
 # test_bb_acl_07_bypass_cookie_in_ignore_cookie_list
 # ------------------------------------------------------------------------------

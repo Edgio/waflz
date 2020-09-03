@@ -328,7 +328,6 @@ def test_audit_and_prod_for_scope(setup_scopez_server_single):
     assert l_r_json['prod_profile']['geoip_country_name'] == 'United States'
     assert l_r_json['prod_profile']['geoip_country_code2'] == 'US'
     assert l_r_json['prod_profile']['geoip_city_name'] == 'Los Angeles'
-    assert l_r_json['prod_profile']['sub_event'][0]['rule_file'] == 'REQUEST-942-APPLICATION-ATTACK-SQLI.conf'
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'
     # ------------------------------------------------------

@@ -1117,7 +1117,7 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
+int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geoip2_mmdb)
 {
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
@@ -1241,6 +1241,38 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event)
                         //WAFLZ_PERROR(m_err_msg, "performing s_get_cust_id_cb");
                 }
                 l_request_info->set_customer_id(l_cust_id);
+        }
+        // -------------------------------------------------
+        // GEOIP info
+        // -------------------------------------------------
+        data_t l_cn_name;
+        data_t l_city_name;
+        l_cn_name.m_data = NULL;
+        l_city_name.m_data = NULL;
+        l_cn_name.m_len = 0;
+        l_city_name.m_len = 0;
+        // -------------------------------------------------
+        // We only do lookup when we have an event. This is
+        // to avoid uneccessary lookups, init_phase_1 does
+        // one lookup for country code and asn. Since city
+        // name and country names are for logging only, we
+        // do that separately here.
+        // -------------------------------------------------
+        a_geoip2_mmdb.get_country_city_name(&l_cn_name.m_data, l_cn_name.m_len, &l_city_name.m_data, l_city_name.m_len, m_src_addr.m_data, m_src_addr.m_len);
+        if(l_cn_name.m_data &&
+           l_cn_name.m_len > 0)
+        {
+                ao_event.set_geoip_country_name(l_cn_name.m_data, l_cn_name.m_len);
+        }
+        if(l_city_name.m_data &&
+           l_city_name.m_len > 0)
+        {
+                ao_event.set_geoip_city_name(l_city_name.m_data, l_city_name.m_len);
+        }
+        if(m_geo_cn2.m_data &&
+           m_geo_cn2.m_len > 0)
+        {
+                 ao_event.set_geoip_country_code2(m_geo_cn2.m_data, m_geo_cn2.m_len);
         }
         return WAFLZ_STATUS_OK;
 }

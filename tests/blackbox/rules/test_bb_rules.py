@@ -128,7 +128,7 @@ def test_bb_rule_target_update_xml_var(setup_waflz_server):
     # print(json.dumps(l_r_json,indent=4))
     assert l_r_json['rule_intercept_status'] == 403
     assert 'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded' in l_r_json['rule_msg']
-    assert l_r_json['matched_var']['name'] == 'XML:/*'
+    assert l_r_json['matched_var']['name'] == 'WE1MOi8q'
     l_conf = {}
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_conf_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_rules.waf.prof.json'))

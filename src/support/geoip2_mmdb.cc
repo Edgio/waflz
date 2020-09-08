@@ -317,4 +317,146 @@ int32_t geoip2_mmdb::get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_l
         }
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details Get the country name and city name from a mmdb record. The func uses
+//           MMDB_get_value to get individual record keys, so have to call it twice
+//: \return  0 on success, -1 on error
+//: \param   ao_cn_name: country name
+//:          ao_cn_name_len: length of country name string
+//:          ao_city_name: city name
+//:          ao_city_name_len: length of city name string
+//: ----------------------------------------------------------------------------
+int32_t geoip2_mmdb::get_country_city_name(const char **ao_cn_name, uint32_t &ao_cn_name_len,
+                                           const char **ao_city_name, uint32_t &ao_city_name_len,
+                                           const char *a_ip, uint32_t a_ip_len)
+{
+        if(!ao_cn_name ||
+           !ao_city_name)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_cn_name or ao_city_name == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_cn_name = NULL;
+        *ao_city_name = NULL;
+        ao_cn_name_len = 0;
+        ao_city_name_len = 0;
+        if(!m_init)
+        {
+                WAFLZ_PERROR(m_err_msg, "not initialized");
+                return WAFLZ_STATUS_OK;
+        }
+        if(!m_city_mmdb)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+
+        ::MMDB_lookup_result_s l_ls;
+        int32_t l_gai_err = 0;
+        int32_t l_mmdb_err = MMDB_SUCCESS;
+        // -----------------------------------------
+        // lookup result...
+        // -----------------------------------------
+        l_ls = MMDB_lookup_string(m_city_mmdb, a_ip, &l_gai_err, &l_mmdb_err);
+        if(l_gai_err != 0)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "MMDB_lookup_string[%.*s]: reason: %s.",
+                             a_ip_len,
+                             a_ip,
+                             gai_strerror(l_gai_err));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_mmdb_err != MMDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "libmaxminddb: %s",
+                             MMDB_strerror(l_mmdb_err));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_ls.found_entry)
+        {
+                WAFLZ_PERROR(m_err_msg, "not found");
+                return WAFLZ_STATUS_OK;
+        }
+        // -----------------------------------------
+        // get result...
+        // traverse record to get excat value for
+        // key
+        // -----------------------------------------
+        MMDB_entry_data_s l_e_dat;
+        int32_t l_s;
+        l_s = MMDB_get_value(&l_ls.entry,
+                             &l_e_dat,
+                             "country",
+                             "names",
+                             "en",
+                             NULL);
+        if(l_s != MMDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "looking up the entry data: reason: %s",
+                             MMDB_strerror(l_s));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_e_dat.has_data)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "data missing");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // extract
+        // -------------------------------------------------
+        switch(l_e_dat.type) {
+        case MMDB_DATA_TYPE_UTF8_STRING:
+        {
+                *ao_cn_name = l_e_dat.utf8_string;
+                ao_cn_name_len = l_e_dat.data_size;
+                break;
+        }
+        default:
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "wrong data type");
+                return WAFLZ_STATUS_ERROR;
+        }
+        }
+        l_s = MMDB_get_value(&l_ls.entry,
+                             &l_e_dat,
+                             "city",
+                             "names",
+                             "en",
+                             NULL);
+        if(l_s != MMDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "looking up the entry data: reason: %s",
+                             MMDB_strerror(l_s));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_e_dat.has_data)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "data missing");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // extract
+        // -------------------------------------------------
+        switch(l_e_dat.type) {
+        case MMDB_DATA_TYPE_UTF8_STRING:
+        {
+                *ao_city_name = l_e_dat.utf8_string;
+                ao_city_name_len = l_e_dat.data_size;
+                break;
+        }
+        default:
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "wrong data type");
+                return WAFLZ_STATUS_ERROR;
+        }
+        }
+        return WAFLZ_STATUS_OK;
+}
 }

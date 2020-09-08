@@ -318,12 +318,16 @@ def test_audit_and_prod_for_scope(setup_scopez_server_single):
     l_uri = G_TEST_HOST + '/?a=%27select%20*%20from%20testing%27'
     l_headers = { 'host': 'test.com',
                   'waf-scopes-id': '0050',
+                  'x-waflz-ip': '2606:2800:400c:2::7c',
                   'user-agent': 'curl'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert 'audit_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'
+    assert l_r_json['prod_profile']['geoip_country_name'] == 'United States'
+    assert l_r_json['prod_profile']['geoip_country_code2'] == 'US'
+    assert l_r_json['prod_profile']['geoip_city_name'] == 'Los Angeles'
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'
     # ------------------------------------------------------

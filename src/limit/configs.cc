@@ -75,12 +75,11 @@ static limit_obj_t limit_obj_get_type(const char *a_buf)
 //:          parameter to load in all the configurations and
 //:          initialize the customer-id based structures to track limits
 //: ----------------------------------------------------------------------------
-configs::configs(kv_db &a_kv_db, challenge& a_challenge, bool a_case_insensitive_headers):
+configs::configs(kv_db &a_kv_db, bool a_case_insensitive_headers):
         m_init(false),
         m_err_msg(),
         m_cust_id_config_map(),
         m_db(a_kv_db),
-        m_challenge(a_challenge),
         m_lowercase_headers(a_case_insensitive_headers)
 {
 }
@@ -151,7 +150,7 @@ int32_t configs::load(void *a_js)
         // -------------------------------------------------
         // find in map
         // -------------------------------------------------
-        config *l_c = new config(m_db, m_challenge, m_lowercase_headers);
+        config *l_c = new config(m_db, m_lowercase_headers);
         int32_t l_s;
         // -------------------------------------------------
         // load

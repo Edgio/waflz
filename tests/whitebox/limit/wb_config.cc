@@ -30,7 +30,6 @@
 #include "waflz/def.h"
 #include "waflz/config.h"
 #include "waflz/configs.h"
-#include "waflz/challenge.h"
 #include "waflz/kycb_db.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"
@@ -425,51 +424,6 @@
 "  ]"\
 "}"
 //! ----------------------------------------------------------------------------
-//! config dd
-//! ----------------------------------------------------------------------------
-#define CONFIG_W_ALWAYS_ON_MODE_JSON \
-"{"\
-"  \"version\": 2,"\
-"  \"id\": \"b9882f74-fdc0-4bcc-89ae-36c808e9497916715\","\
-"  \"name\": \"name\","\
-"  \"type\": \"CONFIG\","\
-"  \"customer_id\": \"16715\","\
-"  \"enabled_date\": \"2016-07-20T00:44:20.744583Z\","\
-"  \"last_modified_date\": \"2016-08-25T00:45:20.744583Z\","\
-"  \"limits\": ["\
-"    {"\
-"      \"id\": \"0A0c5799-78b1-470f-91af-f1c999be94cb16715\","\
-"      \"name\": \"RULE_STUFF\","\
-"      \"disabled\": false,"\
-"      \"duration_sec\": 1,"\
-"      \"num\": 5,"\
-"      \"keys\": ["\
-"        \"IP\""\
-"      ],"\
-"      \"always_on\": true,"\
-"      \"action\": {"\
-"        \"id\": \"28b3de98-b3e1-4642-ac77-50d2fe69fab416715\","\
-"        \"name\": \"STUFF\","\
-"        \"type\": \"redirect-302\","\
-"        \"duration_sec\": 3,"\
-"        \"enf_type\": \"REDIRECT_302\""\
-"      },"\
-"      \"scope\": {"\
-"        \"host\": {"\
-"          \"type\": \"GLOB\","\
-"          \"value\": \"*.cats.*.com\","\
-"          \"is_negated\": false"\
-"        },"\
-"        \"path\": {"\
-"          \"type\": \"STREQ\","\
-"          \"value\": \"/cats.html\","\
-"          \"is_negated\": false"\
-"        }"\
-"      }"\
-"    }"\
-"  ]"\
-"}"
-//! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
 #define REQUEST_METHOD_CONFIG_W_SCOPE_EM_JSON \
@@ -665,8 +619,7 @@ TEST_CASE( "config test", "[config]" ) {
         SECTION("verify load failures bad json 1") {
                 const char l_json[] = "woop woop [[[ bloop {##{{{{ ]} blop blop %%# &(!(*&!#))";
                 ns_waflz::kycb_db l_kycb_db;
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config l_c(l_kycb_db, l_challenge);
+                ns_waflz::config l_c(l_kycb_db);
                 int32_t l_s;
                 l_s = l_c.load(l_json, sizeof(l_json));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -678,8 +631,7 @@ TEST_CASE( "config test", "[config]" ) {
         SECTION("verify load failures bad json 2") {
                 const char l_json[] = "blorp";
                 ns_waflz::kycb_db l_kycb_db;
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config l_c(l_kycb_db, l_challenge);
+                ns_waflz::config l_c(l_kycb_db);
                 int32_t l_s;
                 l_s = l_c.load(l_json, sizeof(l_json));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -691,8 +643,7 @@ TEST_CASE( "config test", "[config]" ) {
         SECTION("verify load failures bad json 3") {
                 const char l_json[] = "[\"b\", \"c\",]";
                 ns_waflz::kycb_db l_kycb_db;
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config l_c(l_kycb_db, l_challenge);
+                ns_waflz::config l_c(l_kycb_db);
                 int32_t l_s;
                 l_s = l_c.load(l_json, sizeof(l_json));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -704,8 +655,7 @@ TEST_CASE( "config test", "[config]" ) {
         SECTION("verify load failures valid json -bad config") {
                 const char l_json[] = "{\"b\": \"c\"}";
                 ns_waflz::kycb_db l_kycb_db;
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config l_c(l_kycb_db, l_challenge);
+                ns_waflz::config l_c(l_kycb_db);
                 int32_t l_s;
                 l_s = l_c.load(l_json, sizeof(l_json));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -725,8 +675,7 @@ TEST_CASE( "config test", "[config]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
-                ns_waflz::configs *l_c = new ns_waflz::configs(l_db, l_challenge);
+                ns_waflz::configs *l_c = new ns_waflz::configs(l_db);
                 std::string l_cust_id_str("16715");
                 uint64_t l_cust_id = 0;
                 ns_waflz::convert_hex_to_uint(l_cust_id, l_cust_id_str.c_str());
@@ -779,8 +728,7 @@ TEST_CASE( "config test", "[config]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config l_c(l_db, l_challenge);
+                ns_waflz::config l_c(l_db);
                 l_s = l_c.load(VALID_COORDINATOR_CONFIG_JSON, sizeof(VALID_COORDINATOR_CONFIG_JSON));
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -876,8 +824,7 @@ TEST_CASE( "config test", "[config]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config l_c(l_db, l_challenge);
+                ns_waflz::config l_c(l_db);
                 l_s = l_c.load(NO_RULES_CONFIG_JSON, sizeof(NO_RULES_CONFIG_JSON));
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -983,8 +930,7 @@ TEST_CASE( "config test", "[config]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config l_c(l_db, l_challenge);
+                ns_waflz::config l_c(l_db);
                 l_s = l_c.load(VALID_COORDINATOR_CONFIG_JSON_FILE_EXT, sizeof(VALID_COORDINATOR_CONFIG_JSON_FILE_EXT));
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -1117,8 +1063,7 @@ TEST_CASE( "config test", "[config]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config l_c(l_db, l_challenge);
+                ns_waflz::config l_c(l_db);
                 l_s = l_c.load(REQUEST_METHOD_CONFIG_JSON, sizeof(REQUEST_METHOD_CONFIG_JSON));
                 //printf("err: %s\n", l_c.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -1212,8 +1157,7 @@ TEST_CASE( "config test", "[config]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config *l_c = new ns_waflz::config(l_db, l_challenge);
+                ns_waflz::config *l_c = new ns_waflz::config(l_db);
                 l_s = l_c->load(REQUEST_METHOD_CONFIG_W_SCOPE_JSON, sizeof(REQUEST_METHOD_CONFIG_W_SCOPE_JSON));
                 //printf("err: %s\n", l_c.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -1328,99 +1272,6 @@ TEST_CASE( "config test", "[config]" ) {
                 unlink(l_db_file);
         }
         // -------------------------------------------------
-        // verify 'always_on' mode
-        // -------------------------------------------------
-        SECTION("verify load configs and enforcement for always_on mode") {
-                ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
-                int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_db.init();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
-                REQUIRE(l_s == WAFLZ_STATUS_OK);
-                ns_waflz::config *l_c = new ns_waflz::config(l_db, l_challenge);
-                l_s = l_c->load(CONFIG_W_ALWAYS_ON_MODE_JSON, sizeof(CONFIG_W_ALWAYS_ON_MODE_JSON));
-                REQUIRE(l_s == WAFLZ_STATUS_OK);
-                // -----------------------------------------
-                // load config - check tuple is removed
-                // from config
-                // -----------------------------------------
-                REQUIRE(l_c->get_pb()->limits_size() == 0);
-                //-----------------------------------------
-                // waflz obj
-                //-----------------------------------------
-                void *l_rctx = NULL;
-                ns_waflz::rqst_ctx *l_ctx = NULL;
-                const ::waflz_pb::enforcement *l_enf = NULL;
-                const ::waflz_pb::limit* l_limit = NULL;
-                // -----------------------------------------
-                // set rqst_ctx
-                // -----------------------------------------
-                s_host = "www.cats.dogs.com";
-                s_uri = "/cats.html";
-                s_header_user_agent = "monkey";
-                // -----------------------------------------
-                // init rqst ctx
-                // -----------------------------------------
-                l_ctx = new ns_waflz::rqst_ctx(l_rctx, 0, &s_callbacks);
-                l_s = l_ctx->init_phase_1(l_geoip2_mmdb, NULL, NULL, NULL);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                //-----------------------------------------
-                // all request should always get enforcement
-                // process  - doing first request. should
-                // get redirect-302 as enforcement
-                //-----------------------------------------
-                l_s = l_c->process(&l_enf, &l_limit, l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_limit == NULL));
-                REQUIRE((l_enf != NULL));
-                REQUIRE((l_enf->has_enf_type()));
-                REQUIRE((l_enf->enf_type() == waflz_pb::enforcement_type_t_REDIRECT_302));
-                //-----------------------------------------
-                // generate event
-                //-----------------------------------------
-                waflz_pb::alert *l_al;
-                l_s = l_c->generate_alert(&l_al, l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_al != NULL));
-                REQUIRE((l_al->has_action()));
-                REQUIRE((l_al->action().has_enf_type()));
-                REQUIRE((l_al->action().enf_type() == waflz_pb::enforcement_type_t_REDIRECT_302));
-                REQUIRE((l_al->action().has_type()));
-                REQUIRE((l_al->action().type() == "redirect-302"));
-                if(l_al) { delete l_al; l_al = NULL; }
-                //-----------------------------------------
-                // sleep for the duration_sec of 3 seconds
-                // should get enforcement irrespective of
-                // duration_sec expiry
-                //-----------------------------------------
-                sleep(3);
-                //-----------------------------------------
-                // verify match...
-                //-----------------------------------------
-                for(int i=0; i<5; ++i)
-                {
-                        l_s = l_c->process(&l_enf, &l_limit, l_ctx);
-                        REQUIRE((l_s == WAFLZ_STATUS_OK));
-                        REQUIRE(l_limit == NULL);
-                        REQUIRE(l_enf != NULL);
-                        REQUIRE((l_enf != NULL));
-                        REQUIRE((l_enf->has_enf_type()));
-                        REQUIRE((l_enf->enf_type() == waflz_pb::enforcement_type_t_REDIRECT_302));
-                }
-                // -----------------------------------------
-                // cleanup
-                // -----------------------------------------
-                if(l_c) { delete l_c; l_c = NULL; }
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                unlink(l_db_file);
-        }
-        // -------------------------------------------------
         // request method
         // -------------------------------------------------
         SECTION("verify request method w/ scope for EM") {
@@ -1434,8 +1285,7 @@ TEST_CASE( "config test", "[config]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
-                ns_waflz::config *l_c = new ns_waflz::config(l_db, l_challenge);
+                ns_waflz::config *l_c = new ns_waflz::config(l_db);
                 l_s = l_c->load(REQUEST_METHOD_CONFIG_W_SCOPE_EM_JSON, sizeof(REQUEST_METHOD_CONFIG_W_SCOPE_EM_JSON));
                 //NDBG_PRINT("err: %s\n", l_c->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));

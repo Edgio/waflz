@@ -1279,6 +1279,7 @@ done:
         // -------------------------------------------------
         for(int32_t i_rtu = 0; i_rtu < l_prof_pb.rule_target_updates_size(); ++i_rtu)
         {
+                printf("debugging rtu's");
                 const ::waflz_pb::profile_rule_target_update_t& l_rtu = l_prof_pb.rule_target_updates(i_rtu);
                 if(!l_rtu.has_rule_id() ||
                    !l_rtu.has_target())

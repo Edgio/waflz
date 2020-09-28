@@ -30,7 +30,8 @@
 #include "waflz/string_util.h"
 #include "support/base64.h"
 #include "support/ndebug.h"
-#include "limit.pb.h"
+#include "scope.pb.h"
+#include "event.pb.h"
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -128,6 +129,7 @@ TEST_CASE( "test maps", "[test maps]") {
 TEST_CASE("test ectoken", "[test ectoken]") {
         SECTION("test ectoken") {
                 int32_t l_s;
+                waflz_pb::event *l_event = new ::waflz_pb::event();
                 ns_waflz::challenge l_ch;
                 l_s = l_ch.load(VALID_CHALLENGE_JSON, sizeof(VALID_CHALLENGE_JSON));
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -168,24 +170,26 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 // check token...
                 // -----------------------------------------
                 bool l_pass;
-                l_s = l_ch.verify(l_pass, 60, &l_ctx);
+                l_s = l_ch.verify(l_pass, 60, &l_ctx, &l_event);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_pass == true));
                 // -----------------------------------------
                 // check token -expired...
                 // -----------------------------------------
-                l_s = l_ch.verify(l_pass, 0, &l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                l_s = l_ch.verify(l_pass, 0, &l_ctx, &l_event);
+                REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 REQUIRE((l_pass == false));
+                REQUIRE((l_event->cl_issue_type() == ::waflz_pb::event_cl_issue_t_CL_ISSUED_TOKEN_EXPIRED));
                 //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
                 // -----------------------------------------
                 // wang ip
                 // -----------------------------------------
                 l_ctx.m_src_addr.m_data = "1.1.1.2";
                 l_ctx.m_src_addr.m_len = sizeof(l_ctx.m_src_addr.m_data);
-                l_s = l_ch.verify(l_pass, 60, &l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                l_s = l_ch.verify(l_pass, 60, &l_ctx, &l_event);
+                REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 REQUIRE((l_pass == false));
+                REQUIRE((l_event->cl_issue_type() == ::waflz_pb::event_cl_issue_t_CL_ISSUED_IP_MISMATCH));
                 //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
                 // put back
                 l_ctx.m_src_addr.m_data = "1.1.1.1";
@@ -197,9 +201,10 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 l_ua_fastly.m_data = "fastly";
                 l_ua_fastly.m_len = strlen(l_ua_fastly.m_data);
                 l_ctx.m_header_map[l_ua] = l_ua_fastly;
-                l_s = l_ch.verify(l_pass, 60, &l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                l_s = l_ch.verify(l_pass, 60, &l_ctx, &l_event);
+                REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 REQUIRE((l_pass == false));
+                REQUIRE((l_event->cl_issue_type() == ::waflz_pb::event_cl_issue_t_CL_ISSUED_UA_MISMATCH));
                 //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
                 // put back
                 l_ctx.m_header_map[l_ua] = l_ua_chrome;
@@ -211,9 +216,11 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 l_v.m_data = "monkeys";
                 l_v.m_len = sizeof("monkeys") - 1;
                 l_ctx.m_cookie_map[l_k] = l_v;
-                l_s = l_ch.verify(l_pass, 60, &l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                l_s = l_ch.verify(l_pass, 60, &l_ctx, &l_event);
+                REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 REQUIRE((l_pass == false));
+                REQUIRE((l_event->cl_issue_type() == ::waflz_pb::event_cl_issue_t_CL_ISSUED_WRONG_ANSWER));
+                if(l_event) { delete l_event; l_event=NULL; }
                 //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
         }
 }

@@ -1854,7 +1854,7 @@ limits:
                                 l_valid_for_s = l_enf->valid_for_sec();
                         }
                         int32_t l_s;
-                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx);
+                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx, &l_event);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 // do nothing -re-issue challenge

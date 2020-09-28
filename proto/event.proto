@@ -21,6 +21,18 @@ message event {
                 ACTION_PAUSE              = 8;
         }
         // -------------------------------------------------
+        // challenge issue types
+        // -------------------------------------------------
+        enum cl_issue_t {
+                CL_ISSUED_NONE = 0;
+                CL_ISSUED_NO_TOKEN = 1;
+                CL_ISSUED_IP_MISMATCH = 2;
+                CL_ISSUED_UA_MISMATCH = 3;
+                CL_ISSUED_TOKEN_EXPIRED = 4;
+                CL_ISSUED_TOKEN_CORRUPTED = 5;
+                CL_ISSUED_WRONG_ANSWER = 6;
+        }
+        // -------------------------------------------------
         // mirrors RULE_TYPE_X definitions in re.h        
         // -------------------------------------------------
         enum rule_type_t {
@@ -113,6 +125,10 @@ message event {
         optional string geoip_country_code2 = 70;
         optional string geoip_country_name = 71;
         optional string geoip_city_name = 72;
+        // -------------------------------------------------
+        // bot fields
+        // -------------------------------------------------
+        optional cl_issue_t cl_issue_type = 80;
         // -------------------------------------------------
         // child events
         // -------------------------------------------------

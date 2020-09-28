@@ -533,7 +533,6 @@ GET_VAR(REQUEST_URI_RAW)
         // -------------------------------------------------
         // unconditional match
         // -------------------------------------------------
-        printf("REQUEST_URI_RAW - %s\n", a_ctx->m_url.m_data);
         _ADD_VAR(a_ctx->m_url);
         return WAFLZ_STATUS_OK;
 }
@@ -552,7 +551,6 @@ GET_VAR(REQUEST_URI)
         // -------------------------------------------------
         // unconditional match
         // -------------------------------------------------
-        printf("REQUEST_URI -%s\n", a_ctx->m_uri.m_data);
         _ADD_VAR(a_ctx->m_uri);
         return WAFLZ_STATUS_OK;
 }
@@ -572,7 +570,6 @@ GET_VAR(REQUEST_FILENAME)
         // unconditional match
         // -------------------------------------------------
         _ADD_VAR(a_ctx->m_path);
-        printf("REQUEST_FILENAME -%s\n", a_ctx->m_path.m_data);
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

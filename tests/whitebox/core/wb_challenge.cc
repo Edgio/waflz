@@ -42,17 +42,14 @@
     "\"problems\": ["\
         "{"\
         "\"id\" : 1,"\
-        "\"answer\" : \"100\","\
         "\"response_body_base64\" : \"some random base64 encoded html string1\""\
         "},"\
         "{"\
         "\"id\" : 2,"\
-        "\"answer\" : \"200\","\
         "\"response_body_base64\" : \"some random base64 encoded html string2\""\
         "},"\
         "{"\
         "\"id\" : 3,"\
-        "\"answer\" : \"300\","\
         "\"response_body_base64\" : \"some random base64 encoded html string3\""\
         "}"\
     "]"\
@@ -64,11 +61,9 @@
     "\"problems\": ["\
         "{"\
         "\"id\" : 1,"\
-        "\"answer\" : \"100\","\
         "\"response_body_base64\" : \"some random base64 encoded html string\""\
         "},"\
         "{"\
-        "\"answer\" : \"100\","\
         "\"response_body_base64\" : \"some random base64 encoded html string\""\
         "}"\
     "]"\

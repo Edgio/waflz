@@ -174,7 +174,7 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 l_s = l_ch.verify(l_pass, 0, &l_ctx, &l_event);
                 REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 REQUIRE((l_pass == false));
-                REQUIRE((l_event->cl_issue_type() == ::waflz_pb::event_cl_issue_t_CL_ISSUED_TOKEN_EXPIRED));
+                REQUIRE((l_event->challenge_status() == ::waflz_pb::event_chal_status_t_CHAL_STATUS_TOKEN_EXPIRED));
                 //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
                 // -----------------------------------------
                 // wang ip
@@ -184,7 +184,7 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 l_s = l_ch.verify(l_pass, 60, &l_ctx, &l_event);
                 REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 REQUIRE((l_pass == false));
-                REQUIRE((l_event->cl_issue_type() == ::waflz_pb::event_cl_issue_t_CL_ISSUED_IP_MISMATCH));
+                REQUIRE((l_event->challenge_status() == ::waflz_pb::event_chal_status_t_CHAL_STATUS_IP_MISMATCH));
                 //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
                 // put back
                 l_ctx.m_src_addr.m_data = "1.1.1.1";
@@ -199,7 +199,7 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 l_s = l_ch.verify(l_pass, 60, &l_ctx, &l_event);
                 REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 REQUIRE((l_pass == false));
-                REQUIRE((l_event->cl_issue_type() == ::waflz_pb::event_cl_issue_t_CL_ISSUED_UA_MISMATCH));
+                REQUIRE((l_event->challenge_status() == ::waflz_pb::event_chal_status_t_CHAL_STATUS_UA_MISMATCH));
                 //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
                 // put back
                 l_ctx.m_header_map[l_ua] = l_ua_chrome;
@@ -214,7 +214,7 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 l_s = l_ch.verify(l_pass, 60, &l_ctx, &l_event);
                 REQUIRE((l_s == WAFLZ_STATUS_ERROR));
                 REQUIRE((l_pass == false));
-                REQUIRE((l_event->cl_issue_type() == ::waflz_pb::event_cl_issue_t_CL_ISSUED_WRONG_ANSWER));
+                REQUIRE((l_event->challenge_status() == ::waflz_pb::event_chal_status_t_CHAL_STATUS_WRONG_ANSWER));
                 if(l_event) { delete l_event; l_event=NULL; }
                 //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
         }

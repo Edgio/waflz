@@ -509,7 +509,7 @@ int32_t challenge::verify_token(bool& ao_pass,
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "ec token decrypt failed");
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_TOKEN_CORRUPTED);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_TOKEN_CORRUPTED);
                 free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -549,14 +549,14 @@ int32_t challenge::verify_token(bool& ao_pass,
            (a_ctx->m_src_addr.m_len <= 0))
         {
                 WAFLZ_PERROR(m_err_msg, "ip missing in the ctx");
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_IP_MISMATCH);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_IP_MISMATCH);
                 free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_ERROR;
         }
         if(strncmp(a_ctx->m_src_addr.m_data, i_t->second.m_data, i_t->second.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "token ip validation failed");
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_IP_MISMATCH);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_IP_MISMATCH);
                 free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -574,14 +574,14 @@ int32_t challenge::verify_token(bool& ao_pass,
            (l_v.m_len <= 0))
         {
                 WAFLZ_PERROR(m_err_msg, "user-agent missing in the ctx");
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_UA_MISMATCH);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_UA_MISMATCH);
                 free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_ERROR;
         }
         if(strncmp(l_v.m_data, i_t->second.m_data, i_t->second.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "token user-agent validation failed");
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_UA_MISMATCH);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_UA_MISMATCH);
                 free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -594,7 +594,7 @@ int32_t challenge::verify_token(bool& ao_pass,
         if((l_time_cur-l_time_tok) >= a_valid_for_s)
         {
                 WAFLZ_PERROR(m_err_msg, "token expired");
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_TOKEN_EXPIRED);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_TOKEN_EXPIRED);
                 free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -608,7 +608,7 @@ int32_t challenge::verify_token(bool& ao_pass,
         if(strncmp(i_t->second.m_data, a_ans.m_data, a_ans.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "challenge verification failed");
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_WRONG_ANSWER);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_WRONG_ANSWER);
                 free_arg_list(l_tk_list);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -637,7 +637,7 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_NO_TOKEN);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_NO_TOKEN);
                 return WAFLZ_STATUS_OK;
         }
         data_t l_ck_secure;
@@ -650,7 +650,7 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_NO_TOKEN);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_NO_TOKEN);
                 return WAFLZ_STATUS_OK;
         }
         data_t l_ck_answer;
@@ -671,7 +671,7 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         if(l_s != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "ec token decrypt failed");
-                (*ao_event)->set_cl_issue_type(waflz_pb::event_cl_issue_t_CL_ISSUED_TOKEN_CORRUPTED);
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_TOKEN_CORRUPTED);
                 if(l_tk) { free(l_tk); l_tk = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }

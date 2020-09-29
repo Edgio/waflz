@@ -1816,7 +1816,6 @@ limits:
         if((a_part_mk & PART_MK_BOTS) &&
            a_scope.has__bots_prod__reserved())
         {
-                printf("processing bots\n");
                 // -----------------------------------------
                 // process
                 // -----------------------------------------
@@ -1844,7 +1843,6 @@ limits:
                 bool l_pass = false;
                 if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
                 {
-                        printf("enf type is browser challenge\n");
                         // -----------------------------------------
                         // check cookie -verify browser challenge
                         // -----------------------------------------
@@ -1856,7 +1854,6 @@ limits:
                         }
                         int32_t l_s;
                         l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx, &l_event);
-                        printf("cl status - %d\n", l_event->challenge_status());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 // do nothing -re-issue challenge

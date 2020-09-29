@@ -280,8 +280,6 @@ def test_bot_challenge_with_profile(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    print(l_r_json)
-    '''
     #-------------------------------------------------------
     # check no event is returned
     # ------------------------------------------------------
@@ -304,7 +302,6 @@ def test_bot_challenge_with_profile(setup_scopez_server_action):
     l_parser = html_parse()
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
-    '''
 # ------------------------------------------------------------------------------
 # test bot challenge events
 # ------------------------------------------------------------------------------
@@ -321,6 +318,7 @@ def test_bot_challenge_events(setup_scopez_server):
     l_r_json = l_r.json()
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_NO_TOKEN"
+    assert l_r_json['prod_profile']['token_duration_sec'] == 3
     # ------------------------------------------------------
     # send random corrupted token
     # ------------------------------------------------------
@@ -335,3 +333,5 @@ def test_bot_challenge_events(setup_scopez_server):
     l_r_json = l_r.json()
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_TOKEN_CORRUPTED"
+    assert l_r_json['prod_profile']['token_duration_sec'] == 3
+

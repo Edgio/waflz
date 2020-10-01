@@ -61,7 +61,7 @@ namespace ns_waflz {
 uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
 get_data_cb_t rqst_ctx::s_get_bot_ch_prob = NULL;
 //: ----------------------------------------------------------------------------
-//: look ahead set for json data type. 2 bytes only
+//: look ahead set for json data type. 2 bytes check
 //: ----------------------------------------------------------------------------
 static json_str_set_t s_json_structure = {
                         // Object with name, space, tabs. newline
@@ -207,7 +207,6 @@ static bool is_json(const char *a_buf, uint32_t a_len)
                         break;
                 }
         }
-        NDBG_PRINT("no json\n");
         return false;
 }
 //: ----------------------------------------------------------------------------

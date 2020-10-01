@@ -127,5 +127,5 @@ def test_bb_xml(setup_waflz_server):
     print(json.dumps(l_r_json, indent=4))
     assert l_r_json['rule_intercept_status'] == 403
     assert 'Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: OS File Access Attempt' in l_r_json['rule_msg']
-    assert l_r_json['matched_var']['name'] == 'ARGS:xxe'
+    assert l_r_json['matched_var']['name'] == 'QVJHUzp4eGU='
     assert l_r_json['matched_var']['value'] == 'ZmlsZTovZXRjL3Bhc3N3ZA=='

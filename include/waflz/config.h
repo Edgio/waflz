@@ -27,7 +27,6 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/rl_obj.h"
-#include "waflz/challenge.h"
 #include <set>
 //: ----------------------------------------------------------------------------
 //: fwd Decl's
@@ -56,7 +55,6 @@ public:
         // Public methods
         // -------------------------------------------------
         config(kv_db &a_db,
-               challenge& a_challenge,
                bool a_case_insensitive_headers = false);
         ~config();
         int32_t load(const char *a_buf, uint32_t a_buf_len);
@@ -68,7 +66,6 @@ public:
         int32_t generate_alert(waflz_pb::alert** ao_alert,
                                rqst_ctx* a_ctx);
         int32_t merge(waflz_pb::config &ao_cfg);
-        challenge &get_challenge(void) { return m_challenge;}
         const char *get_err_msg(void) { return m_err_msg; }
 private:
         // -------------------------------------------------
@@ -86,7 +83,6 @@ private:
         int32_t process_config(waflz_pb::config **ao_cfg,
                                rqst_ctx *a_ctx);
         int32_t process_enfx(const waflz_pb::enforcement** ao_enfcmnt,
-                             bool& ao_pass,
                              rqst_ctx* a_ctx);
         int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
                                   uint16_t a_key,
@@ -109,7 +105,6 @@ private:
         // Private members
         // -------------------------------------------------
         kv_db &m_db;
-        challenge& m_challenge;
         enforcer *m_enfx;
         exceed_key_set_t m_exceed_key_set;
 };

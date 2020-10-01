@@ -69,10 +69,9 @@ def test_bb_rtu_request_body(setup_waflz_server):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    print(json.dumps(l_r_json,indent=4))
     assert l_r_json['rule_intercept_status'] == 403
     assert 'Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: Suspicious Java class detected' in l_r_json['rule_msg']
-    assert l_r_json['matched_var']['name'] == 'REQUEST_BODY'
+    assert l_r_json['matched_var']['name'] == 'UkVRVUVTVF9CT0RZ'
     #-------------------------------------------------------
     # create config
     # ------------------------------------------------------

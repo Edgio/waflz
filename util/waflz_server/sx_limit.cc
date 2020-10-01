@@ -55,8 +55,7 @@ sx_limit::sx_limit(void):
         m_challenge_file(),
         m_configs(NULL),
         m_cust_id(0),
-        m_db(NULL),
-        m_challenge(NULL)
+        m_db(NULL)
 {
 }
 //: ----------------------------------------------------------------------------
@@ -67,7 +66,6 @@ sx_limit::sx_limit(void):
 sx_limit::~sx_limit(void)
 {
         if(m_db) { delete m_db; m_db = NULL; }
-        if(m_challenge) { delete m_challenge; m_challenge = NULL; }
         if(m_configs) { delete m_configs; m_configs = NULL; }
 }
 //: ----------------------------------------------------------------------------
@@ -158,18 +156,6 @@ int32_t sx_limit::init(void)
                 }
         }
         // -------------------------------------------------
-        // init browser challenges if provided
-        // -------------------------------------------------
-        m_challenge = new ns_waflz::challenge();
-        if(!m_challenge_file.empty())
-        {
-                l_s = m_challenge->load_file(m_challenge_file.c_str(), m_challenge_file.length());
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("Error:%s", m_challenge->get_err_msg());
-                }
-        }
-        // -------------------------------------------------
         // load file
         // -------------------------------------------------
         //NDBG_PRINT("reading file: %s\n", l_profile_file.c_str());
@@ -183,7 +169,7 @@ int32_t sx_limit::init(void)
         // -------------------------------------------------
         // load config
         // -------------------------------------------------
-        m_configs = new ns_waflz::configs(*m_db, *m_challenge);
+        m_configs = new ns_waflz::configs(*m_db);
         l_s = m_configs->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {

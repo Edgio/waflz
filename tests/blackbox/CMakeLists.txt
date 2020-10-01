@@ -24,36 +24,12 @@ cmake_minimum_required(VERSION 3.5)
 # ------------------------------------------------------------------------------
 # Resolve dependencies
 # ------------------------------------------------------------------------------
-# Find if a Python module is installed
-# Initial version from: http://www.cmake.org/pipermail/cmake/2011-January/041666.html
-# by Mark Mill (mmoll@rice.edu)
-# To use do: find_python_module(PyQt4 REQUIRED)
-# ------------------------------------------------------------------------------
-function(find_python_module module)
-        SET(PYTHON_EXECUTABLE python)
-        string(TOUPPER ${module} module_upper)
-        if(ARGC GREATER 1 AND ARGV1 STREQUAL "REQUIRED")
-                set(${module}_FIND_REQUIRED TRUE)
-        endif()
-        # A module's location is usually a directory, but for binary modules
-        # it's a .so file.
-        execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
-                "import re, ${module}; print(re.compile('/__init__.py.*').sub('',${module}.__file__))"
-                RESULT_VARIABLE _${module}_status
-                OUTPUT_VARIABLE _${module}_location
-                ERROR_QUIET
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
-        if("${_${module}_location}" STREQUAL "")
-                message(FATAL_ERROR "Failed to find Python module ${module}")
-        else()
-                message(STATUS "Found Python module ${module} at ${_${module}_location}")
-        endif()
-endfunction(find_python_module)
 # ------------------------------------------------------------------------------
 # Look for required python files
 # ------------------------------------------------------------------------------
-find_python_module(pytest REQUIRED)
-find_python_module(requests REQUIRED)
+# TODO: use FindPython (available 3.12) - https://cmake.org/cmake/help/latest/module/FindPython.html
+# find_python_module(pytest REQUIRED)
+# find_python_module(requests REQUIRED)
 # ------------------------------------------------------------------------------
 # waflz
 # ------------------------------------------------------------------------------
@@ -68,6 +44,7 @@ add_test(blackbox_wjc             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMA
 add_test(blackbox_bot             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/bot_challenge/test_bb_bot_challenge.py)
 if (BUILD_RATE_LIMITING)
 add_test(blackbox_scopes          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/scopes/test_bb_scopes.py)
+add_test(blackbox_scopes_updates  ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/scopes/test_bb_scopes_updates.py)
 endif()
 # ------------------------------------------------------------------------------
 # tests

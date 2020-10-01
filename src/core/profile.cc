@@ -705,7 +705,7 @@ done:
         // -------------------------------------------------
         if(l_event)
         {
-                l_s = l_rqst_ctx->append_rqst_info(*l_event);
+                l_s = l_rqst_ctx->append_rqst_info(*l_event, m_engine.get_geoip2_mmdb());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info");

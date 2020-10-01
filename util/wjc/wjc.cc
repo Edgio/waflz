@@ -28,6 +28,7 @@
 #include "waflz/acl.h"
 #include "waflz/engine.h"
 #include "waflz/rules.h"
+#include "waflz/challenge.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/time_util.h"
@@ -473,8 +474,7 @@ static int32_t validate_limits(const std::string &a_file, bool a_display_json)
         // config
         // -------------------------------------------------
         ns_waflz::kycb_db l_kycb_db;
-        ns_waflz::challenge l_challenge;
-        ns_waflz::config *l_config = new ns_waflz::config(l_kycb_db, l_challenge);
+        ns_waflz::config *l_config = new ns_waflz::config(l_kycb_db);
         l_s = l_config->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {

@@ -50,61 +50,6 @@
     }
   },
   {
-    "id": "HiKxcbal",
-    "name": "scope with custom rule for bot challenge",
-    "host": {
-      "is_negated": false,
-      "type": "EM",
-      "value": "testbot.com"
-    },
-    "path": {
-      "is_negated": false,
-      "type": "EM",
-      "value": "/test.html"
-    },
-    "rules_prod_id": "l9nTkowq",
-    "rules_prod_action": {
-      "id": "uKlXttqm",
-      "name": "ACTION",
-      "status": 200,
-      "enf_type": "BROWSER_CHALLENGE",
-      "valid_for_sec" : 5
-    }
-  },
-  {
-    "id": "PnQrlisd",
-    "name": "scope with custom rule for bot challenge",
-    "host": {
-      "is_negated": false,
-      "type": "EM",
-      "value": "mycoolbot.com"
-    },
-    "path": {
-      "is_negated": false,
-      "type": "GLOB",
-      "value": "*"
-    },
-    "rules_prod_id": "l9nTkowq",
-    "rules_prod_action": {
-      "id": "uKlXttqm",
-      "name": "ACTION",
-      "status": 200,
-      "enf_type": "BROWSER_CHALLENGE",
-      "valid_for_sec" : 3
-    },
-    "profile_prod_id": "KsdoThsq",
-    "profile_prod_action": {
-      "id": "zeAXrllT",
-      "name": "ACTION",
-      "response_body_base64": "VGhpcyBpcyBwcm9maWxlIGN1c3RvbSByZXNwb25zZQo=",
-      "response_headers": {
-        "x-ec-rules": "rejected"
-      },
-      "status": 403,
-      "enf_type": "CUSTOM_RESPONSE"
-    }
-  },
-  {
     "id":"wHyMHxV7",
     "name": "Scopes to test bot config",
     "host": {

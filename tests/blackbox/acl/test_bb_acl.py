@@ -97,12 +97,10 @@ def test_bb_acl_03_block_headers_not_in_ignore_header_list(setup_waflz_server):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    # print(l_r_json)
-    # We got an event
     assert len(l_r_json) > 0
     # detect a bash shellshock
     assert 'Bash shellshock attack detected' in l_r_json['sub_event'][0]['rule_msg']
-    assert 'REQUEST_HEADERS' in l_r_json['sub_event'][0]['matched_var']['name']
+    assert 'UkVRVUVTVF9IRUFERVJTOmtvb2t5LUhlYWRlcg==' in l_r_json['sub_event'][0]['matched_var']['name']
     assert 'ZnVuY3Rpb24gKCkgeyBkb2luZyB0aGlzIGlzIGtpbmRhIGR1bWI=' in l_r_json['sub_event'][0]['matched_var']['value']
 # ------------------------------------------------------------------------------
 # test_bb_acl_04_bypass_headers_in_ignore_header_list
@@ -152,7 +150,7 @@ def test_bb_acl_06_block_cookie_not_in_ignore_cookie_list(setup_waflz_server):
     assert len(l_r_json) > 0
     # detect a bash shellshock
     assert 'Bash shellshock attack detected' in l_r_json['sub_event'][0]['rule_msg']
-    assert 'REQUEST_HEADERS' in l_r_json['sub_event'][0]['matched_var']['name']
+    assert 'UkVRVUVTVF9IRUFERVJTOkNvb2tpZQ==' in l_r_json['sub_event'][0]['matched_var']['name']
 # ------------------------------------------------------------------------------
 # test_bb_acl_07_bypass_cookie_in_ignore_cookie_list
 # ------------------------------------------------------------------------------

@@ -26,7 +26,8 @@
 #include "waflz/render.h"
 #include "waflz/string_util.h"
 #include "jspb/jspb.h"
-#include "limit.pb.h"
+#include "scope.pb.h"
+#include "event.pb.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
@@ -494,7 +495,8 @@ int32_t challenge::verify_token(bool& ao_pass,
                                 size_t a_tk_len,
                                 data_t &a_ans,
                                 uint32_t a_valid_for_s,
-                                rqst_ctx* a_ctx)
+                                rqst_ctx* a_ctx,
+                                waflz_pb::event **ao_event)
 {
         int32_t l_s;
         // -------------------------------------------------
@@ -507,8 +509,9 @@ int32_t challenge::verify_token(bool& ao_pass,
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "ec token decrypt failed");
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_TOKEN_CORRUPTED);
                 free_arg_list(l_tk_list);
-                return WAFLZ_STATUS_OK;
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // add to map
@@ -546,14 +549,16 @@ int32_t challenge::verify_token(bool& ao_pass,
            (a_ctx->m_src_addr.m_len <= 0))
         {
                 WAFLZ_PERROR(m_err_msg, "ip missing in the ctx");
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_IP_MISMATCH);
                 free_arg_list(l_tk_list);
-                return WAFLZ_STATUS_OK;
+                return WAFLZ_STATUS_ERROR;
         }
         if(strncmp(a_ctx->m_src_addr.m_data, i_t->second.m_data, i_t->second.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "token ip validation failed");
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_IP_MISMATCH);
                 free_arg_list(l_tk_list);
-                return WAFLZ_STATUS_OK;
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // get user-agent
@@ -569,14 +574,16 @@ int32_t challenge::verify_token(bool& ao_pass,
            (l_v.m_len <= 0))
         {
                 WAFLZ_PERROR(m_err_msg, "user-agent missing in the ctx");
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_UA_MISMATCH);
                 free_arg_list(l_tk_list);
-                return WAFLZ_STATUS_OK;
+                return WAFLZ_STATUS_ERROR;
         }
         if(strncmp(l_v.m_data, i_t->second.m_data, i_t->second.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "token user-agent validation failed");
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_UA_MISMATCH);
                 free_arg_list(l_tk_list);
-                return WAFLZ_STATUS_OK;
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // validate time
@@ -587,8 +594,9 @@ int32_t challenge::verify_token(bool& ao_pass,
         if((l_time_cur-l_time_tok) >= a_valid_for_s)
         {
                 WAFLZ_PERROR(m_err_msg, "token expired");
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_TOKEN_EXPIRED);
                 free_arg_list(l_tk_list);
-                return WAFLZ_STATUS_OK;
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // validate problem/answer
@@ -600,8 +608,9 @@ int32_t challenge::verify_token(bool& ao_pass,
         if(strncmp(i_t->second.m_data, a_ans.m_data, a_ans.m_len) != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "challenge verification failed");
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_WRONG_ANSWER);
                 free_arg_list(l_tk_list);
-                return WAFLZ_STATUS_OK;
+                return WAFLZ_STATUS_ERROR;
         }
         // challenge passed...
         ao_pass = true;
@@ -615,7 +624,7 @@ int32_t challenge::verify_token(bool& ao_pass,
 //! @return WAFLZ_STATUS_OK if bc verification passed or to be issued,
 //!         WAFLZ_STATUS_ERROR if bc verification failed
 //! ----------------------------------------------------------------------------
-int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx)
+int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx, waflz_pb::event **ao_event)
 {
         ao_pass = false;
         data_t l_ck_k;
@@ -628,6 +637,7 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_NO_TOKEN);
                 return WAFLZ_STATUS_OK;
         }
         data_t l_ck_secure;
@@ -640,6 +650,7 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_NO_TOKEN);
                 return WAFLZ_STATUS_OK;
         }
         data_t l_ck_answer;
@@ -660,13 +671,14 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         if(l_s != 0)
         {
                 WAFLZ_PERROR(m_err_msg, "ec token decrypt failed");
+                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_TOKEN_CORRUPTED);
                 if(l_tk) { free(l_tk); l_tk = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // verify
         // -------------------------------------------------
-        l_s = verify_token(ao_pass, l_tk, l_tk_len, l_ck_answer, a_valid_for_s, a_ctx);
+        l_s = verify_token(ao_pass, l_tk, l_tk_len, l_ck_answer, a_valid_for_s, a_ctx, ao_event);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_tk) { free(l_tk); l_tk = NULL; }

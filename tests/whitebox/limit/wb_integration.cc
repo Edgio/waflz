@@ -163,11 +163,10 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                ns_waflz::challenge l_challenge;
                 // -----------------------------------------
                 // setup config
                 // -----------------------------------------
-                ns_waflz::config l_c(l_db, l_challenge);
+                ns_waflz::config l_c(l_db);
                 l_s = l_c.load(COORDINATOR_CONFIG_JSON_NO_RULES, sizeof(COORDINATOR_CONFIG_JSON_NO_RULES));
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));

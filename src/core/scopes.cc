@@ -630,16 +630,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                 // -----------------------------------------
                 acl *l_acl = new acl();
                 std::string l_path;
-                //TODO: remove after config migration
-                size_t l_pos = a_scope.acl_audit_id().find(m_cust_id);
-                if(l_pos == std::string::npos)
-                {
-                       l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_audit_id() +".acl.json"; 
-                }
-                else
-                {
-                        l_path = a_conf_dir_path + "/acl/" + a_scope.acl_audit_id() + ".acl.json";
-                }
+                l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_audit_id() +".acl.json"; 
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
                 int32_t l_s;
@@ -699,16 +690,7 @@ acl_audit_action:
                 // -----------------------------------------
                 acl *l_acl = new acl();
                 std::string l_path;
-                //TODO: remove after config migration
-                size_t l_pos = a_scope.acl_prod_id().find(m_cust_id);
-                if(l_pos == std::string::npos)
-                {
-                        l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_prod_id() +".acl.json";
-                }
-                else
-                {
-                        l_path = a_conf_dir_path + "/acl/" + a_scope.acl_prod_id() + ".acl.json";
-                }
+                l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_prod_id() +".acl.json";
                 int32_t l_s;
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
@@ -763,20 +745,11 @@ acl_prod_action:
                         a_scope.set__bots_prod__reserved((uint64_t)i_bots->second);
                         goto bots_prod_action;
                 }
-                //TODO: remove after config migration
-                std::string l_path;
-                size_t l_pos = a_scope.bots_prod_id().find(m_cust_id);
-                if(l_pos == std::string::npos)
-                {
-                        l_path = a_conf_dir_path + "/bots/" + m_cust_id + "-" + a_scope.bots_prod_id() +".bots.json";
-                }
-                else
-                {
-                        l_path = a_conf_dir_path + "/bots/" + a_scope.bots_prod_id() + ".bots.json";
-                }
                 // -----------------------------------------
                 // make bots obj
                 // -----------------------------------------
+                std::string l_path;
+                l_path = a_conf_dir_path + "/bots/" + m_cust_id + "-" + a_scope.bots_prod_id() +".bots.json";
                 rules* l_bots = new rules(m_engine);
                 int32_t l_s;
                 l_s = l_bots->load_file(l_path.c_str(), l_path.length());
@@ -822,20 +795,11 @@ bots_prod_action:
                         a_scope.set__rules_audit__reserved((uint64_t)i_rules->second);
                         goto rules_audit_action;
                 }
-                std::string l_path;
-                //TODO: remove after config migration
-                size_t l_pos = a_scope.rules_audit_id().find(m_cust_id);
-                if(l_pos == std::string::npos)
-                {
-                        l_path = a_conf_dir_path + "/rules/" + m_cust_id + "-" + a_scope.rules_audit_id() +".rules.json";
-                }
-                else
-                {
-                        l_path = a_conf_dir_path + "/rules/" + a_scope.rules_audit_id() + ".rules.json";
-                }
                 // -----------------------------------------
                 // make rules obj
                 // -----------------------------------------
+                std::string l_path;
+                l_path = a_conf_dir_path + "/rules/" + m_cust_id + "-" + a_scope.rules_audit_id() +".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
                 l_s = l_rules->load_file(l_path.c_str(), l_path.length());
@@ -883,20 +847,11 @@ rules_audit_action:
                         a_scope.set__rules_prod__reserved((uint64_t)i_rules->second);
                         goto rules_prod_action;
                 }
-                //TODO: remove after config migration
-                std::string l_path;
-                size_t l_pos = a_scope.rules_prod_id().find(m_cust_id);
-                if(l_pos == std::string::npos)
-                {
-                        l_path = a_conf_dir_path + "/rules/" + m_cust_id + "-" + a_scope.rules_prod_id() +".rules.json";
-                }
-                else
-                {
-                        l_path = a_conf_dir_path + "/rules/" + a_scope.rules_prod_id() + ".rules.json";
-                }
                 // -----------------------------------------
                 // make rules obj
                 // -----------------------------------------
+                std::string l_path;
+                l_path = a_conf_dir_path + "/rules/" + m_cust_id + "-" + a_scope.rules_prod_id() +".rules.json";
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
                 l_s = l_rules->load_file(l_path.c_str(), l_path.length());
@@ -944,20 +899,11 @@ rules_prod_action:
                         a_scope.set__profile_audit__reserved((uint64_t)i_profile->second);
                         goto profile_audit_action;
                 }
-                //TODO: remove after config migration
-                std::string l_path;
-                size_t l_pos = a_scope.profile_audit_id().find(m_cust_id);
-                if(l_pos == std::string::npos)
-                {
-                        l_path = a_conf_dir_path + "/profile/" + m_cust_id + "-" + a_scope.profile_audit_id() +".wafprof.json";
-                }
-                else
-                {
-                        l_path = a_conf_dir_path + "/profile/" + a_scope.profile_audit_id() + ".wafprof.json";
-                }
                 // -----------------------------------------
                 // make profile obj
                 // -----------------------------------------
+                std::string l_path;
+                l_path = a_conf_dir_path + "/profile/" + m_cust_id + "-" + a_scope.profile_audit_id() +".wafprof.json";
                 profile *l_profile = new profile(m_engine);
                 int32_t l_s;
                 char *l_buf = NULL;
@@ -1013,20 +959,11 @@ profile_audit_action:
                         a_scope.set__profile_prod__reserved((uint64_t)i_profile->second);
                         goto profile_prod_action;
                 }
-                //TODO: remove after config migration
-                std::string l_path;
-                size_t l_pos = a_scope.profile_prod_id().find(m_cust_id);
-                if(l_pos == std::string::npos)
-                {
-                        l_path = a_conf_dir_path + "/profile/" + m_cust_id + "-" + a_scope.profile_prod_id() +".wafprof.json";
-                }
-                else
-                {
-                        l_path = a_conf_dir_path + "/profile/" + a_scope.profile_prod_id() + ".wafprof.json";
-                }
                 // -----------------------------------------
                 // make profile obj
                 // -----------------------------------------
+                std::string l_path;
+                l_path = a_conf_dir_path + "/profile/" + m_cust_id + "-" + a_scope.profile_prod_id() +".wafprof.json";
                 profile *l_profile = new profile(m_engine);
                 int32_t l_s;
                 char *l_buf = NULL;
@@ -1088,20 +1025,11 @@ profile_prod_action:
                         goto limit_action;
                 }
                 {
-                //TODO: remove after config migration
-                std::string l_path;
-                size_t l_pos = l_id.find(m_cust_id);
-                if(l_pos == std::string::npos)
-                {
-                        l_path = a_conf_dir_path + "/limit/" + m_cust_id + "-" + l_id +".limit.json";
-                }
-                else
-                {
-                        l_path = a_conf_dir_path + "/limit/" + l_id + ".limit.json";
-                }
                 // -----------------------------------------
                 // make limit obj
                 // -----------------------------------------
+                std::string l_path;
+                l_path = a_conf_dir_path + "/limit/" + m_cust_id + "-" + l_id +".limit.json";
                 limit *l_limit = new limit(m_db);
                 int32_t l_s;
                 char *l_buf = NULL;
@@ -1111,7 +1039,7 @@ profile_prod_action:
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
                         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        // TODO cleanup...
+                        if(l_limit) { delete l_limit; l_limit = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_s = l_limit->load(l_buf, l_buf_len);
@@ -1119,7 +1047,7 @@ profile_prod_action:
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_limit->get_err_msg());
                         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        // TODO cleanup...
+                        if(l_limit) { delete l_limit; l_limit = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
@@ -1656,7 +1584,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                 {
                         goto audit_rules;
                 }
-                l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event);
+                l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event, m_engine.get_geoip2_mmdb());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
@@ -1758,7 +1686,7 @@ prod:
                 {
                         goto enforcements;
                 }
-                l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event);
+                l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event, m_engine.get_geoip2_mmdb());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
@@ -1907,7 +1835,6 @@ limits:
                 }
                 l_event->set_bots_config_id(l_bots->get_id());
                 l_event->set_bots_config_name(l_bots->get_name());
-                *ao_prod_event = l_event;
                 // -----------------------------------------
                 // Check for enforcement type
                 // if its browser challenge, verify challenge
@@ -1926,7 +1853,7 @@ limits:
                                 l_valid_for_s = l_enf->valid_for_sec();
                         }
                         int32_t l_s;
-                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx);
+                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx, &l_event);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 // do nothing -re-issue challenge
@@ -1936,7 +1863,9 @@ limits:
                                 // Challenge passed, move on to next step
                                 goto prod_rules;
                         }
+                        l_event->set_token_duration_sec(l_valid_for_s);
                 }
+                *ao_prod_event = l_event;
                 if(a_scope.has_bots_prod_action())
                 {
                         *ao_enf = l_enf;
@@ -1974,38 +1903,9 @@ prod_rules:
                 l_event->set_rules_config_id(l_rules->get_id());
                 l_event->set_rules_config_name(l_rules->get_name());
                 *ao_prod_event = l_event;
-                // -----------------------------------------
-                // Check for enforcement type
-                // if its browser challenge, verify challenge
-                // -----------------------------------------
-                const waflz_pb::enforcement *l_enf = &(a_scope.rules_prod_action());
-                bool l_pass = false;
-                if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
-                {
-                        // -----------------------------------------
-                        // check cookie -verify browser challenge
-                        // -----------------------------------------
-                        // default to valid for 10 min
-                        uint32_t l_valid_for_s = 600;
-                        if(l_enf->has_valid_for_sec())
-                        {
-                                l_valid_for_s = l_enf->valid_for_sec();
-                        }
-                        int32_t l_s;
-                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx);
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                // do nothing -re-issue challenge
-                        }
-                        if(l_pass)
-                        {
-                                // Challenge passed, move on to next step
-                                goto prod_profile;
-                        }
-                }
                 if(a_scope.has_rules_prod_action())
                 {
-                        *ao_enf = l_enf;
+                        *ao_enf = &(a_scope.rules_prod_action());;
                         if((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();

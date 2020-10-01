@@ -35,6 +35,7 @@
 namespace waflz_pb {
         class challenge;
         class problem;
+        class event;
 }
 namespace ns_waflz{
 //! ----------------------------------------------------------------------------
@@ -57,8 +58,8 @@ public:
         int32_t load(const char* a_buf, uint32_t a_buf_len);
         int32_t load_file(const char* a_file_path, uint32_t a_file_path_len);
         int32_t validate(void);
-        int32_t verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx);
-        int32_t verify_token(bool& ao_pass, const char *a_tk, size_t a_tk_len, data_t &a_ans, uint32_t a_valid_for_s, rqst_ctx* a_ctx);
+        int32_t verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx, waflz_pb::event** ao_event);
+        int32_t verify_token(bool& ao_pass, const char *a_tk, size_t a_tk_len, data_t &a_ans, uint32_t a_valid_for_s, rqst_ctx* a_ctx, waflz_pb::event **ao_event);
         int32_t get_rand_id(void);
         int32_t get_challenge(const std::string **ao_html, rqst_ctx* a_ctx);
         int32_t get_challenge(const std::string **ao_html, int32_t a_prob_id, rqst_ctx* a_ctx);

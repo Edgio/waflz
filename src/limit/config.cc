@@ -86,11 +86,9 @@ static const char *get_date_short_str(void)
 //! @details TODO
 //! ----------------------------------------------------------------------------
 config::config(kv_db &a_db,
-               challenge& a_challenge,
                bool a_case_insensitive_headers):
         rl_obj(a_case_insensitive_headers),
         m_db(a_db),
-        m_challenge(a_challenge),
         m_enfx(NULL),
         m_exceed_key_set()
 {
@@ -128,63 +126,6 @@ int32_t config::load()
         {
                 //TRC_DEBUG("error in compile");
                 return WAFLZ_STATUS_ERROR;
-        }
-        // ------------------------------------------------
-        // remove "always_on" limits from config
-        // config and add it to m_enfx with no expiry
-        // ------------------------------------------------
-        int32_t i_r = 0;
-        while(i_r < m_pb->limits_size())
-        {
-                waflz_pb::limit* i_r_ptr = m_pb->mutable_limits(i_r);
-                if(!i_r_ptr->has_always_on() ||
-                   !i_r_ptr->always_on())
-                {
-                        ++i_r;
-                        continue;
-                }
-                waflz_pb::config *l_cfg = new waflz_pb::config();
-                l_cfg->set_id("NA");
-                l_cfg->set_name("NA");
-                l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
-                l_cfg->set_customer_id(m_pb->customer_id());
-                //l_cfg->set_enabled_date(get_date_short_str());
-                // ----------------------------------------
-                // copy limit info
-                // ----------------------------------------
-                waflz_pb::limit* l_limit = l_cfg->add_limits();
-                l_limit->CopyFrom(*i_r_ptr);
-                l_limit->clear_keys();
-                //-----------------------------------------
-                // Remove enforcement duration
-                //-----------------------------------------
-                if(l_limit->has_action())
-                {
-                        waflz_pb::enforcement* l_e = l_limit->mutable_action();
-                        l_e->set_duration_sec(3600);
-                        l_e->clear_start_time_ms();
-                }
-                //-----------------------------------------
-                // add it to enfcr
-                //-----------------------------------------
-                l_s = m_enfx->merge(*l_cfg);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        if(l_cfg){delete l_cfg; l_cfg = NULL;}
-                        WAFLZ_PERROR(m_err_msg, "enforcers merge failed");
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(l_cfg) { delete l_cfg; l_cfg = NULL;}
-                //-----------------------------------------
-                // remove limit from config
-                //-----------------------------------------
-                l_s = limit_remove(*m_pb, i_r);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "Error removing limit from config");
-                        return WAFLZ_STATUS_ERROR;
-                }
-                ++i_r;
         }
         // -------------------------------------------------
         // convert customer to uint64
@@ -256,11 +197,6 @@ int32_t config::validate(void)
                 {
                         WAFLZ_PERROR(m_err_msg, "limit missing id field or empty");
                         return WAFLZ_STATUS_ERROR;
-                }
-                if(i_l_ptr->has_always_on() &&
-                   i_l_ptr->always_on())
-                {
-                        continue;
                 }
                 if(!i_l_ptr->has_num() ||
                    (i_l_ptr->num() <= 0))
@@ -371,7 +307,6 @@ const std::string& config::get_last_modified_date()
 //! @param   TODO
 //! ----------------------------------------------------------------------------
 int32_t config::process_enfx(const waflz_pb::enforcement** ao_enfcmnt,
-                             bool& ao_pass,
                              rqst_ctx* a_ctx)
 {
         if(!ao_enfcmnt)
@@ -395,53 +330,6 @@ int32_t config::process_enfx(const waflz_pb::enforcement** ao_enfcmnt,
         // -------------------------------------------------
         if(!l_enfcmnt ||
            !l_enfcmnt->has_enf_type())
-        {
-                return WAFLZ_STATUS_OK;
-        }
-        ::waflz_pb::enforcement_type_t l_type = l_enfcmnt->enf_type();
-        // -------------------------------------------------
-        // *************************************************
-        //                   C H E C K
-        // *************************************************
-        // -------------------------------------------------
-        switch(l_type)
-        {
-        // -------------------------------------------------
-        // BROWSER_CHALLENGE
-        // -------------------------------------------------
-        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
-        {
-                //NDBG_PRINT("check valid for...\n%s\n", l_enfcmnt->DebugString().c_str());
-                // -----------------------------------------
-                // check cookie -verify browser challenge
-                // -----------------------------------------
-                // default to valid for 10 min
-                uint32_t l_valid_for_s = 600;
-                if(l_enfcmnt->has_valid_for_sec())
-                {
-                        l_valid_for_s = l_enfcmnt->valid_for_sec();
-                }
-                //NDBG_PRINT("valid for: %d\n", (int)l_valid_for_s);
-                int32_t l_s;
-                l_s = m_challenge.verify(ao_pass, l_valid_for_s, a_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // do nothing -re-issue challenge
-                }
-                break;
-        }
-        // -------------------------------------------------
-        // ???
-        // -------------------------------------------------
-        default:
-        {
-                break;
-        }
-        }
-        // -------------------------------------------------
-        // if pass finish...
-        // -------------------------------------------------
-        if(ao_pass)
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -482,17 +370,15 @@ int32_t config::process(const waflz_pb::enforcement** ao_enfcmnt,
         // process enforcer
         // -------------------------------------------------
         int32_t l_s;
-        bool l_pass = false;
-        l_s = process_enfx(ao_enfcmnt, l_pass, a_ctx);
+        l_s = process_enfx(ao_enfcmnt, a_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // check for pass or event
+        // check for event
         // -------------------------------------------------
-        if(l_pass ||
-           *ao_enfcmnt)
+        if(*ao_enfcmnt)
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -537,20 +423,12 @@ int32_t config::process(const waflz_pb::enforcement** ao_enfcmnt,
         // -------------------------------------------------
         // process enforcer
         // -------------------------------------------------
-        l_s = process_enfx(ao_enfcmnt, l_pass, a_ctx);
+        l_s = process_enfx(ao_enfcmnt, a_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         //NDBG_PRINT("ao_event: %p\n", *ao_event);
-        // -------------------------------------------------
-        // check for pass or event
-        // -------------------------------------------------
-        if(l_pass ||
-           *ao_enfcmnt)
-        {
-                return WAFLZ_STATUS_OK;
-        }
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------

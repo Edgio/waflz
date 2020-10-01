@@ -61,6 +61,17 @@ namespace ns_waflz {
 uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
 get_data_cb_t rqst_ctx::s_get_bot_ch_prob = NULL;
 //: ----------------------------------------------------------------------------
+//: look ahead set for json data type. 2 bytes only
+//: ----------------------------------------------------------------------------
+static json_str_set_t s_json_structure = {
+                        // Object with name, space, tabs. newline
+                        "{\"", "{ ", "{\n", "{\t",
+                        // list with double quoted string, list, true, false, null and spaces
+                        "[\"", "[ ", "[\n", "[\t", "[{", "[[", "[t", "[f", "[n",
+                        // list with number; stupid hack
+                        "[0", "[1", "[2", "[3", "[4", "[5", "[6", "[7", "[8", "[9"
+                      };
+//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
@@ -146,6 +157,58 @@ static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
                 ++i_a;
         }
         return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details Check whether the text in the buf begins with JSON structure
+//: \return  true: on finding json structure in the begining
+//:          false: on not finding json structure in the begining
+//: \param   a_buf: Input buffer
+//:          a_len: length of buffer
+//: ----------------------------------------------------------------------------
+static bool is_json(const char *a_buf, uint32_t a_len)
+{
+        if(!a_buf ||
+           a_len == 0)
+        {
+                return false;
+        }
+        // -------------------------------------------------
+        // non-breaking space char
+        // -------------------------------------------------
+#define _NBSP 160
+        uint32_t i_i = 0;
+        // -------------------------------------------------
+        //  since we look ahead by 2 bytes for json structures
+        //  avoid overflow
+        // -------------------------------------------------
+        while (i_i < a_len - 2)
+        {
+                // -------------------------------------------------
+                // skip all whitespace and newline before we look ahead
+                // for json structure
+                // -------------------------------------------------
+                if(isspace(a_buf[i_i]) ||
+                   ((unsigned char)a_buf[i_i] == _NBSP) ||
+                   (a_buf[i_i] == '\t') ||
+                   (a_buf[i_i] == '\n'))
+                {
+                        ++i_i;
+                }
+                else
+                {
+                        // -------------------------------------------------
+                        // look ahead by two bytes for json structure
+                        // -------------------------------------------------
+                        std::string l_key(a_buf + i_i, 2);
+                        if(s_json_structure.find(l_key) != s_json_structure.end())
+                        {
+                               return true;
+                        }
+                        break;
+                }
+        }
+        NDBG_PRINT("no json\n");
+        return false;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -932,6 +995,7 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 delete m_body_parser;
                 m_body_parser = NULL;
         }
+        bool l_is_url_encoded = false;
         // -------------------------------------------------
         // init parser...
         // -------------------------------------------------
@@ -952,6 +1016,7 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         case PARSER_URL_ENCODED:
         {
                 m_body_parser = new parser_url_encoded(this);
+                l_is_url_encoded = true;
                 break;
         }
         // -------------------------------------------------
@@ -1065,6 +1130,35 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 if(!l_rd_count)
                 {
                         continue;
+                }
+                // -------------------------------------------------
+                // if the profile has json parser enabled, check for
+                // mismatch between content-type and actual content
+                // We only check for json structure. Can extend it to
+                // xml if this fixes some false positives
+                // -------------------------------------------------
+                if(m_parse_json &&
+                   l_is_url_encoded)
+                {
+                        if(is_json(l_buf, l_rd_count))
+                        {
+                                delete m_body_parser;
+                                m_body_parser = NULL;
+                                // -------------------------------------------------
+                                // Change parser to json
+                                // -------------------------------------------------
+                                m_body_parser = new parser_json(this);
+                                l_s = m_body_parser->init();
+                                if(l_s != WAFLZ_STATUS_OK)
+                                {
+                                        // do nothing...
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                        }
+                        // -------------------------------------------------
+                        // Check only once in this while loop
+                        // -------------------------------------------------
+                        l_is_url_encoded = false;
                 }
                 // -----------------------------------------
                 // process chunk

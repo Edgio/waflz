@@ -423,7 +423,7 @@ def test_scopes_linkage_update(setup_scopez_server_action):
         print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
             l_scopes_conf_path, type(l_e), l_e, l_e.__doc__))
         assert False 
-    l_conf['scopes'][1]['rules_prod_id'] = "0050-0gG8osWJ"
+    l_conf['scopes'][1]['rules_prod_id'] = "0gG8osWJ"
     l_conf['last_modified_date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     #-------------------------------------------------------
     # POST conf

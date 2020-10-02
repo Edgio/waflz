@@ -50,28 +50,6 @@
     }
   },
   {
-    "id": "HiKxcbal",
-    "name": "scope with custom rule for bot challenge",
-    "host": {
-      "is_negated": false,
-      "type": "EM",
-      "value": "testbot.com"
-    },
-    "path": {
-      "is_negated": false,
-      "type": "EM",
-      "value": "/test.html"
-    },
-    "rules_prod_id": "l9nTkowq",
-    "rules_prod_action": {
-      "id": "uKlXttqm",
-      "name": "ACTION",
-      "status": 200,
-      "enf_type": "BROWSER_CHALLENGE",
-      "valid_for_sec" : 5
-    }
-  },
-  {
     "id":"wHyMHxV7",
     "name": "Scopes to test bot config",
     "host": {

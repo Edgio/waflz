@@ -28,9 +28,42 @@ def run_command(command):
     p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     return (p.returncode, stdout, stderr)
-
 # ------------------------------------------------------------------------------
-# setup scopez server in action mode for an 0052
+# setup scopez server in event mode
+# ------------------------------------------------------------------------------
+@pytest.fixture()
+def setup_scopez_server():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
+    l_cwd = os.getcwd()
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
+    l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
+    l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
+    l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
+    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
+    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
+    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
+    l_subproc = subprocess.Popen([l_scopez_server_path,
+                                  '-d', l_conf_dir,
+                                  '-S', l_scopez_dir,
+                                  '-l', l_an_list,
+                                  '-r', l_ruleset_path,
+                                  '-g', l_geoip2city_path,
+                                  '-i', l_geoip2ISP_path])
+    time.sleep(1)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_scopez_server
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
+# ------------------------------------------------------------------------------
+# setup scopez server in action mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
 def setup_scopez_server_action():
@@ -269,3 +302,36 @@ def test_bot_challenge_with_profile(setup_scopez_server_action):
     l_parser = html_parse()
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
+# ------------------------------------------------------------------------------
+# test bot challenge events
+# ------------------------------------------------------------------------------
+def test_bot_challenge_events(setup_scopez_server):
+    # ------------------------------------------------------
+    # test for recieving a bot challenge
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_NO_TOKEN"
+    assert l_r_json['prod_profile']['token_duration_sec'] == 3
+    # ------------------------------------------------------
+    # send random corrupted token
+    # ------------------------------------------------------
+    l_solution_cookies = 'ec_secure=d3JvbmdfdG9rZW4K;ec_answer=300'
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_TOKEN_CORRUPTED"
+    assert l_r_json['prod_profile']['token_duration_sec'] == 3
+

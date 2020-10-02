@@ -1835,7 +1835,6 @@ limits:
                 }
                 l_event->set_bots_config_id(l_bots->get_id());
                 l_event->set_bots_config_name(l_bots->get_name());
-                *ao_prod_event = l_event;
                 // -----------------------------------------
                 // Check for enforcement type
                 // if its browser challenge, verify challenge
@@ -1854,7 +1853,7 @@ limits:
                                 l_valid_for_s = l_enf->valid_for_sec();
                         }
                         int32_t l_s;
-                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx);
+                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx, &l_event);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 // do nothing -re-issue challenge
@@ -1864,7 +1863,9 @@ limits:
                                 // Challenge passed, move on to next step
                                 goto prod_rules;
                         }
+                        l_event->set_token_duration_sec(l_valid_for_s);
                 }
+                *ao_prod_event = l_event;
                 if(a_scope.has_bots_prod_action())
                 {
                         *ao_enf = l_enf;

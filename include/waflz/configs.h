@@ -26,7 +26,6 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include "waflz/challenge.h"
 #if defined(__APPLE__) || defined(__darwin__)
     #include <unordered_map>
     #include <memory>
@@ -58,7 +57,7 @@ public:
         // -------------------------------------------------
         // Public methods
         // -------------------------------------------------
-        configs(kv_db &a_kv_db, challenge& a_challenge, bool a_case_insensitive_headers = false);
+        configs(kv_db &a_kv_db, bool a_case_insensitive_headers = false);
         ~configs();
         // load config...
         int32_t load_dir(const char *a_config_dir_path, uint32_t a_config_dir_path_len);
@@ -92,7 +91,6 @@ private:
         char m_err_msg[WAFLZ_ERR_LEN];
         cust_id_config_map_t m_cust_id_config_map;
         kv_db &m_db;
-        challenge& m_challenge;
         // -------------------------------------------------
         // TODO TEMPORARY HACK to support case insensitive
         // comparisons -need new operators perhaps

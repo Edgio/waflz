@@ -100,7 +100,6 @@ struct cx_case_i_comp
 typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 typedef std::list<data_t> data_list_t;
-typedef std::set<std::string> json_str_set_t;
 //! ----------------------------------------------------------------------------
 //! xpath optimization
 //! ----------------------------------------------------------------------------

@@ -61,17 +61,6 @@ namespace ns_waflz {
 uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
 get_data_cb_t rqst_ctx::s_get_bot_ch_prob = NULL;
 //: ----------------------------------------------------------------------------
-//: look ahead set for json data type. 2 bytes check
-//: ----------------------------------------------------------------------------
-static json_str_set_t s_json_structure = {
-                        // Object with name, space, tabs. newline
-                        "{\"", "{ ", "{\n", "{\t",
-                        // list with double quoted string, list, true, false, null and spaces
-                        "[\"", "[ ", "[\n", "[\t", "[{", "[[", "[t", "[f", "[n",
-                        // list with number; stupid hack
-                        "[0", "[1", "[2", "[3", "[4", "[5", "[6", "[7", "[8", "[9"
-                      };
-//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
@@ -165,46 +154,66 @@ static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
 //: \param   a_buf: Input buffer
 //:          a_len: length of buffer
 //: ----------------------------------------------------------------------------
-static bool is_json(const char *a_buf, uint32_t a_len)
+static bool infer_is_json(const char *a_buf, uint32_t a_len)
 {
+        // -------------------------------------------------
+        // shortest json string is []
+        // -------------------------------------------------
         if(!a_buf ||
-           a_len == 0)
+           a_len <=2)
         {
                 return false;
         }
         // -------------------------------------------------
-        // non-breaking space char
+        // We will only inspect first 16 characters
         // -------------------------------------------------
-#define _NBSP 160
+        uint32_t l_max_check = (a_len < 16) ? a_len : 16;
         uint32_t i_i = 0;
-        // -------------------------------------------------
-        //  since we look ahead by 2 bytes for json structures
-        //  avoid overflow
-        // -------------------------------------------------
-        while (i_i < a_len - 2)
+        while (i_i < l_max_check)
         {
-                // -------------------------------------------------
-                // skip all whitespace and newline before we look ahead
-                // for json structure
-                // -------------------------------------------------
-                if(isspace(a_buf[i_i]) ||
-                   ((unsigned char)a_buf[i_i] == _NBSP) ||
-                   (a_buf[i_i] == '\t') ||
-                   (a_buf[i_i] == '\n'))
+                // -----------------------------------------
+                // skip all whitespace and newline before we
+                // look ahead for json structure
+                // -----------------------------------------
+                if(isspace(a_buf[i_i]))
                 {
                         ++i_i;
                 }
                 else
                 {
-                        // -------------------------------------------------
-                        // look ahead by two bytes for json structure
-                        // -------------------------------------------------
-                        std::string l_key(a_buf + i_i, 2);
-                        if(s_json_structure.find(l_key) != s_json_structure.end())
+                        if((a_buf[i_i] == '{'))
                         {
-                               return true;
+                                // -------------------------
+                                // check for next char
+                                // -------------------------
+                                ++i_i;
+                                if((isspace(a_buf[i_i])) ||
+                                   (a_buf[i_i] == '"'))
+                                   {
+                                        return true;
+                                   }
                         }
-                        break;
+                        else if((a_buf[i_i] == '['))
+                        {
+                                // -------------------------
+                                // check for next char
+                                // ", {, true, false, null
+                                // numbers 0-9
+                                // -------------------------
+                                ++i_i;
+                                if((isspace(a_buf[i_i])) ||
+                                   (a_buf[i_i] == '"')   ||
+                                   (a_buf[i_i] == '{')   ||
+                                   (a_buf[i_i] == '[')   ||
+                                   (a_buf[i_i] == 't')   ||
+                                   (a_buf[i_i] == 'f')   ||
+                                   (a_buf[i_i] == 'n')   ||
+                                   (int(a_buf[i_i]) >= 48 && int(a_buf[i_i]) <= 57))
+                                   {
+                                        return true;
+                                   }
+                        }
+                        return false;
                 }
         }
         return false;
@@ -1139,7 +1148,7 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 if(m_parse_json &&
                    l_is_url_encoded)
                 {
-                        if(is_json(l_buf, l_rd_count))
+                        if(infer_is_json(l_buf, l_rd_count))
                         {
                                 delete m_body_parser;
                                 m_body_parser = NULL;

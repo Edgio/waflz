@@ -1368,7 +1368,7 @@ int32_t urldecode_uni_ns(char **ao_buf, uint32_t &ao_len, const char *a_buf, uin
                 // in case i_c + 2 == a_len, if you access
                 // a_buf[i_c + 2] it will overflow, hence a_len - 1
                 // -----------------------------------------
-                if (i_c + 2 > a_len -1)
+                if (i_c + 2 > (a_len -1))
                 {
                         // skip %u
                         _SET_AND_SKIP();
@@ -1377,7 +1377,6 @@ int32_t urldecode_uni_ns(char **ao_buf, uint32_t &ao_len, const char *a_buf, uin
                 // -----------------------------------------
                 // decode a %xx combo only if it is valid
                 // -----------------------------------------
-                // ---------------------------------
                 char l_c1 = a_buf[i_c + 1];
                 char l_c2 = a_buf[i_c + 2];
                 if(!VALID_HEX(l_c1) ||

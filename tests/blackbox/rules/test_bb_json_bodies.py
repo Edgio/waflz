@@ -10,6 +10,7 @@ import sys
 import json
 import time
 import requests
+import base64
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -83,9 +84,9 @@ def post_json_body_str_and_validate_event(a_body):
     assert l_r_json['total_anomaly_score'] == 10
     assert len(l_r_json['sub_event']) == 2
     assert 'SQL Injection Attack: Common DB Names Detected' == l_r_json['sub_event'][0]['rule_msg']
-    assert 'ARGS:PARAMETER' == l_r_json['sub_event'][0]['matched_var']['name']
+    assert 'ARGS:PARAMETER' == base64.b64decode(l_r_json['sub_event'][0]['matched_var']['name']).decode("utf-8")
     assert 'Detects MSSQL code execution and information gathering attempts' == l_r_json['sub_event'][1]['rule_msg']
-    assert 'ARGS:PARAMETER' == l_r_json['sub_event'][1]['matched_var']['name']
+    assert 'ARGS:PARAMETER' == base64.b64decode(l_r_json['sub_event'][1]['matched_var']['name']).decode("utf-8")
 # ------------------------------------------------------------------------------
 # test_bb_json_in_url_encoded_c_type_generate_false_positive
 # ------------------------------------------------------------------------------
@@ -125,7 +126,7 @@ def test_bb_json_in_url_encoded_c_type_generate_false_positive(setup_waflz_serve
     # ------------------------------------------------------
     # When the content is parsed as url-encoded, whole json lands up in ARG_NAMES variables
     # This is a false positive
-    assert l_r_json['matched_var']['name'] == 'ARGS_NAMES:{\"mmparams.d\": {}, \"mmparams.p\": {\"pd\": \"1631394411114|\\\"2128210975|AgAAAApVAwAcbER6ihM/QAABEgABQgDwS9uNAQDQUYaallbYSLZfZtCSVthIAAAAAP//////////AAZEaXJlY3QBihMBAAAAAAAAAAAA////////////////AAAAAAAAAAFF\\\"\", \"bid\": \"1599859010741|\\\"prodphxcgus01\\\"\", \"srv\": \"1631394411135|\\\"prodphxcgus01\\\"\"}}'
+    assert base64.b64decode(l_r_json['matched_var']['name']).decode("utf-8")  == 'ARGS_NAMES:{\"mmparams.d\": {}, \"mmparams.p\": {\"pd\": \"1631394411114|\\\"2128210975|AgAAAApVAwAcbER6ihM/QAABEgABQgDwS9uNAQDQUYaallbYSLZfZtCSVthIAAAAAP//////////AAZEaXJlY3QBihMBAAAAAAAAAAAA////////////////AAAAAAAAAAFF\\\"\", \"bid\": \"1599859010741|\\\"prodphxcgus01\\\"\", \"srv\": \"1631394411135|\\\"prodphxcgus01\\\"\"}}'
 # ------------------------------------------------------------------------------
 # test_bb_json_in_url_encoded_c_type_detect_json_when_parser_turned_on
 # ------------------------------------------------------------------------------
@@ -230,9 +231,9 @@ def test_bb_json_in_url_encoded_c_type_detect_SQLi(setup_waflz_server):
     assert l_r_json['total_anomaly_score'] == 10
     assert len(l_r_json['sub_event']) == 2
     assert 'SQL Injection Attack: Common DB Names Detected' == l_r_json['sub_event'][0]['rule_msg']
-    assert 'ARGS:PARAMETER' == l_r_json['sub_event'][0]['matched_var']['name']
+    assert 'ARGS:PARAMETER' == base64.b64decode(l_r_json['sub_event'][0]['matched_var']['name']).decode("utf-8")
     assert 'Detects MSSQL code execution and information gathering attempts' == l_r_json['sub_event'][1]['rule_msg']
-    assert 'ARGS:PARAMETER' == l_r_json['sub_event'][1]['matched_var']['name']
+    assert 'ARGS:PARAMETER' == base64.b64decode(l_r_json['sub_event'][1]['matched_var']['name']).decode("utf-8")
 # ------------------------------------------------------------------------------
 # test_bb_json_in_url_encoded_c_type_detect_SQLi
 # ------------------------------------------------------------------------------
@@ -245,9 +246,38 @@ def test_bb_detect_different_json_structures(setup_waflz_server):
     # Compose different combination of json strings
     # ------------------------------------------------------
     # ------------------------------------------------------
+    # 0. JSON doesnt start before 16 chars, should fail
+    # to be parsed as JSON
+    # ------------------------------------------------------
+    l_body = "        \t\n   \n  [\t\t\n\n{\
+                \"PARAMETER1\": \"PARAMETER\",\
+                \"PARAMETER\": \"PARAMETER:'4' UNION SELECT 31337,name COLLATE Arabic_CI_AS FROM master..sysdatabases--\"\
+              }"
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=l_body)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    #-------------------------------------------------------
+    # check we have an event
+    # ------------------------------------------------------
+    assert l_r_json['rule_intercept_status'] == 403
+    assert l_r_json['total_anomaly_score'] == 10
+    assert len(l_r_json['sub_event']) == 2
+    assert 'HTTP Header Injection Attack via payload (CR/LF detected)' == l_r_json['sub_event'][0]['rule_msg']
+    #-------------------------------------------------------
+    # In case its not parsed as JSON the whole body will be
+    # treated as ARGS_NAME. Which is a FP.
+    # ------------------------------------------------------
+    l_matched_var_name = 'ARGS_NAMES:' + l_body
+    assert l_matched_var_name == base64.b64decode(l_r_json['sub_event'][0]['matched_var']['name']).decode("utf-8")
+    assert 'SQL Injection Attack: Common DB Names Detected' == l_r_json['sub_event'][1]['rule_msg']
+    assert l_matched_var_name == base64.b64decode(l_r_json['sub_event'][1]['matched_var']['name']).decode("utf-8")
+    # ------------------------------------------------------
     # 1. { and spaces
     # ------------------------------------------------------
-    l_body = "{                        \
+    l_body = "{             \
                 \"PARAMETER1\": \"PARAMETER\",\
                 \"PARAMETER\": \"PARAMETER:'4' UNION SELECT 31337,name COLLATE Arabic_CI_AS FROM master..sysdatabases--\"\
               }"
@@ -262,8 +292,9 @@ def test_bb_detect_different_json_structures(setup_waflz_server):
     post_json_body_str_and_validate_event(l_body)
     # ------------------------------------------------------
     # 3. tabs newline and spaces in the begining with list
+    #     JSON starts before 16 chars
     # ------------------------------------------------------
-    l_body = "     \t\n   \n  [\t\t\n\n{\
+    l_body = "   \t\n   \n  [\t\t\n\n{\
                 \"PARAMETER1\": \"PARAMETER\",\
                 \"PARAMETER\": \"PARAMETER:'4' UNION SELECT 31337,name COLLATE Arabic_CI_AS FROM master..sysdatabases--\"\
               }"

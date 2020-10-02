@@ -208,7 +208,7 @@ static bool infer_is_json(const char *a_buf, uint32_t a_len)
                                    (a_buf[i_i] == 't')   ||
                                    (a_buf[i_i] == 'f')   ||
                                    (a_buf[i_i] == 'n')   ||
-                                   (int(a_buf[i_i]) >= 48 && int(a_buf[i_i]) <= 57))
+                                   (uint32_t(a_buf[i_i]) >= 48 && uint32_t(a_buf[i_i]) <= 57))
                                    {
                                         return true;
                                    }

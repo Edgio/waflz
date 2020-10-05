@@ -1363,7 +1363,12 @@ int32_t urldecode_uni_ns(char **ao_buf, uint32_t &ao_len, const char *a_buf, uin
                 // -----------------------------------------
                 // enough bytes (4 data bytes) ???
                 // -----------------------------------------
-                if (i_c + 2 > a_len)
+                // -----------------------------------------
+                // i_c starts from 0, a_len starts from 1
+                // in case i_c + 2 == a_len, if you access
+                // a_buf[i_c + 2] it will overflow, hence a_len - 1
+                // -----------------------------------------
+                if (i_c + 2 > (a_len -1))
                 {
                         // skip %u
                         _SET_AND_SKIP();

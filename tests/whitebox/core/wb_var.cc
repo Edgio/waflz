@@ -163,6 +163,7 @@ static const char *g_header_referer = "my_cool_referer_value";
 static const char *g_header_cookie = "__cookie_a=a_value; __cookie_b=b_value; __cookie_c=c_value;";
 #define _RQST_CONTENT_TYPE_JSON "application/json"
 #define _RQST_CONTENT_TYPE_XML "text/xml"
+#define _RQST_CONTENT_TYPE_URL_ENCODED "application/x-www-form-urlencoded"
 static const char *g_header_content_type = _RQST_CONTENT_TYPE_JSON;
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                                         uint32_t *ao_key_len,
@@ -2083,6 +2084,75 @@ TEST_CASE( "test var", "[var]" ) {
                                 REQUIRE((i_a->m_val_len > 0));
                                 //REQUIRE((strncmp(i_a->m_key, "GEO:COUNTRY", i_a->m_key_len) == 0));
                                 REQUIRE((strncmp(i_a->m_val, "US", i_a->m_val_len) == 0));
+                                break;
+                        }
+                        default:
+                        {
+                                break;
+                        }
+                        }
+                }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_var) { delete l_var; l_var = NULL; }
+        }
+        SECTION("DETECT JSON AND VERIFY ARGS_POST") {
+                ns_waflz::get_var_t l_cb = NULL;
+                l_cb = ns_waflz::get_var_cb(waflz_pb::variable_t_type_t_ARGS_POST);
+                REQUIRE((l_cb != NULL));
+                ns_waflz::const_arg_list_t l_al;
+                waflz_pb::variable_t *l_var = new waflz_pb::variable_t();
+                l_var->set_type(waflz_pb::variable_t_type_t_ARGS_POST);
+                int32_t l_s;
+                uint32_t l_count = 0;
+                uint32_t i_idx = 0;
+                // JSON structure starts after 11 chars
+                g_body_str = "\t\n   \n  [\t\t\n\n{\
+                                \"PARAMETER1\": \"PARAMETER\",\
+                                \"PARAMETER\": \"PARAMETER:'4' UNION SELECT 31337,name COLLATE Arabic_CI_AS FROM master..sysdatabases--\"\
+                             }";
+                // Set url_encode content type for a json body, the engine should detect JSON
+                g_header_content_type = _RQST_CONTENT_TYPE_URL_ENCODED;
+                // make new
+                if(l_rqst_ctx)
+                {
+                        delete l_rqst_ctx;
+                        l_rqst_ctx = NULL;
+                        l_rqst_ctx = new ns_waflz::rqst_ctx(NULL, 1024, &s_callbacks, true, true);
+                }
+                l_rqst_ctx->m_content_type_list.clear();
+                l_rqst_ctx->init_phase_1(l_geoip2_mmdb);
+                l_rqst_ctx->init_phase_2(l_ctype_parser_map);
+                // -----------------------------------------
+                // get all
+                // -----------------------------------------
+                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 2));
+                i_idx = 0;
+                for(ns_waflz::const_arg_list_t::iterator i_a = l_al.begin();
+                    i_a != l_al.end();
+                    ++i_a, ++i_idx)
+                {
+                        switch(i_idx)
+                        {
+                        case 0:
+                        {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "PARAMETER1", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "PARAMETER", i_a->m_val_len) == 0));
+                                break;
+                        }
+                        case 1:
+                        {
+                                REQUIRE((i_a->m_key_len > 0));
+                                REQUIRE((i_a->m_val_len > 0));
+                                REQUIRE((strncmp(i_a->m_key, "PARAMETER", i_a->m_key_len) == 0));
+                                REQUIRE((strncmp(i_a->m_val, "PARAMETER:'4' UNION SELECT 31337,name COLLATE Arabic_CI_AS FROM master..sysdatabases--", i_a->m_val_len) == 0));
                                 break;
                         }
                         default:

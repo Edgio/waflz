@@ -148,6 +148,77 @@ static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
+//: \details Check whether the text in the buf begins with JSON structure
+//: \return  true: on finding json structure in the begining
+//:          false: on not finding json structure in the begining
+//: \param   a_buf: Input buffer
+//:          a_len: length of buffer
+//: ----------------------------------------------------------------------------
+static bool infer_is_json(const char *a_buf, uint32_t a_len)
+{
+        // -------------------------------------------------
+        // shortest json string is []
+        // -------------------------------------------------
+        if(!a_buf ||
+           a_len <=2)
+        {
+                return false;
+        }
+        // -------------------------------------------------
+        // We will only inspect first 16 characters
+        // -------------------------------------------------
+        uint32_t l_max_check = (a_len < 16) ? a_len : 16;
+        uint32_t i_i = 0;
+        while (i_i < (l_max_check -1))
+        {
+                // -----------------------------------------
+                // skip all whitespace and newline before we
+                // look ahead for json structure
+                // -----------------------------------------
+                if(isspace(a_buf[i_i]))
+                {
+                        ++i_i;
+                }
+                else
+                {
+                        if((a_buf[i_i] == '{'))
+                        {
+                                // -------------------------
+                                // check for next char
+                                // -------------------------
+                                ++i_i;
+                                if((isspace(a_buf[i_i])) ||
+                                   (a_buf[i_i] == '"'))
+                                   {
+                                        return true;
+                                   }
+                        }
+                        else if((a_buf[i_i] == '['))
+                        {
+                                // -------------------------
+                                // check for next char
+                                // ", {, true, false, null
+                                // numbers 0-9
+                                // -------------------------
+                                ++i_i;
+                                if((isspace(a_buf[i_i])) ||
+                                   (a_buf[i_i] == '"')   ||
+                                   (a_buf[i_i] == '{')   ||
+                                   (a_buf[i_i] == '[')   ||
+                                   (a_buf[i_i] == 't')   ||
+                                   (a_buf[i_i] == 'f')   ||
+                                   (a_buf[i_i] == 'n')   ||
+                                   (uint32_t(a_buf[i_i]) >= 48 && uint32_t(a_buf[i_i]) <= 57))
+                                   {
+                                        return true;
+                                   }
+                        }
+                        return false;
+                }
+        }
+        return false;
+}
+//: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
@@ -932,6 +1003,7 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 delete m_body_parser;
                 m_body_parser = NULL;
         }
+        bool l_is_url_encoded = false;
         // -------------------------------------------------
         // init parser...
         // -------------------------------------------------
@@ -952,6 +1024,7 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         case PARSER_URL_ENCODED:
         {
                 m_body_parser = new parser_url_encoded(this);
+                l_is_url_encoded = true;
                 break;
         }
         // -------------------------------------------------
@@ -1065,6 +1138,35 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 if(!l_rd_count)
                 {
                         continue;
+                }
+                // -------------------------------------------------
+                // if the profile has json parser enabled, check for
+                // mismatch between content-type and actual content
+                // We only check for json structure. Can extend it to
+                // xml if this fixes some false positives
+                // -------------------------------------------------
+                if(m_parse_json &&
+                   l_is_url_encoded)
+                {
+                        if(infer_is_json(l_buf, l_rd_count))
+                        {
+                                delete m_body_parser;
+                                m_body_parser = NULL;
+                                // -------------------------------------------------
+                                // Change parser to json
+                                // -------------------------------------------------
+                                m_body_parser = new parser_json(this);
+                                l_s = m_body_parser->init();
+                                if(l_s != WAFLZ_STATUS_OK)
+                                {
+                                        // do nothing...
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                        }
+                        // -------------------------------------------------
+                        // Check only once in this while loop
+                        // -------------------------------------------------
+                        l_is_url_encoded = false;
                 }
                 // -----------------------------------------
                 // process chunk

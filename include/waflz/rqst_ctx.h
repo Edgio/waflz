@@ -98,11 +98,8 @@ struct cx_case_i_comp
         }
 };
 typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
-typedef std::map <std::string, uint32_t> count_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 typedef std::list<data_t> data_list_t;
-//typedef std::list<regex *> pcre_list_t;
-typedef std::list <std::string> str_list_t;
 //! ----------------------------------------------------------------------------
 //! xpath optimization
 //! ----------------------------------------------------------------------------

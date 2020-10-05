@@ -169,7 +169,7 @@ static bool infer_is_json(const char *a_buf, uint32_t a_len)
         // -------------------------------------------------
         uint32_t l_max_check = (a_len < 16) ? a_len : 16;
         uint32_t i_i = 0;
-        while (i_i < l_max_check)
+        while (i_i < (l_max_check -1))
         {
                 // -----------------------------------------
                 // skip all whitespace and newline before we

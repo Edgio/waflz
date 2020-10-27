@@ -171,5 +171,5 @@ message event {
 //: ----------------------------------------------------------------------------
 message bot_event
 {
-      optional event bot_event = 1;
+      optional event event = 1;
 }

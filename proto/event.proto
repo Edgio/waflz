@@ -166,3 +166,10 @@ message event {
         optional string ruleset_id = 242;
         optional string ruleset_version = 243;
 }
+//: ----------------------------------------------------------------------------
+//: Bot event
+//: ----------------------------------------------------------------------------
+message bot_event
+{
+      optional event bot_event = 1;
+}

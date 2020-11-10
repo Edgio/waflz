@@ -304,9 +304,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                         continue;
                 }
                 const waflz_pb::sec_action_t &l_a = l_r.action();
-                // ---------------------------------
+                // -----------------------------------------
                 // check for missing msg
-                // ---------------------------------
+                // -----------------------------------------
                 bool l_is_missing_msg = false;
                 if(!l_a.has_msg())
                 {

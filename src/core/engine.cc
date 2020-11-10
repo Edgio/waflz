@@ -426,11 +426,11 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 }
                         }
 
-                        // -------------------------
-                        // *************************
+                        // ---------------------------------
+                        // *********************************
                         // operator
-                        // *************************
-                        // -------------------------
+                        // *********************************
+                        // ---------------------------------
                         if(!l_rule->has_operator_() ||
                            !l_rule->operator_().has_type() ||
                            !l_rule->operator_().has_value())
@@ -441,9 +441,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                         ::waflz_pb::sec_rule_t_operator_t_type_t l_op_t = l_rule->operator_().type();
                         switch(l_op_t)
                         {
-                        // -------------------------
+                        // ---------------------------------
                         // IPMATCH
-                        // -------------------------
+                        // ---------------------------------
                         case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCH:
                         {
                                 int32_t l_s;
@@ -458,9 +458,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
                                 break;
                         }
-                        // -------------------------
+                        // ---------------------------------
                         // PM FROM FILE
-                        // -------------------------
+                        // ---------------------------------
                         case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHF:
                         case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHFROMFILE:
                         {
@@ -478,9 +478,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
                                 break;
                         }
-                        // -------------------------
+                        // ---------------------------------
                         // PM
-                        // -------------------------
+                        // ---------------------------------
                         case ::waflz_pb::sec_rule_t_operator_t_type_t_PM:
                         {
                                 int32_t l_s;
@@ -495,9 +495,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_ac);
                                 break;
                         }
-                        // -------------------------
+                        // ---------------------------------
                         // PM FROM FILE
-                        // -------------------------
+                        // ---------------------------------
                         case ::waflz_pb::sec_rule_t_operator_t_type_t_PMF:
                         case ::waflz_pb::sec_rule_t_operator_t_type_t_PMFROMFILE:
                         {
@@ -515,19 +515,19 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_ac);
                                 break;
                         }
-                        // -------------------------
+                        // ---------------------------------
                         // RX
-                        // -------------------------
+                        // ---------------------------------
                         case ::waflz_pb::sec_rule_t_operator_t_type_t_RX:
                         {
                                 int32_t l_s;
                                 regex *l_pcre = NULL;
                                 l_pcre = new regex();
                                 const std::string &l_rx = l_rule->operator_().value();
-                                // -------------------------------------
+                                // -------------------------
                                 // XXX -special exception for a single
                                 // rx using a macro expansion
-                                // -------------------------------------
+                                // -------------------------
                                 if(l_rx == "^%{tx.allowed_request_content_type}$")
                                 {
                                         l_rule->mutable_operator_()->set_type(::waflz_pb::sec_rule_t_operator_t_type_t_WITHIN);
@@ -552,9 +552,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_pcre);
                                 break;
                         }
-                        // -------------------------
+                        // ---------------------------------
                         // VERIFYCC
-                        // -------------------------
+                        // ---------------------------------
                         case ::waflz_pb::sec_rule_t_operator_t_type_t_VERIFYCC:
                         {
                                 int32_t l_s;
@@ -578,9 +578,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_pcre);
                                 break;
                         }
-                        // -------------------------
+                        // ---------------------------------
                         // VALIDATEBYTERANGE
-                        // -------------------------
+                        // ---------------------------------
                         case ::waflz_pb::sec_rule_t_operator_t_type_t_VALIDATEBYTERANGE:
                         {
                                 int32_t l_s;

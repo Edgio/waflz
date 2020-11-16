@@ -72,13 +72,13 @@ public:
         const char *get_err_msg(void) { return m_err_msg; }
         bool get_init(void) { return m_init; }
 private:
-		// disallow copy/assign
+        // disallow copy/assign
         lm_db(const lm_db &);
         lm_db& operator=(const lm_db &);
         // -------------------------------------------------
         // private methods
         // -------------------------------------------------
-		int32_t expire_old_keys(void);
+        int32_t expire_old_keys(void);
         int32_t get_ttl_and_count(MDB_val* a_val, uint64_t& ao_ttl, uint32_t& ao_count);
         int32_t set_ttl_and_count(MDB_val* a_val, lm_val_t* a_lm_val, uint64_t a_ttl, uint32_t a_count);
         // -------------------------------------------------
@@ -99,3 +99,4 @@ private:
 };
 }
 #endif
+

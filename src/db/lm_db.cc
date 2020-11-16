@@ -36,11 +36,11 @@ namespace ns_waflz {
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 lm_db::lm_db(void):
-		m_init(false),
-		m_err_msg(),
-		m_db_dir_path(),
-		m_num_readers(6),
-		m_mmap_size(10485760),
+        m_init(false),
+        m_err_msg(),
+        m_db_dir_path(),
+        m_num_readers(6),
+        m_mmap_size(10485760),
         m_env(NULL),
         m_txn(NULL),
         m_dbi(),
@@ -55,11 +55,11 @@ lm_db::~lm_db()
 {
         // -------------------------------------------------
         // env sync to flush keys to disk before restart
-		// and close env
+        // and close env
         // -------------------------------------------------
         if(m_env != NULL)
         {
-        		mdb_env_sync(m_env, 1);
+                mdb_env_sync(m_env, 1);
                 mdb_env_close(m_env);
                 m_env = NULL;
         }
@@ -117,20 +117,20 @@ int32_t lm_db::init()
         l_s = stat(m_db_dir_path.c_str(), &l_stat);
         if(l_s != 0)
         {
-        		WAFLZ_PERROR(m_err_msg, 
-        					"Error performing stat on the directory - %s", strerror(errno));
-        		return  WAFLZ_STATUS_ERROR;
+                WAFLZ_PERROR(m_err_msg,
+                            "Error performing stat on the directory - %s", strerror(errno));
+                return  WAFLZ_STATUS_ERROR;
         }
         if(!(S_ISDIR(l_stat.st_mode)))
         {
                 WAFLZ_PERROR(m_err_msg,
-                			"Error %s is NOT a directory", m_db_dir_path.c_str());
+                            "Error %s is NOT a directory", m_db_dir_path.c_str());
                 return WAFLZ_STATUS_ERROR;
         }
         l_s = mdb_env_open(m_env,
-        				   m_db_dir_path.c_str(), 
-        				   MDB_WRITEMAP | MDB_MAPASYNC | MDB_NOSYNC | MDB_NOMETASYNC,
-        				   0664);
+                           m_db_dir_path.c_str(), 
+                           MDB_WRITEMAP | MDB_MAPASYNC | MDB_NOSYNC | MDB_NOMETASYNC,
+                           0664);
         if(l_s != MDB_SUCCESS)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -185,8 +185,8 @@ int32_t lm_db::get_key(int64_t& ao_val, const char* a_key, uint32_t a_key_len)
         l_s = mdb_txn_begin(m_env, NULL, 0 ,&m_txn);
         if(l_s != MDB_SUCCESS)
         {
-                WAFLZ_PERROR(m_err_msg, "get_key:txn begin failed - %d, %s\n", 
-                	         l_s, mdb_strerror(l_s));
+                WAFLZ_PERROR(m_err_msg, "get_key:txn begin failed - %d, %s\n",
+                             l_s, mdb_strerror(l_s));
                 mdb_txn_abort(m_txn);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -197,7 +197,7 @@ int32_t lm_db::get_key(int64_t& ao_val, const char* a_key, uint32_t a_key_len)
         if(l_s != MDB_SUCCESS)
         {
                 WAFLZ_PERROR(m_err_msg, "get_key:dbi open failed - %d, %s\n",
-                	         l_s, mdb_strerror(l_s));
+                             l_s, mdb_strerror(l_s));
                 mdb_txn_abort(m_txn);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -239,7 +239,7 @@ int32_t lm_db::incr_key(int64_t& ao_result, const char* a_key, uint32_t a_key_le
         if(l_s != MDB_SUCCESS)
         {
                 WAFLZ_PERROR(m_err_msg, "incr_key:txn begin failed - %d, %s\n",
-                	         l_s, mdb_strerror(l_s));
+                             l_s, mdb_strerror(l_s));
                 mdb_txn_abort(m_txn);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -250,7 +250,7 @@ int32_t lm_db::incr_key(int64_t& ao_result, const char* a_key, uint32_t a_key_le
         if(l_s != MDB_SUCCESS)
         {
                 WAFLZ_PERROR(m_err_msg, "incr_key:dbi open failed - %d, %s\n",
-                	         l_s, mdb_strerror(l_s));
+                             l_s, mdb_strerror(l_s));
                 mdb_txn_abort(m_txn);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -269,7 +269,7 @@ int32_t lm_db::incr_key(int64_t& ao_result, const char* a_key, uint32_t a_key_le
                 if(l_s != MDB_NOTFOUND)
                 {
                         WAFLZ_PERROR(m_err_msg, "incr_key:dbi get failed - %d, %s\n",
-                        	         l_s, mdb_strerror(l_s));
+                                     l_s, mdb_strerror(l_s));
                         mdb_txn_abort(m_txn);
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -310,7 +310,7 @@ int32_t lm_db::incr_key(int64_t& ao_result, const char* a_key, uint32_t a_key_le
         if(l_s != MDB_SUCCESS)
         {
                 WAFLZ_PERROR(m_err_msg, "incr key:put failed - %d, %s\n",
-                	         l_s, mdb_strerror(l_s));
+                             l_s, mdb_strerror(l_s));
                 mdb_txn_abort(m_txn);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -321,7 +321,7 @@ int32_t lm_db::incr_key(int64_t& ao_result, const char* a_key, uint32_t a_key_le
         if(l_s != MDB_SUCCESS)
         {
                 WAFLZ_PERROR(m_err_msg, "incr_key:commit failed - %d,%s\n",
-                        	 l_s, mdb_strerror(l_s));
+                             l_s, mdb_strerror(l_s));
                 return WAFLZ_STATUS_ERROR;
         }
         ao_result = l_key_val;
@@ -350,7 +350,7 @@ int32_t lm_db::expire_old_keys(void)
         if(l_s != MDB_SUCCESS)
         {
                 WAFLZ_PERROR(m_err_msg, "expire_keys:txn begin failed - %d, %s\n",
-                			 l_s, mdb_strerror(l_s));
+                             l_s, mdb_strerror(l_s));
                 mdb_txn_abort(m_txn);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -361,7 +361,7 @@ int32_t lm_db::expire_old_keys(void)
         if(l_s != MDB_SUCCESS)
         {
                 WAFLZ_PERROR(m_err_msg, "expire_keys:dbi open failed - %d, %s\n",
-                	         l_s, mdb_strerror(l_s));
+                             l_s, mdb_strerror(l_s));
                 mdb_txn_abort(m_txn);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -493,3 +493,4 @@ int32_t lm_db::set_ttl_and_count(MDB_val* a_val, lm_val_t* a_lm_val, uint64_t a_
         return WAFLZ_STATUS_OK;
 }
 }
+

@@ -37,5 +37,6 @@ include_directories(
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -no-pie")
 
 add_waflz_wb_test(kycb_db)
+add_waflz_wb_test(lm_db)
 # commenting out -requires redis to run...
 #add_waflz_wb_test(redis_db)

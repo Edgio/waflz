@@ -27,10 +27,30 @@
 //: ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include <stdint.h>
+// for std::priority_queue
+#include <queue>
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
 namespace ns_waflz {
+// key ttl
+typedef struct kv_ttl {
+        uint64_t m_ttl_ms;
+        std::string *m_key;
+        ~kv_ttl() { if(m_key) { delete m_key; m_key = NULL; } }
+} kv_ttl_t;
+//: ----------------------------------------------------------------------------
+//: Priority queue sorting
+//: ----------------------------------------------------------------------------
+class pq_compare_events {
+public:
+        // Returns true if t1 is greater than t2
+        bool operator()(kv_ttl_t* t1, kv_ttl_t* t2)
+        {
+                return (t1->m_ttl_ms > t2->m_ttl_ms);
+        }
+};
+typedef std::priority_queue<kv_ttl_t *, std::vector<kv_ttl_t *>, pq_compare_events> kv_ttl_pq_t;
 //: ----------------------------------------------------------------------------
 //: kv_db
 //: ----------------------------------------------------------------------------

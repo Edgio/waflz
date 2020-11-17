@@ -231,7 +231,7 @@ int32_t lm_db::get_key(int64_t& ao_val, const char* a_key, uint32_t a_key_len)
 int32_t lm_db::incr_key(int64_t& ao_result, const char* a_key, uint32_t a_key_len, uint32_t a_expires_ms)
 {
         int32_t l_s;
-        //expire_old_keys();
+        expire_old_keys();
         // -------------------------------------------------
         // get transcation handle
         // -------------------------------------------------
@@ -287,7 +287,7 @@ int32_t lm_db::incr_key(int64_t& ao_result, const char* a_key, uint32_t a_key_le
                 {
                         //TODO:decide abt txn_abort
                         mdb_txn_abort(m_txn);
-                        return -1;
+                        return WAFLZ_STATUS_ERROR;
                 }
                 uint64_t l_now_ms = get_time_ms();
                 if(l_now_ms > l_ttl)
@@ -469,7 +469,7 @@ int32_t lm_db::get_ttl_and_count(MDB_val* a_val, uint64_t& ao_ttl, uint32_t& ao_
         lm_val_t* l_v = (lm_val_t*)a_val->mv_data;
         if(l_v == NULL)
         {
-                return WAFLZ_STATUS_OK;
+                return WAFLZ_STATUS_ERROR;
         }
         ao_ttl = l_v->m_ttl_ms;
         ao_count = l_v->m_count;

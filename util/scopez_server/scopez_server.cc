@@ -661,6 +661,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
         fprintf(a_stream, "  -i, --geoip-isp-db  geoip-isp-db\n");
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
+        fprintf(a_stream, "  -m, --use-lmdb      use lmdb for rl counting\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Mode: choose one or none\n");
         fprintf(a_stream, "  -w, --static        static file path (for serving)\n");
@@ -705,6 +706,7 @@ int main(int argc, char** argv)
         std::string l_redis_host;
         std::string l_b_challenge_file;
         std::string l_an_list_file;
+        bool l_use_lmdb = false;
         bool l_action_mode = false;
         bool l_bg = false;
 #ifdef ENABLE_PROFILER
@@ -727,6 +729,7 @@ int main(int argc, char** argv)
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 'i' },
                 { "redis-host",   1, 0, 'e' },
+                { "use-lmdb",     1, 0, 'm' },
                 { "static",       1, 0, 'w' },
                 { "proxy",        1, 0, 'y' },
                 { "trace",        1, 0, 't' },
@@ -756,9 +759,9 @@ int main(int argc, char** argv)
         // args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:H:C:c:l:";
+        char l_short_arg_list[] = "hvms:S:d:p:abr:g:i:e:w:y:t:H:C:c:l:";
 #else
-        char l_short_arg_list[] = "hvs:S:d:p:abr:g:i:e:w:y:t:c:l:";
+        char l_short_arg_list[] = "hvms:S:d:p:abr:g:i:e:w:y:t:c:l:";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -887,6 +890,14 @@ int main(int argc, char** argv)
                 case 'e':
                 {
                         l_redis_host = l_arg;
+                        break;
+                }
+                // -----------------------------------------
+                // lmdb
+                // -----------------------------------------
+                case 'm':
+                {
+                        l_use_lmdb = true;
                         break;
                 }
                 // -----------------------------------------
@@ -1092,6 +1103,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
                 g_sx_scopes->m_redis_host = l_redis_host;
+                g_sx_scopes->m_use_lmdb = l_use_lmdb;
                 break;
         }
         case(CONFIG_MODE_SCOPES_DIR):
@@ -1110,6 +1122,7 @@ int main(int argc, char** argv)
                 g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx_scopes->m_conf_dir = l_conf_dir;
                 g_sx_scopes->m_redis_host = l_redis_host;
+                g_sx_scopes->m_use_lmdb = l_use_lmdb;
                 break;
         }
         default:

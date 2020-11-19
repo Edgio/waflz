@@ -36,8 +36,7 @@ namespace ns_waflz {
 //: \param   TODO
 //: ----------------------------------------------------------------------------
 lm_db::lm_db(void):
-        m_init(false),
-        m_err_msg(),
+        kv_db(),
         m_db_dir_path(),
         m_num_readers(6),
         m_mmap_size(10485760),
@@ -143,7 +142,7 @@ int32_t lm_db::init()
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t lm_db::set_options(uint32_t a_opt, const void *a_buf, uint32_t a_len, uint64_t a_mmap_size)
+int32_t lm_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
 {
         switch(a_opt)
         {
@@ -159,7 +158,7 @@ int32_t lm_db::set_options(uint32_t a_opt, const void *a_buf, uint32_t a_len, ui
         }
         case OPT_LMDB_MMAP_SIZE:
         {
-                m_mmap_size = a_mmap_size;
+                m_mmap_size = a_len;
                 break;
         }
         default:
@@ -168,6 +167,32 @@ int32_t lm_db::set_options(uint32_t a_opt, const void *a_buf, uint32_t a_len, ui
                 return WAFLZ_STATUS_ERROR;
         }
         }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t lm_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
+{
+        switch(a_opt)
+        {
+        default:
+        {
+                //NDBG_PRINT("Error unsupported option: %d\n", a_opt);
+                return WAFLZ_STATUS_ERROR;
+        }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t lm_db::print_all_keys()
+{
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -228,7 +253,7 @@ int32_t lm_db::get_key(int64_t& ao_val, const char* a_key, uint32_t a_key_len)
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t lm_db::incr_key(int64_t& ao_result, const char* a_key, uint32_t a_key_len, uint32_t a_expires_ms)
+int32_t lm_db::increment_key(int64_t& ao_result, const char* a_key, uint32_t a_expires_ms)
 {
         int32_t l_s;
         expire_old_keys();
@@ -262,7 +287,7 @@ int32_t lm_db::incr_key(int64_t& ao_result, const char* a_key, uint32_t a_key_le
         uint32_t l_key_val = 1;
         MDB_val l_key, l_val;
         l_key.mv_data=(void*)a_key;
-        l_key.mv_size= a_key_len;
+        l_key.mv_size= strlen(a_key);
         l_s = mdb_get(m_txn, m_dbi, &l_key, &l_val);
         if(l_s != MDB_SUCCESS)
         {

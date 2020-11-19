@@ -28,6 +28,7 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/kycb_db.h"
 #include "waflz/redis_db.h"
+#include "waflz/lm_db.h"
 #include "waflz/string_util.h"
 #include "is2/support/trace.h"
 #include "is2/support/nbq.h"
@@ -43,6 +44,8 @@
 #include "rapidjson/prettywriter.h"
 #include <errno.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 //: ----------------------------------------------------------------------------
 //: constants
 //: ----------------------------------------------------------------------------
@@ -62,6 +65,45 @@ typedef struct _waf_scopes_bg_update {
         uint32_t m_buf_len;
         ns_waflz::scopes_configs* m_scopes_configs;
 } waf_scopes_bg_update_t;
+//: ----------------------------------------------------------------------------
+//: remove lmdb dir
+//: ----------------------------------------------------------------------------
+static int remove_dir(const std::string& a_db_dir)
+{
+        int32_t l_s;
+        struct stat l_stat;
+        l_s = stat(a_db_dir.c_str(), &l_stat);
+        if(l_s != 0)
+        {
+                return 0;
+        }
+        std::string l_file1(a_db_dir), l_file2(a_db_dir);
+        l_file1.append("/data.mdb");
+        l_file2.append("/lock.mdb");
+        unlink(l_file1.c_str());
+        unlink(l_file2.c_str());
+        l_s = rmdir(a_db_dir.c_str());
+        if(l_s != 0)
+        {
+                return -1;
+        }
+        return 0;
+}
+//: ----------------------------------------------------------------------------
+//: create_dir for lmdb
+//: ----------------------------------------------------------------------------
+static int create_dir(const std::string& a_db_dir)
+{
+        struct stat l_stat;
+        int32_t l_s;
+        l_s = remove_dir(a_db_dir);
+        if(l_s != 0)
+        {
+                return -1;
+        }
+        l_s = mkdir(a_db_dir.c_str(), 0700);
+        return l_s;
+}
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -567,6 +609,7 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
 sx_scopes::sx_scopes(void):
         m_bg_load(false),
         m_is_rand(false),
+        m_use_lmdb(false),
         m_redis_host(),
         m_engine(NULL),
         m_update_scopes_h(NULL),
@@ -601,6 +644,10 @@ sx_scopes::~sx_scopes(void)
         if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
         if(m_update_limit_h) {delete m_update_limit_h; m_update_limit_h = NULL; }
         if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
+        if(m_use_lmdb)
+        {
+                remove_dir("/tmp/test_lmdb");
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -652,6 +699,34 @@ int32_t sx_scopes::init(void)
                         return STATUS_ERROR;
                 }
                 NDBG_PRINT("USING REDIS\n");
+        }
+        // -------------------------------------------------
+        // lmdb
+        // -------------------------------------------------
+        else if(m_use_lmdb)
+        {
+                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::lm_db());
+                std::string l_db_dir("/tmp/test_lmdb");
+                l_s = create_dir(l_db_dir);
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("error creating dir for lmdb\n");
+                        return STATUS_ERROR;
+                }
+                m_db->set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
+                m_db->set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
+                m_db->set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
+                l_s = m_db->init();
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("error performing db init: Reason: %s\n", m_db->get_err_msg());
+                        return STATUS_ERROR;
+                }
+                if(!m_db->get_init())
+                {
+                        printf("error -%s\n", m_db->get_err_msg());
+                }
+                NDBG_PRINT("USING LMDB\n");
         }
         // -------------------------------------------------
         // kyoto

@@ -42,7 +42,7 @@ typedef struct lm_val {
 //: ----------------------------------------------------------------------------
 //: lm_db
 //: ----------------------------------------------------------------------------
-class lm_db {
+class lm_db : public kv_db {
 public:
         // -------------------------------------------------
         // public types
@@ -62,30 +62,26 @@ public:
         //: ------------------------------------------------
         //:                  D B   O P S
         //: ------------------------------------------------
-        int32_t incr_key(int64_t& ao_result,
-                         const char* a_key,
-                         uint32_t a_key_len,
-                         uint32_t a_expires_ms);
+        int32_t increment_key(int64_t& ao_result,
+                              const char* a_key,
+                              uint32_t a_expires_ms);
         int32_t get_key(int64_t &ao_val, const char *a_key, uint32_t a_key_len);
+        int32_t set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len);
+        int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len);
+        int32_t print_all_keys();
         int32_t clear_keys();
-        int32_t set_options(uint32_t a_opt, const void *a_buf, uint32_t a_len, uint64_t a_mmap_size);
-        const char *get_err_msg(void) { return m_err_msg; }
-        bool get_init(void) { return m_init; }
 private:
-        // disallow copy/assign
-        lm_db(const lm_db &);
-        lm_db& operator=(const lm_db &);
         // -------------------------------------------------
         // private methods
         // -------------------------------------------------
+        lm_db(const lm_db &);
+        lm_db& operator=(const lm_db &);
         int32_t expire_old_keys(void);
         int32_t get_ttl_and_count(MDB_val* a_val, uint64_t& ao_ttl, uint32_t& ao_count);
         int32_t set_ttl_and_count(MDB_val* a_val, lm_val_t* a_lm_val, uint64_t a_ttl, uint32_t a_count);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
-        bool m_init;
-        char m_err_msg[WAFLZ_ERR_LEN];
         std::string m_db_dir_path;
         uint32_t m_num_readers;
         uint64_t m_mmap_size;

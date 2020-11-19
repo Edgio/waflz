@@ -171,6 +171,7 @@ public:
         bool m_is_rand;
         bool m_scopes_dir;
         bool m_action_mode;
+        bool m_use_lmdb;
         std::string m_redis_host;
         ns_waflz::engine *m_engine;
         ns_waflz::kv_db *m_db;

@@ -67,7 +67,7 @@ public:
                               uint32_t a_expires_ms) = 0;
         virtual int32_t get_key(int64_t &ao_val, const char *a_key, uint32_t a_key_len) = 0;
         virtual int32_t print_all_keys(void) = 0;
-        virtual int32_t set_opt(uint32_t a_opt, const void *a_buf, uint32_t a_len) = 0;
+        virtual int32_t set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len) = 0;
         virtual int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len) = 0;
         const char *get_err_msg(void) { return m_err_msg; }
         bool get_init(void) { return m_init; }

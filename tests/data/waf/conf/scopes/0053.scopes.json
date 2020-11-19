@@ -1,0 +1,33 @@
+{
+  "customer_id": "0053",
+  "id": "FoJWcYNO",
+  "last_modified_date": "2020-11-1T19:48:25.142172Z",
+  "last_modified_by": "revathi",
+  "scopes": [
+  {
+    "id": "Hcpx7mze",
+    "name": "limit scope",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "limitz.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "limits":[{
+       "id":"BVHvz2nC",
+       "action":{
+          "id":"4hu9CMSK",
+          "name":"ddos-action",
+          "status": 403,
+          "duration_sec": 2,
+          "enf_type": "CUSTOM_RESPONSE",
+          "response_body_base64": "ZGRvcyBlbmZvcmNlbWVudCBmcm9tIGxpbWl0IGNvbmZpZwo="
+       }
+    }]
+
+  }]
+}

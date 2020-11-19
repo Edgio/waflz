@@ -85,7 +85,7 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 ns_waflz::lm_db l_db;
                 REQUIRE((l_db.get_init() == false));
                 const char l_bad_db_dir[] = "/fish/fish/fish";
-                l_s = l_db.set_options(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_bad_db_dir, strlen(l_bad_db_dir), 0);
+                l_s = l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_bad_db_dir, strlen(l_bad_db_dir));
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_ERROR));
@@ -97,9 +97,9 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 std::string l_db_dir("/tmp/test_lmdb");
                 l_s = create_dir(l_db_dir);
                 REQUIRE((l_s == 0));
-                l_db.set_options(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length(), 0);
-                l_db.set_options(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6, 0);
-                l_db.set_options(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 0, 10485760);
+                l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
+                l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
+                l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
                 l_s = l_db.init();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 REQUIRE(l_db.get_init() == true);
@@ -113,23 +113,23 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
             std::string l_db_dir("/tmp/test_lmdb");
             l_s = create_dir(l_db_dir);
             REQUIRE((l_s == 0));
-            l_db.set_options(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length(), 0);
-            l_db.set_options(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6, 0);
-            l_db.set_options(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 0, 10485760);
+            l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
+            l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
+            l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
             l_s = l_db.init();
             REQUIRE(l_s == WAFLZ_STATUS_OK);
             REQUIRE(l_db.get_init() == true);
             int64_t l_result;
-            l_s = l_db.incr_key(l_result, MONKEY_KEY, strlen(MONKEY_KEY), 2000);
+            l_s = l_db.increment_key(l_result, MONKEY_KEY, 2000);
             REQUIRE(l_s == WAFLZ_STATUS_OK);
             REQUIRE(l_result == 1);
-            l_s = l_db.incr_key(l_result, MONKEY_KEY, strlen(MONKEY_KEY), 2000);
+            l_s = l_db.increment_key(l_result, MONKEY_KEY, 2000);
             REQUIRE(l_s == WAFLZ_STATUS_OK);
             REQUIRE(l_result == 2);
-            l_s = l_db.incr_key(l_result, BANANA_KEY, strlen(BANANA_KEY), 4000);
+            l_s = l_db.increment_key(l_result, BANANA_KEY, 4000);
             REQUIRE(l_s == WAFLZ_STATUS_OK);
             REQUIRE(l_result == 1);
-            l_s = l_db.incr_key(l_result, BANANA_KEY, strlen(BANANA_KEY), 4000);
+            l_s = l_db.increment_key(l_result, BANANA_KEY, 4000);
             REQUIRE(l_s == WAFLZ_STATUS_OK);
             REQUIRE(l_result == 2);
             //sleep for 2 seconds, monkey key should have been expired
@@ -144,10 +144,10 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
             l_s = l_db.get_key(l_result, BANANA_KEY, strlen(BANANA_KEY));
             REQUIRE(l_s == WAFLZ_STATUS_ERROR);
             //increment the keys again to check value resets to 1.
-            l_s = l_db.incr_key(l_result, MONKEY_KEY, strlen(MONKEY_KEY), 1000);
+            l_s = l_db.increment_key(l_result, MONKEY_KEY, 1000);
             REQUIRE(l_s == WAFLZ_STATUS_OK);
             REQUIRE(l_result == 1);
-            l_s = l_db.incr_key(l_result, BANANA_KEY, strlen(BANANA_KEY), 1000);
+            l_s = l_db.increment_key(l_result, BANANA_KEY, 1000);
             REQUIRE(l_s == WAFLZ_STATUS_OK);
             REQUIRE(l_result == 1);
             l_s = remove_dir(l_db_dir);

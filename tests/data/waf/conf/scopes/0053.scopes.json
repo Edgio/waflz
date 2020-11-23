@@ -6,7 +6,7 @@
   "scopes": [
   {
     "id": "Hcpx7mze",
-    "name": "limit scope",
+    "name": "limit 1st scope",
     "host": {
       "is_negated": false,
       "type": "EM",
@@ -28,6 +28,31 @@
           "response_body_base64": "ZGRvcyBlbmZvcmNlbWVudCBmcm9tIGxpbWl0IGNvbmZpZwo="
        }
     }]
-
-  }]
+  },
+  {
+    "id": "o6c5GHSg",
+    "name": "limit 2nd scope",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "Morelimitz.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "limits":[{
+       "id":"BVHvz2nC",
+       "action":{
+          "id":"mFwhkjoX",
+          "name":"ddos-action",
+          "status": 403,
+          "duration_sec": 2,
+          "enf_type": "CUSTOM_RESPONSE",
+          "response_body_base64": "ZGRvcyBlbmZvcmNlbWVudCBmcm9tIGxpbWl0IGNvbmZpZwo="
+       }
+    }]
+  }
+]
 }

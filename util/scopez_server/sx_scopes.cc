@@ -94,7 +94,6 @@ static int remove_dir(const std::string& a_db_dir)
 //: ----------------------------------------------------------------------------
 static int create_dir(const std::string& a_db_dir)
 {
-        struct stat l_stat;
         int32_t l_s;
         l_s = remove_dir(a_db_dir);
         if(l_s != 0)
@@ -103,6 +102,22 @@ static int create_dir(const std::string& a_db_dir)
         }
         l_s = mkdir(a_db_dir.c_str(), 0700);
         return l_s;
+}
+//: ----------------------------------------------------------------------------
+//: create_dir only once for lmdb
+//: ----------------------------------------------------------------------------
+static int create_dir_once(const std::string& a_db_dir)
+{
+        int32_t l_s;
+        struct stat l_stat;
+        l_s = stat(a_db_dir.c_str(), &l_stat);
+        if(l_s == 0)
+        {
+                return 0;
+        }
+        l_s = create_dir(a_db_dir);
+        return l_s;
+
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -646,6 +661,7 @@ sx_scopes::~sx_scopes(void)
         if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
         if(m_use_lmdb)
         {
+                printf("calling rm dir from destructor\n");
                 remove_dir("/tmp/test_lmdb");
         }
 }
@@ -707,7 +723,24 @@ int32_t sx_scopes::init(void)
         {
                 m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::lm_db());
                 std::string l_db_dir("/tmp/test_lmdb");
-                l_s = create_dir(l_db_dir);
+                if(m_lmdb_interprocess)
+                {
+                        l_s = create_dir_once(l_db_dir);
+                        if(l_s != STATUS_OK)
+                        {
+                                NDBG_PRINT("error creating dir -%s\n", l_db_dir.c_str());
+                                return STATUS_ERROR;
+                        }
+                }
+                else
+                {
+                        l_s = create_dir(l_db_dir);
+                        if(l_s != STATUS_OK)
+                        {
+                                NDBG_PRINT("error creating dir - %s\n", l_db_dir.c_str());
+                                return STATUS_ERROR;
+                        }
+                }
                 if(l_s != STATUS_OK)
                 {
                         NDBG_PRINT("error creating dir for lmdb\n");

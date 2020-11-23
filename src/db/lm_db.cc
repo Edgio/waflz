@@ -399,44 +399,81 @@ int32_t lm_db::expire_old_keys(void)
                 l_kv_ttl = m_kv_ttl_pq.top();
                 if(!l_kv_ttl)
                 {
-                        // TODO -log error
-                        //TRC_ERROR("bad event -ignoring.\n");
                         m_kv_ttl_pq.pop();
                         continue;
                 }
-                // break if not current
+                // -------------------------------------------------
+                // break if time is not cirrent
+                // -------------------------------------------------
                 uint64_t l_now_ms = get_time_ms();
                 if(l_now_ms < l_kv_ttl->m_ttl_ms)
                 {
                         break;
                 }
+                // -------------------------------------------------
                 // remove
+                // -------------------------------------------------
                 m_kv_ttl_pq.pop();
                 if(!l_kv_ttl->m_key)
                 {
-                        // TODO -log error
-                        //TRC_ERROR("null key???.\n");
                         delete l_kv_ttl;
                         l_kv_ttl = NULL;
                         continue;
                 }
-                //delete from db
-                MDB_val* l_val = NULL;
-                MDB_val l_key;
+                // -------------------------------------------------
+                // Get the key from db.
+                // If key doesn't exist, continue
+                // If key exists, delete key only if value of ttl in
+                // not greater than PQ ttl
+                // This check is required in the multiple process
+                // setup to prevent removing the keys that are
+                // currently being counted by other process
+                // -------------------------------------------------
+                MDB_val l_key, l_val;
                 l_key.mv_data = (void*)l_kv_ttl->m_key->c_str();
                 l_key.mv_size = l_kv_ttl->m_key->length();
-                l_s = mdb_del(m_txn, m_dbi, &l_key, l_val);
-                //if(l_s != MDB_SUCCESS)
-                //{
-                        //printf("delete key failed for -%s. Reason -%d,%s\n", l_kv_ttl->m_key->c_str(), l_s, mdb_strerror(l_s));
-                        //TRC_ERROR("key[%s] could not be removed???.\n", l_kv_ttl->m_key->c_str());
-                //}
+                l_s = mdb_get(m_txn, m_dbi, &l_key, &l_val);
+                if(l_s != MDB_SUCCESS)
+                {
+                        delete l_kv_ttl;
+                        l_kv_ttl = NULL;
+                        continue;
+                }
+                // -------------------------------------------------
+                // If key exists, delete the key only if value of 
+                // ttl in val is not greater than PQ ttl
+                // This check is required in the multiple process
+                // setup to prevent removing the keys that are
+                // currently being counted by other process
+                // -------------------------------------------------
+                uint64_t l_ttl;
+                uint32_t l_count;
+                l_s = get_ttl_and_count(&l_val,l_ttl, l_count);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        //TRC_ERROR("MDB val corrupted, get ttl and count failed");
+                        delete l_kv_ttl;
+                        l_kv_ttl = NULL;
+                        continue;
+                }
+                if(l_ttl > l_kv_ttl->m_ttl_ms)
+                {   
+                        delete l_kv_ttl;
+                        l_kv_ttl = NULL;
+                        continue;
+                }
+                // -------------------------------------------------
+                // delete. Soft fail on delete because other
+                // process PQ also tries to delete
+                // -------------------------------------------------
+                MDB_val* l_d_val = NULL;
+                mdb_del(m_txn, m_dbi, &l_key, l_d_val);
                 delete l_kv_ttl;
                 l_kv_ttl = NULL;
         }
         // -------------------------------------------------
-        // txn commit
-        // -------------------------------------------------
+        // doing batch commit of all deletes
+         // -------------------------------------------------
         l_s = mdb_txn_commit(m_txn);
         if(l_s != MDB_SUCCESS)
         {

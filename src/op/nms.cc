@@ -639,6 +639,7 @@ int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
                         // line was truncated
                         //TRC_OUTPUT("Error: lines must be shorter than %d chars\n", MAX_READLINE_SIZE);
                         if(l_nms) { delete l_nms; l_nms = NULL;}
+                        if(l_fp) { fclose(l_fp); l_fp = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
@@ -657,11 +658,16 @@ int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_nms) { delete l_nms; l_nms = NULL;}
+                        if(l_fp) { fclose(l_fp); l_fp = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 //NDBG_PRINT("READLINE: %s\n", l_line.c_str());
         }
         *ao_nms = l_nms;
+        // -------------------------------------------------
+        // Close file...
+        // -------------------------------------------------
+        if(l_fp) { fclose(l_fp); l_fp = NULL;}
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------

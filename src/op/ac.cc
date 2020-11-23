@@ -752,7 +752,7 @@ int32_t create_ac_from_file(ac **ao_ac, const std::string &a_file)
         l_fp = fopen(a_file.c_str(),"r");
         if (NULL == l_fp)
         {
-                NDBG_PRINT("error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
+                //NDBG_PRINT("error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
         ac *l_ac = new ac();
@@ -769,6 +769,7 @@ int32_t create_ac_from_file(ac **ao_ac, const std::string &a_file)
                         // line was truncated
                         //TRC_OUTPUT("Error: lines must be shorter than %d chars\n", MAX_READLINE_SIZE);
                         if(l_ac) { delete l_ac; l_ac = NULL;}
+                        if(l_fp) { fclose(l_fp); l_fp = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
@@ -790,9 +791,14 @@ int32_t create_ac_from_file(ac **ao_ac, const std::string &a_file)
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_ac) { delete l_ac; l_ac = NULL;}
+                if(l_fp) { fclose(l_fp); l_fp = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_ac = l_ac;
+        // -------------------------------------------------
+        // Close file...
+        // -------------------------------------------------
+        if(l_fp) { fclose(l_fp); l_fp = NULL;}
         return WAFLZ_STATUS_OK;
 }
 }

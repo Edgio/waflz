@@ -304,9 +304,9 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                         continue;
                 }
                 const waflz_pb::sec_action_t &l_a = l_r.action();
-                // ---------------------------------
+                // -----------------------------------------
                 // check for missing msg
-                // ---------------------------------
+                // -----------------------------------------
                 bool l_is_missing_msg = false;
                 if(!l_a.has_msg())
                 {
@@ -424,179 +424,181 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                         ao_cx_cfg.m_regex_list.push_back(l_pcre);
                                         l_match.set__reserved_1((uint64_t)l_pcre);
                                 }
-                                // -------------------------
-                                // *************************
-                                // operator
-                                // *************************
-                                // -------------------------
-                                if(!l_rule->has_operator_() ||
-                                   !l_rule->operator_().has_type() ||
-                                   !l_rule->operator_().has_value())
+                        }
+
+                        // ---------------------------------
+                        // *********************************
+                        // operator
+                        // *********************************
+                        // ---------------------------------
+                        if(!l_rule->has_operator_() ||
+                           !l_rule->operator_().has_type() ||
+                           !l_rule->operator_().has_value())
+                        {
+                                ++l_cr_idx;
+                                continue;
+                        }
+                        ::waflz_pb::sec_rule_t_operator_t_type_t l_op_t = l_rule->operator_().type();
+                        switch(l_op_t)
+                        {
+                        // ---------------------------------
+                        // IPMATCH
+                        // ---------------------------------
+                        case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCH:
+                        {
+                                int32_t l_s;
+                                nms *l_nms = NULL;
+                                l_s = create_nms_from_str(&l_nms, l_rule->operator_().value());
+                                if(l_s != WAFLZ_STATUS_OK)
                                 {
-                                        continue;
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create nms from str %s", l_rule->operator_().value().c_str());
+                                        return WAFLZ_STATUS_ERROR;
                                 }
-                                ::waflz_pb::sec_rule_t_operator_t_type_t l_op_t = l_rule->operator_().type();
-                                switch(l_op_t)
+                                ao_cx_cfg.m_nms_list.push_back(l_nms);
+                                l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
+                                break;
+                        }
+                        // ---------------------------------
+                        // PM FROM FILE
+                        // ---------------------------------
+                        case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHF:
+                        case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHFROMFILE:
+                        {
+                                int32_t l_s;
+                                nms *l_nms = NULL;
+                                std::string l_f_path = a_ruleset_dir;
+                                l_f_path.append(l_rule->operator_().value());
+                                l_s = create_nms_from_file(&l_nms, l_f_path);
+                                if(l_s != WAFLZ_STATUS_OK)
                                 {
-                                // -------------------------
-                                // IPMATCH
-                                // -------------------------
-                                case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCH:
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create nms from file %s", l_rule->operator_().value().c_str());
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                                ao_cx_cfg.m_nms_list.push_back(l_nms);
+                                l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
+                                break;
+                        }
+                        // ---------------------------------
+                        // PM
+                        // ---------------------------------
+                        case ::waflz_pb::sec_rule_t_operator_t_type_t_PM:
+                        {
+                                int32_t l_s;
+                                ac *l_ac = NULL;
+                                l_s = create_ac_from_str(&l_ac, l_rule->operator_().value());
+                                if(l_s != WAFLZ_STATUS_OK)
                                 {
-                                        int32_t l_s;
-                                        nms *l_nms = NULL;
-                                        l_s = create_nms_from_str(&l_nms, l_rule->operator_().value());
-                                        if(l_s != WAFLZ_STATUS_OK)
-                                        {
-                                                WAFLZ_PERROR(m_err_msg, "Failed to create nms from str %s", l_rule->operator_().value().c_str());
-                                                return WAFLZ_STATUS_ERROR;
-                                        }
-                                        ao_cx_cfg.m_nms_list.push_back(l_nms);
-                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from string %s", l_rule->operator_().value().c_str());
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                                ao_cx_cfg.m_ac_list.push_back(l_ac);
+                                l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_ac);
+                                break;
+                        }
+                        // ---------------------------------
+                        // PM FROM FILE
+                        // ---------------------------------
+                        case ::waflz_pb::sec_rule_t_operator_t_type_t_PMF:
+                        case ::waflz_pb::sec_rule_t_operator_t_type_t_PMFROMFILE:
+                        {
+                                int32_t l_s;
+                                ac *l_ac = NULL;
+                                std::string l_f_path = a_ruleset_dir;
+                                l_f_path.append(l_rule->operator_().value());
+                                l_s = create_ac_from_file(&l_ac, l_f_path);
+                                if(l_s != WAFLZ_STATUS_OK)
+                                {
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from file %s", l_rule->operator_().value().c_str());
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                                ao_cx_cfg.m_ac_list.push_back(l_ac);
+                                l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_ac);
+                                break;
+                        }
+                        // ---------------------------------
+                        // RX
+                        // ---------------------------------
+                        case ::waflz_pb::sec_rule_t_operator_t_type_t_RX:
+                        {
+                                int32_t l_s;
+                                regex *l_pcre = NULL;
+                                l_pcre = new regex();
+                                const std::string &l_rx = l_rule->operator_().value();
+                                // -------------------------
+                                // XXX -special exception for a single
+                                // rx using a macro expansion
+                                // -------------------------
+                                if(l_rx == "^%{tx.allowed_request_content_type}$")
+                                {
+                                        l_rule->mutable_operator_()->set_type(::waflz_pb::sec_rule_t_operator_t_type_t_WITHIN);
+                                        l_rule->mutable_operator_()->set_value("%{tx.allowed_request_content_type}");
+                                        if(l_pcre) { delete l_pcre; l_pcre = NULL; }
                                         break;
                                 }
-                                // -------------------------
-                                // PM FROM FILE
-                                // -------------------------
-                                case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHF:
-                                case ::waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHFROMFILE:
+                                l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
+                                if(l_s != WAFLZ_STATUS_OK)
                                 {
-                                        int32_t l_s;
-                                        nms *l_nms = NULL;
-                                        std::string l_f_path = a_ruleset_dir;
-                                        l_f_path.append(l_rule->operator_().value());
-                                        l_s = create_nms_from_file(&l_nms, l_f_path);
-                                        if(l_s != WAFLZ_STATUS_OK)
-                                        {
-                                                WAFLZ_PERROR(m_err_msg, "Failed to create nms from file %s", l_rule->operator_().value().c_str());
-                                                return WAFLZ_STATUS_ERROR;
-                                        }
-                                        ao_cx_cfg.m_nms_list.push_back(l_nms);
-                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_nms);
-                                        break;
+                                        const char *l_err_ptr;
+                                        int l_err_off;
+                                        l_pcre->get_err_info(&l_err_ptr, l_err_off);
+                                        WAFLZ_PERROR(m_err_msg, "Failed to init re from %s. Reason: %s -offset: %d",
+                                                     l_rx.c_str(),
+                                                     l_err_ptr,
+                                                     l_err_off);
+                                        if(l_pcre) { delete l_pcre; l_pcre = NULL; }
+                                        return WAFLZ_STATUS_ERROR;
                                 }
-                                // -------------------------
-                                // PM
-                                // -------------------------
-                                case ::waflz_pb::sec_rule_t_operator_t_type_t_PM:
+                                ao_cx_cfg.m_regex_list.push_back(l_pcre);;
+                                l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_pcre);
+                                break;
+                        }
+                        // ---------------------------------
+                        // VERIFYCC
+                        // ---------------------------------
+                        case ::waflz_pb::sec_rule_t_operator_t_type_t_VERIFYCC:
+                        {
+                                int32_t l_s;
+                                regex *l_pcre = NULL;
+                                l_pcre = new regex();
+                                const std::string &l_rx = l_rule->operator_().value();
+                                l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
+                                if(l_s != WAFLZ_STATUS_OK)
                                 {
-                                        int32_t l_s;
-                                        ac *l_ac = NULL;
-                                        l_s = create_ac_from_str(&l_ac, l_rule->operator_().value());
-                                        if(l_s != WAFLZ_STATUS_OK)
-                                        {
-                                                WAFLZ_PERROR(m_err_msg, "Failed to create ac from string %s", l_rule->operator_().value().c_str());
-                                                return WAFLZ_STATUS_ERROR;
-                                        }
-                                        ao_cx_cfg.m_ac_list.push_back(l_ac);
-                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_ac);
-                                        break;
+                                        const char *l_err_ptr;
+                                        int l_err_off;
+                                        l_pcre->get_err_info(&l_err_ptr, l_err_off);
+                                        WAFLZ_PERROR(m_err_msg, "Failed to init re from %s. Reason: %s -offset: %d",
+                                                     l_rx.c_str(),
+                                                     l_err_ptr,
+                                                     l_err_off);
+                                        if(l_pcre) { delete l_pcre; l_pcre = NULL; }
+                                        return WAFLZ_STATUS_ERROR;
                                 }
-                                // -------------------------
-                                // PM FROM FILE
-                                // -------------------------
-                                case ::waflz_pb::sec_rule_t_operator_t_type_t_PMF:
-                                case ::waflz_pb::sec_rule_t_operator_t_type_t_PMFROMFILE:
+                                ao_cx_cfg.m_regex_list.push_back(l_pcre);;
+                                l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_pcre);
+                                break;
+                        }
+                        // ---------------------------------
+                        // VALIDATEBYTERANGE
+                        // ---------------------------------
+                        case ::waflz_pb::sec_rule_t_operator_t_type_t_VALIDATEBYTERANGE:
+                        {
+                                int32_t l_s;
+                                byte_range *l_br = NULL;
+                                l_s = create_byte_range(&l_br, l_rule->operator_().value());
+                                if(l_s != WAFLZ_STATUS_OK)
                                 {
-                                        int32_t l_s;
-                                        ac *l_ac = NULL;
-                                        std::string l_f_path = a_ruleset_dir;
-                                        l_f_path.append(l_rule->operator_().value());
-                                        l_s = create_ac_from_file(&l_ac, l_f_path);
-                                        if(l_s != WAFLZ_STATUS_OK)
-                                        {
-                                                WAFLZ_PERROR(m_err_msg, "Failed to create ac from file %s", l_rule->operator_().value().c_str());
-                                                return WAFLZ_STATUS_ERROR;
-                                        }
-                                        ao_cx_cfg.m_ac_list.push_back(l_ac);
-                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_ac);
-                                        break;
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create byte_range from %s", l_rule->operator_().value().c_str());
+                                        return WAFLZ_STATUS_ERROR;
                                 }
-                                // -------------------------
-                                // RX
-                                // -------------------------
-                                case ::waflz_pb::sec_rule_t_operator_t_type_t_RX:
-                                {
-                                        int32_t l_s;
-                                        regex *l_pcre = NULL;
-                                        l_pcre = new regex();
-                                        const std::string &l_rx = l_rule->operator_().value();
-                                        // -------------------------------------
-                                        // XXX -special exception for a single
-                                        // rx using a macro expansion
-                                        // -------------------------------------
-                                        if(l_rx == "^%{tx.allowed_request_content_type}$")
-                                        {
-                                                l_rule->mutable_operator_()->set_type(::waflz_pb::sec_rule_t_operator_t_type_t_WITHIN);
-                                                l_rule->mutable_operator_()->set_value("%{tx.allowed_request_content_type}");
-                                                if(l_pcre) { delete l_pcre; l_pcre = NULL; }
-                                                break;
-                                        }
-                                        l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
-                                        if(l_s != WAFLZ_STATUS_OK)
-                                        {
-                                                const char *l_err_ptr;
-                                                int l_err_off;
-                                                l_pcre->get_err_info(&l_err_ptr, l_err_off);
-                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s. Reason: %s -offset: %d",
-                                                             l_rx.c_str(),
-                                                             l_err_ptr,
-                                                             l_err_off);
-                                                if(l_pcre) { delete l_pcre; l_pcre = NULL; }
-                                                return WAFLZ_STATUS_ERROR;
-                                        }
-                                        ao_cx_cfg.m_regex_list.push_back(l_pcre);;
-                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_pcre);
-                                        break;
-                                }
-                                // -------------------------
-                                // VERIFYCC
-                                // -------------------------
-                                case ::waflz_pb::sec_rule_t_operator_t_type_t_VERIFYCC:
-                                {
-                                        int32_t l_s;
-                                        regex *l_pcre = NULL;
-                                        l_pcre = new regex();
-                                        const std::string &l_rx = l_rule->operator_().value();
-                                        l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
-                                        if(l_s != WAFLZ_STATUS_OK)
-                                        {
-                                                const char *l_err_ptr;
-                                                int l_err_off;
-                                                l_pcre->get_err_info(&l_err_ptr, l_err_off);
-                                                WAFLZ_PERROR(m_err_msg, "Failed to init re from %s. Reason: %s -offset: %d",
-                                                             l_rx.c_str(),
-                                                             l_err_ptr,
-                                                             l_err_off);
-                                                if(l_pcre) { delete l_pcre; l_pcre = NULL; }
-                                                return WAFLZ_STATUS_ERROR;
-                                        }
-                                        ao_cx_cfg.m_regex_list.push_back(l_pcre);;
-                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_pcre);
-                                        break;
-                                }
-                                // -------------------------
-                                // VALIDATEBYTERANGE
-                                // -------------------------
-                                case ::waflz_pb::sec_rule_t_operator_t_type_t_VALIDATEBYTERANGE:
-                                {
-                                        int32_t l_s;
-                                        byte_range *l_br = NULL;
-                                        l_s = create_byte_range(&l_br, l_rule->operator_().value());
-                                        if(l_s != WAFLZ_STATUS_OK)
-                                        {
-                                                WAFLZ_PERROR(m_err_msg, "Failed to create byte_range from %s", l_rule->operator_().value().c_str());
-                                                return WAFLZ_STATUS_ERROR;
-                                        }
-                                        ao_cx_cfg.m_byte_range_list.push_back(l_br);
-                                        l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_br);
-                                        break;
-                                }
-                                default:
-                                {
-                                        break;
-                                }
-                                }
+                                ao_cx_cfg.m_byte_range_list.push_back(l_br);
+                                l_rule->mutable_operator_()->set__reserved_1((uint64_t)l_br);
+                                break;
+                        }
+                        default:
+                        {
+                                break;
+                        }
                         }
                         ++l_cr_idx;
                 } while(l_cr_idx < l_r.chained_rule_size());

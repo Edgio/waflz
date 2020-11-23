@@ -661,7 +661,6 @@ sx_scopes::~sx_scopes(void)
         if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
         if(m_use_lmdb)
         {
-                printf("calling rm dir from destructor\n");
                 remove_dir("/tmp/test_lmdb");
         }
 }

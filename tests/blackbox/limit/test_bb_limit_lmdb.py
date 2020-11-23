@@ -294,9 +294,3 @@ def test_multiple_process_counting3(setup_multiple_scopez_server_lmdb):
     #sleep through enforcement period
     time.sleep(2)
 
-
-
-
-
-
-

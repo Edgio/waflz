@@ -422,12 +422,7 @@ int32_t lm_db::expire_old_keys(void)
                 }
                 // -------------------------------------------------
                 // Get the key from db.
-                // If key doesn't exist, continue
-                // If key exists, delete key only if value of ttl in
-                // not greater than PQ ttl
-                // This check is required in the multiple process
-                // setup to prevent removing the keys that are
-                // currently being counted by other process
+                // If key doesn't exist, continue.
                 // -------------------------------------------------
                 MDB_val l_key, l_val;
                 l_key.mv_data = (void*)l_kv_ttl->m_key->c_str();
@@ -444,7 +439,8 @@ int32_t lm_db::expire_old_keys(void)
                 // ttl in val is not greater than PQ ttl
                 // This check is required in the multiple process
                 // setup to prevent removing the keys that are
-                // currently being counted by other process
+                // currently being counted or recounted by other process
+                // after enforcement period.
                 // -------------------------------------------------
                 uint64_t l_ttl;
                 uint32_t l_count;

@@ -358,7 +358,7 @@ int32_t kycb_db::print_all_keys(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t kycb_db::set_opt(uint32_t a_opt, const void *a_buf, uint32_t a_len)
+int32_t kycb_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
 {
         switch(a_opt)
         {

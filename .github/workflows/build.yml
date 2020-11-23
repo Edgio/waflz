@@ -36,12 +36,12 @@ jobs:
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-16.04'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev
+        sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev liblmdb-dev
 
     - name: Install macOS dependencies
       if: matrix.os == 'macos-latest'
       run: |
-        brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg
+        brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg lmdb
 
     - name: Set up Python
       uses: actions/setup-python@v1

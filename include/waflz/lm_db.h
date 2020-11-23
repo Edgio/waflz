@@ -1,11 +1,11 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
+//: Copyright (C) 2018 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    kycb_db.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/07/2016
+//: \file:    lm_db.h
+//: \details: lmdb kv header for waflz
+//: \author:  Revathi Sabanayagam
+//: \date:    11/02/2020
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -20,76 +20,79 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _KYCB_DB_H_
-#define _KYCB_DB_H_
+#ifndef _LM_DB_H_
+#define _LM_DB_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
 #include <stdint.h>
 #include <string>
+#include <lmdb.h>
 #include "waflz/kv_db.h"
-#include "waflz/atomic.h"
 #include "waflz/def.h"
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
-namespace kyotocabinet
-{
-class HashDB;
-}
 namespace ns_waflz {
+// lmdb val 
+typedef struct lm_val {
+        uint32_t m_count;
+        uint64_t m_ttl_ms;
+}lm_val_t;
 //: ----------------------------------------------------------------------------
-//: kycb_db
+//: lm_db
 //: ----------------------------------------------------------------------------
-class kycb_db: public kv_db {
+class lm_db : public kv_db {
 public:
         // -------------------------------------------------
         // public types
         // -------------------------------------------------
         typedef enum opt_enum
         {
-                OPT_KYCB_DB_FILE_PATH = 0,
-                OPT_KYCB_OPTIONS = 1,
-                OPT_KYCB_BUCKETS = 2,
-                OPT_KYCB_MAP = 3,
-                OPT_KYCB_SENTINEL = 999
+                OPT_LMDB_DIR_PATH = 0,
+                OPT_LMDB_READERS = 1,
+                OPT_LMDB_MMAP_SIZE = 2
         } opt_t;
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        kycb_db(void);
-        ~kycb_db(void);
+        lm_db(void);
+        ~lm_db(void);
         int32_t init(void);
         //: ------------------------------------------------
         //:                  D B   O P S
         //: ------------------------------------------------
-        int32_t increment_key(int64_t &ao_result,
-                              const char *a_key,
+        int32_t increment_key(int64_t& ao_result,
+                              const char* a_key,
                               uint32_t a_expires_ms);
         int32_t get_key(int64_t &ao_val, const char *a_key, uint32_t a_key_len);
-        int32_t print_all_keys(void);
         int32_t set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len);
         int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len);
+        int32_t print_all_keys();
+        int32_t clear_keys();
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
+        lm_db(const lm_db &);
+        lm_db& operator=(const lm_db &);
         int32_t expire_old_keys(void);
+        int32_t get_ttl_and_count(MDB_val* a_val, uint64_t& ao_ttl, uint32_t& ao_count);
+        int32_t set_ttl_and_count(MDB_val* a_val, lm_val_t* a_lm_val, uint64_t a_ttl, uint32_t a_count);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
-        atomic_gcc_builtin <kyotocabinet::HashDB*> m_db;
-        // -------------------------------------------------
-        // config
-        // -------------------------------------------------
-        std::string m_config_db_file_path;
-        int m_config_options;
-        uint32_t m_config_buckets;
-        uint32_t m_config_map;
+        std::string m_db_dir_path;
+        uint32_t m_num_readers;
+        uint64_t m_mmap_size;
+        MDB_env* m_env;
+        MDB_txn* m_txn;
+        MDB_dbi  m_dbi;
         // -------------------------------------------------
         // timer priority queue -used as min heap
         // -------------------------------------------------
-        kv_ttl_pq_t m_kv_ttl_pq;
+       kv_ttl_pq_t m_kv_ttl_pq;
 };
 }
 #endif
+

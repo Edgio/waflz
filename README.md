@@ -16,17 +16,17 @@ The VDMS global edge platform is a multitenant CDN supporting our hundreds of th
 ### Capabilities
 The open source standard implementation of the [ModSecurity Rules Engine](https://github.com/SpiderLabs/ModSecurity "ModSecurity") -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  Several ModSecurity capabilities eg [SecRemoteRules](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRemoteRules "SecRemoteRules") and [inspectFile](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#inspectFile "inspectFile"), were intentionally ommitted, due to potential performance impacts in a multitenant environment.  A list of currently supported variables, operators and transforms are listed in the [capabilities section of the docs](https://verizondigital.github.io/waflz/capabilities "waflz capabilities")
 
-### Build requirement (Ubuntu 14.04/16.04)
+### Build requirements (Ubuntu 16.04/18.04)
 
 ## Packages
 
 ```sh
-$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev python-pip
+$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev python3-pip liblmdb-dev
 ```
 
 ## Python Packages
 ```sh
-$ pip install -r requirements.txt
+$ pip3 install -r requirements.txt
 ```
 
 ### Build steps
@@ -36,14 +36,7 @@ $ ./build.sh
 ```
 ### OS X Build requirements (brew)
 ```bash
-brew install cmake
-brew install openssl
-brew install protobuf
-brew install libxml2
-brew install pcre
-brew install kyoto-cabinet
-brew install hiredis
-brew install dpkg
+brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg lmdb
 ```
 
 ### Building the tools

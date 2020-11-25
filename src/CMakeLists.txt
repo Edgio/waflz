@@ -299,6 +299,11 @@ install(TARGETS waflzcore
   LIBRARY DESTINATION lib
   COMPONENT Libraries
 )
+# Add install target for the shared library
+install(TARGETS waflz
+  LIBRARY DESTINATION lib
+  COMPONENT Libraries
+)
 # Add install target for header files
 install(FILES ${HDRS}
   DESTINATION include/waflz

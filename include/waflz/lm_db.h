@@ -27,12 +27,15 @@
 //: ----------------------------------------------------------------------------
 #include <stdint.h>
 #include <string>
-#include "liblmdb/lmdb.h"
 #include "waflz/kv_db.h"
 #include "waflz/def.h"
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
+struct MDB_env;
+struct MDB_txn;
+struct MDB_val;
+typedef unsigned int MDB_dbi;
 namespace ns_waflz {
 // lmdb val 
 typedef struct lm_val {

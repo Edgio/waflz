@@ -66,6 +66,10 @@ include_directories(
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src
     # ------------------------------------------------------
+    # lmdb
+    # ------------------------------------------------------
+    ${CMAKE_SOURCE_DIR}/ext/liblmdb/src
+    # ------------------------------------------------------
     # external libs
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/ext
@@ -81,6 +85,11 @@ SET(SRCS
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/data-pool.c
     ${CMAKE_SOURCE_DIR}/ext/libmaxminddb/src/maxminddb.c
+    # ------------------------------------------------------
+    # lmdb
+    # ------------------------------------------------------
+    ${CMAKE_SOURCE_DIR}/ext/liblmdb/mdb.c
+    ${CMAKE_SOURCE_DIR}/ext/liblmdb/midl.c
     # ------------------------------------------------------
     # yajl
     # ------------------------------------------------------
@@ -283,7 +292,7 @@ set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
 add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
 add_library(waflz SHARED ${SRCS} ${PB_SRCS})
 target_include_directories(waflzcore PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/proto/ ${CMAKE_BINARY_DIR}/)
-target_link_libraries(waflz ssl crypto pcre protobuf xml2 kyotocabinet hiredis lmdb)
+target_link_libraries(waflz ssl crypto pcre protobuf xml2 kyotocabinet hiredis)
 SET_TARGET_PROPERTIES(waflzcore
   PROPERTIES
   POSITION_INDEPENDENT_CODE ON

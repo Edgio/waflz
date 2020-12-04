@@ -27,7 +27,7 @@
 //: ----------------------------------------------------------------------------
 #include <stdint.h>
 #include <string>
-#include <lmdb.h>
+#include "liblmdb/lmdb.h"
 #include "waflz/kv_db.h"
 #include "waflz/def.h"
 //: ----------------------------------------------------------------------------

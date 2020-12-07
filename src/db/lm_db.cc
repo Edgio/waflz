@@ -53,12 +53,21 @@ lm_db::lm_db(void):
 lm_db::~lm_db()
 {
         // -------------------------------------------------
-        // env sync to flush keys to disk before restart
-        // and close env
+        // Sync env before restart to flush keys in meta to
+        // disk. env should be synced only if db exists.
+        // close env before restart
         // -------------------------------------------------
         if(m_env != NULL)
         {
-                mdb_env_sync(m_env, 1);
+
+                const char* l_path = NULL;
+                if(mdb_env_get_path(m_env, &l_path) == MDB_SUCCESS)
+                {
+                        if(l_path != NULL)
+                        {
+                                mdb_env_sync(m_env, 1);
+                        }
+                }
                 mdb_env_close(m_env);
                 m_env = NULL;
         }

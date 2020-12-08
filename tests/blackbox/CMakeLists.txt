@@ -45,6 +45,7 @@ add_test(blackbox_bot             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMA
 if (BUILD_RATE_LIMITING)
 add_test(blackbox_scopes          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/scopes/test_bb_scopes.py)
 add_test(blackbox_scopes_updates  ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/scopes/test_bb_scopes_updates.py)
+add_test(blackbox_limit_lmdb      ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/limit/test_bb_limit_lmdb.py)     
 endif()
 # ------------------------------------------------------------------------------
 # tests

@@ -172,6 +172,7 @@ list(APPEND SRCS
     # ------------------------------------------------------
     db/kycb_db.cc
     db/redis_db.cc
+    db/lm_db.cc
     # ------------------------------------------------------
     # limit
     # ------------------------------------------------------
@@ -247,6 +248,7 @@ SET(HDRS
     ${CMAKE_SOURCE_DIR}/include/waflz/kv_db.h
     ${CMAKE_SOURCE_DIR}/include/waflz/kycb_db.h
     ${CMAKE_SOURCE_DIR}/include/waflz/redis_db.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/lm_db.h
     # ------------------------------------------------------
     # limit
     # ------------------------------------------------------
@@ -281,7 +283,7 @@ set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
 add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
 add_library(waflz SHARED ${SRCS} ${PB_SRCS})
 target_include_directories(waflzcore PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/proto/ ${CMAKE_BINARY_DIR}/)
-target_link_libraries(waflz ssl crypto pcre protobuf xml2 kyotocabinet hiredis)
+target_link_libraries(waflz ssl crypto pcre protobuf xml2 kyotocabinet hiredis lmdb)
 SET_TARGET_PROPERTIES(waflzcore
   PROPERTIES
   POSITION_INDEPENDENT_CODE ON

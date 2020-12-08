@@ -233,8 +233,8 @@ def test_bb_rtu_chained_rule(setup_waflz_server):
     # Check rule targets to make sure that the RTU is applied
     # Rule 932200 targets before RTU
     # REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|REQUEST_COOKIES_NAMES|ARGS_NAMES|ARGS|XML:/*
-    # After aplliying the RTU the REQUEST_COOKIES should
-    # have mycookie as a negated target, which means dont look at it
+    # After applying the RTU the REQUEST_COOKIES should
+    # have mycookie as a negated target, which means RTU was applied
     # the rule target will look like this
     #    "rule_target": [
     #            {

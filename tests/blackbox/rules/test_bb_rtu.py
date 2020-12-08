@@ -225,7 +225,7 @@ def test_bb_rtu_chained_rule(setup_waflz_server):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     #-------------------------------------------------------
-    # check no event is returned
+    # check we get an event from same rule
     # ------------------------------------------------------
     assert 932200 == l_r_json['sub_event'][0]['rule_id']
     assert base64.b64decode(l_r_json['matched_var']['value']).decode("utf-8") == 'true|c|-1|easyweb|-|1607356144310|554290487_890|https://mysite.com/waw/brk/wb/wbr/static/main/index.html|webbroker - order status|1607356081298|/page/trading/order-status?accountid=uass7j-9elpoiabja6eykgubinbzfbh1b2hw2zbetqs='

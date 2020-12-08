@@ -90,8 +90,15 @@ public:
         ~ac();
         int32_t add(const char *a_buf, uint32_t a_len);
         int32_t finalize(void);
-        bool find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data);
-        bool find_first(const char *a_buf, uint32_t a_len);
+        bool find(const char *a_buf, uint32_t a_len, match_cb_t a_cb,
+                  void *a_data,
+                  bool a_override_case_sensitive =
+                      false); //!< override case sensitive
+
+        bool find_first(const char *a_buf, uint32_t a_len,
+                        bool a_override_case_sensitive =
+                            false); //!< override case sensitive
+
         const char *get_err_msg(void) { return m_err_msg; }
 #ifdef AC_DEBUG
         void display(void);

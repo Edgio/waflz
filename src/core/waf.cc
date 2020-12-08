@@ -46,7 +46,40 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
+
 namespace ns_waflz {
+
+//: ----------------------------------------------------------------------------
+//: \details: Mark the context with the applied tx. This can be used to avoid
+//:           performing the same logic more than once. ie: tolower() on a
+//:           particular operation that uses the ac when a previous tx already
+//:           lowered the string.
+//: \param:   A context(output)
+//: \param:   A transformation type.
+//: \return:  Sets the context with the appropiated applied tx.
+//: ----------------------------------------------------------------------------
+static void mark_tx_applied(ns_waflz::rqst_ctx *a_ctx,
+                waflz_pb::sec_action_t_transformation_type_t const &tx_type)
+{
+        switch(tx_type)
+        {
+        case waflz_pb::sec_action_t_transformation_type_t::
+                sec_action_t_transformation_type_t_LOWERCASE:
+        {
+                a_ctx->m_src_asn_str.m_tx_applied |= ns_waflz::TX_APPLIED_TOLOWER;
+                break;
+        }
+        case waflz_pb::sec_action_t_transformation_type_t::
+                sec_action_t_transformation_type_t_CMDLINE:
+        {
+                a_ctx->m_src_asn_str.m_tx_applied |= ns_waflz::TX_APPLIED_CMDLINE;
+                break;
+        }
+        default:;
+                // TODO: CMDLINE tx will also apply tolower(), Should it be included?
+        }
+}
+
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -1663,6 +1696,10 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                                         // TODO log reason???
                                         return WAFLZ_STATUS_ERROR;
                                 }
+                                // mark the current transformation so the operation can check and decide if some actions
+                                // like lowering the string needs to be done by the rule. Having this we can avoid things
+                                // like calling tolower() twice on the same string.
+                                mark_tx_applied(&a_ctx, l_t_type);
                                 if(l_mutated)
                                 {
                                         free(const_cast <char *>(l_x_data));
@@ -1751,6 +1788,7 @@ run_op:
                                 l_x_data = NULL;
                                 l_x_len = 0;
                                 l_mutated = false;
+                                a_ctx.m_src_asn_str.m_tx_applied = 0; // Reset
                         }
                         // ---------------------------------
                         // got a match -outtie

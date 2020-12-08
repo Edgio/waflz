@@ -231,7 +231,7 @@ def test_bb_rtu_chained_rule(setup_waflz_server):
     assert base64.b64decode(l_r_json['matched_var']['value']).decode("utf-8") == 'true|c|-1|easyweb|-|1607356144310|554290487_890|https://mysite.com/waw/brk/wb/wbr/static/main/index.html|webbroker - order status|1607356081298|/page/trading/order-status?accountid=uass7j-9elpoiabja6eykgubinbzfbh1b2hw2zbetqs='
     # ------------------------------------------------------
     # Check rule targets to make sure that the RTU is applied
-    # Rule 932200 tagets before RTU
+    # Rule 932200 targets before RTU
     # REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|REQUEST_COOKIES_NAMES|ARGS_NAMES|ARGS|XML:/*
     # After aplliying the RTU the REQUEST_COOKIES should
     # have mycookie as a negated target, which means dont look at it

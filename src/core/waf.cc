@@ -47,25 +47,39 @@
 #include <dirent.h>
 #include <errno.h>
 
-namespace {
-/// Mark the context with the applied tx. This can be used to avoid performing the
-/// same logic more than once. ie: tolower() on a particular operation that uses the ac
-/// when a previous tx already lowered the string.
-void mark_tx_applied(ns_waflz::rqst_ctx *a_ctx,
+namespace ns_waflz {
+
+//: ----------------------------------------------------------------------------
+//: \details: Mark the context with the applied tx. This can be used to avoid
+//:           performing the same logic more than once. ie: tolower() on a
+//:           particular operation that uses the ac when a previous tx already
+//:           lowered the string.
+//: \param:   A context(output)
+//: \param:   A transformation type.
+//: \return:  Sets the context with the appropiated applied tx.
+//: ----------------------------------------------------------------------------
+static void mark_tx_applied(ns_waflz::rqst_ctx *a_ctx,
                 waflz_pb::sec_action_t_transformation_type_t const &tx_type)
 {
         switch(tx_type)
         {
         case waflz_pb::sec_action_t_transformation_type_t::
                 sec_action_t_transformation_type_t_LOWERCASE:
+        {
                 a_ctx->m_src_asn_str.m_tx_applied |= ns_waflz::TX_APPLIED_TOLOWER;
                 break;
+        }
+        case waflz_pb::sec_action_t_transformation_type_t::
+                sec_action_t_transformation_type_t_CMDLINE:
+        {
+                a_ctx->m_src_asn_str.m_tx_applied |= ns_waflz::TX_APPLIED_CMDLINE;
+                break;
+        }
         default:;
                 // TODO: CMDLINE tx will also apply tolower(), Should it be included?
         }
 }
-}
-namespace ns_waflz {
+
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -1711,7 +1725,6 @@ run_op:
                                         continue;
                                 }
                                 bool l_match = false;
-
                                 l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx);
                                 if(l_s != WAFLZ_STATUS_OK)
                                 {
@@ -1757,11 +1770,7 @@ run_op:
                                 l_x_data = NULL;
                                 l_x_len = 0;
                                 l_mutated = false;
-                                if((a_ctx.m_src_asn_str.m_tx_applied & ns_waflz::TX_APPLIED_TOLOWER)
-                                        == ns_waflz::TX_APPLIED_TOLOWER)
-                                {
-                                  a_ctx.m_src_asn_str.m_tx_applied &= ~ns_waflz::TX_APPLIED_TOLOWER;
-                                }
+                                a_ctx.m_src_asn_str.m_tx_applied = 0; // Reset
                         }
                         // ---------------------------------
                         // got a match -outtie

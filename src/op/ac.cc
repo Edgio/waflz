@@ -572,7 +572,7 @@ bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data,
                         else
                         {
 #endif
-                        l_c = tolower(l_c);
+                                l_c = tolower(l_c);
 #ifdef _AC_UTF8
                         }
 #endif

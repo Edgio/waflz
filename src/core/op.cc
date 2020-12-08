@@ -71,6 +71,16 @@
                                       macro* a_macro, \
                                       rqst_ctx *a_ctx)
 namespace ns_waflz {
+
+//: ----------------------------------------------------------------------------
+//: \details: Checks if a context object was marked with a tx that uses tolower()
+//: \param:   A context(output)
+//: \return:  True if a tx that uses tolower() was called.
+//: ----------------------------------------------------------------------------
+static bool check_if_tolower_tx_was_applied(ns_waflz::rqst_ctx *a_ctx) {
+        return (a_ctx->m_src_asn_str.m_tx_applied & ns_waflz::TX_APPLIED_TOLOWER) ||
+                (a_ctx->m_src_asn_str.m_tx_applied & ns_waflz::TX_APPLIED_CMDLINE);
+}
 //: ----------------------------------------------------------------------------
 //: ****************************************************************************
 //:                             O P E R A T I O N S
@@ -782,14 +792,9 @@ OP(PM)
         // -------------------------------------------------
         ac *l_ac = (ac *)(a_op._reserved_1());
         bool l_match = false;
-        const bool l_tolower_applied =
-            ((a_ctx->m_src_asn_str.m_tx_applied &
-              ns_waflz::TX_APPLIED_TOLOWER) == ns_waflz::TX_APPLIED_TOLOWER);
+        const bool l_tolower_applied = check_if_tolower_tx_was_applied(a_ctx);
         l_match = l_ac->find_first(a_buf, a_len, l_tolower_applied);
-        if(l_tolower_applied)
-        {
-                a_ctx->m_src_asn_str.m_tx_applied &= ~ns_waflz::TX_APPLIED_TOLOWER;
-        }
+        //NDBG_PRINT("l_tolower_applied - %d\n", l_tolower_applied);
         if(l_match)
         {
                 ao_match = true;
@@ -821,15 +826,9 @@ OP(PMF)
         // -------------------------------------------------
         ac *l_ac = (ac *)(a_op._reserved_1());
         bool l_match = false;
-        const bool l_tolower_applied =
-            ((a_ctx->m_src_asn_str.m_tx_applied &
-              ns_waflz::TX_APPLIED_TOLOWER) == ns_waflz::TX_APPLIED_TOLOWER);
-
+        const bool l_tolower_applied = check_if_tolower_tx_was_applied(a_ctx);
         l_match = l_ac->find_first(a_buf, a_len, l_tolower_applied);
-        if(l_tolower_applied)
-        {
-                a_ctx->m_src_asn_str.m_tx_applied &= ~ns_waflz::TX_APPLIED_TOLOWER;
-        }
+        //NDBG_PRINT("l_tolower_applied - %d\n", l_tolower_applied);
         if(l_match)
         {
                 ao_match = true;
@@ -861,14 +860,9 @@ OP(PMFROMFILE)
         // -------------------------------------------------
         ac *l_ac = (ac *)(a_op._reserved_1());
         bool l_match = false;
-        const bool l_tolower_applied =
-            ((a_ctx->m_src_asn_str.m_tx_applied &
-              ns_waflz::TX_APPLIED_TOLOWER) == ns_waflz::TX_APPLIED_TOLOWER);
+        const bool l_tolower_applied = check_if_tolower_tx_was_applied(a_ctx);
         l_match = l_ac->find_first(a_buf, a_len, l_tolower_applied);
-        if(l_tolower_applied)
-        {
-                a_ctx->m_src_asn_str.m_tx_applied &= ~ns_waflz::TX_APPLIED_TOLOWER;
-        }
+        //NDBG_PRINT("l_tolower_applied - %d\n", l_tolower_applied);
         if(l_match)
         {
                 ao_match = true;

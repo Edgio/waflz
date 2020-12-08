@@ -263,64 +263,82 @@ static int32_t create_modified_rule(::waflz_pb::directive_t** ao_drx,
         ::waflz_pb::sec_rule_t *l_mx_r = l_drx->mutable_sec_rule();
         l_mx_r->CopyFrom(a_rule);
         // -------------------------------------------------
-        // for each var...
+        // Apply RTU on chained rules as well
         // -------------------------------------------------
-        for(int32_t i_v = 0; i_v < l_mx_r->variable_size(); ++i_v)
+        int32_t l_cr_idx = -1;
+        do
         {
-                ::waflz_pb::variable_t& l_v = *(l_mx_r->mutable_variable(i_v));
-                if(!l_v.has_type())
+                waflz_pb::sec_rule_t *l_rule = NULL;
+                if(l_cr_idx == -1)
                 {
-                        continue;
+                        l_rule = l_mx_r;
+                }
+                if((l_cr_idx >= 0) &&
+                    (l_cr_idx < l_mx_r->chained_rule_size()))
+                {
+                        l_rule = l_mx_r->mutable_chained_rule(l_cr_idx);
                 }
                 // -----------------------------------------
-                // variable is type...
+                // for each var...
                 // -----------------------------------------
-                _type_var_map_t::const_iterator i_vm = a_tv_map.find(l_v.type());
-                if(i_vm == a_tv_map.end())
+                for(int32_t i_v = 0; i_v < l_rule->variable_size(); ++i_v)
                 {
-                        continue;
-                }
-                // -----------------------------------------
-                // if replace -replace whole var
-                // -----------------------------------------
-                if(a_replace)
-                {
-                        l_v.CopyFrom(i_vm->second);
-                        continue;
-                }
-                const ::waflz_pb::variable_t& l_vm = i_vm->second;
-                // -----------------------------------------
-                // update the variable match
-                // -----------------------------------------
-                for(int32_t i_m = 0; i_m < l_vm.match_size(); ++i_m)
-                {
-                        const ::waflz_pb::variable_t_match_t& l_mm = l_vm.match(i_m);
-                        if(!l_mm.has_value())
+                        ::waflz_pb::variable_t& l_v = *(l_rule->mutable_variable(i_v));
+                        if(!l_v.has_type())
                         {
                                 continue;
                         }
-                        ::waflz_pb::variable_t_match_t* l_new_mx = l_v.add_match();
-                        l_new_mx->CopyFrom(l_mm);
                         // ---------------------------------
-                        // regex...
+                        // variable is type...
                         // ---------------------------------
-                        if(l_mm.is_regex())
+                        _type_var_map_t::const_iterator i_vm = a_tv_map.find(l_v.type());
+                        if(i_vm == a_tv_map.end())
                         {
-                                regex *l_pcre = NULL;
-                                l_pcre = new regex();
-                                const std::string &l_rx = l_mm.value();
-                                int32_t l_s;
-                                l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
-                                if(l_s != WAFLZ_STATUS_OK)
+                                continue;
+                        }
+                        // ---------------------------------
+                        // if replace -replace whole var
+                        // ---------------------------------
+                        if(a_replace)
+                        {
+                                l_v.CopyFrom(i_vm->second);
+                                continue;
+                        }
+                        const ::waflz_pb::variable_t& l_vm = i_vm->second;
+                        // ---------------------------------
+                        // update the variable match
+                        // ---------------------------------
+                        for(int32_t i_m = 0; i_m < l_vm.match_size(); ++i_m)
+                        {
+                                const ::waflz_pb::variable_t_match_t& l_mm = l_vm.match(i_m);
+                                if(!l_mm.has_value())
                                 {
-                                        // TODO -log error reason???
-                                        return WAFLZ_STATUS_ERROR;
+                                        continue;
                                 }
-                                ao_rx_list.push_back(l_pcre);
-                                l_new_mx->set__reserved_1((uint64_t)l_pcre);
+                                ::waflz_pb::variable_t_match_t* l_new_mx = l_v.add_match();
+                                l_new_mx->CopyFrom(l_mm);
+                                // -------------------------
+                                // regex...
+                                // -------------------------
+                                if(l_mm.is_regex())
+                                {
+                                        regex *l_pcre = NULL;
+                                        l_pcre = new regex();
+                                        const std::string &l_rx = l_mm.value();
+                                        int32_t l_s;
+                                        l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
+                                        if(l_s != WAFLZ_STATUS_OK)
+                                        {
+                                                // TODO -log error reason???
+                                                return WAFLZ_STATUS_ERROR;
+                                        }
+                                        ao_rx_list.push_back(l_pcre);
+                                        l_new_mx->set__reserved_1((uint64_t)l_pcre);
+                                }
                         }
                 }
-        }
+                ++l_cr_idx;
+        } while (l_cr_idx < l_mx_r->chained_rule_size());
         *ao_drx = l_drx;
         return WAFLZ_STATUS_OK;
 }
@@ -464,7 +482,7 @@ static int32_t modify_directive_list(directive_list_t &ao_directive_list,
                                 {
                                         ::waflz_pb::directive_t* l_drx = NULL;
                                         int32_t l_s;
-                                        l_s = create_modified_rule(&l_drx, ao_rx_list, l_tv_map, *l_rule, false);
+                                        l_s = create_modified_rule(&l_drx, ao_rx_list, l_tv_map, l_r, false);
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
                                                 return WAFLZ_STATUS_ERROR;

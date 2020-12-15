@@ -544,7 +544,8 @@ int32_t ac::finalize(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data)
+bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data,
+              bool a_override_case_sensitive)
 {
         if(!m_finalized)
         {
@@ -561,7 +562,7 @@ bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data)
                 // -----------------------------------------
                 // force char to lower if NOT case sensitive
                 // -----------------------------------------
-                if(!m_cfg_case_sensitive)
+                if(!m_cfg_case_sensitive && !a_override_case_sensitive)
                 {
 #ifdef _AC_UTF8
                         if(m_cfg_utf8)
@@ -571,7 +572,7 @@ bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data)
                         else
                         {
 #endif
-                        l_c = tolower(l_c);
+                                l_c = tolower(l_c);
 #ifdef _AC_UTF8
                         }
 #endif
@@ -619,9 +620,9 @@ bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-bool ac::find_first(const char *a_buf, uint32_t a_len)
+bool ac::find_first(const char *a_buf, uint32_t a_len, bool a_override_case_sensitive)
 {
-        return find(a_buf, a_len, match_handler_find_first, NULL);
+        return find(a_buf, a_len, match_handler_find_first, NULL, a_override_case_sensitive);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO

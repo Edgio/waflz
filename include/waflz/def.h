@@ -115,12 +115,21 @@ typedef struct _data {
 } data_t;
 typedef struct _mutable_data {
         char *m_data;
+        uint16_t m_tx_applied;
         uint32_t m_len;
         _mutable_data():
                 m_data(NULL),
+                m_tx_applied(0),
                 m_len(0)
         {}
 } mutable_data_t;
+
+typedef enum tx_applied
+{
+        TX_APPLIED_TOLOWER = 1 << 0,
+        TX_APPLIED_CMDLINE = 1 << 1
+} tx_applied_t;
+
 typedef std::list <data_t> data_list_t;
 struct data_case_i_comp
 {

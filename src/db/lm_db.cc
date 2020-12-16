@@ -559,5 +559,34 @@ int32_t lm_db::set_ttl_and_count(MDB_val* a_val, lm_val_t* a_lm_val, uint64_t a_
         a_val->mv_size = sizeof(lm_val_t); 
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t lm_db::get_lmdb_stats(lmdb_stats_t& a_stats)
+{
+        int32_t l_s;
+        MDB_envinfo m_einfo;
+        MDB_stat m_stat;
+        l_s = mdb_env_stat(m_env, &m_stat);
+        if(l_s !=  MDB_SUCCESS)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        l_s = mdb_env_info(m_env, &m_einfo);
+        if(l_s != MDB_SUCCESS)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        a_stats.m_max_readers = m_einfo.me_maxreaders;
+        a_stats.m_readers_used = m_einfo.me_numreaders;
+        a_stats.m_max_pages = m_einfo.me_mapsize / m_stat.ms_psize;
+        a_stats.m_pages_used = m_stat.ms_leaf_pages + m_stat.ms_branch_pages + m_stat.ms_overflow_pages;
+        a_stats.m_page_size = m_stat.ms_psize;
+        a_stats.m_res_mem_used = a_stats.m_pages_used * a_stats.m_page_size;
+        a_stats.m_num_entries = m_stat.ms_entries;
+        return WAFLZ_STATUS_OK;
+}
 }
 

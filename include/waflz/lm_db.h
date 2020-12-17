@@ -42,16 +42,6 @@ typedef struct lm_val {
         uint32_t m_count;
         uint64_t m_ttl_ms;
 }lm_val_t;
-// lmdb stats
-typedef struct lmdb_stats {
-        uint32_t m_max_readers;
-        uint32_t m_readers_used;
-        uint64_t m_max_pages;
-        uint64_t m_pages_used;
-        uint32_t m_page_size;
-        uint64_t m_res_mem_used;
-        uint64_t m_num_entries;
-}lmdb_stats_t;
 //: ----------------------------------------------------------------------------
 //: lm_db
 //: ----------------------------------------------------------------------------
@@ -82,7 +72,7 @@ public:
         int32_t set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len);
         int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len);
         int32_t print_all_keys();
-        int32_t get_lmdb_stats(lmdb_stats_t& a_stats);
+        int32_t get_db_stats(db_stats_t& a_stats);
         int32_t clear_keys();
 private:
         // -------------------------------------------------

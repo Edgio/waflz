@@ -564,7 +564,7 @@ int32_t lm_db::set_ttl_and_count(MDB_val* a_val, lm_val_t* a_lm_val, uint64_t a_
 //: \return  TODO
 //: \param   TODO
 //: ----------------------------------------------------------------------------
-int32_t lm_db::get_lmdb_stats(lmdb_stats_t& a_stats)
+int32_t lm_db::get_db_stats(db_stats_t& a_stats)
 {
         int32_t l_s;
         MDB_envinfo m_einfo;

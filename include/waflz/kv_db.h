@@ -43,8 +43,8 @@ typedef struct kv_ttl {
 typedef struct db_stats {
         uint32_t m_max_readers;
         uint32_t m_readers_used;
-        uint64_t m_max_pages;
-        uint64_t m_pages_used;
+        uint32_t m_max_pages;
+        uint32_t m_pages_used;
         uint32_t m_page_size;
         uint64_t m_res_mem_used;
         uint64_t m_num_entries;

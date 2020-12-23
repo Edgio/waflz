@@ -1,29 +1,16 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2017 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    nms.h
-//: \details: TODO
-//: \author:  Reed P Morrison
-//: \date:    08/09/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _NMS_H_
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include <map>
 #include <set>
 #include <list>
@@ -32,9 +19,9 @@
 #include <string>
 namespace ns_waflz
 {
-//: ----------------------------------------------------------------------------
-//: netmask set
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! netmask set
+//! ----------------------------------------------------------------------------
 class nms
 {
 public:
@@ -101,15 +88,15 @@ private:
         ipv4_mask_map_t *m_ipv4_mask_map;
         ipv6_mask_map_t *m_ipv6_mask_map;
 };
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 typedef std::list <const std::string *> ip_str_list_t;
-//: ----------------------------------------------------------------------------
-//: ****************************************************************************
-//:                            U T I L I T I E S
-//: ****************************************************************************
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! ****************************************************************************
+//!                            U T I L I T I E S
+//! ****************************************************************************
+//! ----------------------------------------------------------------------------
 int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str);
 int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file);
 int32_t create_nms_from_ip_str_list(nms **ao_nms, const ip_str_list_t &a_ip_str_list);

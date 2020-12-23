@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2017 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    string_util.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    03/09/2017
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "support/ndebug.h"
 #include "waflz/def.h"
 #include "waflz/string_util.h"
@@ -32,11 +19,11 @@
 #include <stdlib.h>
 #include <errno.h>
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_file_wo_path(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -47,11 +34,11 @@ std::string get_file_wo_path(const std::string &a_filename)
                 return fName;
         return fName.substr(pos + 1, fName.length());
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_file_path(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -62,11 +49,11 @@ std::string get_file_path(const std::string &a_filename)
                 return fName;
         return fName.substr(0, pos);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_base_filename(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -77,11 +64,11 @@ std::string get_base_filename(const std::string &a_filename)
                 return fName;
         return fName.substr(0, pos);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_file_ext(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -92,11 +79,11 @@ std::string get_file_ext(const std::string &a_filename)
                 return NULL;
         return fName.substr(pos + 1, fName.length());
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_file_wo_ext(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -107,11 +94,11 @@ std::string get_file_wo_ext(const std::string &a_filename)
                 return NULL;
         return fName.substr(0, pos);
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return: TODO
-//: \param:  TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return: TODO
+//! \param:  TODO
+//! ----------------------------------------------------------------------------
 int32_t convert_hex_to_uint(uint64_t &ao_val, const char *a_str)
 {
         ao_val = strtoull(a_str, NULL, 16);
@@ -123,13 +110,13 @@ int32_t convert_hex_to_uint(uint64_t &ao_val, const char *a_str)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details Find the first occurrence of find in s, where the search is limited
-//:          to the first slen characters of s.
-//: \return  TODO
-//: \param   TODO
-//: \notes   strnstr from freebsd
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Find the first occurrence of find in s, where the search is limited
+//!          to the first slen characters of s.
+//! \return  TODO
+//! \param   TODO
+//! \notes   strnstr from freebsd
+//! ----------------------------------------------------------------------------
 char *strnstr(const char *s, const char *find, size_t slen)
 {
         if(!s ||
@@ -162,11 +149,11 @@ char *strnstr(const char *s, const char *find, size_t slen)
         }
         return ((char *)s);
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 long int strntol(const char *a_str, size_t a_size, char **ao_end, int a_base)
 {
         char l_buf[24];
@@ -197,11 +184,11 @@ long int strntol(const char *a_str, size_t a_size, char **ao_end, int a_base)
         }
         return l_ret;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int64_t strntoll(const char *a_str, size_t a_size, char **ao_end, int a_base)
 {
         char l_buf[24];
@@ -231,11 +218,11 @@ int64_t strntoll(const char *a_str, size_t a_size, char **ao_end, int a_base)
         }
         return l_ret;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 unsigned long int strntoul(const char *a_str, size_t a_size, char **ao_end, int a_base)
 {
         char l_buf[24];
@@ -264,11 +251,11 @@ unsigned long int strntoul(const char *a_str, size_t a_size, char **ao_end, int 
         }
         return l_ret;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 uint64_t strntoull(const char *a_str, size_t a_size, char **ao_end, int a_base)
 {
         char l_buf[24];
@@ -297,15 +284,15 @@ uint64_t strntoull(const char *a_str, size_t a_size, char **ao_end, int a_base)
         }
         return l_ret;
 }
-//: ----------------------------------------------------------------------------
-//: \details Appends src to string dst of size dsize
-//:          (unlike strncat, dsize is full size of dst, not space left).
-//:          At most dsize-1 characters will be copied.
-//:          Always NULL terminates (unless dsize <= strlen(dst)).
-//: \return  strlen(src) + MIN(dsize, strlen(initial dst)).
-//:          If retval >= dsize, truncation occurred.
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Appends src to string dst of size dsize
+//!          (unlike strncat, dsize is full size of dst, not space left).
+//!          At most dsize-1 characters will be copied.
+//!          Always NULL terminates (unless dsize <= strlen(dst)).
+//! \return  strlen(src) + MIN(dsize, strlen(initial dst)).
+//!          If retval >= dsize, truncation occurred.
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 size_t strlcat(char *a_dst, const char *a_src, size_t a_dsize)
 {
         const char *l_odst = a_dst;
@@ -342,11 +329,11 @@ size_t strlcat(char *a_dst, const char *a_src, size_t a_dsize)
         // -------------------------------------------------
         return(l_dlen + (a_src - l_osrc));
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t convert_to_lower_case(char** ao_out, size_t& ao_len, const char* a_src, size_t a_len)
 {
         if(!a_src ||!a_len ||!ao_out)
@@ -366,11 +353,11 @@ int32_t convert_to_lower_case(char** ao_out, size_t& ao_len, const char* a_src, 
         ao_len = a_len;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 #if defined(__APPLE__) || defined(__darwin__)
 void * memrchr(const void *s, int c, size_t n)
 {
@@ -386,11 +373,11 @@ void * memrchr(const void *s, int c, size_t n)
     return (void *)0;
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 typedef struct {
         char m_token[32];
         char m_color[32];
@@ -441,10 +428,10 @@ int32_t colorize_string(std::string &ao_string)
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: \details: return version string
-//: \return:  version string
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: return version string
+//! \return:  version string
+//! ----------------------------------------------------------------------------
 const char *get_version(void)
 {
         return WAFLZ_VERSION;

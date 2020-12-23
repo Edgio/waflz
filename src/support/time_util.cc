@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    time_util.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    02/07/2014
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "time_util.h"
 #include <unistd.h>
 #include <time.h>
@@ -33,9 +20,9 @@
 #include <mach/mach.h>
 #endif
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: global static
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! global static
+//! ----------------------------------------------------------------------------
 static uint32_t g_max_resolution_us = 10;
 __thread uint64_t g_last_s_rdtsc  = 0;
 __thread uint64_t g_last_s        = 0;
@@ -52,11 +39,11 @@ void time_set_max_resolution_us(uint32_t a_us)
 {
         g_max_resolution_us = a_us;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Get the rdtsc value
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Get the rdtsc value
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 // https://github.com/mellanox/sockperf/issues/47#issuecomment-97041796
 static __inline__ uint64_t get_rdtsc64()
 {
@@ -77,11 +64,11 @@ static __inline__ uint64_t get_rdtsc64()
 #endif
         return tm;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static inline bool _use_cached_time(uint64_t &a_last_rdtsc)
 {
         if(!g_cyles_us)
@@ -97,11 +84,11 @@ static inline bool _use_cached_time(uint64_t &a_last_rdtsc)
         a_last_rdtsc = get_rdtsc64();
         return false;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 const char *get_date_str(void)
 {
         if(_use_cached_time(g_last_date_str_s_rdtsc) && g_last_s)
@@ -113,11 +100,11 @@ const char *get_date_str(void)
         strftime(g_last_date_str, sizeof g_last_date_str, "%a, %d %b %Y %H:%M:%S %Z", &l_tm);
         return g_last_date_str;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Portable gettime function
-//: \return:  NA
-//: \param:   ao_timespec: struct timespec -with gettime result
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Portable gettime function
+//! \return:  NA
+//! \param:   ao_timespec: struct timespec -with gettime result
+//! ----------------------------------------------------------------------------
 static void _rt_gettime(struct timespec &ao_timespec)
 {
 #ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
@@ -133,11 +120,11 @@ static void _rt_gettime(struct timespec &ao_timespec)
         clock_gettime(CLOCK_REALTIME, &ao_timespec);
 #endif
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint64_t get_time_s(void)
 {
         if(_use_cached_time(g_last_s_rdtsc) && g_last_s)
@@ -150,11 +137,11 @@ uint64_t get_time_s(void)
 	g_last_s = (((uint64_t)l_timespec.tv_sec));
 	return g_last_s;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint64_t get_time_ms(void)
 {
         if(_use_cached_time(g_last_ms_rdtsc) && g_last_ms)
@@ -167,11 +154,11 @@ uint64_t get_time_ms(void)
 	g_last_ms = (((uint64_t)l_timespec.tv_sec) * 1000) + (((uint64_t)l_timespec.tv_nsec) / 1000000);
 	return g_last_ms;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint64_t get_time_us(void)
 {
         if(_use_cached_time(g_last_us_rdtsc) && g_last_us)
@@ -184,30 +171,30 @@ uint64_t get_time_us(void)
         g_last_us = (((uint64_t)l_timespec.tv_sec) * 1000000) + (((uint64_t)l_timespec.tv_nsec) / 1000);
 	return g_last_us;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint64_t get_delta_time_ms(uint64_t a_start_time_ms)
 {
 	return get_time_ms() - a_start_time_ms;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint64_t get_delta_time_us(uint64_t a_start_time_us)
 {
 	return get_time_us() - a_start_time_us;
 }
-//: ----------------------------------------------------------------------------
-//: \details: convert date/time to epoch seconds
-//: \return:  epoch seconds
-//: \param:   a_date_time_str - eg: 2016-07-20T00:44:20.744583Z
+//! ----------------------------------------------------------------------------
+//! \details: convert date/time to epoch seconds
+//! \return:  epoch seconds
+//! \param:   a_date_time_str - eg: 2016-07-20T00:44:20.744583Z
 //            a_format - eg: "%Y-%m-%dT%H:%M:%S%Z    
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
 uint64_t get_epoch_seconds(const char* a_date_time_str, const char* a_format)
 {
         struct tm l_tm;

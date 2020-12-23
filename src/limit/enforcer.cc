@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    enforcers.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "support/time_util.h"
 #include "support/ndebug.h"
 #include "jspb/jspb.h"
@@ -34,24 +21,24 @@
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
 #include "limit.pb.h"
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 // the maximum size of the json defining configuration for a rl enforcement (1MB)
 #define CONFIG_SECURITY_RL_CONFIG_MAX_SIZE (1<<20)
 namespace ns_waflz
 {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! ----------------------------------------------------------------------------
 enforcer::enforcer(bool a_case_insensitive_headers):
         rl_obj(a_case_insensitive_headers),
         m_stat_total_limits(0)
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! ----------------------------------------------------------------------------
 enforcer::enforcer(waflz_pb::config *a_pb,
                    bool a_case_insensitive_headers):
            rl_obj(a_case_insensitive_headers),
@@ -68,17 +55,17 @@ enforcer::enforcer(waflz_pb::config *a_pb,
                 m_stat_total_limits = 0;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details dtor
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details dtor
+//! ----------------------------------------------------------------------------
 enforcer::~enforcer()
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t enforcer::validate(void)
 {
         // -------------------------------------------------
@@ -135,11 +122,11 @@ int32_t enforcer::validate(void)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t enforcer::load(void *a_js)
 {
         if(!a_js)
@@ -211,11 +198,11 @@ int32_t enforcer::load(void *a_js)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t enforcer::load(const char *a_buf, uint32_t a_buf_len)
 {
         if(a_buf_len > CONFIG_SECURITY_RL_CONFIG_MAX_SIZE)
@@ -251,11 +238,11 @@ int32_t enforcer::load(const char *a_buf, uint32_t a_buf_len)
         if(l_js) { delete l_js; l_js = NULL;}
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t enforcer::process(const waflz_pb::enforcement** ao_axn, rqst_ctx *a_ctx)
 {
         if(!m_pb)
@@ -386,11 +373,11 @@ int32_t enforcer::process(const waflz_pb::enforcement** ao_axn, rqst_ctx *a_ctx)
 done:
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t enforcer::merge(waflz_pb::config &ao_cfg)
 {
         if(!m_pb)
@@ -430,11 +417,11 @@ int32_t enforcer::merge(waflz_pb::config &ao_cfg)
         m_stat_total_limits = m_pb->limits_size();
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 void enforcer::update_start_time(void)
 {
         if(!m_pb)

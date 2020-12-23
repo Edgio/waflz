@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2015 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    rqst_ctx.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    01/19/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "event.pb.h"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
@@ -37,13 +24,13 @@
 #include "parser/parser_json.h"
 #include <stdlib.h>
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define _DEFAULT_BODY_ARG_LEN_CAP 4096
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define GET_RQST_DATA(_cb) do { \
         l_buf = NULL; \
         l_buf_len = 0; \
@@ -55,16 +42,16 @@
         } \
 } while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: static
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! static
+//! ----------------------------------------------------------------------------
 uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
 get_data_cb_t rqst_ctx::s_get_bot_ch_prob = NULL;
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static bool key_in_ignore_list(const pcre_list_t &a_pcre_list,
                                const char *a_data,
                                uint32_t a_data_len)
@@ -93,11 +80,11 @@ static bool key_in_ignore_list(const pcre_list_t &a_pcre_list,
         }
         return l_match;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t remove_ignored(arg_list_t &ao_arg_list,
                               const pcre_list_t &a_pcre_list)
 {
@@ -120,11 +107,11 @@ static int32_t remove_ignored(arg_list_t &ao_arg_list,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
                                     const pcre_list_t &a_pcre_list)
 {
@@ -147,13 +134,13 @@ static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details Check whether the text in the buf begins with JSON structure
-//: \return  true: on finding json structure in the begining
-//:          false: on not finding json structure in the begining
-//: \param   a_buf: Input buffer
-//:          a_len: length of buffer
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Check whether the text in the buf begins with JSON structure
+//! \return  true: on finding json structure in the begining
+//!          false: on not finding json structure in the begining
+//! \param   a_buf: Input buffer
+//!          a_len: length of buffer
+//! ----------------------------------------------------------------------------
 static bool infer_is_json(const char *a_buf, uint32_t a_len)
 {
         // -------------------------------------------------
@@ -218,11 +205,11 @@ static bool infer_is_json(const char *a_buf, uint32_t a_len)
         }
         return false;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 rqst_ctx::rqst_ctx(void *a_ctx,
                    uint32_t a_body_len_max,
                    const rqst_ctx_callbacks *a_callbacks,
@@ -308,11 +295,11 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_ctx(a_ctx)
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 rqst_ctx::~rqst_ctx()
 {
         // -------------------------------------------------
@@ -382,11 +369,11 @@ rqst_ctx::~rqst_ctx()
         // -------------------------------------------------
         if(m_src_asn_str.m_data) { free(m_src_asn_str.m_data); m_src_asn_str.m_data = NULL; m_src_asn_str.m_len = 0; }
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t rqst_ctx::reset_phase_1()
 {
         // -------------------------------------------------
@@ -434,11 +421,11 @@ int32_t rqst_ctx::reset_phase_1()
         m_wl = false;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                                const pcre_list_t *a_il_query,
                                const pcre_list_t *a_il_header,
@@ -935,11 +922,11 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         m_init_phase_1 = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
 {
         if(m_init_phase_2)
@@ -1214,11 +1201,11 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         m_init_phase_2 = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geoip2_mmdb)
 {
         const char *l_buf = NULL;
@@ -1378,11 +1365,11 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void rqst_ctx::show(void)
 {
         NDBG_OUTPUT("+------------------------------------------------+\n");
@@ -1431,12 +1418,12 @@ void rqst_ctx::show(void)
         }
         NDBG_OUTPUT("+------------------------------------------------------------------------------+\n");
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party lib to cleanup rqst_ctx object after 
-//:          every request is processed
-//: \return  0: success
-//: \param   a_rqst_ctx: rqst_ctx object
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to cleanup rqst_ctx object after 
+//!          every request is processed
+//! \return  0: success
+//! \param   a_rqst_ctx: rqst_ctx object
+//! ----------------------------------------------------------------------------
 extern "C" int32_t rqst_ctx_cleanup(rqst_ctx *a_rqst_ctx)
 {
         if(a_rqst_ctx)

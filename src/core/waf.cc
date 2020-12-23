@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2015 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    waf.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    02/16/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "rule.pb.h"
 #include "event.pb.h"
 #include "profile.pb.h"
@@ -49,15 +36,15 @@
 
 namespace ns_waflz {
 
-//: ----------------------------------------------------------------------------
-//: \details: Mark the context with the applied tx. This can be used to avoid
-//:           performing the same logic more than once. ie: tolower() on a
-//:           particular operation that uses the ac when a previous tx already
-//:           lowered the string.
-//: \param:   A context(output)
-//: \param:   A transformation type.
-//: \return:  Sets the context with the appropiated applied tx.
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Mark the context with the applied tx. This can be used to avoid
+//!           performing the same logic more than once. ie: tolower() on a
+//!           particular operation that uses the ac when a previous tx already
+//!           lowered the string.
+//! \param:   A context(output)
+//! \param:   A transformation type.
+//! \return:  Sets the context with the appropiated applied tx.
+//! ----------------------------------------------------------------------------
 static void mark_tx_applied(ns_waflz::rqst_ctx *a_ctx,
                 waflz_pb::sec_action_t_transformation_type_t const &tx_type)
 {
@@ -80,11 +67,11 @@ static void mark_tx_applied(ns_waflz::rqst_ctx *a_ctx,
         }
 }
 
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 waf::waf(engine &a_engine):
         // -------------------------------------------------
         // protobuf
@@ -114,11 +101,11 @@ waf::waf(engine &a_engine):
 {
         m_compiled_config = new compiled_config_t();
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 waf::~waf()
 {
         if(m_compiled_config) { delete m_compiled_config; m_compiled_config = NULL; }
@@ -132,11 +119,11 @@ waf::~waf()
                 *i_d = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 #if 0
 void waf::show(void)
 {
@@ -145,22 +132,22 @@ void waf::show(void)
         NDBG_OUTPUT("%s\n", l_config.c_str());
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 #if 0
 void waf::show_status(void)
 {
         m_parser.show_status();
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint32_t waf::get_request_body_in_memory_limit(void)
 {
         if(m_pb &&
@@ -170,11 +157,11 @@ uint32_t waf::get_request_body_in_memory_limit(void)
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::get_str(std::string &ao_str, config_parser::format_t a_format)
 {
         bool l_s;
@@ -238,17 +225,17 @@ int32_t waf::get_str(std::string &ao_str, config_parser::format_t a_format)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: types for organizing rule modifications
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types for organizing rule modifications
+//! ----------------------------------------------------------------------------
 typedef std::map <waflz_pb::variable_t_type_t, waflz_pb::variable_t> _type_var_map_t;
 typedef std::map <std::string, _type_var_map_t> _id_tv_map_t;
-//: ----------------------------------------------------------------------------
-//: \details: This function generates a modified rule based on RTUs.
-//:           The RTUs are stored in id to variable map (a_tv_map).
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: This function generates a modified rule based on RTUs.
+//!           The RTUs are stored in id to variable map (a_tv_map).
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static int32_t create_modified_rule(::waflz_pb::directive_t** ao_drx,
                                     regex_list_t &ao_rx_list,
                                     const _type_var_map_t& a_tv_map,
@@ -342,20 +329,20 @@ static int32_t create_modified_rule(::waflz_pb::directive_t** ao_drx,
         *ao_drx = l_drx;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Modify the directives based on a_dr_id_set, ao_id_tv_map
-//:           and ao_id_tv_replace_map. The modified rules are stored in
-//:           ao_mx_directive_list (m_mx_rule_list) and the references to rules
-//:           in _compiled_config are updated to refer these
-//:           instead of the rules in global rulesets
-//: \return:  TODO
-//: \param:   ao_directive_list: list of all directives
-//:           ao_mx_directive_list: list of all modified directives
-//:           ao_rx_list: list of all compiled regex
-//:           a_dr_id_set: ids of rule to be removed
-//:           ao_id_tv_map: rule id to variable map, for updating target
-//:           ao_id_tv_replace_map: rule id to varaible replace map
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Modify the directives based on a_dr_id_set, ao_id_tv_map
+//!           and ao_id_tv_replace_map. The modified rules are stored in
+//!           ao_mx_directive_list (m_mx_rule_list) and the references to rules
+//!           in _compiled_config are updated to refer these
+//!           instead of the rules in global rulesets
+//! \return:  TODO
+//! \param:   ao_directive_list: list of all directives
+//!           ao_mx_directive_list: list of all modified directives
+//!           ao_rx_list: list of all compiled regex
+//!           a_dr_id_set: ids of rule to be removed
+//!           ao_id_tv_map: rule id to variable map, for updating target
+//!           ao_id_tv_replace_map: rule id to varaible replace map
+//! ----------------------------------------------------------------------------
 static int32_t modify_directive_list(directive_list_t &ao_directive_list,
                                      directive_list_t &ao_mx_directive_list,
                                      regex_list_t &ao_rx_list,
@@ -498,11 +485,11 @@ static int32_t modify_directive_list(directive_list_t &ao_directive_list,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::compile(void)
 {
         // -------------------------------------------------
@@ -653,11 +640,11 @@ int32_t waf::compile(void)
         if(l_id_tv_replace_map) { delete l_id_tv_replace_map; l_id_tv_replace_map = NULL; }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::init(config_parser::format_t a_format,
                   const std::string &a_path,
                   bool a_apply_defaults,
@@ -737,11 +724,11 @@ int32_t waf::init(config_parser::format_t a_format,
         m_is_initd = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::init(void* a_js,
                   bool a_apply_defaults,
                   bool a_custom_rules)
@@ -819,11 +806,11 @@ int32_t waf::init(void* a_js,
         m_is_initd = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void set_var_tx(waflz_pb::sec_config_t &ao_conf_pb,
                 const char *a_id,
                 const char *a_var,
@@ -842,11 +829,11 @@ void set_var_tx(waflz_pb::sec_config_t &ao_conf_pb,
         l_sv->set_var(a_var);
         l_sv->set_val(a_val);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::set_defaults(bool a_custom_rules)
 {
         ::waflz_pb::sec_config_t& l_conf_pb = *m_pb;
@@ -886,11 +873,11 @@ int32_t waf::set_defaults(bool a_custom_rules)
         set_var_tx(l_conf_pb, "900020", "combined_file_sizes", "6291456");
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::init(profile &a_profile)
 {
         if(!a_profile.get_pb())
@@ -1391,11 +1378,11 @@ done:
         return WAFLZ_STATUS_OK;
 }
 #if 0
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::init_line(config_parser::format_t a_format, const std::string &a_line)
 {
          // Check if already is initd
@@ -1430,11 +1417,11 @@ int32_t waf::init_line(config_parser::format_t a_format, const std::string &a_li
         return WAFLZ_STATUS_OK;
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process_rule(waflz_pb::event **ao_event,
                           const waflz_pb::sec_rule_t &a_rule,
                           rqst_ctx &a_ctx)
@@ -1554,11 +1541,11 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                                bool &ao_match,
                                const waflz_pb::sec_rule_t &a_rule,
@@ -2043,11 +2030,11 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process_match(waflz_pb::event** ao_event,
                            const waflz_pb::sec_rule_t& a_rule,
                            rqst_ctx& a_ctx)
@@ -2371,11 +2358,11 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process_phase(waflz_pb::event **ao_event,
                            const directive_list_t &a_dl,
                            const marker_map_t &a_mm,
@@ -2468,11 +2455,11 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process(waflz_pb::event **ao_event,
                      void *a_ctx,
                      rqst_ctx **ao_rqst_ctx,

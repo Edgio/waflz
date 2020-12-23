@@ -1,38 +1,25 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    parser_xml.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/06/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "parser/parser_xml.h"
 #include "support/ndebug.h"
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 void xml_doc_dump(xmlDocPtr a_doc)
 {
         char *l_buf;
@@ -47,11 +34,11 @@ void xml_doc_dump(xmlDocPtr a_doc)
                 NDBG_OUTPUT("%.*s\n", l_buf_len, l_buf);
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details print all xml element names (debug)
-//: \return  NA
-//: \param   xmlNode a_node: xml node object
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details print all xml element names (debug)
+//! \return  NA
+//! \param   xmlNode a_node: xml node object
+//! ----------------------------------------------------------------------------
 void print_element_names(xmlNode * a_node)
 {
         xmlNode *i_n = a_node;
@@ -97,21 +84,21 @@ void print_element_names(xmlNode * a_node)
                 i_n = i_n->next;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static xmlParserInputBufferPtr unload_entity(const char *a_uri,
                                              xmlCharEncoding a_enc)
 {
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 parser_xml::parser_xml(rqst_ctx *a_rqst_ctx):
         parser(a_rqst_ctx),
         m_doc(),
@@ -120,20 +107,20 @@ parser_xml::parser_xml(rqst_ctx *a_rqst_ctx):
         m_capture_xxe(false)
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 parser_xml::~parser_xml()
 {
         if(m_doc) { xmlFreeDoc(m_doc); m_doc = NULL; }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t parser_xml::init()
 {
         if(m_parsing_ctx)
@@ -156,11 +143,11 @@ int32_t parser_xml::init()
         UNUSED(l_entity);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t parser_xml::process_chunk(const char *a_buf, uint32_t a_len)
 {
         // -------------------------------------------------
@@ -189,11 +176,11 @@ int32_t parser_xml::process_chunk(const char *a_buf, uint32_t a_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t parser_xml::finish(void)
 {
         if(m_parsing_ctx == NULL)
@@ -239,11 +226,11 @@ cleanup:
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t parser_xml::capture_xxe(struct _xmlNode *a_xmlNode)
 {
         xmlNode *i_n = a_xmlNode;

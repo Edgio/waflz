@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    instances.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "profile.pb.h"
 #include "waflz/instances.h"
 #include "waflz/instance.h"
@@ -36,9 +23,9 @@
 #include "rapidjson/error/en.h"
 #include <dirent.h>
 #include <errno.h>
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #ifndef SET_INSTANCES_CB
 #define SET_INSTANCES_CB(_cb, _a_cb) do { \
         for(cust_id_coordinator_map_t::iterator _i_m = m_cust_id_coordinator_map.begin(); \
@@ -51,11 +38,11 @@
 } while(0)
 #endif
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 instances::instances(engine &a_engine,
                      bool a_enable_locking):
         m_err_msg(),
@@ -70,11 +57,11 @@ instances::instances(engine &a_engine,
                 pthread_mutex_init(&m_mutex, NULL);
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 instances::~instances()
 {
         for (id_instance_map_t::iterator it = m_id_instance_map.begin();
@@ -89,11 +76,11 @@ instances::~instances()
                 pthread_mutex_destroy(&m_mutex);
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t instances::load(instance **ao_instance, void *a_js, bool a_update)
 {
         if(!a_js)
@@ -178,11 +165,11 @@ int32_t instances::load(instance **ao_instance, void *a_js, bool a_update)
         *ao_instance = l_instance;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t instances::load(instance **ao_instance, const char *a_buf, uint32_t a_buf_len, bool a_update)
 {
         // ---------------------------------------
@@ -257,11 +244,11 @@ int32_t instances::load(instance **ao_instance, const char *a_buf, uint32_t a_bu
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t instances::load_file(instance **ao_instance,
                              const char *a_file_path,
                              uint32_t a_file_path_len,
@@ -289,11 +276,11 @@ int32_t instances::load_file(instance **ao_instance,
         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t instances::load_dir(const char *a_dir_path,
                             uint32_t a_dir_path_len,
                             bool a_update)
@@ -390,11 +377,11 @@ int32_t instances::load_dir(const char *a_dir_path,
         free(l_conf_list);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t instances::process(waflz_pb::enforcement **ao_enf,
                            waflz_pb::event **ao_audit_event,
                            waflz_pb::event **ao_prod_event,
@@ -449,11 +436,11 @@ int32_t instances::process(waflz_pb::enforcement **ao_enf,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 instance *instances::get_instance(const std::string &a_id)
 {
         id_instance_map_t::iterator i_i;
@@ -464,11 +451,11 @@ instance *instances::get_instance(const std::string &a_id)
         }
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 void instances::get_first_id(std::string &ao_id)
 {
         if(m_enable_locking)
@@ -485,11 +472,11 @@ void instances::get_first_id(std::string &ao_id)
                 pthread_mutex_unlock(&m_mutex);
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 void instances::get_rand_id(std::string &ao_id)
 {
         if(m_enable_locking)
@@ -508,11 +495,11 @@ void instances::get_rand_id(std::string &ao_id)
                 pthread_mutex_unlock(&m_mutex);
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 bool instances::id_exists(bool& ao_audit, bool &ao_prod, const std::string& a_id)
 {
         ao_audit = false;

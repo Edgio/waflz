@@ -1,43 +1,30 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_ac.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/06/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "parser/parser_json.h"
 #include "support/ndebug.h"
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define JSON_SHORT "{\"pets\": {\"cat\": \"fish\", \"dog\": \"bone\"}}"
 #define JSON_LONG_FIELD_NAMES "{\"_data_1_0_bananaMonday_1088888_bananas_rc_Banana_Monkey_ttp_cat_fish_dog_koala_puid_XXX_XXXXXXXXXXXXXXXXXXXX_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX_XXXXXXXXXXXXXXXXXX_XXXXXXXXXXXXX_XXXXXXXXXXX_XXXX_XXXXXXXXX_XXXXXXXXXXXXXXXXXXX_XXXXXXXXXXXXXXX_XXXXXXXXXXXXX_status_strikeThroughText\":{\"url\":\"/data/1.0/Bananas/8888888/monkeys?rc=Banana_Monkeez&ttp=a_b_c_d_e&banana=AAAAABBBCCCCCDDDDD&monkeez=2019_01_01_2019_01_01&bananas=1_2&rn=2&fields=bananaMonkeez,complete,bananasMonkey,bananaMonkey&bananaMonkeez=data,bananas,bananaMonkeez,catDogs,catDogFish,status,wangWangWang\"}}"
 #define JSON_PARSER_JSON_PREFIX_LEN_MAX "{ \"id\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"ext\" : { \"source\": \"secure_darla\" }, \"site\": { \"id\": \"brxd232561\", \"page\": \"https://hk.yahoo.com/\" , \"publisher\": { \"id\": \"brxd25533108522\", \"ext\": { \"adclntid\": 1004, \"hotlistpubid\": \"25533108522\" } }, \"ext\": { \"hotlistsiteid\": \"205061\" } }, \"device\": { \"ua\": \"Mozilla/5.0 (Windows NT 6.1; rv:66.0) Gecko/20100101 Firefox/66.0\" , \"ip\" : \"112.118.170.249\" }, \"user\": { \"id\": \"7dgj7vpe7u297&b=3&s=l1\" , \"ext\": { } }, \"regs\" :{ \"ext\" : { \"gdpr\" : 0 } }, \"imp\": [ { \"id\": \"0\", \"secure\": 1, \"ext\": { \"pos\": \"y400353\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"EU\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|EU|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 1, \"h\": 1 } },{ \"id\": \"1\", \"secure\": 1, \"ext\": { \"pos\": \"y400354\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"EU3\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|EU3|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 140, \"h\": 100 } },{ \"id\": \"2\", \"secure\": 1, \"ext\": { \"pos\": \"y400355\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"EU4\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|EU4|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 1, \"h\": 1 } },{ \"id\": \"3\", \"secure\": 1, \"ext\": { \"pos\": \"y400356\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"FPAD\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|FPAD|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 1, \"h\": 1 } },{ \"id\": \"4\", \"secure\": 1, \"ext\": { \"pos\": \"y400357\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"FPL\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|FPL|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 635, \"h\": 100 } },{ \"id\": \"5\", \"secure\": 1, \"ext\": { \"pos\": \"y400358\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"FPR\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|FPR|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 374, \"h\": 226 } },{ \"id\": \"6\", \"secure\": 1, \"ext\": { \"pos\": \"y400359\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"FPR1\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|FPR1|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 1, \"h\": 1 } },{ \"id\": \"7\", \"secure\": 1, \"ext\": { \"pos\": \"y400360\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"FPR2\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|FPR2|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 1, \"h\": 1 } },{ \"id\": \"8\", \"secure\": 1, \"ext\": { \"pos\": \"y400361\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"FPT\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|FPT|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 374, \"h\": 110 } },{ \"id\": \"9\", \"secure\": 1, \"ext\": { \"pos\": \"y400362\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"MBAR\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|MBAR|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 300, \"h\": 250 } },{ \"id\": \"10\", \"secure\": 1, \"ext\": { \"pos\": \"y400364\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"TL1\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|TL1|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 120, \"h\": 45 } },{ \"id\": \"11\", \"secure\": 1, \"ext\": { \"pos\": \"y400365\", \"pvid\": \"fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"spaceid\": \"1197745128\", \"adposition\": \"TL3\", \"lmsid\": \"\", \"publisherblob\" : \"|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj|1197745128|TL3|fiGn2jEwLjJ2wmf.XH8JJ0_PMTEyLgAAAABHaWMj\", \"rs\": \"\", \"kvs\" : {\"pgcolo\":\"gq1\",\"secure\":\"true\",\"secure-darla\":\"3-6-3|ysd|1\",\"ssp\":\"brxd\",\"y-bucket\":\"lugia-836510\"} , \"sectionid\" : \"73373061\" }, \"banner\": { \"w\": 120, \"h\": 60 } } ] }"
-//: ----------------------------------------------------------------------------
-//: json parse
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! json parse
+//! ----------------------------------------------------------------------------
 TEST_CASE( "json parse basic test", "[json_parse_basic]" ) {
         // -------------------------------------------------
         // basic test

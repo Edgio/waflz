@@ -3,7 +3,7 @@
 .pydevproject
 .settings
 build
-
+Debug/
 CMakeCache.txt
 *.a
 *.build.log

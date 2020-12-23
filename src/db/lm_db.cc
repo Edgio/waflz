@@ -1,25 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    lm_db.cc
-//: \details: TODO
-//: \author:  Revathi Sabanayagam
-//: \date:    11/02/2020
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "support/time_util.h"
 #include "support/ndebug.h"
 #include "waflz/kycb_db.h"
@@ -30,11 +20,11 @@
 #include <string.h>
 #include <sys/stat.h>
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 lm_db::lm_db(void):
         kv_db(),
         m_db_dir_path(),
@@ -45,11 +35,11 @@ lm_db::lm_db(void):
         m_dbi(),
         m_kv_ttl_pq()
 {}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 lm_db::~lm_db()
 {
         // -------------------------------------------------
@@ -77,11 +67,11 @@ lm_db::~lm_db()
                 m_kv_ttl_pq.pop();
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::init()
 {
         int32_t l_s;
@@ -137,11 +127,11 @@ int32_t lm_db::init()
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
 {
         switch(a_opt)
@@ -169,11 +159,11 @@ int32_t lm_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
 {
         switch(a_opt)
@@ -186,20 +176,20 @@ int32_t lm_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::print_all_keys()
 {
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::get_key(int64_t& ao_val, const char* a_key, uint32_t a_key_len)
 {
         int32_t l_s;
@@ -248,11 +238,11 @@ int32_t lm_db::get_key(int64_t& ao_val, const char* a_key, uint32_t a_key_len)
         mdb_txn_abort(m_txn);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::increment_key(int64_t& ao_result, const char* a_key, uint32_t a_expires_ms)
 {
         int32_t l_s;
@@ -360,11 +350,11 @@ int32_t lm_db::increment_key(int64_t& ao_result, const char* a_key, uint32_t a_e
         m_kv_ttl_pq.push(l_kv_ttl); 
         return WAFLZ_STATUS_OK;
 }
-//: ---------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ---------------------------------------------------------------------------
+//! ---------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ---------------------------------------------------------------------------
 int32_t lm_db::expire_old_keys(void)
 {
         int32_t l_s;
@@ -478,11 +468,11 @@ int32_t lm_db::expire_old_keys(void)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::clear_keys()
 {
         int32_t l_s;
@@ -513,11 +503,11 @@ int32_t lm_db::clear_keys()
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::get_ttl_and_count(MDB_val* a_val, uint64_t& ao_ttl, uint32_t& ao_count)
 {
         if(a_val == NULL)
@@ -533,11 +523,11 @@ int32_t lm_db::get_ttl_and_count(MDB_val* a_val, uint64_t& ao_ttl, uint32_t& ao_
         ao_count = l_v->m_count;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::set_ttl_and_count(MDB_val* a_val, lm_val_t* a_lm_val, uint64_t a_ttl, uint32_t a_count)
 {
         if(a_val == NULL || a_lm_val == NULL)

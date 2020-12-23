@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    jspb.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    09/30/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "jspb/jspb.h"
 #include <string>
 #include <google/protobuf/descriptor.h>
@@ -33,9 +20,9 @@
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
 #include "base64/base64.h"
-//: ----------------------------------------------------------------------------
-//: Macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Macros
+//! ----------------------------------------------------------------------------
 #ifndef JSPB_TRACE
 #define JSPB_TRACE(...) \
   if(s_trace) { \
@@ -55,19 +42,19 @@
   snprintf(s_err_msg, JSPB_ERR_LEN, __VA_ARGS__); \
 }while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: Globals
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Globals
+//! ----------------------------------------------------------------------------
 static bool s_trace;
 static char s_err_msg[JSPB_ERR_LEN];
-//: ----------------------------------------------------------------------------
-//: \details: Set a single field value in the json object.
-//: \return:  TODO
-//: \param:   reflection the protobuf message reflection informationm
-//: \param:   field the protobuf message field information
-//: \param:   message the protobuf message to read from
-//: \param:   value the json object to update
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Set a single field value in the json object.
+//! \return:  TODO
+//! \param:   reflection the protobuf message reflection informationm
+//! \param:   field the protobuf message field information
+//! \param:   message the protobuf message to read from
+//! \param:   value the json object to update
+//! ----------------------------------------------------------------------------
 static int32_t convert_single_field(rapidjson::Value &ao_val,
                                     rapidjson::Document::AllocatorType& a_alx,
                                     const google::protobuf::Reflection* a_ref,
@@ -183,15 +170,15 @@ static int32_t convert_single_field(rapidjson::Value &ao_val,
         }
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a repeated field to json for various types.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   converter the member function to do the conversion
-//: \param:   field the field descriptor for the field we are converting
-//: \param:   message the message being converted
-//: \param:   value the value to store the converted data
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a repeated field to json for various types.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   converter the member function to do the conversion
+//! \param:   field the field descriptor for the field we are converting
+//! \param:   message the message being converted
+//! \param:   value the value to store the converted data
+//! ----------------------------------------------------------------------------
 template <typename T, typename F1>
 static int32_t convert_repeated_field(rapidjson::Value &ao_val,
                                       rapidjson::Document::AllocatorType& a_alx,
@@ -210,15 +197,15 @@ static int32_t convert_repeated_field(rapidjson::Value &ao_val,
         ao_val.AddMember(rapidjson::Value(a_field->name().c_str(), a_alx).Move(), l_arr, a_alx);
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a repeated field to json for various types.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   converter the member function to do the conversion
-//: \param:   field the field descriptor for the field we are converting
-//: \param:   message the message being converted
-//: \param:   value the value to store the converted data
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a repeated field to json for various types.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   converter the member function to do the conversion
+//! \param:   field the field descriptor for the field we are converting
+//! \param:   message the message being converted
+//! \param:   value the value to store the converted data
+//! ----------------------------------------------------------------------------
 template <typename F1>
 static int32_t convert_repeated_field_str(rapidjson::Value &ao_val,
                                           rapidjson::Document::AllocatorType& a_alx,
@@ -240,14 +227,14 @@ static int32_t convert_repeated_field_str(rapidjson::Value &ao_val,
         ao_val.AddMember(rapidjson::Value(a_field->name().c_str(), a_alx).Move(), l_arr, a_alx);
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a repeated field to json for a message type.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are converting
-//: \param:   message the message being converted
-//: \param:   value the value to store the converted data
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a repeated field to json for a message type.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are converting
+//! \param:   message the message being converted
+//! \param:   value the value to store the converted data
+//! ----------------------------------------------------------------------------
 static int32_t convert_repeated_message_field(rapidjson::Value &ao_val,
                                               rapidjson::Document::AllocatorType& a_alx,
                                               const google::protobuf::Reflection* a_ref,
@@ -270,14 +257,14 @@ static int32_t convert_repeated_message_field(rapidjson::Value &ao_val,
         ao_val.AddMember(rapidjson::Value(a_field->name().c_str(), a_alx).Move(), l_arr, a_alx);
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a repeated field to json for an enum type.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are converting
-//: \param:   message the message being converted
-//: \param:   value the value to store the converted data
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a repeated field to json for an enum type.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are converting
+//! \param:   message the message being converted
+//! \param:   value the value to store the converted data
+//! ----------------------------------------------------------------------------
 static int32_t convert_repeated_enum_field(rapidjson::Value &ao_val,
                                            rapidjson::Document::AllocatorType& a_alx,
                                            const google::protobuf::Reflection* a_ref,
@@ -295,14 +282,14 @@ static int32_t convert_repeated_enum_field(rapidjson::Value &ao_val,
         ao_val.AddMember(rapidjson::Value(a_field->name().c_str(), a_alx).Move(), l_arr, a_alx);
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a repeated field to json.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are converting
-//: \param:   message the message being converted
-//: \param:   value the value to store the converted data
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a repeated field to json.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are converting
+//! \param:   message the message being converted
+//! \param:   value the value to store the converted data
+//! ----------------------------------------------------------------------------
 static int32_t convert_repeated_field(rapidjson::Value &ao_val,
                                       rapidjson::Document::AllocatorType& a_alx,
                                       const google::protobuf::Reflection* a_ref,
@@ -439,18 +426,18 @@ static int32_t convert_repeated_field(rapidjson::Value &ao_val,
         }
         return l_s;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Update a field within a message from a given json object,
-//:           for many types of values.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are updating
-//: \param:   updater the method to use to update the field
-//: \param:   value the value to get the information from
-//: \param:   access the method used to get the value from the json object
-//: \param:   checker the method used to check that the json type is correct
-//: \param:   message the message being updated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Update a field within a message from a given json object,
+//!           for many types of values.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are updating
+//! \param:   updater the method to use to update the field
+//! \param:   value the value to get the information from
+//! \param:   access the method used to get the value from the json object
+//! \param:   checker the method used to check that the json type is correct
+//! \param:   message the message being updated
+//! ----------------------------------------------------------------------------
 template <typename F1, typename F2, typename F3>
 static int32_t update_field(google::protobuf::Message& ao_msg,
                             const google::protobuf::Reflection* a_ref,
@@ -470,14 +457,14 @@ static int32_t update_field(google::protobuf::Message& ao_msg,
         (a_ref->*a_updater)(&ao_msg, a_field, (a_val.*a_accessor)());
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Update single enum field within message from json object.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are updating
-//: \param:   value the value to get the information from
-//: \param:   message the message being updated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Update single enum field within message from json object.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are updating
+//! \param:   value the value to get the information from
+//! \param:   message the message being updated
+//! ----------------------------------------------------------------------------
 template <typename F1>
 static int32_t update_enum_field(google::protobuf::Message& ao_msg,
                                  const google::protobuf::Reflection* a_ref,
@@ -500,14 +487,14 @@ static int32_t update_enum_field(google::protobuf::Message& ao_msg,
         (a_ref->*a_updater)(&ao_msg, a_field, enumValueDescriptor);
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Update single field within message from json object.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are updating
-//: \param:   value the value to get the information from
-//: \param:   message the message being updated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Update single field within message from json object.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are updating
+//! \param:   value the value to get the information from
+//! \param:   message the message being updated
+//! ----------------------------------------------------------------------------
 static int32_t update_single_field(google::protobuf::Message& ao_msg,
                                    const google::protobuf::Reflection* a_ref,
                                    const google::protobuf::Descriptor* a_des,
@@ -667,18 +654,18 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         }
         return l_s;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Update a repeated field within a message from a given json object,
-//:           for many types of values.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are updating
-//: \param:   updater the method to use to update the field
-//: \param:   value the value to get the information from
-//: \param:   access the method used to get the value from the json object
-//: \param:   checker the method used to check that the json type is correct
-//: \param:   message the message being updated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Update a repeated field within a message from a given json object,
+//!           for many types of values.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are updating
+//! \param:   updater the method to use to update the field
+//! \param:   value the value to get the information from
+//! \param:   access the method used to get the value from the json object
+//! \param:   checker the method used to check that the json type is correct
+//! \param:   message the message being updated
+//! ----------------------------------------------------------------------------
 template <typename F1, typename F2, typename F3>
 static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
                                      const google::protobuf::Reflection* a_ref,
@@ -708,14 +695,14 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Update repeated message field within message from json object.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are updating
-//: \param:   value the value to get the information from
-//: \param:   message the message being updated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Update repeated message field within message from json object.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are updating
+//! \param:   value the value to get the information from
+//! \param:   message the message being updated
+//! ----------------------------------------------------------------------------
 static int32_t update_repeated_message_field(google::protobuf::Message& ao_msg,
                                              const google::protobuf::Reflection* a_ref,
                                              const google::protobuf::FieldDescriptor* a_field,
@@ -736,14 +723,14 @@ static int32_t update_repeated_message_field(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Update repeated enum field within message from json object.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are updating
-//: \param:   value the value to get the information from
-//: \param:   message the message being updated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Update repeated enum field within message from json object.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are updating
+//! \param:   value the value to get the information from
+//! \param:   message the message being updated
+//! ----------------------------------------------------------------------------
 static int32_t update_repeated_enum_field(google::protobuf::Message& ao_msg,
                                           const google::protobuf::Reflection* a_ref,
                                           const google::protobuf::Descriptor* a_des,
@@ -768,14 +755,14 @@ static int32_t update_repeated_enum_field(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Update repeated field within message from json object.
-//: \return:  TODO
-//: \param:   reflection the reflection interface for the message
-//: \param:   field the field descriptor for the field we are updating
-//: \param:   value the value to get the information from
-//: \param:   message the message being updated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Update repeated field within message from json object.
+//! \return:  TODO
+//! \param:   reflection the reflection interface for the message
+//! \param:   field the field descriptor for the field we are updating
+//! \param:   value the value to get the information from
+//! \param:   message the message being updated
+//! ----------------------------------------------------------------------------
 static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
                                      const google::protobuf::Reflection* a_ref,
                                      const google::protobuf::Descriptor* a_des,
@@ -925,12 +912,12 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         }
         return l_s;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t convert_to_json(rapidjson::Value &ao_val,
                         rapidjson::Document::AllocatorType &a_alx,
                         const google::protobuf::Message& a_msg)
@@ -976,13 +963,13 @@ int32_t convert_to_json(rapidjson::Value &ao_val,
         }
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a protobuf message to a json object, storing
-//:           the result in a rapidjson::Document object.
-//: \return:  TODO
-//: \param:   msg the protobuf message to convert
-//: \param:   value json object to hold the converted value
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a protobuf message to a json object, storing
+//!           the result in a rapidjson::Document object.
+//! \return:  TODO
+//! \param:   msg the protobuf message to convert
+//! \param:   value json object to hold the converted value
+//! ----------------------------------------------------------------------------
 int32_t convert_to_json(rapidjson::Document& ao_js,
                         const google::protobuf::Message& a_msg)
 {
@@ -1028,13 +1015,13 @@ int32_t convert_to_json(rapidjson::Document& ao_js,
         }
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a protobuf message to a json object, storing the
-//:           result in a std::string.
-//: \return:  TODO
-//: \param:   msg the protobuf message to convert
-//: \param:   value json object to hold the converted value
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a protobuf message to a json object, storing the
+//!           result in a std::string.
+//! \return:  TODO
+//! \param:   msg the protobuf message to convert
+//! \param:   value json object to hold the converted value
+//! ----------------------------------------------------------------------------
 int32_t convert_to_json(std::string& ao_str,
                         const google::protobuf::Message& a_msg)
 {
@@ -1060,12 +1047,12 @@ done:
         }
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const rapidjson::Value &a_val)
 {
@@ -1218,13 +1205,13 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a json object to a protobuf message, reading the
-//:           json value from a Json::Value object.
-//: \return:  TODO
-//: \param:   value json object to convert
-//: \param:   message protobuf message to hold the converted value
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a json object to a protobuf message, reading the
+//!           json value from a Json::Value object.
+//! \return:  TODO
+//! \param:   value json object to convert
+//! \param:   message protobuf message to hold the converted value
+//! ----------------------------------------------------------------------------
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const rapidjson::Document& a_js)
 {
@@ -1316,13 +1303,13 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
         }
         return JSPB_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a json object to a protobuf message, reading the
-//:           json value from a std::string.
-//: \return:  TODO
-//: \param:   value json object to convert
-//: \param:   message protobuf message to hold the converted value
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a json object to a protobuf message, reading the
+//!           json value from a std::string.
+//! \return:  TODO
+//! \param:   value json object to convert
+//! \param:   message protobuf message to hold the converted value
+//! ----------------------------------------------------------------------------
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const char *a_buf,
                          uint32_t a_len)
@@ -1363,30 +1350,30 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
         }
         return l_s;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Convert a json object to a protobuf message, reading the
-//:           json value from a std::string.
-//: \return:  TODO
-//: \param:   value json object to convert
-//: \param:   message protobuf message to hold the converted value
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Convert a json object to a protobuf message, reading the
+//!           json value from a std::string.
+//! \return:  TODO
+//! \param:   value json object to convert
+//! \param:   message protobuf message to hold the converted value
+//! ----------------------------------------------------------------------------
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const std::string& a_str)
 {
         return update_from_json(ao_msg, a_str.c_str(), a_str.length());
 }
-//: ----------------------------------------------------------------------------
-//: \details: Get last error
-//: \return:  Last error reason
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Get last error
+//! \return:  Last error reason
+//! ----------------------------------------------------------------------------
 const char * get_jspb_err_msg(void)
 {
         return s_err_msg;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void set_trace(bool a_val)
 {
         s_trace = a_val;

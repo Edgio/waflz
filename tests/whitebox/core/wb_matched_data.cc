@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2017 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_matched_data.cc
-//: \details: TODO
-//: \author:  James Cline
-//: \date:    06/26/2017
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/instances.h"
@@ -39,9 +26,9 @@
 #include <fcntl.h>
 #include <string>
 #if 0
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 {
         static const char s_uri[] = "243.49.2.0";
@@ -49,9 +36,9 @@ static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t &a_len, void *
         a_len = strlen(s_uri);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_line_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 {
         static const char s_line[] = "GET /800050/origin.testsuite.com/sec_arg_check/info.html?a=%27select%20*%20from%20test_5%27 HTTP/1.1";
@@ -59,9 +46,9 @@ static int32_t get_rqst_line_cb(const char **a_data, uint32_t &a_len, void *a_ct
         a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_method_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 {
         static const char s_line[] = "GET";
@@ -69,9 +56,9 @@ static int32_t get_rqst_method_cb(const char **a_data, uint32_t &a_len, void *a_
         a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 {
         static const char s_line[] = "HTTP/1.1";
@@ -79,9 +66,9 @@ static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t &a_len, void *
         a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 {
         static const char s_line[] = "http";
@@ -89,17 +76,17 @@ static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t &a_len, void *a_
         a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_port_cb(uint32_t &a_val, void *a_ctx)
 {
         a_val = 80;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_uri_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 {
         static const char s_line[] = "/800050/origin.testsuite.com/sec_arg_check/info.html?a=%27select%20*%20from%20test_5%27";
@@ -107,9 +94,9 @@ static int32_t get_rqst_uri_cb(const char **a_data, uint32_t &a_len, void *a_ctx
         a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_query_str_long_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 {
         static const char s_line[] = "mooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnkkkkkkkkkkkkkkkkkkeeeeeeeeeeeeeeeyyyyyyyyyyssssss=100000000000000000000000000000000000000";
@@ -117,9 +104,9 @@ static int32_t get_rqst_query_str_long_cb(const char **a_data, uint32_t &a_len, 
         a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t &a_len, void *a_ctx)
 {
         static const char s_line[] = "a=%27select%20*%20from%20test_5%27";
@@ -127,17 +114,17 @@ static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t &a_len, void 
         a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_header_size_cb(uint32_t &a_val, void *a_ctx)
 {
         a_val = 3;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 #if 0
 static int32_t get_rqst_header_w_key_cb(const char **ao_val,
                                         uint32_t &ao_val_len,
@@ -171,9 +158,9 @@ static int32_t get_rqst_header_w_key_cb(const char **ao_val,
         return 0;
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                                         uint32_t &ao_key_len,
                                         const char **ao_val,
@@ -227,9 +214,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         return 0;
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: coordinator tests
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! coordinator tests
+//! ----------------------------------------------------------------------------
 TEST_CASE( "dont_log_matched_data feature flag tests", "[profiles]" ) {
 
         char l_cwd[1024];

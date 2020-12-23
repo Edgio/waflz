@@ -1,30 +1,17 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    def.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _WAFLZ_DEF_H_
 #define _WAFLZ_DEF_H_
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 #include <stdint.h>
 #include <list>
@@ -42,9 +29,9 @@
 #endif
 #include "waflz/city.h"
 #include "waflz/string_util.h"
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #ifndef WAFLZ_STATUS_OK
   #define WAFLZ_STATUS_OK 0
 #endif
@@ -64,9 +51,9 @@
     #define CONFIG_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
   #endif
 #endif 
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #ifndef WAFLZ_PERROR
 #define WAFLZ_PERROR(_str, ...) do { \
   snprintf(_str, WAFLZ_ERR_LEN, __VA_ARGS__); \
@@ -78,9 +65,9 @@
   snprintf(_str + _len, WAFLZ_ERR_LEN - _len - 1, __VA_ARGS__); \
 } while(0)
 #endif
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 namespace ns_waflz {
 typedef enum {
@@ -92,9 +79,9 @@ typedef enum {
         PART_MK_ALL = 31
 } part_mk_t;
 #endif
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define DEFAULT_BODY_SIZE_MAX (128*1024)
 // callbacks
 typedef int32_t (*get_rqst_data_size_cb_t)(uint32_t *a, void *);
@@ -140,9 +127,9 @@ struct data_case_i_comp
         }
 };
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
-//: ----------------------------------------------------------------------------
-//: data_t comparators for unordered data structures
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! data_t comparators for unordered data structures
+//! ----------------------------------------------------------------------------
 struct data_comp_unordered
 {
         bool operator()(const data_t& lhs, const data_t& rhs) const
@@ -161,9 +148,9 @@ struct data_case_i_comp_unordered
                 return strncasecmp(lhs.m_data, rhs.m_data, l_len) == 0;
         }
 };
-//: ----------------------------------------------------------------------------
-//: data_t hash for unordered data structures
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! data_t hash for unordered data structures
+//! ----------------------------------------------------------------------------
 struct data_t_hash
 {
         inline std::size_t operator()(const data_t& a_key) const

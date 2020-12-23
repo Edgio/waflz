@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    geoip2_mmdb.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/07/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include <maxminddb.h>
 #include "waflz/def.h"
 #include "waflz/geoip2_mmdb.h"
@@ -33,22 +20,22 @@
 #include <fcntl.h>
 #include <stdlib.h>
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 geoip2_mmdb::geoip2_mmdb():
         m_init(false),
         m_err_msg(),
         m_city_mmdb(NULL),
         m_asn_mmdb(NULL)
 {}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 geoip2_mmdb::~geoip2_mmdb(void)
 {
         //close mmdb
@@ -65,11 +52,11 @@ geoip2_mmdb::~geoip2_mmdb(void)
                 m_asn_mmdb = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t geoip2_mmdb::init(const std::string& a_city_mmdb_path,
                           const std::string& a_asn_mmdb_path)
 {
@@ -131,11 +118,11 @@ done:
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t geoip2_mmdb::get_country(const char **ao_buf,
                                  uint32_t &ao_buf_len,
                                  const char *a_ip,
@@ -230,11 +217,11 @@ int32_t geoip2_mmdb::get_country(const char **ao_buf,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t geoip2_mmdb::get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_len)
 {
         ao_asn = 0;
@@ -317,15 +304,15 @@ int32_t geoip2_mmdb::get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_l
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details Get the country name and city name from a mmdb record. The func uses
+//! ----------------------------------------------------------------------------
+//! \details Get the country name and city name from a mmdb record. The func uses
 //           MMDB_get_value to get individual record keys, so have to call it twice
-//: \return  0 on success, -1 on error
-//: \param   ao_cn_name: country name
-//:          ao_cn_name_len: length of country name string
-//:          ao_city_name: city name
-//:          ao_city_name_len: length of city name string
-//: ----------------------------------------------------------------------------
+//! \return  0 on success, -1 on error
+//! \param   ao_cn_name: country name
+//!          ao_cn_name_len: length of country name string
+//!          ao_city_name: city name
+//!          ao_city_name_len: length of city name string
+//! ----------------------------------------------------------------------------
 int32_t geoip2_mmdb::get_country_city_name(const char **ao_cn_name, uint32_t &ao_cn_name_len,
                                            const char **ao_city_name, uint32_t &ao_city_name_len,
                                            const char *a_ip, uint32_t a_ip_len)

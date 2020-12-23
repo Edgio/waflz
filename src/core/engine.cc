@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    engine.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    02/28/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/config_parser.h"
 #include "waflz/engine.h"
@@ -39,11 +26,11 @@
 #include "core/op.h"
 #include <libxml/parser.h>
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 _compiled_config::~_compiled_config()
 {
         // -------------------------------------------------
@@ -83,11 +70,11 @@ _compiled_config::~_compiled_config()
                 if(*i_p) { delete *i_p; *i_p = NULL;}
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 engine::engine():
         m_macro(NULL),
         m_config_list(),
@@ -100,11 +87,11 @@ engine::engine():
         m_err_msg()
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 engine::~engine()
 {
         // -------------------------------------------------
@@ -147,11 +134,11 @@ engine::~engine()
                 m_geoip2_mmdb = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t engine::init()
 {
         int32_t l_s;
@@ -209,11 +196,11 @@ int32_t engine::init()
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: compile regexes in vars
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: compile regexes in vars
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                         waflz_pb::sec_config_t &a_config,
                         const std::string& a_ruleset_dir)
@@ -631,11 +618,11 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
                                 const std::string &a_include,
                                 waflz_pb::sec_config_t &a_config,
@@ -697,11 +684,11 @@ int32_t engine::process_include(compiled_config_t **ao_cx_cfg,
         *ao_cx_cfg = l_new_cx_cfg;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t engine::merge(compiled_config_t &ao_cx_cfg,
                       const compiled_config_t &a_cx_cfg)
 {
@@ -751,64 +738,64 @@ int32_t engine::merge(compiled_config_t &ao_cx_cfg,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 void engine::set_geoip2_dbs(const std::string& a_geoip2_db,
                             const std::string& a_geoip2_isp_db)
 {
         m_geoip2_db = a_geoip2_db;
         m_geoip2_isp_db = a_geoip2_isp_db;
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party lib to create an engine obj
-//: \return  an engine object
-//: \param   void
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to create an engine obj
+//! \return  an engine object
+//! \param   void
+//! ----------------------------------------------------------------------------
 extern "C" engine *create_waflz_engine(void)
 {
         return new engine();
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party lib to set the ruleset directory of
-//:          waf rulesets for a given scopes config.
-//: \return  an engine object
-//: \param   a_engine: engine object
-//: \param   a_ruleset_dir: location of ruleset directory
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to set the ruleset directory of
+//!          waf rulesets for a given scopes config.
+//! \return  an engine object
+//! \param   a_engine: engine object
+//! \param   a_ruleset_dir: location of ruleset directory
+//! ----------------------------------------------------------------------------
 extern "C" void set_waflz_ruleset_dir(engine *a_engine, char *a_ruleset_dir)
 {
         a_engine->set_ruleset_dir(a_ruleset_dir);;
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party lib to set geoip db paths
-//: \return  void
-//: \param   a_engine: engine obj
-//: \param   a_geoip2_db: location of geoip city mmdb file
-//: \param   a_geoip2_isp_db: location of geoip isp mmdb file
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to set geoip db paths
+//! \return  void
+//! \param   a_engine: engine obj
+//! \param   a_geoip2_db: location of geoip city mmdb file
+//! \param   a_geoip2_isp_db: location of geoip isp mmdb file
+//! ----------------------------------------------------------------------------
 extern "C" void set_waflz_geoip2_dbs(engine *a_engine, char *a_geoip2_db, char *a_geoip2_isp_db)
 {
         a_engine->set_geoip2_dbs(a_geoip2_db, a_geoip2_isp_db);;
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party initiate engine obj, this will set
-//:          ruleset dir, geoip db, paths, compile waf rules etc
-//: \return  0 on success
-//:          -1 on failure
-//: \param   a_engine: engine object
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party initiate engine obj, this will set
+//!          ruleset dir, geoip db, paths, compile waf rules etc
+//! \return  0 on success
+//!          -1 on failure
+//! \param   a_engine: engine object
+//! ----------------------------------------------------------------------------
 extern "C" int32_t init_waflz_engine(engine *a_engine)
 {
         return a_engine->init();;
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party lib to cleanup engine obj
-//: \return  0: success
-//: \param   a_engine: engine obj
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to cleanup engine obj
+//! \return  0: success
+//! \param   a_engine: engine obj
+//! ----------------------------------------------------------------------------
 extern "C" int32_t waflz_engine_cleanup(engine *a_engine)
 {
         if(a_engine)

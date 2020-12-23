@@ -1,37 +1,24 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    kv_db.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    06/01/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _KV_DB_H_
 #define _KV_DB_H_
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include <stdint.h>
 // for std::priority_queue
 #include <queue>
-//: ----------------------------------------------------------------------------
-//: fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd decl's
+//! ----------------------------------------------------------------------------
 namespace ns_waflz {
 // key ttl
 typedef struct kv_ttl {
@@ -39,9 +26,9 @@ typedef struct kv_ttl {
         std::string *m_key;
         ~kv_ttl() { if(m_key) { delete m_key; m_key = NULL; } }
 } kv_ttl_t;
-//: ----------------------------------------------------------------------------
-//: Priority queue sorting
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Priority queue sorting
+//! ----------------------------------------------------------------------------
 class pq_compare_events {
 public:
         // Returns true if t1 is greater than t2
@@ -51,9 +38,9 @@ public:
         }
 };
 typedef std::priority_queue<kv_ttl_t *, std::vector<kv_ttl_t *>, pq_compare_events> kv_ttl_pq_t;
-//: ----------------------------------------------------------------------------
-//: kv_db
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! kv_db
+//! ----------------------------------------------------------------------------
 class kv_db {
 public:
         // -------------------------------------------------

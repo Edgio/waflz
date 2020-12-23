@@ -1,41 +1,28 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    profile.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/rules.h"
 #include "support/ndebug.h"
 #include "waflz/engine.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/waf.h"
 #include "event.pb.h"
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define _CONFIG_PROFILE_MAX_SIZE (1<<20)
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define VERIFY_HAS(_pb, _field) do { \
         if(!_pb.has_##_field()) { \
                 WAFLZ_PERROR(m_err_msg, "missing %s field", #_field); \
@@ -43,11 +30,11 @@
         } \
 } while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 rules::rules(engine &a_engine):
         m_init(false),
         m_err_msg(),
@@ -58,20 +45,20 @@ rules::rules(engine &a_engine):
         m_name("NA")
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details dtor
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details dtor
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 rules::~rules()
 {
         if(m_waf) { delete m_waf; m_waf = NULL; }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
 {
         if(a_buf_len > _CONFIG_PROFILE_MAX_SIZE)
@@ -114,11 +101,11 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t rules::load(void* a_js)
 {
         m_init = false;
@@ -151,11 +138,11 @@ int32_t rules::load(void* a_js)
         m_init = true;
         return WAFLZ_STATUS_OK;     
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t rules::process(waflz_pb::event **ao_event,
                        void *a_ctx,
                        rqst_ctx **ao_rqst_ctx)
@@ -226,11 +213,11 @@ int32_t rules::process(waflz_pb::event **ao_event,
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 const waflz_pb::sec_config_t* rules::get_pb(void)
 {
         if(!m_waf)

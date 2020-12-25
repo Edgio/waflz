@@ -7,9 +7,9 @@
 //! Licensed under the terms of the Apache 2.0 open source license.
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "sx_instance.h"
 #include "waflz/instances.h"
 #include "waflz/instance.h"
@@ -29,9 +29,9 @@
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #ifndef STATUS_OK
   #define STATUS_OK 0
 #endif
@@ -40,19 +40,19 @@
 #endif
 #define _WAFLZ_SERVER_HEADER_INSTANCE_ID "waf-instance-id"
 namespace ns_waflz_server {
-//: ----------------------------------------------------------------------------
-//: type
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! type
+//! ----------------------------------------------------------------------------
 typedef struct _waf_instance_update {
         char *m_buf;
         uint32_t m_buf_len;
         ns_waflz::instances *m_instances;
 } waf_instance_update_t;
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static void *t_load_instance(void *a_context)
 {
         waf_instance_update_t *l_i = reinterpret_cast<waf_instance_update_t *>(a_context);
@@ -73,11 +73,11 @@ static void *t_load_instance(void *a_context)
         delete l_i;
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
                                              ns_is2::rqst &a_rqst,
                                              const ns_is2::url_pmap_t &a_url_pmap)
@@ -139,11 +139,11 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
         ns_is2::queue_api_resp(a_session, l_api_resp);
         return ns_is2::H_RESP_DONE;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 sx_instance::sx_instance(void):
         m_bg_load(false),
         m_is_rand(false),
@@ -157,22 +157,22 @@ sx_instance::sx_instance(void):
 {
 
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 sx_instance::~sx_instance(void)
 {
         if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_instances) { delete m_instances; m_instances = NULL; }
         if(m_update_instances_h) { delete m_update_instances_h; m_update_instances_h = NULL; }
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t sx_instance::init(void)
 {
         int32_t l_s;
@@ -252,11 +252,11 @@ int32_t sx_instance::init(void)
         m_lsnr->add_route("/update_instance", m_update_instances_h);
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
                                           ns_waflz::rqst_ctx **ao_ctx,
                                           ns_is2::session &a_session,

@@ -25,6 +25,7 @@ class enforcement;
 }
 namespace ns_waflz {
 class rqst_ctx;
+class challenge;
 }
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
@@ -62,6 +63,7 @@ public:
         ns_is2::lsnr *m_lsnr;
         std::string m_config;
         std::string m_resp;
+        ns_waflz::challenge *m_b_challenge;
         const ns_waflz::rqst_ctx_callbacks *m_callbacks;
 private:
 };

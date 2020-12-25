@@ -7,17 +7,16 @@
 //! Licensed under the terms of the Apache 2.0 open source license.
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "cb.h"
 #include "sx.h"
 #include "sx_profile.h"
 #include "sx_instance.h"
+#include "sx_scopes.h"
 #include "sx_modsecurity.h"
-#ifdef WAFLZ_RATE_LIMITING
 #include "sx_limit.h"
-#endif
 #include "waflz/rqst_ctx.h"
 #include "waflz/profile.h"
 #include "waflz/render.h"
@@ -27,7 +26,6 @@
 #include "support/base64.h"
 #include "is2/support/trace.h"
 #include "is2/nconn/scheme.h"
-// why need this???
 #include "is2/nconn/nconn.h"
 #include "is2/srvr/srvr.h"
 #include "is2/srvr/lsnr.h"
@@ -51,9 +49,9 @@
 #include <gperftools/profiler.h>
 #include <gperftools/heap-profiler.h>
 #endif
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #ifndef STATUS_OK
   #define STATUS_OK 0
 #endif
@@ -62,9 +60,9 @@
 #endif
 #define _DEFAULT_RESP_BODY_B64 "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+IDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4gPHRpdGxlPjwvdGl0bGU+PC9oZWFkPjxib2R5PiA8c3R5bGU+Knstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9ZGl2e2Rpc3BsYXk6IGJsb2NrO31ib2R5e2ZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXNpemU6IDE0cHg7IGxpbmUtaGVpZ2h0OiAxLjQyODU3MTQzOyBjb2xvcjogIzMzMzsgYmFja2dyb3VuZC1jb2xvcjogI2ZmZjt9aHRtbHtmb250LXNpemU6IDEwcHg7IC13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7IC13ZWJraXQtdGV4dC1zaXplLWFkanVzdDogMTAwJTsgLW1zLXRleHQtc2l6ZS1hZGp1c3Q6IDEwMCU7fTpiZWZvcmUsIDphZnRlcnstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9LmNvbnRhaW5lcntwYWRkaW5nLXJpZ2h0OiAxNXB4OyBwYWRkaW5nLWxlZnQ6IDE1cHg7IG1hcmdpbi1yaWdodDogYXV0bzsgbWFyZ2luLWxlZnQ6IGF1dG87fUBtZWRpYSAobWluLXdpZHRoOiA3NjhweCl7LmNvbnRhaW5lcnt3aWR0aDogNzUwcHg7fX0uY2FsbG91dCsuY2FsbG91dHttYXJnaW4tdG9wOiAtNXB4O30uY2FsbG91dHtwYWRkaW5nOiAyMHB4OyBtYXJnaW46IDIwcHggMDsgYm9yZGVyOiAxcHggc29saWQgI2VlZTsgYm9yZGVyLWxlZnQtd2lkdGg6IDVweDsgYm9yZGVyLXJhZGl1czogM3B4O30uY2FsbG91dC1kYW5nZXJ7Ym9yZGVyLWxlZnQtY29sb3I6ICNmYTBlMWM7fS5jYWxsb3V0LWRhbmdlciBoNHtjb2xvcjogI2ZhMGUxYzt9LmNhbGxvdXQgaDR7bWFyZ2luLXRvcDogMDsgbWFyZ2luLWJvdHRvbTogNXB4O31oNCwgLmg0e2ZvbnQtc2l6ZTogMThweDt9aDQsIC5oNCwgaDUsIC5oNSwgaDYsIC5oNnttYXJnaW4tdG9wOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxMHB4O31oMSwgaDIsIGgzLCBoNCwgaDUsIGg2LCAuaDEsIC5oMiwgLmgzLCAuaDQsIC5oNSwgLmg2e2ZvbnQtZmFtaWx5OiBBcGV4LCAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNDAwOyBsaW5lLWhlaWdodDogMS4xOyBjb2xvcjogaW5oZXJpdDt9aDR7ZGlzcGxheTogYmxvY2s7IC13ZWJraXQtbWFyZ2luLWJlZm9yZTogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1hZnRlcjogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1zdGFydDogMHB4OyAtd2Via2l0LW1hcmdpbi1lbmQ6IDBweDsgZm9udC13ZWlnaHQ6IGJvbGQ7fWxhYmVse2Rpc3BsYXk6IGlubGluZS1ibG9jazsgbWF4LXdpZHRoOiAxMDAlOyBtYXJnaW4tYm90dG9tOiA1cHg7IGZvbnQtd2VpZ2h0OiA3MDA7fWRse21hcmdpbi10b3A6IDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGRpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1iZWZvcmU6IDFlbTsgLXdlYmtpdC1tYXJnaW4tYWZ0ZXI6IDFlbTsgLXdlYmtpdC1tYXJnaW4tc3RhcnQ6IDBweDsgLXdlYmtpdC1tYXJnaW4tZW5kOiAwcHg7fWRke2Rpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1zdGFydDogNDBweDsgbWFyZ2luLWxlZnQ6IDA7IHdvcmQtd3JhcDogYnJlYWstd29yZDt9ZHR7Zm9udC13ZWlnaHQ6IDcwMDsgZGlzcGxheTogYmxvY2s7fWR0LCBkZHtsaW5lLWhlaWdodDogMS40Mjg1NzE0Mzt9LmRsLWhvcml6b250YWwgZHR7ZmxvYXQ6IGxlZnQ7IHdpZHRoOiAxNjBweDsgb3ZlcmZsb3c6IGhpZGRlbjsgY2xlYXI6IGxlZnQ7IHRleHQtYWxpZ246IHJpZ2h0OyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDt9LmRsLWhvcml6b250YWwgZGR7bWFyZ2luLWxlZnQ6IDE4MHB4O308L3N0eWxlPiA8ZGl2IGNsYXNzPSJjb250YWluZXIiPiA8ZGl2IGNsYXNzPSJjYWxsb3V0IGNhbGxvdXQtZGFuZ2VyIj4gPGg0IGNsYXNzPSJsYWJlbCI+Rm9yYmlkZGVuPC9oND4gPGRsIGNsYXNzPSJkbC1ob3Jpem9udGFsIj4gPGR0PkNsaWVudCBJUDwvZHQ+IDxkZD57e0NMSUVOVF9JUH19PC9kZD4gPGR0PlVzZXItQWdlbnQ8L2R0PiA8ZGQ+e3tVU0VSX0FHRU5UfX08L2RkPiA8ZHQ+UmVxdWVzdCBVUkw8L2R0PiA8ZGQ+e3tSRVFVRVNUX1VSTH19PC9kZD4gPGR0PlJlYXNvbjwvZHQ+IDxkZD57e1JVTEVfTVNHfX08L2RkPiA8ZHQ+RGF0ZTwvZHQ+IDxkZD57e1RJTUVTVEFNUH19PC9kZD4gPC9kbD4gPC9kaXY+PC9kaXY+PC9ib2R5PjwvaHRtbD4="
 #define BOGUS_GEO_DATABASE "/tmp/BOGUS_GEO_DATABASE.db"
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 typedef enum {
         SERVER_MODE_DEFAULT = 0,
         SERVER_MODE_PROXY,
@@ -76,32 +74,32 @@ typedef enum {
         CONFIG_MODE_INSTANCES,
         CONFIG_MODE_PROFILE,
         CONFIG_MODE_MODSECURITY,
-#ifdef WAFLZ_RATE_LIMITING
         CONFIG_MODE_LIMIT,
-#endif
+        CONFIG_MODE_SCOPES,
+        CONFIG_MODE_SCOPES_DIR,
         CONFIG_MODE_NONE
 } config_mode_t;
-//: ----------------------------------------------------------------------------
-//: globals
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! globals
+//! ----------------------------------------------------------------------------
 ns_is2::srvr *g_srvr = NULL;
 ns_waflz_server::sx *g_sx = NULL;
 FILE *g_out_file_ptr = NULL;
 config_mode_t g_config_mode = CONFIG_MODE_NONE;
-//: ****************************************************************************
-//: ----------------------------------------------------------------------------
-//:                           request handler
-//: ----------------------------------------------------------------------------
-//: ****************************************************************************
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
-                                   ns_is2::session &a_session,
-                                   ns_is2::rqst &a_rqst,
-                                   waflz_pb::enforcement &a_enf)
+//! ****************************************************************************
+//! ----------------------------------------------------------------------------
+//!                           request handler
+//! ----------------------------------------------------------------------------
+//! ****************************************************************************
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx* a_ctx,
+                                   ns_is2::session& a_session,
+                                   ns_is2::rqst& a_rqst,
+                                   const waflz_pb::enforcement& a_enf)
 {
         if(!a_ctx)
         {
@@ -125,7 +123,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
         // -------------------------------------------------
         // no enf
         // -------------------------------------------------
-        if(!a_enf.has_type())
+        if(!a_enf.has_enf_type())
         {
                 return ns_is2::H_RESP_NONE;
         }
@@ -352,6 +350,76 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 break;
         }
         // -------------------------------------------------
+        // BROWSER_CHALLENGE
+        // -------------------------------------------------
+        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
+        {
+                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
+                if(a_enf.has_status())
+                {
+                        l_status = a_enf.status();
+                }
+                const std::string *l_b64 = NULL;
+                int32_t l_s;
+                l_s = g_sx->m_b_challenge->get_challenge(&l_b64, a_ctx);
+                if((l_s != WAFLZ_STATUS_OK) ||
+                    !l_b64)
+                {
+                        break;
+                }
+                if(l_b64->empty())
+                {
+                        break;
+                }
+                // -----------------------------------------
+                // decode
+                // -----------------------------------------
+                char *l_dcd = NULL;
+                size_t l_dcd_len = 0;
+                l_s = ns_waflz::b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        break;
+                }
+                //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
+                // -----------------------------------------
+                // render
+                // -----------------------------------------
+                char *l_rndr = NULL;
+                size_t l_rndr_len = 0;
+                l_s =  ns_waflz::render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        // error???
+                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                        break;
+                }
+                // -----------------------------------------
+                // set/cleanup
+                // -----------------------------------------
+                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
+                // -----------------------------------------
+                // response
+                // -----------------------------------------
+                // TODO -fix content type if resp header...
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
+                                           "text/html",
+                                           (uint64_t)l_rndr_len,
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                l_api_resp.set_body_data(l_rndr, l_rndr_len);
+                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
+                // TODO check status
+                UNUSED(l_s);
+                if(l_rndr) { free(l_rndr); l_rndr = NULL; }
+                l_resp_code = ns_is2::H_RESP_DONE;
+                break;
+        }
+        // -------------------------------------------------
         // DROP_REQUEST
         // -------------------------------------------------
         case waflz_pb::enforcement_type_t_DROP_REQUEST:
@@ -372,101 +440,6 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 break;
         }
         // -------------------------------------------------
-        // BROWSER CHALLENGE
-        // -------------------------------------------------
-        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
-        {
-                uint32_t l_status = ns_is2::HTTP_STATUS_OK;
-                if(a_enf.has_status())
-                {
-                        l_status = a_enf.status();
-                }
-                // -----------------------------------------
-                // render
-                // -----------------------------------------
-                char *l_body = NULL;
-                uint32_t l_body_len = 0;
-                // TODO FIX!!!
-#if 0
-                l_s = l_config->render_resp(&l_body, l_body_len, a_enf, a_ctx);
-                if(l_s != STATUS_OK)
-                {
-                        l_resp_code = ns_is2::H_RESP_SERVER_ERROR;
-                        break;
-                }
-#endif
-                // -----------------------------------------
-                // response
-                // -----------------------------------------
-                // TODO -fix content type if resp header...
-                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                l_api_resp.add_std_headers((ns_is2::http_status_t)l_status,
-                                           "text/html",
-                                           (uint64_t)l_body_len,
-                                           a_rqst.m_supports_keep_alives,
-                                           a_session.get_server_name());
-                l_api_resp.set_body_data(l_body, l_body_len);
-                l_s = ns_is2::queue_api_resp(a_session, l_api_resp);
-                // TODO check status
-                UNUSED(l_s);
-                if(l_body) { free(l_body); l_body = NULL; }
-                l_resp_code = ns_is2::H_RESP_DONE;
-                break;
-        }
-#if 0
-        // -------------------------------------------------
-        // BROWSER_CHALLENGE
-        // -------------------------------------------------
-        case waflz_pb::enforcement_type_t_BROWSER_CHALLENGE:
-        {
-                const std::string *l_b64 = NULL;
-                int32_t l_s;
-                l_s = m_challenge.get_challenge(&l_b64, a_ctx);
-                if((l_s != WAFLZ_STATUS_OK) ||
-                    !l_b64)
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if(l_b64->empty())
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // decode
-                // -----------------------------------------
-                char *l_dcd = NULL;
-                size_t l_dcd_len = 0;
-                l_s = b64_decode(&l_dcd, l_dcd_len, l_b64->c_str(), l_b64->length());
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
-                // -----------------------------------------
-                // render
-                // -----------------------------------------
-                char *l_rndr = NULL;
-                size_t l_rndr_len = 0;
-                l_s = render(&l_rndr, l_rndr_len, l_dcd, l_dcd_len, a_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        // error???
-                        if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                        if(l_rndr) { free(l_rndr); l_rndr = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // set/cleanup
-                // -----------------------------------------
-                if(l_dcd) { free(l_dcd); l_dcd = NULL; }
-                *ao_resp = l_rndr;
-                ao_resp_len = l_rndr_len;
-                break;
-        }
-#endif
-        // -------------------------------------------------
         // default
         // -------------------------------------------------
         default:
@@ -476,9 +449,9 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
         }
         return l_resp_code;
 }
-//: ----------------------------------------------------------------------------
-//: default
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! default
+//! ----------------------------------------------------------------------------
 class waflz_h: public ns_is2::default_rqst_h
 {
 public:
@@ -507,7 +480,6 @@ public:
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
-#ifdef WAFLZ_RATE_LIMITING
                 if(l_enf
                    // only enforcements for limit mode
                    && (!g_config_mode == CONFIG_MODE_LIMIT)
@@ -515,8 +487,6 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
-
-#endif
                 if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
                 if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
@@ -539,9 +509,9 @@ public:
                 return l_resp_t;
         }
 };
-//: ----------------------------------------------------------------------------
-//: file
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! file
+//! ----------------------------------------------------------------------------
 class waflz_file_h: public ns_is2::file_h
 {
 public:
@@ -587,9 +557,9 @@ public:
                 return l_resp_t;
         }
 };
-//: ----------------------------------------------------------------------------
-//: proxy
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! proxy
+//! ----------------------------------------------------------------------------
 class waflz_proxy_h: public ns_is2::proxy_h
 {
 public:
@@ -634,11 +604,11 @@ public:
                 return l_resp_t;
         }
 };
-//: ----------------------------------------------------------------------------
-//: \details: sighandler
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: sighandler
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void sig_handler(int signo)
 {
         if(!g_srvr)
@@ -651,11 +621,11 @@ void sig_handler(int signo)
                 g_srvr->stop();
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: Print the version.
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Print the version.
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void print_version(FILE* a_stream, int a_exit_code)
 {
         // print out the version information
@@ -664,11 +634,11 @@ void print_version(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(a_exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details: Print the command line help.
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Print the command line help.
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void print_usage(FILE* a_stream, int a_exit_code)
 {
         fprintf(a_stream, "Usage: waflz_server [options]\n");
@@ -681,22 +651,22 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -d, --instance-dir  waf instance directory\n");
         fprintf(a_stream, "  -f, --profile       waf profile\n");
         fprintf(a_stream, "  -m, --modsecurity   modsecurity rules file (experimental)\n");
-#ifdef WAFLZ_RATE_LIMITING
         fprintf(a_stream, "  -l, --limit         limit config file.\n");
-#endif
+        fprintf(a_stream, "  -b, --scopes        scopes\n");
+        fprintf(a_stream, "  -S, --scopes-dir    scopes directory\n");
+        fprintf(a_stream, "  -d  --config-dir    configuration directory\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
         fprintf(a_stream, "  -s, --geoip-isp-db  geoip-isp-db\n");
         fprintf(a_stream, "  -x, --random-ips    randomly generate ips\n");
-#ifdef WAFLZ_RATE_LIMITING
         fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
         fprintf(a_stream, "  -c, --challenge     json containing browser challenges\n");
-#endif
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Configuration:\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
+        fprintf(a_stream, "  -j, --action        server will apply scope actions instead of reporting\n");
         fprintf(a_stream, "  -z, --bg            load configs in background thread\n");
         fprintf(a_stream, "  -o, --output        write json alerts to file\n");
         fprintf(a_stream, "  \n");
@@ -717,11 +687,11 @@ void print_usage(FILE* a_stream, int a_exit_code)
 #endif
         exit(a_exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
         // options..
@@ -742,10 +712,8 @@ int main(int argc, char** argv)
         // server settings
         std::string l_out_file;
         uint16_t l_port = 12345;
-#ifdef WAFLZ_RATE_LIMITING
         std::string l_redis_host;
         std::string l_challenge_file;
-#endif
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -763,6 +731,7 @@ int main(int argc, char** argv)
                 { "geoip-db",     1, 0, 'g' },
                 { "geoip-isp-db", 1, 0, 's' },
                 { "random-ips",   0, 0, 'x' },
+                { "action",       0, 0, 'j' },
                 { "bg",           0, 0, 'z' },
                 { "trace",        1, 0, 't' },
                 { "server-trace", 1, 0, 'T' },
@@ -770,11 +739,12 @@ int main(int argc, char** argv)
                 { "proxy",        1, 0, 'y' },
                 { "output",       1, 0, 'o' },
                 { "audit-mode",   0, 0, 'a' },
-#ifdef WAFLZ_RATE_LIMITING
                 { "limit",        1, 0, 'l' },
+                { "scopes",       1, 0, 'b' },
+                { "scopes-dir",   1, 0, 'S' },
+                { "config-dir",   1, 0, 'd' },
                 { "challenge",    1, 0, 'c' },
                 { "redis-host",   1, 0, 'e' },
-#endif
 #ifdef ENABLE_PROFILER
                 { "cprofile",     1, 0, 'H' },
                 { "hprofile",     1, 0, 'C' },
@@ -803,9 +773,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:H:C:a";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xjzt:T:w:y:o:l:b:S:d:c:e:H:C:a";
 #else
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xzt:T:w:y:o:l:c:e:a";
+        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xjzt:T:w:y:o:l:b:S:d:c:e:a";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -884,7 +854,6 @@ int main(int argc, char** argv)
                         _TEST_SET_CONFIG_MODE(MODSECURITY);
                         break;
                 }
-#ifdef WAFLZ_RATE_LIMITING
                 // -----------------------------------------
                 //  limit config
                 // -----------------------------------------
@@ -893,7 +862,6 @@ int main(int argc, char** argv)
                         _TEST_SET_CONFIG_MODE(LIMIT);
                         break;
                 }
-#endif
                 // -----------------------------------------
                 // port
                 // -----------------------------------------
@@ -1010,7 +978,6 @@ int main(int argc, char** argv)
                         l_out_file = l_arg;
                         break;
                 }
-#ifdef WAFLZ_RATE_LIMITING
                 // -----------------------------------------
                 //  challenges
                 // -----------------------------------------
@@ -1027,7 +994,6 @@ int main(int argc, char** argv)
                         l_redis_host = l_arg;
                         break;
                 }
-#endif
 #ifdef ENABLE_PROFILER
                 // -----------------------------------------
                 // profiler file
@@ -1276,7 +1242,6 @@ int main(int argc, char** argv)
                 g_sx = l_sx_msx;
                 break;
         }
-#ifdef WAFLZ_RATE_LIMITING
         // -------------------------------------------------
         // modsecurity
         // -------------------------------------------------
@@ -1291,7 +1256,6 @@ int main(int argc, char** argv)
                 g_sx = l_sx_limit;
                 break;
         }
-#endif
         // -------------------------------------------------
         // default
         // -------------------------------------------------

@@ -22,7 +22,7 @@
 namespace ns_waflz {
 class engine;
 }
-namespace ns_scopez_server {
+namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
 //: update_scopes_h
 //: ----------------------------------------------------------------------------
@@ -163,7 +163,6 @@ public:
         std::string m_redis_host;
         ns_waflz::engine *m_engine;
         ns_waflz::kv_db *m_db;
-        ns_waflz::challenge *m_b_challenge;
         update_scopes_h *m_update_scopes_h;
         update_acl_h* m_update_acl_h;
         update_rules_h* m_update_rules_h;

@@ -36,11 +36,9 @@ main() {
 
     if [ "$(uname)" == "Darwin" ]; then
         BUILD_UBUNTU=OFF
-        BUILD_RATE_LIMITING=ON
         NPROC=$(sysctl -n hw.ncpu)
     else
         BUILD_UBUNTU=ON
-        BUILD_RATE_LIMITING=ON
         NPROC=$(nproc)
     fi
 
@@ -53,14 +51,12 @@ main() {
         -DBUILD_SYMBOLS=ON \
         -DBUILD_APPS=ON \
         -DBUILD_UBUNTU=${BUILD_UBUNTU} \
-        -DBUILD_RATE_LIMITING=${BUILD_RATE_LIMITING} \
         -DCMAKE_INSTALL_PREFIX=/usr
     else
         cmake ../ \
         -DBUILD_SYMBOLS=ON \
         -DBUILD_APPS=ON \
         -DBUILD_UBUNTU=${BUILD_UBUNTU} \
-        -DBUILD_RATE_LIMITING=${BUILD_RATE_LIMITING} \
         -DCMAKE_INSTALL_PREFIX=/usr
     fi
 

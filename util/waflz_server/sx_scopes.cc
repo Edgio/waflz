@@ -7,9 +7,9 @@
 //! Licensed under the terms of the Apache 2.0 open source license.
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "sx_scopes.h"
 #include "waflz/engine.h"
 #include "waflz/rqst_ctx.h"
@@ -33,9 +33,9 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #ifndef STATUS_OK
   #define STATUS_OK 0
 #endif
@@ -43,18 +43,18 @@
   #define STATUS_ERROR -1
 #endif
 #define _SCOPEZ_SERVER_SCOPES_ID "waf-scopes-id"
-namespace ns_scopez_server {
-//: ----------------------------------------------------------------------------
-//: type
-//: ----------------------------------------------------------------------------
+namespace ns_waflz_server {
+//! ----------------------------------------------------------------------------
+//! type
+//! ----------------------------------------------------------------------------
 typedef struct _waf_scopes_bg_update {
         char* m_buf;
         uint32_t m_buf_len;
         ns_waflz::scopes_configs* m_scopes_configs;
 } waf_scopes_bg_update_t;
-//: ----------------------------------------------------------------------------
-//: remove lmdb dir
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! remove lmdb dir
+//! ----------------------------------------------------------------------------
 static int remove_dir(const std::string& a_db_dir)
 {
         int32_t l_s;
@@ -76,9 +76,9 @@ static int remove_dir(const std::string& a_db_dir)
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: create_dir for lmdb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! create_dir for lmdb
+//! ----------------------------------------------------------------------------
 static int create_dir(const std::string& a_db_dir)
 {
         int32_t l_s;
@@ -90,9 +90,9 @@ static int create_dir(const std::string& a_db_dir)
         l_s = mkdir(a_db_dir.c_str(), 0700);
         return l_s;
 }
-//: ----------------------------------------------------------------------------
-//: create_dir only once for lmdb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! create_dir only once for lmdb
+//! ----------------------------------------------------------------------------
 static int create_dir_once(const std::string& a_db_dir)
 {
         int32_t l_s;
@@ -106,11 +106,11 @@ static int create_dir_once(const std::string& a_db_dir)
         return l_s;
 
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static void* t_load_scopes(void* a_context)
 {
         waf_scopes_bg_update_t* l_sc = reinterpret_cast<waf_scopes_bg_update_t*>(a_context);
@@ -130,19 +130,19 @@ static void* t_load_scopes(void* a_context)
         delete l_sc;
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: type
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! type
+//! ----------------------------------------------------------------------------
 typedef struct _waf_profile_bg_update {
         char* m_buf;
         uint32_t m_buf_len;
         ns_waflz::scopes_configs* m_scopes_configs;
 } waf_profile_bg_update_t;
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static void* t_load_profile(void* a_context)
 {
         waf_profile_bg_update_t* l_sc = reinterpret_cast<waf_profile_bg_update_t*>(a_context);
@@ -162,19 +162,19 @@ static void* t_load_profile(void* a_context)
         delete l_sc;
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: type
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! type
+//! ----------------------------------------------------------------------------
 typedef struct _waf_acl_bg_update {
         char* m_buf;
         uint32_t m_buf_len;
         ns_waflz::scopes_configs* m_scopes_configs;
 }waf_acl_bg_update_t;
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static void* t_load_acl(void* a_context)
 {
         waf_acl_bg_update_t* l_sc = reinterpret_cast<waf_acl_bg_update_t*>(a_context);
@@ -194,9 +194,9 @@ static void* t_load_acl(void* a_context)
         delete l_sc;
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: type
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! type
+//! ----------------------------------------------------------------------------
 typedef struct _waf_rules_bg_update {
         char* m_buf;
         uint32_t m_buf_len;
@@ -208,11 +208,11 @@ typedef struct _waf_bots_bg_update {
         uint32_t m_buf_len;
         ns_waflz::scopes_configs* m_scopes_configs;
 } waf_bots_bg_update_t;
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static void* t_load_rules(void* a_context)
 {
         waf_rules_bg_update_t* l_sc = reinterpret_cast<waf_rules_bg_update_t*>(a_context);
@@ -252,11 +252,11 @@ static void* t_load_bots(void* a_context)
         delete l_sc;
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
                                           ns_is2::rqst &a_rqst,
                                           const ns_is2::url_pmap_t &a_url_pmap)
@@ -315,11 +315,11 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
         ns_is2::queue_api_resp(a_session, l_api_resp);
         return ns_is2::H_RESP_DONE;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t update_limit_h::do_post(ns_is2::session &a_session,
                                        ns_is2::rqst &a_rqst,
                                        const ns_is2::url_pmap_t &a_url_pmap)
@@ -358,11 +358,11 @@ ns_is2::h_resp_t update_limit_h::do_post(ns_is2::session &a_session,
         return ns_is2::H_RESP_DONE;
 }
 
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
                                        ns_is2::rqst &a_rqst,
                                        const ns_is2::url_pmap_t &a_url_pmap)
@@ -420,11 +420,11 @@ ns_is2::h_resp_t update_acl_h::do_post(ns_is2::session &a_session,
         ns_is2::queue_api_resp(a_session, l_api_resp);
         return ns_is2::H_RESP_DONE;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t update_rules_h::do_post(ns_is2::session &a_session,
                                          ns_is2::rqst &a_rqst,
                                          const ns_is2::url_pmap_t &a_url_pmap)
@@ -481,11 +481,11 @@ ns_is2::h_resp_t update_rules_h::do_post(ns_is2::session &a_session,
         ns_is2::queue_api_resp(a_session, l_api_resp);
         return ns_is2::H_RESP_DONE;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t update_bots_h::do_post(ns_is2::session &a_session,
                                          ns_is2::rqst &a_rqst,
                                          const ns_is2::url_pmap_t &a_url_pmap)
@@ -542,14 +542,14 @@ ns_is2::h_resp_t update_bots_h::do_post(ns_is2::session &a_session,
         ns_is2::queue_api_resp(a_session, l_api_resp);
         return ns_is2::H_RESP_DONE;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
-                                         ns_is2::rqst &a_rqst,
-                                         const ns_is2::url_pmap_t &a_url_pmap)
+                                           ns_is2::rqst &a_rqst,
+                                           const ns_is2::url_pmap_t &a_url_pmap)
 {
         if(!m_scopes_configs)
         {
@@ -603,11 +603,11 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
         ns_is2::queue_api_resp(a_session, l_api_resp);
         return ns_is2::H_RESP_DONE;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 sx_scopes::sx_scopes(void):
         m_bg_load(false),
         m_is_rand(false),
@@ -629,11 +629,11 @@ sx_scopes::sx_scopes(void):
 {
 
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 sx_scopes::~sx_scopes(void)
 {
         if(m_engine) { delete m_engine; m_engine = NULL; }
@@ -651,11 +651,11 @@ sx_scopes::~sx_scopes(void)
                 remove_dir("/tmp/test_lmdb");
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t sx_scopes::init(void)
 {
         int32_t l_s;
@@ -910,11 +910,11 @@ int32_t sx_scopes::init(void)
         printf("listeners added\n");
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                                         ns_waflz::rqst_ctx **ao_ctx,
                                         ns_is2::session &a_session,

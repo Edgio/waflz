@@ -18,7 +18,6 @@ option(BUILD_TESTS          "Build the unit tests." ON)
 option(BUILD_APPS           "Build the apps." OFF)
 option(BUILD_UBUNTU         "Build for Ubuntu" OFF)
 option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
-option(BUILD_RATE_LIMITING  "Build support for rate-limiting" OFF)
 # ------------------------------------------------------------------------------
 # Compiler options
 # ------------------------------------------------------------------------------
@@ -68,19 +67,12 @@ message("    Build unit tests:                          " "BUILD_TESTS          
 message("    Build applications:                        " "BUILD_APPS              " ${BUILD_APPS})
 message("    Build for Ubuntu (adds package help):      " "BUILD_UBUNTU            " ${BUILD_UBUNTU})
 message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
-message("    Build rate-limiting support:               " "BUILD_RATE_LIMITING     " ${BUILD_RATE_LIMITING})
 message("")
 # ------------------------------------------------------------------------------
 # Fortify Options
 # ------------------------------------------------------------------------------
 if (FORTIFY)
   add_definitions(-D_FORTIFY_SOURCE=2 -O1 -Wl,-z,relro,-z,now)
-endif()
-# ------------------------------------------------------------------------------
-# rate_limiting def
-# ------------------------------------------------------------------------------
-if (BUILD_RATE_LIMITING)
-  add_definitions(-DWAFLZ_RATE_LIMITING)
 endif()
 # ------------------------------------------------------------------------------
 # \brief   Find ubuntu packages based on their (optional) include and (required) library test files
@@ -174,17 +166,15 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # --------------------------------------------------------
   # if rate-limiting check for kv db libs
   # --------------------------------------------------------  
-  if(BUILD_RATE_LIMITING)
-    INCLUDE_DIRECTORIES(/usr/local/opt/kyoto-cabinet/include)
-    INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
-    INCLUDE_DIRECTORIES(/usr/local/opt/lmdb/include)
-    LINK_DIRECTORIES(/usr/local/opt/kyoto-cabinet/lib)
-    LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
-    LINK_DIRECTORIES(/usr/local/opt/lmdb/lib)
-    LIST(APPEND LIBRARIES kyotocabinet)
-    LIST(APPEND LIBRARIES hiredis)
-    LIST(APPEND LIBRARIES lmdb)
-  endif()
+  INCLUDE_DIRECTORIES(/usr/local/opt/kyoto-cabinet/include)
+  INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
+  INCLUDE_DIRECTORIES(/usr/local/opt/lmdb/include)
+  LINK_DIRECTORIES(/usr/local/opt/kyoto-cabinet/lib)
+  LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
+  LINK_DIRECTORIES(/usr/local/opt/lmdb/lib)
+  LIST(APPEND LIBRARIES kyotocabinet)
+  LIST(APPEND LIBRARIES hiredis)
+  LIST(APPEND LIBRARIES lmdb)
   # --------------------------------------------------------
   # cc flags
   # --------------------------------------------------------
@@ -245,19 +235,17 @@ if(BUILD_UBUNTU)
   # --------------------------------------------------------
   # if rate-limiting check for kv db libs
   # --------------------------------------------------------  
-  if(BUILD_RATE_LIMITING)
-    find_ubuntu_package(LIBHIREDIS "" libhiredis.a "" libhiredis-dev)
-    find_ubuntu_package(LIBKYOTOCABINET "" libkyotocabinet.a "" libkyotocabinet-dev)
-    find_ubuntu_package(LIBLMDB "" liblmdb.a "" liblmdb-dev)
-    # ------------------------------------------------------
-    # linking issue with lzo2
-    # liblzo2.a(lzo_crc.o): relocation R_X86_64_32 against `.rodata'
-    # apparently lib wasn't built with -fPIC??? :( in ubuntu
-    # distros
-    # ------------------------------------------------------
-    #find_ubuntu_package(LIBLZO2 "" liblzo2.so liblzo2-2 "")
-    LIST(APPEND LIBRARIES lzo2)
-  endif()
+  find_ubuntu_package(LIBHIREDIS "" libhiredis.a "" libhiredis-dev)
+  find_ubuntu_package(LIBKYOTOCABINET "" libkyotocabinet.a "" libkyotocabinet-dev)
+  find_ubuntu_package(LIBLMDB "" liblmdb.a "" liblmdb-dev)
+  # ------------------------------------------------------
+  # linking issue with lzo2
+  # liblzo2.a(lzo_crc.o): relocation R_X86_64_32 against `.rodata'
+  # apparently lib wasn't built with -fPIC??? :( in ubuntu
+  # distros
+  # ------------------------------------------------------
+  #find_ubuntu_package(LIBLZO2 "" liblzo2.so liblzo2-2 "")
+  LIST(APPEND LIBRARIES lzo2)
   # --------------------------------------------------------
   # xml2 -brings in a lot...
   # --------------------------------------------------------

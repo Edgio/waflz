@@ -7,9 +7,9 @@
 //! Licensed under the terms of the Apache 2.0 open source license.
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/instance.h"
 #include "waflz/profile.h"
 #include "waflz/acl.h"
@@ -21,7 +21,6 @@
 #include "support/time_util.h"
 #include "jspb/jspb.h"
 #include "profile.pb.h"
-#ifdef WAFLZ_RATE_LIMITING
 #include "waflz/scopes.h"
 #include "waflz/config.h"
 #include "waflz/enforcer.h"
@@ -29,7 +28,6 @@
 #include "waflz/limit.h"
 #include "waflz/kycb_db.h"
 #include "limit.pb.h"
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -46,14 +44,14 @@
 #include <inttypes.h>
 #include <string>
 #include <map>
-//: ----------------------------------------------------------------------------
-//: Constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Constants
+//! ----------------------------------------------------------------------------
 // the maximum size of json configuration for modsecurity instance (1MB)
 #define CONFIG_SECURITY_CONFIG_MAX_SIZE (1<<20)
-//: ----------------------------------------------------------------------------
-//: Macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Macros
+//! ----------------------------------------------------------------------------
 #ifndef UNUSED
 #define UNUSED(x) ( (void)(x) )
 #endif
@@ -63,9 +61,9 @@
 #ifndef STATUS_ERROR
 #define STATUS_ERROR -1
 #endif
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 typedef enum {
         SERVER_MODE_DEFAULT = 0,
         SERVER_MODE_PROXY,
@@ -79,19 +77,16 @@ typedef enum {
         CONFIG_MODE_MODSECURITY,
         CONFIG_MODE_RULES,
         CONFIG_MODE_ACL,
-#ifdef WAFLZ_RATE_LIMITING
         CONFIG_MODE_LIMIT,
         CONFIG_MODE_LIMITS,
         CONFIG_MODE_SCOPES,
-#endif
         CONFIG_MODE_NONE
 } config_mode_t;
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-#ifdef WAFLZ_RATE_LIMITING
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static void strip_fields(waflz_pb::config& ao_config)
 {
         if(ao_config.has__customer_id_int())
@@ -154,12 +149,11 @@ static void strip_fields(waflz_pb::config& ao_config)
                 }
         }
 }
-#endif
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t validate_ruleset_dir(std::string &a_ruleset_dir)
 {
         // -------------------------------------------------
@@ -200,11 +194,11 @@ static int32_t validate_ruleset_dir(std::string &a_ruleset_dir)
         }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t validate_profile(const std::string &a_file, std::string &a_ruleset_dir, bool a_display_json)
 {
         int32_t l_s;
@@ -269,11 +263,11 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         if(l_engine) { delete l_engine; l_engine = NULL; }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t validate_acl(const std::string &a_file)
 {
         int32_t l_s;
@@ -308,11 +302,11 @@ static int32_t validate_acl(const std::string &a_file)
         if(l_acl) { delete l_acl; l_acl = NULL; }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t validate_rules(const std::string &a_file)
 {
         int32_t l_s;
@@ -341,11 +335,11 @@ static int32_t validate_rules(const std::string &a_file)
         if(l_rules)  { delete l_rules; l_rules = NULL; }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t validate_instance(const std::string &a_file, std::string &a_ruleset_dir)
 {
         int32_t l_s;
@@ -398,12 +392,11 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         if(l_instance) { delete l_instance; l_instance = NULL; }
         return STATUS_OK;
 }
-#ifdef WAFLZ_RATE_LIMITING
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t validate_limit(const std::string &a_file)
 {
         int32_t l_s;
@@ -438,11 +431,11 @@ static int32_t validate_limit(const std::string &a_file)
         if(l_limit) { delete l_limit; l_limit = NULL; }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t validate_limits(const std::string &a_file, bool a_display_json)
 {
         int32_t l_s;
@@ -489,11 +482,11 @@ static int32_t validate_limits(const std::string &a_file, bool a_display_json)
         if(l_config) { delete l_config; l_config = NULL;}
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset_dir, const std::string &a_conf_dir)
 {
         int32_t l_s;
@@ -544,13 +537,12 @@ static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset
         if(l_scopes) { delete l_scopes; l_scopes = NULL;}
         return STATUS_OK;
 }
-#endif
-//: ----------------------------------------------------------------------------
-//: \details Print Version info to a_stream with exit code
-//: \return  NA
-//: \param   a_stream: Where to write version info (eg sterr/stdout)
-//: \param   exit_code: Exit with return code
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Print Version info to a_stream with exit code
+//! \return  NA
+//! \param   a_stream: Where to write version info (eg sterr/stdout)
+//! \param   exit_code: Exit with return code
+//! ----------------------------------------------------------------------------
 void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
@@ -559,12 +551,12 @@ void print_version(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details Display Help to user
-//: \return  NA
-//: \param   a_stream: Where to write version info (eg sterr/stdout)
-//: \param   exit_code: Exit with return code
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Display Help to user
+//! \return  NA
+//! \param   a_stream: Where to write version info (eg sterr/stdout)
+//! \param   exit_code: Exit with return code
+//! ----------------------------------------------------------------------------
 void print_usage(FILE* a_stream, int exit_code)
 {
         fprintf(a_stream, "Usage: wjc [OPTIONS]\n");
@@ -578,12 +570,10 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  -p, --profile      WAF profile\n");
         fprintf(a_stream, "  -a, --acl          ACL\n");
         fprintf(a_stream, "  -R, --rules        WAF rules\n");
-#ifdef WAFLZ_RATE_LIMITING
         fprintf(a_stream, "  -l  --limit        Rate limit\n");
         fprintf(a_stream, "  -L  --limits       Rate limits\n");
         fprintf(a_stream, "  -d  --config-dir   Configuration directory\n");
         fprintf(a_stream, "  -s  --scopes       Scopes config\n");
-#endif
         fprintf(a_stream, "  -j, --json         Display config [Default: OFF]\n");
         fprintf(a_stream, "\n");
         fprintf(a_stream, "example:\n");
@@ -591,12 +581,12 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "\n");
         exit(exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details main entry point
-//: \return  0 on Success
-//:          -1 on Failure
-//: \param   argc/argv See usage...
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details main entry point
+//! \return  0 on Success
+//!          -1 on Failure
+//! \param   argc/argv See usage...
+//! ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
         char l_opt;
@@ -616,12 +606,10 @@ int main(int argc, char** argv)
                 { "profile",     1, 0, 'p' },
                 { "acl",         1, 0, 'a' },
                 { "rules",       1, 0, 'R' },
-#ifdef WAFLZ_RATE_LIMITING
                 { "limit",       1, 0, 'l' },
                 { "limits",      1, 0, 'L' },
                 { "config-dir",  1, 0, 'd' },
                 { "scopes",      1, 0, 's' },
-#endif
                 { "json",        0, 0, 'j' },
                 // list sentinel
                 { 0, 0, 0, 0 }
@@ -698,7 +686,6 @@ int main(int argc, char** argv)
                         l_config_mode = CONFIG_MODE_RULES;
                         break;
                 }
-#ifdef WAFLZ_RATE_LIMITING
                 // -----------------------------------------
                 // limit
                 // -----------------------------------------
@@ -734,7 +721,6 @@ int main(int argc, char** argv)
                         l_config_mode = CONFIG_MODE_SCOPES;
                         break;
                 }
-#endif
                 // -----------------------------------------
                 //
                 // -----------------------------------------
@@ -819,7 +805,6 @@ int main(int argc, char** argv)
                 }
                 break;
         }
-#ifdef WAFLZ_RATE_LIMITING
         // -------------------------------------------------
         // limit
         // -------------------------------------------------
@@ -856,7 +841,6 @@ int main(int argc, char** argv)
                 }
                 break;
         }
-#endif
         // -------------------------------------------------
         // default
         // -------------------------------------------------

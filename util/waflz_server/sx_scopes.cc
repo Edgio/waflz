@@ -104,7 +104,6 @@ static int create_dir_once(const std::string& a_db_dir)
         }
         l_s = create_dir(a_db_dir);
         return l_s;
-
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -202,7 +201,6 @@ typedef struct _waf_rules_bg_update {
         uint32_t m_buf_len;
         ns_waflz::scopes_configs* m_scopes_configs;
 } waf_rules_bg_update_t;
-
 typedef struct _waf_bots_bg_update {
         char* m_buf;
         uint32_t m_buf_len;
@@ -232,7 +230,6 @@ static void* t_load_rules(void* a_context)
         delete l_sc;
         return NULL;
 }
-
 static void* t_load_bots(void* a_context)
 {
         waf_bots_bg_update_t* l_sc = reinterpret_cast<waf_bots_bg_update_t*>(a_context);
@@ -301,7 +298,6 @@ ns_is2::h_resp_t update_scopes_h::do_post(ns_is2::session &a_session,
                 {
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
-
         }
         std::string l_resp_str = "{\"status\": \"success\"}";
         ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
@@ -357,7 +353,6 @@ ns_is2::h_resp_t update_limit_h::do_post(ns_is2::session &a_session,
         ns_is2::queue_api_resp(a_session, l_api_resp);
         return ns_is2::H_RESP_DONE;
 }
-
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
@@ -547,7 +542,7 @@ ns_is2::h_resp_t update_bots_h::do_post(ns_is2::session &a_session,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
+ns_is2::h_resp_t update_scopes_profile_h::do_post(ns_is2::session &a_session,
                                            ns_is2::rqst &a_rqst,
                                            const ns_is2::url_pmap_t &a_url_pmap)
 {
@@ -627,7 +622,6 @@ sx_scopes::sx_scopes(void):
         m_geoip2_isp_db(),
         m_conf_dir()
 {
-
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -878,35 +872,50 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         // update end points
         // -------------------------------------------------
+        // -------------------------------------------------
+        // scopes
+        // -------------------------------------------------
         m_update_scopes_h = new update_scopes_h();
         m_update_scopes_h->m_scopes_configs = m_scopes_configs;
         m_update_scopes_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_scopes", m_update_scopes_h);
-
+        // -------------------------------------------------
+        // acl
+        // -------------------------------------------------
         m_update_acl_h = new update_acl_h();
         m_update_acl_h->m_scopes_configs = m_scopes_configs;
         m_update_acl_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_acl", m_update_acl_h);
-
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
         m_update_rules_h = new update_rules_h();
         m_update_rules_h->m_scopes_configs = m_scopes_configs;
         m_update_rules_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_rules", m_update_rules_h);
-
+        // -------------------------------------------------
+        // bots
+        // -------------------------------------------------
         m_update_bots_h = new update_bots_h();
         m_update_bots_h->m_scopes_configs = m_scopes_configs;
         m_update_bots_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_bots", m_update_bots_h);
-
-        m_update_profile_h = new update_profile_h();
+        // -------------------------------------------------
+        // profile
+        // -------------------------------------------------
+        m_update_profile_h = new update_scopes_profile_h();
         m_update_profile_h->m_scopes_configs = m_scopes_configs;
         m_update_profile_h->m_bg_load = m_bg_load;
         m_lsnr->add_route("/update_profile", m_update_profile_h);
-
+        // -------------------------------------------------
+        // limit
+        // -------------------------------------------------
         m_update_limit_h = new update_limit_h();
         m_update_limit_h->m_scopes_configs = m_scopes_configs;
         m_lsnr->add_route("/update_limit", m_update_limit_h);
-
+        // -------------------------------------------------
+        // done
+        // -------------------------------------------------
         printf("listeners added\n");
         return STATUS_OK;
 }
@@ -952,6 +961,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
         }
+
         // -------------------------------------------------
         // pick rand if id empty
         // -------------------------------------------------

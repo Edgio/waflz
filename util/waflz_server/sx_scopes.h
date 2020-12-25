@@ -100,17 +100,17 @@ public:
         bool m_bg_load;
 };  
 //: ----------------------------------------------------------------------------
-//: update_profile_h
+//: update_scopes_profile_h
 //: ----------------------------------------------------------------------------
-class update_profile_h: public ns_is2::default_rqst_h
+class update_scopes_profile_h: public ns_is2::default_rqst_h
 {
 public:
-        update_profile_h():
+        update_scopes_profile_h():
                 default_rqst_h(),
                 m_scopes_configs(NULL),
                 m_bg_load(false)
         {}
-        ~update_profile_h()
+        ~update_scopes_profile_h()
         {}
         ns_is2::h_resp_t do_post(ns_is2::session &a_session,
                                  ns_is2::rqst &a_rqst,
@@ -167,7 +167,7 @@ public:
         update_acl_h* m_update_acl_h;
         update_rules_h* m_update_rules_h;
         update_bots_h* m_update_bots_h;  
-        update_profile_h* m_update_profile_h;
+        update_scopes_profile_h* m_update_profile_h;
         update_limit_h* m_update_limit_h;
         ns_waflz::scopes_configs *m_scopes_configs;
         std::string m_config_path;

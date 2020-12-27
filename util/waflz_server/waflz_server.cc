@@ -1059,7 +1059,7 @@ int main(int argc, char** argv)
                 NULL, //get_rqst_apparent_cache_status_cb,
                 NULL, //get_rqst_bytes_out_cb,
                 NULL, //get_rqst_bytes_in_cb,
-                ns_waflz_server::get_rqst_uuid_cb,
+                ns_waflz_server::get_rqst_uuid_cb, //get_rqst_req_id_cb,
                 NULL //get_cust_id_cb
         };
 #ifdef ENABLE_PROFILER
@@ -1109,11 +1109,11 @@ int main(int argc, char** argv)
                 // Append
                 l_ruleset_dir += "/";
         }
+        int32_t l_s = 0;
         // -------------------------------------------------
         // Validate is directory
         // Stat file to see if is directory or file
         // -------------------------------------------------
-        int32_t l_s = 0;
         if(!l_ruleset_dir.empty())
         {
                 struct stat l_stat;
@@ -1257,6 +1257,53 @@ int main(int argc, char** argv)
                 break;
         }
         // -------------------------------------------------
+        //  single scope
+        // -------------------------------------------------
+        case(CONFIG_MODE_SCOPES):
+        {
+                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes();
+                l_sx_scopes->m_lsnr = l_lsnr;
+                l_sx_scopes->m_config = l_config_file;
+                l_sx_scopes->m_bg_load = l_bg_load;
+                l_sx_scopes->m_scopes_dir = false;
+                l_sx_scopes->m_action_mode = l_action_mode;
+                l_sx_scopes->m_ruleset_dir = l_ruleset_dir;
+                l_sx_scopes->m_b_challenge_file = l_b_challenge_file;
+                l_sx_scopes->m_callbacks = &s_callbacks;
+                l_sx_scopes->m_geoip2_db = l_geoip_db;
+                l_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
+                l_sx_scopes->m_conf_dir = l_conf_dir;
+                l_sx_scopes->m_redis_host = l_redis_host;
+                l_sx_scopes->m_use_lmdb = l_use_lmdb;
+                l_sx_scopes->m_lmdb_interprocess = l_lmdb_interprocess;
+                g_sx = l_sx_scopes;
+                break;
+        }
+        // -------------------------------------------------
+        // scopes directory
+        // -------------------------------------------------
+        case(CONFIG_MODE_SCOPES_DIR):
+        {
+                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes();
+                l_sx_scopes->m_lsnr = l_lsnr;
+                l_sx_scopes->m_config = l_config_file;
+                l_sx_scopes->m_bg_load = l_bg_load;
+                l_sx_scopes->m_scopes_dir = true;
+                l_sx_scopes->m_action_mode = l_action_mode;
+                l_sx_scopes->m_ruleset_dir = l_ruleset_dir;
+                l_sx_scopes->m_b_challenge_file = l_b_challenge_file;
+                l_sx_scopes->m_an_list_file = l_an_list_file;
+                l_sx_scopes->m_callbacks = &s_callbacks;
+                l_sx_scopes->m_geoip2_db = l_geoip_db;
+                l_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
+                l_sx_scopes->m_conf_dir = l_conf_dir;
+                l_sx_scopes->m_redis_host = l_redis_host;
+                l_sx_scopes->m_use_lmdb = l_use_lmdb;
+                l_sx_scopes->m_lmdb_interprocess = l_lmdb_interprocess;
+                g_sx = l_sx_scopes;
+                break;
+        }
+        // -------------------------------------------------
         // default
         // -------------------------------------------------
         default:
@@ -1274,7 +1321,6 @@ int main(int argc, char** argv)
                 fprintf(stdout, "performing initialization\n");
                 return STATUS_ERROR;
         }
-
         // -------------------------------------------------
         // Sigint handler
         // -------------------------------------------------

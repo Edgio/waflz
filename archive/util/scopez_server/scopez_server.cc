@@ -7,9 +7,9 @@
 //! Licensed under the terms of the Apache 2.0 open source license.
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "cb.h"
 #include "sx_scopes.h"
 // ---------------------------------------------------------
@@ -57,9 +57,9 @@
 #include <gperftools/profiler.h>
 #include <gperftools/heap-profiler.h>
 #endif
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #ifndef STATUS_OK
   #define STATUS_OK 0
 #endif
@@ -68,9 +68,9 @@
 #endif
 #define _DEFAULT_RESP_BODY_B64 "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+IDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4gPHRpdGxlPjwvdGl0bGU+PC9oZWFkPjxib2R5PiA8c3R5bGU+Knstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9ZGl2e2Rpc3BsYXk6IGJsb2NrO31ib2R5e2ZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXNpemU6IDE0cHg7IGxpbmUtaGVpZ2h0OiAxLjQyODU3MTQzOyBjb2xvcjogIzMzMzsgYmFja2dyb3VuZC1jb2xvcjogI2ZmZjt9aHRtbHtmb250LXNpemU6IDEwcHg7IC13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7IC13ZWJraXQtdGV4dC1zaXplLWFkanVzdDogMTAwJTsgLW1zLXRleHQtc2l6ZS1hZGp1c3Q6IDEwMCU7fTpiZWZvcmUsIDphZnRlcnstd2Via2l0LWJveC1zaXppbmc6IGJvcmRlci1ib3g7IC1tb3otYm94LXNpemluZzogYm9yZGVyLWJveDsgYm94LXNpemluZzogYm9yZGVyLWJveDt9LmNvbnRhaW5lcntwYWRkaW5nLXJpZ2h0OiAxNXB4OyBwYWRkaW5nLWxlZnQ6IDE1cHg7IG1hcmdpbi1yaWdodDogYXV0bzsgbWFyZ2luLWxlZnQ6IGF1dG87fUBtZWRpYSAobWluLXdpZHRoOiA3NjhweCl7LmNvbnRhaW5lcnt3aWR0aDogNzUwcHg7fX0uY2FsbG91dCsuY2FsbG91dHttYXJnaW4tdG9wOiAtNXB4O30uY2FsbG91dHtwYWRkaW5nOiAyMHB4OyBtYXJnaW46IDIwcHggMDsgYm9yZGVyOiAxcHggc29saWQgI2VlZTsgYm9yZGVyLWxlZnQtd2lkdGg6IDVweDsgYm9yZGVyLXJhZGl1czogM3B4O30uY2FsbG91dC1kYW5nZXJ7Ym9yZGVyLWxlZnQtY29sb3I6ICNmYTBlMWM7fS5jYWxsb3V0LWRhbmdlciBoNHtjb2xvcjogI2ZhMGUxYzt9LmNhbGxvdXQgaDR7bWFyZ2luLXRvcDogMDsgbWFyZ2luLWJvdHRvbTogNXB4O31oNCwgLmg0e2ZvbnQtc2l6ZTogMThweDt9aDQsIC5oNCwgaDUsIC5oNSwgaDYsIC5oNnttYXJnaW4tdG9wOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxMHB4O31oMSwgaDIsIGgzLCBoNCwgaDUsIGg2LCAuaDEsIC5oMiwgLmgzLCAuaDQsIC5oNSwgLmg2e2ZvbnQtZmFtaWx5OiBBcGV4LCAiSGVsdmV0aWNhIE5ldWUiLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNDAwOyBsaW5lLWhlaWdodDogMS4xOyBjb2xvcjogaW5oZXJpdDt9aDR7ZGlzcGxheTogYmxvY2s7IC13ZWJraXQtbWFyZ2luLWJlZm9yZTogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1hZnRlcjogMS4zM2VtOyAtd2Via2l0LW1hcmdpbi1zdGFydDogMHB4OyAtd2Via2l0LW1hcmdpbi1lbmQ6IDBweDsgZm9udC13ZWlnaHQ6IGJvbGQ7fWxhYmVse2Rpc3BsYXk6IGlubGluZS1ibG9jazsgbWF4LXdpZHRoOiAxMDAlOyBtYXJnaW4tYm90dG9tOiA1cHg7IGZvbnQtd2VpZ2h0OiA3MDA7fWRse21hcmdpbi10b3A6IDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGRpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1iZWZvcmU6IDFlbTsgLXdlYmtpdC1tYXJnaW4tYWZ0ZXI6IDFlbTsgLXdlYmtpdC1tYXJnaW4tc3RhcnQ6IDBweDsgLXdlYmtpdC1tYXJnaW4tZW5kOiAwcHg7fWRke2Rpc3BsYXk6IGJsb2NrOyAtd2Via2l0LW1hcmdpbi1zdGFydDogNDBweDsgbWFyZ2luLWxlZnQ6IDA7IHdvcmQtd3JhcDogYnJlYWstd29yZDt9ZHR7Zm9udC13ZWlnaHQ6IDcwMDsgZGlzcGxheTogYmxvY2s7fWR0LCBkZHtsaW5lLWhlaWdodDogMS40Mjg1NzE0Mzt9LmRsLWhvcml6b250YWwgZHR7ZmxvYXQ6IGxlZnQ7IHdpZHRoOiAxNjBweDsgb3ZlcmZsb3c6IGhpZGRlbjsgY2xlYXI6IGxlZnQ7IHRleHQtYWxpZ246IHJpZ2h0OyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDt9LmRsLWhvcml6b250YWwgZGR7bWFyZ2luLWxlZnQ6IDE4MHB4O308L3N0eWxlPiA8ZGl2IGNsYXNzPSJjb250YWluZXIiPiA8ZGl2IGNsYXNzPSJjYWxsb3V0IGNhbGxvdXQtZGFuZ2VyIj4gPGg0IGNsYXNzPSJsYWJlbCI+Rm9yYmlkZGVuPC9oND4gPGRsIGNsYXNzPSJkbC1ob3Jpem9udGFsIj4gPGR0PkNsaWVudCBJUDwvZHQ+IDxkZD57e0NMSUVOVF9JUH19PC9kZD4gPGR0PlVzZXItQWdlbnQ8L2R0PiA8ZGQ+e3tVU0VSX0FHRU5UfX08L2RkPiA8ZHQ+UmVxdWVzdCBVUkw8L2R0PiA8ZGQ+e3tSRVFVRVNUX1VSTH19PC9kZD4gPGR0PlJlYXNvbjwvZHQ+IDxkZD57e1JVTEVfTVNHfX08L2RkPiA8ZHQ+RGF0ZTwvZHQ+IDxkZD57e1RJTUVTVEFNUH19PC9kZD4gPC9kbD4gPC9kaXY+PC9kaXY+PC9ib2R5PjwvaHRtbD4="
 #define BOGUS_GEO_DATABASE "/tmp/BOGUS_GEO_DATABASE.db"
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 typedef enum {
         SERVER_MODE_DEFAULT = 0,
         SERVER_MODE_PROXY,
@@ -82,20 +82,25 @@ typedef enum {
         CONFIG_MODE_SCOPES_DIR,
         CONFIG_MODE_NONE
 } config_mode_t;
-//: ----------------------------------------------------------------------------
-//: globals
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! globals
+//! ----------------------------------------------------------------------------
 ns_is2::srvr *g_srvr = NULL;
-ns_scopez_server::sx_scopes *g_sx_scopes = NULL;
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
-                                   ns_is2::session &a_session,
-                                   ns_is2::rqst &a_rqst,
-                                   const waflz_pb::enforcement &a_enf)
+ns_scopez_server::sx_scopes *g_sx = NULL;
+//! ****************************************************************************
+//! ----------------------------------------------------------------------------
+//!                           request handler
+//! ----------------------------------------------------------------------------
+//! ****************************************************************************
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx* a_ctx,
+                                   ns_is2::session& a_session,
+                                   ns_is2::rqst& a_rqst,
+                                   const waflz_pb::enforcement& a_enf)
 {
         if(!a_ctx)
         {
@@ -110,6 +115,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
         {
                 return ns_is2::H_RESP_NONE;
         }
+        //NDBG_PRINT("l_enfcmnt: %s\n", a_enf.ShortDebugString().c_str());
 #define STR_CMP(_a,_b) (strncasecmp(_a,_b,strlen(_b)) == 0)
         // -------------------------------------------------
         // switch on type
@@ -343,7 +349,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
                 }
                 const std::string *l_b64 = NULL;
                 int32_t l_s;
-                l_s = g_sx_scopes->m_b_challenge->get_challenge(&l_b64, a_ctx);
+                l_s = g_sx->m_b_challenge->get_challenge(&l_b64, a_ctx);
                 if((l_s != WAFLZ_STATUS_OK) ||
                     !l_b64)
                 {
@@ -431,14 +437,14 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx *a_ctx,
         }
         return l_resp_code;
 }
-//: ----------------------------------------------------------------------------
-//: default
-//: ----------------------------------------------------------------------------
-class scopez_h: public ns_is2::default_rqst_h
+//! ----------------------------------------------------------------------------
+//! default
+//! ----------------------------------------------------------------------------
+class waflz_h: public ns_is2::default_rqst_h
 {
 public:
-        scopez_h(): default_rqst_h() {}
-        ~scopez_h() {}
+        waflz_h(): default_rqst_h() {}
+        ~waflz_h() {}
         // -------------------------------------------------
         // default rqst handler...
         // -------------------------------------------------
@@ -446,21 +452,23 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 waflz_pb::enforcement *l_enf = NULL;
+                ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx_scopes, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
+                        if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return l_resp_t;
                 }
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
-                if(g_sx_scopes->m_action_mode)
+                if(g_sx->m_action_mode)
                 {
                         if(!l_enf)
                         {
@@ -489,10 +497,10 @@ public:
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                 l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
                                             "application/json",
-                                            g_sx_scopes->m_resp.length(),
+                                            g_sx->m_resp.length(),
                                             a_rqst.m_supports_keep_alives,
                                             a_session.get_server_name());
-                l_api_resp.set_body_data(g_sx_scopes->m_resp.c_str(), g_sx_scopes->m_resp.length());
+                l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
                 l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
                 ns_is2::queue_api_resp(a_session, l_api_resp);
                 if(l_enf) { delete l_enf; l_enf = NULL; }
@@ -500,14 +508,14 @@ public:
                 return ns_is2::H_RESP_DONE;
         }
 };
-//: ----------------------------------------------------------------------------
-//: file
-//: ----------------------------------------------------------------------------
-class scopez_file_h: public ns_is2::file_h
+//! ----------------------------------------------------------------------------
+//! file
+//! ----------------------------------------------------------------------------
+class waflz_file_h: public ns_is2::file_h
 {
 public:
-        scopez_file_h(): file_h() {}
-        ~scopez_file_h() {}
+        waflz_file_h(): file_h() {}
+        ~waflz_file_h() {}
         // -------------------------------------------------
         // default rqst handler...
         // -------------------------------------------------
@@ -515,15 +523,17 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 waflz_pb::enforcement *l_enf = NULL;
+                ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx_scopes, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
+                        if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return l_resp_t;
                 }
                 // -----------------------------------------
@@ -545,15 +555,15 @@ public:
                 return l_resp_t;
         }
 };
-//: ----------------------------------------------------------------------------
-//: proxy
-//: ----------------------------------------------------------------------------
-class scopez_proxy_h: public ns_is2::proxy_h
+//! ----------------------------------------------------------------------------
+//! proxy
+//! ----------------------------------------------------------------------------
+class waflz_proxy_h: public ns_is2::proxy_h
 {
 public:
-        scopez_proxy_h(const std::string &a_proxy_host):
+        waflz_proxy_h(const std::string &a_proxy_host):
                 proxy_h(a_proxy_host, ""){}
-        ~scopez_proxy_h() {}
+        ~waflz_proxy_h() {}
         // -------------------------------------------------
         // default rqst handler...
         // -------------------------------------------------
@@ -561,13 +571,13 @@ public:
                                     ns_is2::rqst &a_rqst,
                                     const ns_is2::url_pmap_t &a_url_pmap)
         {
-                ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 waflz_pb::enforcement *l_enf = NULL;
+                ns_is2::h_resp_t l_resp_t = ns_is2::H_RESP_NONE;
                 // -----------------------------------------
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
-                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx_scopes, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
+                l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
                 if(l_resp_t != ns_is2::H_RESP_NONE)
                 {
                         return l_resp_t;
@@ -591,11 +601,11 @@ public:
                 return l_resp_t;
         }
 };
-//: ----------------------------------------------------------------------------
-//: \details: sighandler
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: sighandler
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void sig_handler(int signo)
 {
         if(!g_srvr)
@@ -608,27 +618,27 @@ void sig_handler(int signo)
                 g_srvr->stop();
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: Print the version.
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Print the version.
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void print_version(FILE* a_stream, int a_exit_code)
 {
         // print out the version information
-        fprintf(a_stream, "scopez_server\n");
+        fprintf(a_stream, "waflz_server\n");
         fprintf(a_stream, "Copyright (C) 2019 Verizon Digital Media.\n");
         fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(a_exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details: Print the command line help.
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Print the command line help.
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void print_usage(FILE* a_stream, int a_exit_code)
 {
-        fprintf(a_stream, "Usage: scopez_server [options]\n");
+        fprintf(a_stream, "Usage: waflz_server [options]\n");
         fprintf(a_stream, "Options:\n");
         fprintf(a_stream, "  -h, --help          display this help and exit.\n");
         fprintf(a_stream, "  -v, --version       display the version number and exit.\n");
@@ -666,11 +676,11 @@ void print_usage(FILE* a_stream, int a_exit_code)
 #endif
         exit(a_exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
         // options..
@@ -682,7 +692,7 @@ int main(int argc, char** argv)
         //ns_is2::trc_log_file_open("/dev/stdout");
         // modes
         server_mode_t l_server_mode = SERVER_MODE_NONE;
-        config_mode_t l_config_mode = CONFIG_MODE_NONE;
+        config_mode_t g_config_mode = CONFIG_MODE_NONE;
         std::string l_conf_dir;
         std::string l_ruleset_dir;
         std::string l_geoip_db;
@@ -697,7 +707,7 @@ int main(int argc, char** argv)
         bool l_use_lmdb = false;
         bool l_lmdb_interprocess = false;
         bool l_action_mode = false;
-        bool l_bg = false;
+        bool l_bg_load = false;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -739,11 +749,11 @@ int main(int argc, char** argv)
                 l_server_spec = l_arg; \
 } while(0)
 #define _TEST_SET_CONFIG_MODE(_type) do { \
-                if(l_config_mode != CONFIG_MODE_NONE) { \
+                if(g_config_mode != CONFIG_MODE_NONE) { \
                         fprintf(stdout, "error multiple config modes specified.\n"); \
                         return STATUS_ERROR; \
                 } \
-                l_config_mode = CONFIG_MODE_##_type; \
+                g_config_mode = CONFIG_MODE_##_type; \
 } while(0)
         // -------------------------------------------------
         // args...
@@ -847,7 +857,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'b':
                 {
-                        l_bg = true;
+                        l_bg_load = true;
                         break;
                 }
                 // -----------------------------------------
@@ -1042,7 +1052,7 @@ int main(int argc, char** argv)
                 // Append
                 l_ruleset_dir += "/";
         }
-        int32_t l_s;
+        int32_t l_s = 0;
         // -------------------------------------------------
         // *************************************************
         // server setup
@@ -1056,8 +1066,8 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(SERVER_MODE_PROXY):
         {
-                scopez_proxy_h *l_scopez_proxy_h = new scopez_proxy_h(l_server_spec);
-                l_h = l_scopez_proxy_h;
+                waflz_proxy_h *l_waflz_proxy_h = new waflz_proxy_h(l_server_spec);
+                l_h = l_waflz_proxy_h;
                 break;
         }
         // -------------------------------------------------
@@ -1065,9 +1075,9 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(SERVER_MODE_FILE):
         {
-                scopez_file_h *l_scopez_file_h = new scopez_file_h();
-                l_scopez_file_h->set_root(l_server_spec);
-                l_h = l_scopez_file_h;
+                waflz_file_h *l_waflz_file_h = new waflz_file_h();
+                l_waflz_file_h->set_root(l_server_spec);
+                l_h = l_waflz_file_h;
                 break;
         }
         // -------------------------------------------------
@@ -1075,60 +1085,9 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         default:
         {
-                scopez_h *l_scopez = new scopez_h();
-                l_h = l_scopez;
+                waflz_h *l_waflz = new waflz_h();
+                l_h = l_waflz;
                 break;
-        }
-        }
-        //fprintf(stdout,"%d\n", l_config_mode);
-        switch(l_config_mode)
-        {
-        // -------------------------------------------------
-        //  single scope
-        // -------------------------------------------------
-        case(CONFIG_MODE_SCOPES):
-        {
-                g_sx_scopes = new ns_scopez_server::sx_scopes();
-                g_sx_scopes->m_lsnr = l_lsnr;
-                g_sx_scopes->m_config = l_config_file;
-                g_sx_scopes->m_bg_load = l_bg;
-                g_sx_scopes->m_scopes_dir = false;
-                g_sx_scopes->m_action_mode = l_action_mode;
-                g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
-                g_sx_scopes->m_b_challenge_file = l_b_challenge_file;
-                g_sx_scopes->m_callbacks = &s_callbacks;
-                g_sx_scopes->m_geoip2_db = l_geoip_db;
-                g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
-                g_sx_scopes->m_conf_dir = l_conf_dir;
-                g_sx_scopes->m_redis_host = l_redis_host;
-                g_sx_scopes->m_use_lmdb = l_use_lmdb;
-                g_sx_scopes->m_lmdb_interprocess = l_lmdb_interprocess;
-                break;
-        }
-        case(CONFIG_MODE_SCOPES_DIR):
-        {
-                g_sx_scopes = new ns_scopez_server::sx_scopes();
-                g_sx_scopes->m_lsnr = l_lsnr;
-                g_sx_scopes->m_config = l_config_file;
-                g_sx_scopes->m_bg_load = l_bg;
-                g_sx_scopes->m_scopes_dir = true;
-                g_sx_scopes->m_action_mode = l_action_mode;
-                g_sx_scopes->m_ruleset_dir = l_ruleset_dir;
-                g_sx_scopes->m_b_challenge_file = l_b_challenge_file;
-                g_sx_scopes->m_an_list_file = l_an_list_file;
-                g_sx_scopes->m_callbacks = &s_callbacks;
-                g_sx_scopes->m_geoip2_db = l_geoip_db;
-                g_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
-                g_sx_scopes->m_conf_dir = l_conf_dir;
-                g_sx_scopes->m_redis_host = l_redis_host;
-                g_sx_scopes->m_use_lmdb = l_use_lmdb;
-                g_sx_scopes->m_lmdb_interprocess = l_lmdb_interprocess;
-                break;
-        }
-        default:
-        {
-                fprintf(stdout, "error no config mode specified");
-                return STATUS_ERROR;
         }
         }
         // -------------------------------------------------
@@ -1136,9 +1095,72 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         l_lsnr->set_default_route(l_h);
         // -------------------------------------------------
+        // *************************************************
+        // mode setup
+        // *************************************************
+        // -------------------------------------------------
+        switch(g_config_mode)
+        {
+        // -------------------------------------------------
+        //  single scope
+        // -------------------------------------------------
+        case(CONFIG_MODE_SCOPES):
+        {
+                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes();
+                l_sx_scopes->m_lsnr = l_lsnr;
+                l_sx_scopes->m_config = l_config_file;
+                l_sx_scopes->m_bg_load = l_bg_load;
+                l_sx_scopes->m_scopes_dir = false;
+                l_sx_scopes->m_action_mode = l_action_mode;
+                l_sx_scopes->m_ruleset_dir = l_ruleset_dir;
+                l_sx_scopes->m_b_challenge_file = l_b_challenge_file;
+                l_sx_scopes->m_callbacks = &s_callbacks;
+                l_sx_scopes->m_geoip2_db = l_geoip_db;
+                l_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
+                l_sx_scopes->m_conf_dir = l_conf_dir;
+                l_sx_scopes->m_redis_host = l_redis_host;
+                l_sx_scopes->m_use_lmdb = l_use_lmdb;
+                l_sx_scopes->m_lmdb_interprocess = l_lmdb_interprocess;
+                g_sx = l_sx_scopes;
+                break;
+        }
+        // -------------------------------------------------
+        // scopes directory
+        // -------------------------------------------------
+        case(CONFIG_MODE_SCOPES_DIR):
+        {
+                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes();
+                l_sx_scopes->m_lsnr = l_lsnr;
+                l_sx_scopes->m_config = l_config_file;
+                l_sx_scopes->m_bg_load = l_bg_load;
+                l_sx_scopes->m_scopes_dir = true;
+                l_sx_scopes->m_action_mode = l_action_mode;
+                l_sx_scopes->m_ruleset_dir = l_ruleset_dir;
+                l_sx_scopes->m_b_challenge_file = l_b_challenge_file;
+                l_sx_scopes->m_an_list_file = l_an_list_file;
+                l_sx_scopes->m_callbacks = &s_callbacks;
+                l_sx_scopes->m_geoip2_db = l_geoip_db;
+                l_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
+                l_sx_scopes->m_conf_dir = l_conf_dir;
+                l_sx_scopes->m_redis_host = l_redis_host;
+                l_sx_scopes->m_use_lmdb = l_use_lmdb;
+                l_sx_scopes->m_lmdb_interprocess = l_lmdb_interprocess;
+                g_sx = l_sx_scopes;
+                break;
+        }
+        // -------------------------------------------------
+        // default
+        // -------------------------------------------------
+        default:
+        {
+                fprintf(stdout, "error no mode specified.\n");
+                return STATUS_ERROR;
+        }
+        }
+        // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = g_sx_scopes->init();
+        l_s = g_sx->init();
         if(l_s != STATUS_OK)
         {
                 fprintf(stdout, "performing initialization\n");
@@ -1179,6 +1201,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         if(g_srvr) { delete g_srvr; g_srvr = NULL; }
         if(l_h) { delete l_h; l_h = NULL; }
-        if(g_sx_scopes) { delete g_sx_scopes; g_sx_scopes = NULL; }
+        if(g_sx) { delete g_sx; g_sx = NULL; }
         return STATUS_OK;
 }

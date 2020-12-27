@@ -449,7 +449,6 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
         }
-
         // -------------------------------------------------
         // pick rand if id empty
         // -------------------------------------------------

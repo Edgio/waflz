@@ -768,7 +768,6 @@ int main(int argc, char** argv)
                 l_server_mode = SERVER_MODE_##_type; \
                 l_server_spec = l_arg; \
 } while(0)
-
         // -------------------------------------------------
         // Args...
         // -------------------------------------------------
@@ -1192,7 +1191,6 @@ int main(int argc, char** argv)
                 l_sx_profile->m_ruleset_dir = l_ruleset_dir;
                 l_sx_profile->m_geoip2_db = l_geoip_db;
                 l_sx_profile->m_geoip2_isp_db = l_geoip_isp_db;
-
                 g_sx = l_sx_profile;
                 break;
         }

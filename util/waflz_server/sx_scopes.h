@@ -9,135 +9,248 @@
 //! ----------------------------------------------------------------------------
 #ifndef _WAFLZ_SERVER_SX_SCOPES_H_
 #define _WAFLZ_SERVER_SX_SCOPES_H_
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include <stdint.h>
 #include "waflz/scopes.h"
 #include "waflz/scopes_configs.h"
 #include "sx.h"
-//: ----------------------------------------------------------------------------
-//: fwd decl's
-//: ----------------------------------------------------------------------------
+#include "is2/support/nbq.h"
+#include "is2/srvr/srvr.h"
+#include "is2/srvr/api_resp.h"
+#include "is2/support/trace.h"
+//! ----------------------------------------------------------------------------
+//! fwd decl's
+//! ----------------------------------------------------------------------------
 namespace ns_waflz {
 class engine;
 }
 namespace ns_waflz_server {
-//: ----------------------------------------------------------------------------
-//: update_scopes_h
-//: ----------------------------------------------------------------------------
-class update_scopes_h: public ns_is2::default_rqst_h
+//! ----------------------------------------------------------------------------
+//! entity type
+//! ----------------------------------------------------------------------------
+typedef enum _entity_t {
+        ENTITY_TYPE_SCOPES = 0,
+        ENTITY_TYPE_ACL,
+        ENTITY_TYPE_PROFILE,
+        ENTITY_TYPE_RULES,
+        ENTITY_TYPE_BOTS,
+        ENTITY_TYPE_LIMIT,
+} entity_t;
+//! ----------------------------------------------------------------------------
+//! type
+//! ----------------------------------------------------------------------------
+typedef struct _conf_update_bg {
+        char* m_buf;
+        uint32_t m_buf_len;
+        ns_waflz::scopes_configs* m_scopes_configs;
+} conf_update_bg_t;
+//! ----------------------------------------------------------------------------
+//! update_entity_h
+//! ----------------------------------------------------------------------------
+template <entity_t T>
+class update_entity_h: public ns_is2::default_rqst_h
 {
 public:
-        update_scopes_h():
+        // -------------------------------------------------
+        // public methods
+        // -------------------------------------------------
+        update_entity_h(ns_waflz::scopes_configs* a_scopes_configs = NULL,
+                        bool a_bg_load = false):
                 default_rqst_h(),
-                m_scopes_configs(NULL),
-                m_bg_load(false)
+                m_scopes_configs(a_scopes_configs),
+                m_bg_load(a_bg_load)
         {}
-        ~update_scopes_h()
+        ~update_entity_h()
         {}
+        // -------------------------------------------------
+        // do post
+        // -------------------------------------------------
         ns_is2::h_resp_t do_post(ns_is2::session &a_session,
                                  ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
+                                 const ns_is2::url_pmap_t &a_url_pmap)
+        {
+                if(!m_scopes_configs)
+                {
+                        TRC_ERROR("m_scopes_configs == NULL");
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
+                // -----------------------------------------
+                // read request body
+                // -----------------------------------------
+                uint64_t l_buf_len = a_rqst.get_body_len();
+                ns_is2::nbq *l_q = a_rqst.get_body_q();
+                char *l_buf;
+                l_buf = (char *)malloc(l_buf_len);
+                l_q->read(l_buf, l_buf_len);
+                int32_t l_s;
+                // -----------------------------------------
+                // make ctx
+                // -----------------------------------------
+                conf_update_bg_t* l_up_bg = new conf_update_bg_t();
+                l_up_bg->m_buf = l_buf;
+                l_up_bg->m_buf_len = l_buf_len;
+                l_up_bg->m_scopes_configs = m_scopes_configs;
+                // -----------------------------------------
+                // if bg load...
+                // -----------------------------------------
+                if(m_bg_load)
+                {
+                        m_scopes_configs->set_locking(true);
+                        pthread_t l_t_thread;
+                        int32_t l_pthread_error = 0;
+                        l_pthread_error = pthread_create(&l_t_thread,
+                                                         NULL,
+                                                         load,
+                                                         l_up_bg);
+                        if (l_pthread_error != 0)
+                        {
+                                return ns_is2::H_RESP_SERVER_ERROR;
+                        }
+                }
+                // -----------------------------------------
+                // else fg load
+                // -----------------------------------------
+                else
+                {
+                        m_scopes_configs->set_locking(false);
+                        load(l_up_bg);
+                        // TODO -error handling???
+                        if(l_buf) { free(l_buf); l_buf = NULL; }
+                }
+                // -----------------------------------------
+                // generate response
+                // -----------------------------------------
+                std::string l_resp_str = "{\"status\": \"success\"}";
+                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                           "application/json",
+                                           l_resp_str.length(),
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
+                l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
+                ns_is2::queue_api_resp(a_session, l_api_resp);
+                return ns_is2::H_RESP_DONE;
+        }
+        // -------------------------------------------------
+        // public static methods
+        // -------------------------------------------------
+        // -------------------------------------------------
+        // load entity
+        // -------------------------------------------------
+        static void* load(void* a_context)
+        {
+                conf_update_bg_t* l_sc = reinterpret_cast<conf_update_bg_t*>(a_context);
+                if(!l_sc)
+                {
+                        return NULL;
+                }
+                int32_t l_s;
+                // -----------------------------------------
+                // load per type
+                // -----------------------------------------
+                switch(m_type)
+                {
+                // -----------------------------------------
+                // scopes
+                // -----------------------------------------
+                case ENTITY_TYPE_SCOPES:
+                {
+                        l_s = l_sc->m_scopes_configs->load(l_sc->m_buf, l_sc->m_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // acl
+                // -----------------------------------------
+                case ENTITY_TYPE_ACL:
+                {
+                        l_s = l_sc->m_scopes_configs->load_acl(l_sc->m_buf, l_sc->m_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // profile
+                // -----------------------------------------
+                case ENTITY_TYPE_PROFILE:
+                {
+                        l_s = l_sc->m_scopes_configs->load_profile(l_sc->m_buf, l_sc->m_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // rules
+                // -----------------------------------------
+                case ENTITY_TYPE_RULES:
+                {
+                        l_s = l_sc->m_scopes_configs->load_rules(l_sc->m_buf, l_sc->m_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // bots
+                // -----------------------------------------
+                case ENTITY_TYPE_BOTS:
+                {
+                        l_s = l_sc->m_scopes_configs->load_bots(l_sc->m_buf, l_sc->m_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // limit
+                // -----------------------------------------
+                case ENTITY_TYPE_LIMIT:
+                {
+                        l_s = l_sc->m_scopes_configs->load_limit(l_sc->m_buf, l_sc->m_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // default
+                // -----------------------------------------
+                default:
+                {
+                        TRC_ERROR("unrecognized entity type: %d\n", m_type);
+                        break;
+                }
+                }
+                if(l_sc->m_buf) { free(l_sc->m_buf); l_sc->m_buf = NULL;}
+                delete l_sc;
+                return NULL;
+        }
+        // -------------------------------------------------
+        // public const
+        // -------------------------------------------------
+        static const entity_t m_type = T;
+        // -------------------------------------------------
+        // public members
+        // -------------------------------------------------
         ns_waflz::scopes_configs* m_scopes_configs;
         bool m_bg_load;
 };
-//: ----------------------------------------------------------------------------
-//: update_acl_h
-//: ----------------------------------------------------------------------------
-class update_acl_h: public ns_is2::default_rqst_h
-{
-public:
-        update_acl_h():
-                default_rqst_h(),
-                m_scopes_configs(NULL),
-                m_bg_load(false)
-        {}
-        ~update_acl_h()
-        {}
-        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
-                                 ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::scopes_configs* m_scopes_configs;
-        bool m_bg_load;
-};
-//: ----------------------------------------------------------------------------
-//: update_rules_h
-//: ----------------------------------------------------------------------------
-class update_rules_h: public ns_is2::default_rqst_h
-{
-public:
-        update_rules_h():
-                default_rqst_h(),
-                m_scopes_configs(NULL),
-                m_bg_load(false)
-        {}
-        ~update_rules_h()
-        {}
-        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
-                                 ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::scopes_configs* m_scopes_configs;
-        bool m_bg_load;
-};
-//: ----------------------------------------------------------------------------
-//: update_bots_h
-//: ----------------------------------------------------------------------------
-class update_bots_h: public ns_is2::default_rqst_h
-{
-public:
-        update_bots_h():
-                default_rqst_h(),
-                m_scopes_configs(NULL),
-                m_bg_load(false)
-        {}
-        ~update_bots_h()
-        {}
-        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
-                                 ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::scopes_configs* m_scopes_configs;
-        bool m_bg_load;
-};  
-//: ----------------------------------------------------------------------------
-//: update_scopes_profile_h
-//: ----------------------------------------------------------------------------
-class update_scopes_profile_h: public ns_is2::default_rqst_h
-{
-public:
-        update_scopes_profile_h():
-                default_rqst_h(),
-                m_scopes_configs(NULL),
-                m_bg_load(false)
-        {}
-        ~update_scopes_profile_h()
-        {}
-        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
-                                 ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::scopes_configs* m_scopes_configs;
-        bool m_bg_load;
-};
-//: ----------------------------------------------------------------------------
-//: update_limit_h
-//: ----------------------------------------------------------------------------
-class update_limit_h: public ns_is2::default_rqst_h
-{
-public:
-        update_limit_h():
-                default_rqst_h(),
-                m_scopes_configs(NULL)
-        {}
-        ~update_limit_h()
-        {}
-        ns_is2::h_resp_t do_post(ns_is2::session &a_session,
-                                 ns_is2::rqst &a_rqst,
-                                 const ns_is2::url_pmap_t &a_url_pmap);
-        ns_waflz::scopes_configs* m_scopes_configs;
-};
-//: ----------------------------------------------------------------------------
-//: sx_scopes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! sx_scopes
+//! ----------------------------------------------------------------------------
 class sx_scopes: public ns_waflz_server::sx {
 public:
         // -------------------------------------------------
@@ -154,6 +267,9 @@ public:
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
         bool m_bg_load;
         bool m_is_rand;
         bool m_scopes_dir;
@@ -163,12 +279,6 @@ public:
         std::string m_redis_host;
         ns_waflz::engine *m_engine;
         ns_waflz::kv_db *m_db;
-        update_scopes_h *m_update_scopes_h;
-        update_acl_h* m_update_acl_h;
-        update_rules_h* m_update_rules_h;
-        update_bots_h* m_update_bots_h;  
-        update_scopes_profile_h* m_update_profile_h;
-        update_limit_h* m_update_limit_h;
         ns_waflz::scopes_configs *m_scopes_configs;
         std::string m_config_path;
         std::string m_ruleset_dir;
@@ -177,6 +287,15 @@ public:
         std::string m_conf_dir;
         std::string m_b_challenge_file;
         std::string m_an_list_file;
+        // -------------------------------------------------
+        // update endpoints
+        // -------------------------------------------------
+        update_entity_h<ENTITY_TYPE_SCOPES>* m_update_scopes_h;
+        update_entity_h<ENTITY_TYPE_ACL>* m_update_acl_h;
+        update_entity_h<ENTITY_TYPE_RULES>* m_update_rules_h;
+        update_entity_h<ENTITY_TYPE_BOTS>* m_update_bots_h;
+        update_entity_h<ENTITY_TYPE_PROFILE>* m_update_profile_h;
+        update_entity_h<ENTITY_TYPE_LIMIT>* m_update_limit_h;
 };
 }
 #endif

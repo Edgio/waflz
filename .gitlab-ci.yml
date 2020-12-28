@@ -57,6 +57,7 @@ arty:
     - |
         for dir in output/*/; do
             [ -d "${dir}" ] || break]
+            DIST=$(basename ${dir})
             for file in ${dir}*.tar.gz; do
                 [ -f "${file}" ] || break
                 ${AF_HELPER} upload generic --target ${AF_TEAM}/waflz/ "${file}"
@@ -65,8 +66,8 @@ arty:
             for file in ${dir}*.deb; do
                 [ -f "${file}" ] || break
                 if [[ ! ${file} =~ .*-debug\.deb$ ]]; then
-                    for dest in ${AF_REPOS}; do
-                        ${AF_HELPER} upload debian --repo "${dest}" --dist "${dir}" "${file}"
+                    for repo in ${AF_REPOS}; do
+                        ${AF_HELPER} upload debian --repo "${repo}" --dist "${DIST}" "${file}"
                     done
                 fi
             done

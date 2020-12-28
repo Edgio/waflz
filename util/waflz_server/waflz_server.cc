@@ -939,7 +939,7 @@ void print_version(FILE* a_stream, int a_exit_code)
 {
         // print out the version information
         fprintf(a_stream, "waflz_server\n");
-        fprintf(a_stream, "Copyright (C) 2019 Verizon Digital Media.\n");
+        fprintf(a_stream, "Copyright (C) Verizon.\n");
         fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(a_exit_code);
 }
@@ -955,27 +955,31 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -h, --help          display this help and exit.\n");
         fprintf(a_stream, "  -v, --version       display the version number and exit.\n");
         fprintf(a_stream, "  \n");
-        fprintf(a_stream, "Config Modes: -specify one only\n");
+        fprintf(a_stream, "Config Modes: -specify only one\n");
         fprintf(a_stream, "  -i, --instance      waf instance\n");
         fprintf(a_stream, "  -d, --instance-dir  waf instance directory\n");
         fprintf(a_stream, "  -f, --profile       waf profile\n");
-        fprintf(a_stream, "  -m, --modsecurity   modsecurity rules file (experimental)\n");
+        fprintf(a_stream, "  -m, --modsecurity   modsecurity rules file\n");
         fprintf(a_stream, "  -l, --limit         limit config file.\n");
         fprintf(a_stream, "  -b, --scopes        scopes\n");
         fprintf(a_stream, "  -S, --scopes-dir    scopes directory\n");
-        fprintf(a_stream, "  -d  --config-dir    configuration directory\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
         fprintf(a_stream, "  -g, --geoip-db      geoip-db\n");
         fprintf(a_stream, "  -s, --geoip-isp-db  geoip-isp-db\n");
+        fprintf(a_stream, "  -d  --config-dir    configuration directory (REQUIRED for scopes)\n");
         fprintf(a_stream, "  -x, --random-ips    randomly generate ips\n");
-        fprintf(a_stream, "  -e, --redis-host    redis host:port -used for counting backend\n");
         fprintf(a_stream, "  -c, --challenge     json containing browser challenges\n");
+        fprintf(a_stream, "  \n");
+        fprintf(a_stream, "KV DB Configuration:\n");
+        fprintf(a_stream, "  -R, --redis-host    redis host:port -used for counting backend\n");
+        fprintf(a_stream, "  -L, --lmdb          lmdb for rl counting\n");
+        fprintf(a_stream, "  -I, --interprocess  lmdb across multiple process (if --lmdb)\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Server Configuration:\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
-        fprintf(a_stream, "  -j, --action        server will apply scope actions instead of reporting\n");
+        fprintf(a_stream, "  -j, --action        apply actions instead of reporting\n");
         fprintf(a_stream, "  -z, --bg            load configs in background thread\n");
         fprintf(a_stream, "  -o, --output        write json alerts to file\n");
         fprintf(a_stream, "  \n");
@@ -1003,7 +1007,9 @@ void print_usage(FILE* a_stream, int a_exit_code)
 //! ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
-        // options..
+        // -------------------------------------------------
+        // defaults
+        // -------------------------------------------------
         char l_opt;
         std::string l_arg;
         int l_option_index = 0;
@@ -1031,33 +1037,62 @@ int main(int argc, char** argv)
         std::string l_hprof_file;
         std::string l_cprof_file;
 #endif
+        // -------------------------------------------------
+        // options
+        // -------------------------------------------------
         struct option l_long_options[] =
                 {
+                // -----------------------------------------
+                // options
+                // -----------------------------------------
                 { "help",         0, 0, 'h' },
                 { "version",      0, 0, 'v' },
-                { "ruleset-dir",  1, 0, 'r' },
+                // -----------------------------------------
+                // config modes
+                // -----------------------------------------
                 { "instance",     1, 0, 'i' },
                 { "instance-dir", 1, 0, 'd' },
                 { "profile",      1, 0, 'f' },
                 { "modsecurity",  1, 0, 'm' },
-                { "port",         1, 0, 'p' },
-                { "geoip-db",     1, 0, 'g' },
-                { "geoip-isp-db", 1, 0, 's' },
-                { "random-ips",   0, 0, 'x' },
-                { "action",       0, 0, 'j' },
-                { "bg",           0, 0, 'z' },
-                { "trace",        1, 0, 't' },
-                { "server-trace", 1, 0, 'T' },
-                { "static",       1, 0, 'w' },
-                { "proxy",        1, 0, 'y' },
-                { "output",       1, 0, 'o' },
-                { "audit-mode",   0, 0, 'a' },
                 { "limit",        1, 0, 'l' },
                 { "scopes",       1, 0, 'b' },
                 { "scopes-dir",   1, 0, 'S' },
+                // -----------------------------------------
+                // engine config
+                // -----------------------------------------
+                { "ruleset-dir",  1, 0, 'r' },
+                { "geoip-db",     1, 0, 'g' },
+                { "geoip-isp-db", 1, 0, 's' },
                 { "config-dir",   1, 0, 'd' },
+                { "random-ips",   0, 0, 'x' },
                 { "challenge",    1, 0, 'c' },
-                { "redis-host",   1, 0, 'e' },
+                // -----------------------------------------
+                // kv db config
+                // -----------------------------------------
+                { "redis",        1, 0, 'R' },
+                { "lmdb",         0, 0, 'L' },
+                { "interprocess", 0, 0, 'I' },
+                // -----------------------------------------
+                // server config
+                // -----------------------------------------
+                { "port",         1, 0, 'p' },
+                { "action",       0, 0, 'j' },
+                { "bg",           0, 0, 'z' },
+                { "output",       1, 0, 'o' },
+                // -----------------------------------------
+                // server mode
+                // -----------------------------------------
+                { "static",       1, 0, 'w' },
+                { "proxy",        1, 0, 'y' },
+                // -----------------------------------------
+                // debug options
+                // -----------------------------------------
+                { "trace",        1, 0, 't' },
+                { "server-trace", 1, 0, 'T' },
+                { "audit-mode",   0, 0, 'a' },
+                // -----------------------------------------
+                // profile options
+                // -----------------------------------------
 #ifdef ENABLE_PROFILER
                 { "cprofile",     1, 0, 'H' },
                 { "hprofile",     1, 0, 'C' },
@@ -1065,29 +1100,13 @@ int main(int argc, char** argv)
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-#define _TEST_SET_CONFIG_MODE(_type) do { \
-                if(g_config_mode != CONFIG_MODE_NONE) { \
-                        fprintf(stdout, "error multiple config modes specified.\n"); \
-                        return STATUS_ERROR; \
-                } \
-                g_config_mode = CONFIG_MODE_##_type; \
-                l_config_file = l_arg; \
-} while(0)
-#define _TEST_SET_SERVER_MODE(_type) do { \
-                if(l_server_mode != SERVER_MODE_NONE) { \
-                        fprintf(stdout, "error multiple server modes specified.\n"); \
-                        return STATUS_ERROR; \
-                } \
-                l_server_mode = SERVER_MODE_##_type; \
-                l_server_spec = l_arg; \
-} while(0)
         // -------------------------------------------------
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xjzt:T:w:y:o:l:b:S:d:c:e:H:C:a";
+        char l_short_arg_list[] = "hvi:d:f:m:l:b:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:aH:C:";
 #else
-        char l_short_arg_list[] = "hvr:i:d:f:m:e:p:g:s:xjzt:T:w:y:o:l:b:S:d:c:e:a";
+        char l_short_arg_list[] = "hvi:d:f:m:l:b:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:a";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -1103,13 +1122,10 @@ int main(int argc, char** argv)
                 switch (l_opt)
                 {
                 // -----------------------------------------
-                // audit mode
+                // *****************************************
+                // options
+                // *****************************************
                 // -----------------------------------------
-                case 'a':
-                {
-                        l_audit_mode = true;
-                        break;
-                }
                 // -----------------------------------------
                 // Help
                 // -----------------------------------------
@@ -1127,13 +1143,18 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // ruleset dir
+                // *****************************************
+                // config modes
+                // *****************************************
                 // -----------------------------------------
-                case 'r':
-                {
-                        l_ruleset_dir = l_arg;
-                        break;
-                }
+#define _TEST_SET_CONFIG_MODE(_type) do { \
+                if(g_config_mode != CONFIG_MODE_NONE) { \
+                        fprintf(stdout, "error multiple config modes specified.\n"); \
+                        return STATUS_ERROR; \
+                } \
+                g_config_mode = CONFIG_MODE_##_type; \
+                l_config_file = l_arg; \
+} while(0)
                 // -----------------------------------------
                 // instance
                 // -----------------------------------------
@@ -1167,7 +1188,7 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                //  limit config
+                // limit
                 // -----------------------------------------
                 case 'l':
                 {
@@ -1175,19 +1196,32 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // port
+                // scopes
                 // -----------------------------------------
-                case 'p':
+                case 'b':
                 {
-                        int l_port_val;
-                        l_port_val = atoi(optarg);
-                        if((l_port_val < 1) ||
-                           (l_port_val > 65535))
-                        {
-                                fprintf(stdout, "Error bad port value: %d.\n", l_port_val);
-                                print_usage(stdout, STATUS_ERROR);
-                        }
-                        l_port = (uint16_t)l_port_val;
+                        _TEST_SET_CONFIG_MODE(SCOPES);
+                        break;
+                }
+                // -----------------------------------------
+                // scopes
+                // -----------------------------------------
+                case 'S':
+                {
+                        _TEST_SET_CONFIG_MODE(SCOPES_DIR);
+                        break;
+                }
+                // -----------------------------------------
+                // *****************************************
+                // engine config
+                // *****************************************
+                // -----------------------------------------
+                // -----------------------------------------
+                // ruleset dir
+                // -----------------------------------------
+                case 'r':
+                {
+                        l_ruleset_dir = l_arg;
                         break;
                 }
                 // -----------------------------------------
@@ -1206,6 +1240,116 @@ int main(int argc, char** argv)
                         l_geoip_isp_db = optarg;
                         break;
                 }
+#if 0
+                { "config-dir",   1, 0, 'd' },
+#endif
+                // -----------------------------------------
+                // random ip's
+                // -----------------------------------------
+                case 'x':
+                {
+                        ns_waflz_server::g_random_ips = true;
+                        break;
+                }
+                // -----------------------------------------
+                //  challenges
+                // -----------------------------------------
+                case 'c':
+                {
+                        l_challenge_file = l_arg;
+                        break;
+                }
+                // -----------------------------------------
+                // *****************************************
+                // kv db config
+                // *****************************************
+                // -----------------------------------------
+                // -----------------------------------------
+                // redis host
+                // -----------------------------------------
+                case 'R':
+                {
+                        l_redis_host = l_arg;
+                        break;
+                }
+#if 0
+                { "lmdb",         0, 0, 'L' },
+                { "interprocess", 0, 0, 'I' },
+#endif
+                // -----------------------------------------
+                // *****************************************
+                // server config
+                // *****************************************
+                // -----------------------------------------
+                // -----------------------------------------
+                // port
+                // -----------------------------------------
+                case 'p':
+                {
+                        int l_port_val;
+                        l_port_val = atoi(optarg);
+                        if((l_port_val < 1) ||
+                           (l_port_val > 65535))
+                        {
+                                fprintf(stdout, "Error bad port value: %d.\n", l_port_val);
+                                print_usage(stdout, STATUS_ERROR);
+                        }
+                        l_port = (uint16_t)l_port_val;
+                        break;
+                }
+#if 0
+                { "action",       0, 0, 'j' },
+#endif
+                // -----------------------------------------
+                // background loading
+                // -----------------------------------------
+                case 'z':
+                {
+                        l_bg_load = true;
+                        break;
+                }
+                // -----------------------------------------
+                // output
+                // -----------------------------------------
+                case 'o':
+                {
+                        l_out_file = l_arg;
+                        break;
+                }
+                // -----------------------------------------
+                // *****************************************
+                // server mode
+                // *****************************************
+                // -----------------------------------------
+#define _TEST_SET_SERVER_MODE(_type) do { \
+                if(l_server_mode != SERVER_MODE_NONE) { \
+                        fprintf(stdout, "error multiple server modes specified.\n"); \
+                        return STATUS_ERROR; \
+                } \
+                l_server_mode = SERVER_MODE_##_type; \
+                l_server_spec = l_arg; \
+} while(0)
+                // -----------------------------------------
+                // static
+                // -----------------------------------------
+                case 'w':
+                {
+                        _TEST_SET_SERVER_MODE(FILE);
+                        break;
+                }
+                // -----------------------------------------
+                // proxy
+                // -----------------------------------------
+                case 'y':
+                {
+                        _TEST_SET_SERVER_MODE(PROXY);
+                        break;
+                }
+                // -----------------------------------------
+                // *****************************************
+                // debug options
+                // *****************************************
+                // -----------------------------------------
                 // -----------------------------------------
                 // tracing
                 // -----------------------------------------
@@ -1251,61 +1395,18 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                // random ip's
+                // audit mode
                 // -----------------------------------------
-                case 'x':
+                case 'a':
                 {
-                        ns_waflz_server::g_random_ips = true;
+                        l_audit_mode = true;
                         break;
                 }
                 // -----------------------------------------
-                // background loading
+                // *****************************************
+                // profile options
+                // *****************************************
                 // -----------------------------------------
-                case 'z':
-                {
-                        l_bg_load = true;
-                        break;
-                }
-                // -----------------------------------------
-                // static
-                // -----------------------------------------
-                case 'w':
-                {
-                        _TEST_SET_SERVER_MODE(FILE);
-                        break;
-                }
-                // -----------------------------------------
-                // proxy
-                // -----------------------------------------
-                case 'y':
-                {
-                        _TEST_SET_SERVER_MODE(PROXY);
-                        break;
-                }
-                // -----------------------------------------
-                // output
-                // -----------------------------------------
-                case 'o':
-                {
-                        l_out_file = l_arg;
-                        break;
-                }
-                // -----------------------------------------
-                //  challenges
-                // -----------------------------------------
-                case 'c':
-                {
-                        l_challenge_file = l_arg;
-                        break;
-                }
-                // -----------------------------------------
-                // redis host
-                // -----------------------------------------
-                case 'e':
-                {
-                        l_redis_host = l_arg;
-                        break;
-                }
 #ifdef ENABLE_PROFILER
                 // -----------------------------------------
                 // profiler file
@@ -1329,9 +1430,13 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case '?':
                 {
-                        // Required argument was missing
-                        // '?' is provided when the 3rd arg to getopt_long does not begin with a ':', and is preceeded
-                        // by an automatic error message.
+                        // ---------------------------------
+                        // Required argument was missing:
+                        // '?' is provided when the 3rd arg
+                        // to getopt_long does not begin
+                        // with a ':', and is preceeded by
+                        // automatic error message.
+                        // ---------------------------------
                         fprintf(stdout, "  Exiting.\n");
                         print_usage(stdout, STATUS_ERROR);
                         break;

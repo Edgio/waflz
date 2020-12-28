@@ -122,8 +122,8 @@ void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
         fprintf(a_stream, "waflz protocol buffer cat (wpc).\n");
-        fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
-        fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
+        fprintf(a_stream, "Copyright (C) Verizon.\n");
+        fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
 }
 //! ----------------------------------------------------------------------------

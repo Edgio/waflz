@@ -41,21 +41,28 @@ int32_t get_rqst_ip_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         // -------------------------------------------------
         if(g_random_ips)
         {
-                uint32_t l_addr;
                 // -----------------------------------------
-                //   16843009 == 1.1.1.1
-                // 4294967295 == 255.255.255.255
+                // skip 0.0.0.0/8;
+                // ip ranges from 1.0.0.0 to 255.255.255.255
                 // -----------------------------------------
-                l_addr = ((uint32_t)rand()) % (4294967295 + 1 - 16843009) + 16843009;
-                snprintf(g_clnt_addr_str, INET6_ADDRSTRLEN, "%d.%d.%d.%d",
-                         ((l_addr & 0xFF000000) >> 24),
-                         ((l_addr & 0x00FF0000) >> 16),
-                         ((l_addr & 0x0000FF00) >> 8),
-                         ((l_addr & 0x000000FF)));
-                //NDBG_PRINT("addr: %s\n", s_clnt_addr_str);
-                *a_data = g_clnt_addr_str;
-                *a_len = strnlen(g_clnt_addr_str, INET6_ADDRSTRLEN);
-                return 0;
+#ifdef CPP17
+                static std::random_device s_rd;
+                static std::uniform_int_distribution<> s_dist(0x01000000, 0xFFFFFFFF);
+                uint32_t l_randaddr = htonl(s_dist(s_rd));
+                std::string l_randip_str(INET_ADDRSTRLEN, '#');
+                inet_ntop(AF_INET, &g_clnt_addr_str, l_randip_str.data(), INET_ADDRSTRLEN);
+#else
+                // -----------------------------------------
+                // four random octets
+                // -packed in network order
+                // -----------------------------------------
+                uint32_t l_randaddr = rand()%255 << 24
+                                    | rand()%255 << 16
+                                    | rand()%255 << 8
+                                    | rand()/((RAND_MAX + 1u)/255);
+                char l_randip_str[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &g_clnt_addr_str, l_randip_str, INET_ADDRSTRLEN);
+#endif
         }
         // -------------------------------------------------
         // request object

@@ -547,7 +547,7 @@ void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
         fprintf(a_stream, "waflz JSON Compiler.\n");
-        fprintf(a_stream, "Copyright (C) 2019 Verizon Digital Media.\n");
+        fprintf(a_stream, "Copyright (C) Verizon.\n");
         fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
 }

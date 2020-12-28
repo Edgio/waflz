@@ -1486,6 +1486,39 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         l_lsnr->set_default_route(l_h);
         // -------------------------------------------------
+        // setup engine
+        // -------------------------------------------------
+        if((g_config_mode == CONFIG_MODE_PROFILE) ||
+           (g_config_mode == CONFIG_MODE_MODSECURITY) ||
+           (g_config_mode == CONFIG_MODE_INSTANCE) ||
+           (g_config_mode == CONFIG_MODE_INSTANCES) ||
+           (g_config_mode == CONFIG_MODE_SCOPES_DIR) ||
+           (g_config_mode == CONFIG_MODE_SCOPES))
+        {
+                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
+                if((l_s != STATUS_OK) ||
+                   (l_engine == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_engine\n");
+                        goto cleanup;
+                }
+        }
+        // -------------------------------------------------
+        // setup db
+        // -------------------------------------------------
+        if((g_config_mode == CONFIG_MODE_LIMIT) ||
+           (g_config_mode == CONFIG_MODE_SCOPES_DIR) ||
+           (g_config_mode == CONFIG_MODE_SCOPES))
+        {
+                l_s = init_kv_db(&l_kv_db, l_redis_host, l_use_lmdb, l_lmdb_ip);
+                if((l_s != STATUS_OK) ||
+                   (l_kv_db == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_kv_db\n");
+                        goto cleanup;
+                }
+        }
+        // -------------------------------------------------
         // *************************************************
         // mode setup
         // *************************************************
@@ -1497,16 +1530,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_PROFILE):
         {
-                // -----------------------------------------
-                // setup engine
-                // -----------------------------------------
-                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
-                if((l_s != STATUS_OK) ||
-                   (l_engine == NULL))
-                {
-                        NDBG_OUTPUT("error performing init_engine\n");
-                        goto cleanup;
-                }
                 // -----------------------------------------
                 // init
                 // -----------------------------------------
@@ -1522,19 +1545,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_INSTANCES):
         {
-                // -----------------------------------------
-                // setup engine
-                // -----------------------------------------
-                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
-                if((l_s != STATUS_OK) ||
-                   (l_engine == NULL))
-                {
-                        NDBG_OUTPUT("error performing init_engine\n");
-                        goto cleanup;
-                }
-                // -----------------------------------------
-                // init
-                // -----------------------------------------
                 ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance(*l_engine);
                 l_sx_instance->m_lsnr = l_lsnr;
                 l_sx_instance->m_config = l_config_file;
@@ -1549,19 +1559,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_INSTANCE):
         {
-                // -----------------------------------------
-                // setup engine
-                // -----------------------------------------
-                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
-                if((l_s != STATUS_OK) ||
-                   (l_engine == NULL))
-                {
-                        NDBG_OUTPUT("error performing init_engine\n");
-                        goto cleanup;
-                }
-                // -----------------------------------------
-                // init
-                // -----------------------------------------
                 ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance(*l_engine);
                 l_sx_instance->m_lsnr = l_lsnr;
                 l_sx_instance->m_config = l_config_file;
@@ -1576,19 +1573,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_MODSECURITY):
         {
-                // -----------------------------------------
-                // setup engine
-                // -----------------------------------------
-                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
-                if((l_s != STATUS_OK) ||
-                   (l_engine == NULL))
-                {
-                        NDBG_OUTPUT("error performing init_engine\n");
-                        goto cleanup;
-                }
-                // -----------------------------------------
-                // init
-                // -----------------------------------------
                 ns_waflz_server::sx_modsecurity *l_sx_msx = new ns_waflz_server::sx_modsecurity(*l_engine);
                 l_sx_msx->m_lsnr = l_lsnr;
                 l_sx_msx->m_config = l_config_file;
@@ -1601,19 +1585,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_LIMIT):
         {
-                // -----------------------------------------
-                // setup db
-                // -----------------------------------------
-                l_s = init_kv_db(&l_kv_db, l_redis_host, l_use_lmdb, l_lmdb_ip);
-                if((l_s != STATUS_OK) ||
-                   (l_kv_db == NULL))
-                {
-                        NDBG_OUTPUT("error performing init_kv_db\n");
-                        goto cleanup;
-                }
-                // -----------------------------------------
-                // init
-                // -----------------------------------------
                 ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit(*l_kv_db);
                 l_sx_limit->m_lsnr = l_lsnr;
                 l_sx_limit->m_config = l_config_file;
@@ -1626,29 +1597,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_SCOPES):
         {
-                // -----------------------------------------
-                // setup engine
-                // -----------------------------------------
-                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
-                if((l_s != STATUS_OK) ||
-                   (l_engine == NULL))
-                {
-                        NDBG_OUTPUT("error performing init_engine\n");
-                        goto cleanup;
-                }
-                // -----------------------------------------
-                // setup db
-                // -----------------------------------------
-                l_s = init_kv_db(&l_kv_db, l_redis_host, l_use_lmdb, l_lmdb_ip);
-                if((l_s != STATUS_OK) ||
-                   (l_kv_db == NULL))
-                {
-                        NDBG_OUTPUT("error performing init_kv_db\n");
-                        goto cleanup;
-                }
-                // -----------------------------------------
-                // init
-                // -----------------------------------------
                 ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes(*l_engine, *l_kv_db);
                 l_sx_scopes->m_lsnr = l_lsnr;
                 l_sx_scopes->m_config = l_config_file;
@@ -1671,19 +1619,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_SCOPES_DIR):
         {
-                // -----------------------------------------
-                // setup db
-                // -----------------------------------------
-                l_s = init_kv_db(&l_kv_db, l_redis_host, l_use_lmdb, l_lmdb_ip);
-                if((l_s != STATUS_OK) ||
-                   (l_kv_db == NULL))
-                {
-                        NDBG_OUTPUT("error performing init_kv_db\n");
-                        goto cleanup;
-                }
-                // -----------------------------------------
-                // init
-                // -----------------------------------------
                 ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes(*l_engine, *l_kv_db);
                 l_sx_scopes->m_lsnr = l_lsnr;
                 l_sx_scopes->m_config = l_config_file;

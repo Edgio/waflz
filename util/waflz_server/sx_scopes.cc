@@ -46,18 +46,16 @@ namespace ns_waflz_server {
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-sx_scopes::sx_scopes(ns_waflz::engine& a_engine, ns_waflz::kv_db &a_db):
+sx_scopes::sx_scopes(ns_waflz::engine& a_engine,
+                     ns_waflz::kv_db &a_db,
+                     ns_waflz::challenge& a_challenge):
         m_bg_load(false),
         m_is_rand(false),
-        m_scopes_dir(false),
-        m_action_mode(false),
         m_engine(a_engine),
         m_db(a_db),
-        m_scopes_configs(NULL),
-        m_config_path(),
+        m_challenge(a_challenge),
         m_conf_dir(),
-        m_b_challenge_file(),
-        m_an_list_file(),
+        m_scopes_configs(NULL),
         m_update_scopes_h(NULL),
         m_update_acl_h(NULL),
         m_update_rules_h(NULL),
@@ -74,7 +72,6 @@ sx_scopes::sx_scopes(ns_waflz::engine& a_engine, ns_waflz::kv_db &a_db):
 //! ----------------------------------------------------------------------------
 sx_scopes::~sx_scopes(void)
 {
-        if(m_b_challenge) { delete m_b_challenge; m_b_challenge = NULL; }
         if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
         if(m_update_acl_h) { delete m_update_acl_h; m_update_acl_h = NULL; }
         if(m_update_rules_h) { delete m_update_rules_h; m_update_rules_h = NULL; }
@@ -92,21 +89,9 @@ int32_t sx_scopes::init(void)
 {
         int32_t l_s;
         // -------------------------------------------------
-        // init bot challenge
-        // -------------------------------------------------
-        m_b_challenge = new ns_waflz::challenge();
-        if(!m_b_challenge_file.empty())
-        {
-                l_s = m_b_challenge->load_file(m_b_challenge_file.c_str(), m_b_challenge_file.length());
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("Error:%s", m_b_challenge->get_err_msg());
-                }
-        }
-        // -------------------------------------------------
         // create scope configs
         // -------------------------------------------------
-        m_scopes_configs = new ns_waflz::scopes_configs(m_engine, m_db, *m_b_challenge, false);
+        m_scopes_configs = new ns_waflz::scopes_configs(m_engine, m_db, m_challenge, false);
         m_scopes_configs->set_conf_dir(m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -118,63 +103,50 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         m_scopes_configs->set_locking(true);
         // -------------------------------------------------
+        // get config type -file or directory
+        // -------------------------------------------------
+        bool l_is_dir_flag = false;
+        struct stat l_stat;
+        l_s = stat(m_config.c_str(), &l_stat);
+        if(l_s != 0)
+        {
+                NDBG_PRINT("error performing stat on directory: %s.  Reason: %s\n", m_config.c_str(), strerror(errno));
+                return STATUS_ERROR;
+        }
+        // Check if is directory
+        if((l_stat.st_mode & S_IFDIR) == 0)
+        {
+                l_is_dir_flag = true;
+        }
+        // -------------------------------------------------
         // load scopes dir
         // -------------------------------------------------
-        if(m_scopes_dir)
+        if(l_is_dir_flag)
         {
-                if(m_an_list_file.empty())
-                {
-                        NDBG_PRINT("no an list file specified. set -l\n");
-                        return STATUS_ERROR;
-                }
-                char *l_buf = NULL;
-                uint32_t l_buf_len = 0;
-                l_s = ns_waflz::read_file(m_an_list_file.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error read_file: %s\n", m_an_list_file.c_str());
-                        return STATUS_ERROR;
-                }
                 // -----------------------------------------
-                // set an map for loading of scopes
+                // recurse through directory
                 // -----------------------------------------
-                l_s = m_scopes_configs->load_an_list(l_buf, l_buf_len);
+                //NDBG_PRINT("scopes configs dir: %s\n", m_config.c_str());
+                l_s = m_scopes_configs->load_dir(m_config.c_str(),
+                                                 m_config.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("error loading AN config. reason: %s\n", m_scopes_configs->get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; }
+                        NDBG_PRINT("error loading config dir: %s. reason: %s\n", m_config.c_str(), m_scopes_configs->get_err_msg());
                         return STATUS_ERROR;
                 }
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                l_s = m_scopes_configs->load_dir(m_config.c_str(), m_config.length());
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error read dir %s\n", m_config.c_str());
-                        return STATUS_ERROR;
-                }
+
         }
         // -------------------------------------------------
         // load single scopes file
         // -------------------------------------------------
         else
         {
-                char *l_buf = NULL;
-                uint32_t l_buf_len = 0;
-                //NDBG_PRINT("reading file: %s\n", l_instance_file.c_str());
-                l_s = ns_waflz::read_file(m_config.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error read_file: %s\n", m_config.c_str());
-                        return STATUS_ERROR;
-                }
-                l_s = m_scopes_configs->load(l_buf, l_buf_len);
+                l_s = m_scopes_configs->load_file(m_config.c_str(), m_config.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_scopes_configs->get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; }
                         return STATUS_ERROR;
                 }
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         }
         // -------------------------------------------------
         // update end points

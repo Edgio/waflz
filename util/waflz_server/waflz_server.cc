@@ -19,7 +19,7 @@
 #include "sx_instance.h"
 #include "sx_scopes.h"
 #include "sx_modsecurity.h"
-#include "sx_limit.h"
+#include "sx_limits.h"
 // ---------------------------------------------------------
 // waflz
 // ---------------------------------------------------------
@@ -89,12 +89,10 @@ typedef enum {
 } server_mode_t;
 typedef enum {
         CONFIG_MODE_INSTANCE = 0,
-        CONFIG_MODE_INSTANCES,
         CONFIG_MODE_PROFILE,
         CONFIG_MODE_MODSECURITY,
-        CONFIG_MODE_LIMIT,
+        CONFIG_MODE_LIMITS,
         CONFIG_MODE_SCOPES,
-        CONFIG_MODE_SCOPES_DIR,
         CONFIG_MODE_NONE
 } config_mode_t;
 //! ----------------------------------------------------------------------------
@@ -102,8 +100,10 @@ typedef enum {
 //! ----------------------------------------------------------------------------
 ns_is2::srvr *g_srvr = NULL;
 ns_waflz_server::sx *g_sx = NULL;
+ns_waflz::challenge *g_challenge = NULL;
 FILE *g_out_file_ptr = NULL;
 config_mode_t g_config_mode = CONFIG_MODE_NONE;
+bool g_action_flag = false;
 //! ----------------------------------------------------------------------------
 //! \details: remove lmdb dir
 //! \return:  TODO
@@ -670,7 +670,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx* a_ctx,
                 }
                 const std::string *l_b64 = NULL;
                 int32_t l_s;
-                l_s = g_sx->m_b_challenge->get_challenge(&l_b64, a_ctx);
+                l_s = g_challenge->get_challenge(&l_b64, a_ctx);
                 if((l_s != WAFLZ_STATUS_OK) ||
                     !l_b64)
                 {
@@ -789,14 +789,15 @@ public:
                 // -----------------------------------------
                 // handle action
                 // -----------------------------------------
-                if(l_enf
-                   // only enforcements for limit mode
-                   && (!g_config_mode == CONFIG_MODE_LIMIT)
+                if(g_action_flag ||
+                   (l_enf
+                     // only enforcements for limits mode
+                     && (!g_config_mode == CONFIG_MODE_LIMITS))
                    )
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
-                if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
+                if(l_enf) { delete l_enf; l_enf = NULL; }
                 if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
@@ -853,7 +854,7 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
-                if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
+                if(l_enf) { delete l_enf; l_enf = NULL; }
                 if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
@@ -900,7 +901,7 @@ public:
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
-                if(g_config_mode == CONFIG_MODE_INSTANCES) {if(l_enf) { delete l_enf; l_enf = NULL; }}
+                if(l_enf) { delete l_enf; l_enf = NULL; }
                 if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 // -----------------------------------------
@@ -956,13 +957,11 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -v, --version       display the version number and exit.\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Config Modes: -specify only one\n");
-        fprintf(a_stream, "  -i, --instance      waf instance\n");
-        fprintf(a_stream, "  -d, --instance-dir  waf instance directory\n");
+        fprintf(a_stream, "  -i, --instance      waf instance (file or directory)\n");
         fprintf(a_stream, "  -f, --profile       waf profile\n");
         fprintf(a_stream, "  -m, --modsecurity   modsecurity rules file\n");
         fprintf(a_stream, "  -l, --limit         limit config file.\n");
-        fprintf(a_stream, "  -b, --scopes        scopes\n");
-        fprintf(a_stream, "  -S, --scopes-dir    scopes directory\n");
+        fprintf(a_stream, "  -b, --scopes        scopes (file or directory)\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
@@ -1021,6 +1020,7 @@ int main(int argc, char** argv)
         std::string l_geoip_isp_db;
         std::string l_ruleset_dir;
         std::string l_config_file;
+        std::string l_config_dir;
         std::string l_server_spec;
         bool l_bg_load = false;
         bool l_audit_mode = false;
@@ -1051,12 +1051,10 @@ int main(int argc, char** argv)
                 // config modes
                 // -----------------------------------------
                 { "instance",     1, 0, 'i' },
-                { "instance-dir", 1, 0, 'd' },
                 { "profile",      1, 0, 'f' },
                 { "modsecurity",  1, 0, 'm' },
                 { "limit",        1, 0, 'l' },
-                { "scopes",       1, 0, 'b' },
-                { "scopes-dir",   1, 0, 'S' },
+                { "scopes",       1, 0, 'S' },
                 // -----------------------------------------
                 // engine config
                 // -----------------------------------------
@@ -1104,9 +1102,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvi:d:f:m:l:b:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:aH:C:";
+        char l_short_arg_list[] = "hvi:f:m:l:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:aH:C:";
 #else
-        char l_short_arg_list[] = "hvi:d:f:m:l:b:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:a";
+        char l_short_arg_list[] = "hvi:f:m:l:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:a";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -1149,7 +1147,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
 #define _TEST_SET_CONFIG_MODE(_type) do { \
                 if(g_config_mode != CONFIG_MODE_NONE) { \
-                        fprintf(stdout, "error multiple config modes specified.\n"); \
+                        NDBG_OUTPUT("error multiple config modes specified.\n"); \
                         return STATUS_ERROR; \
                 } \
                 g_config_mode = CONFIG_MODE_##_type; \
@@ -1161,14 +1159,6 @@ int main(int argc, char** argv)
                 case 'i':
                 {
                         _TEST_SET_CONFIG_MODE(INSTANCE);
-                        break;
-                }
-                // -----------------------------------------
-                // instance-dir
-                // -----------------------------------------
-                case 'd':
-                {
-                        _TEST_SET_CONFIG_MODE(INSTANCES);
                         break;
                 }
                 // -----------------------------------------
@@ -1192,15 +1182,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'l':
                 {
-                        _TEST_SET_CONFIG_MODE(LIMIT);
-                        break;
-                }
-                // -----------------------------------------
-                // scopes
-                // -----------------------------------------
-                case 'b':
-                {
-                        _TEST_SET_CONFIG_MODE(SCOPES);
+                        _TEST_SET_CONFIG_MODE(LIMITS);
                         break;
                 }
                 // -----------------------------------------
@@ -1208,7 +1190,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'S':
                 {
-                        _TEST_SET_CONFIG_MODE(SCOPES_DIR);
+                        _TEST_SET_CONFIG_MODE(SCOPES);
                         break;
                 }
                 // -----------------------------------------
@@ -1240,9 +1222,14 @@ int main(int argc, char** argv)
                         l_geoip_isp_db = optarg;
                         break;
                 }
-#if 0
-                { "config-dir",   1, 0, 'd' },
-#endif
+                // -----------------------------------------
+                // config-dir
+                // -----------------------------------------
+                case 'd':
+                {
+                        l_config_dir = optarg;
+                        break;
+                }
                 // -----------------------------------------
                 // random ip's
                 // -----------------------------------------
@@ -1252,7 +1239,7 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
-                //  challenges
+                // challenge
                 // -----------------------------------------
                 case 'c':
                 {
@@ -1303,15 +1290,20 @@ int main(int argc, char** argv)
                         if((l_port_val < 1) ||
                            (l_port_val > 65535))
                         {
-                                fprintf(stdout, "Error bad port value: %d.\n", l_port_val);
+                                NDBG_OUTPUT("Error bad port value: %d.\n", l_port_val);
                                 print_usage(stdout, STATUS_ERROR);
                         }
                         l_port = (uint16_t)l_port_val;
                         break;
                 }
-#if 0
-                { "action",       0, 0, 'j' },
-#endif
+                // -----------------------------------------
+                // action
+                // -----------------------------------------
+                case 'j':
+                {
+                        g_action_flag = true;
+                        break;
+                }
                 // -----------------------------------------
                 // background loading
                 // -----------------------------------------
@@ -1335,7 +1327,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
 #define _TEST_SET_SERVER_MODE(_type) do { \
                 if(l_server_mode != SERVER_MODE_NONE) { \
-                        fprintf(stdout, "error multiple server modes specified.\n"); \
+                        NDBG_OUTPUT("error multiple server modes specified.\n"); \
                         return STATUS_ERROR; \
                 } \
                 l_server_mode = SERVER_MODE_##_type; \
@@ -1449,7 +1441,7 @@ int main(int argc, char** argv)
                         // with a ':', and is preceeded by
                         // automatic error message.
                         // ---------------------------------
-                        fprintf(stdout, "  Exiting.\n");
+                        NDBG_OUTPUT("  Exiting.\n");
                         print_usage(stdout, STATUS_ERROR);
                         break;
                 }
@@ -1458,7 +1450,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 default:
                 {
-                        fprintf(stdout, "Unrecognized option.\n");
+                        NDBG_OUTPUT("Unrecognized option.\n");
                         print_usage(stdout, STATUS_ERROR);
                         break;
                 }
@@ -1549,7 +1541,7 @@ int main(int argc, char** argv)
                 l_s = stat(l_ruleset_dir.c_str(), &l_stat);
                 if(l_s != 0)
                 {
-                        fprintf(stdout, "error performing stat on directory: %s.  Reason: %s\n", l_ruleset_dir.c_str(), strerror(errno));
+                        NDBG_OUTPUT("error performing stat on directory: %s.  Reason: %s\n", l_ruleset_dir.c_str(), strerror(errno));
                         exit(STATUS_ERROR);
                 }
                 // -----------------------------------------
@@ -1557,7 +1549,24 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 if((l_stat.st_mode & S_IFDIR) == 0)
                 {
-                        fprintf(stdout, "error %s does not appear to be a directory\n", l_ruleset_dir.c_str());
+                        NDBG_OUTPUT("error %s does not appear to be a directory\n", l_ruleset_dir.c_str());
+                        exit(STATUS_ERROR);
+                }
+        }
+        // -------------------------------------------------
+        // *************************************************
+        // challenge
+        // -------------------------------------------------
+        // *************************************************
+        g_challenge = new ns_waflz::challenge();
+        if(!l_challenge_file.empty())
+        {
+                l_s = g_challenge->load_file(l_challenge_file.c_str(), l_challenge_file.length());
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_OUTPUT("error performing challenge load file: %s: reason: %s",
+                                    l_challenge_file.c_str(),
+                                    g_challenge->get_err_msg());
                         exit(STATUS_ERROR);
                 }
         }
@@ -1608,8 +1617,6 @@ int main(int argc, char** argv)
         if((g_config_mode == CONFIG_MODE_PROFILE) ||
            (g_config_mode == CONFIG_MODE_MODSECURITY) ||
            (g_config_mode == CONFIG_MODE_INSTANCE) ||
-           (g_config_mode == CONFIG_MODE_INSTANCES) ||
-           (g_config_mode == CONFIG_MODE_SCOPES_DIR) ||
            (g_config_mode == CONFIG_MODE_SCOPES))
         {
                 l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
@@ -1623,8 +1630,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // setup db
         // -------------------------------------------------
-        if((g_config_mode == CONFIG_MODE_LIMIT) ||
-           (g_config_mode == CONFIG_MODE_SCOPES_DIR) ||
+        if((g_config_mode == CONFIG_MODE_LIMITS) ||
            (g_config_mode == CONFIG_MODE_SCOPES))
         {
                 l_s = init_kv_db(&l_kv_db, l_redis_host, l_lmdb, l_lmdb_ip);
@@ -1658,20 +1664,6 @@ int main(int argc, char** argv)
                 break;
         }
         // -------------------------------------------------
-        // instances
-        // -------------------------------------------------
-        case(CONFIG_MODE_INSTANCES):
-        {
-                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance(*l_engine);
-                l_sx_instance->m_lsnr = l_lsnr;
-                l_sx_instance->m_config = l_config_file;
-                l_sx_instance->m_is_dir_flag = true;
-                l_sx_instance->m_bg_load = l_bg_load;
-                l_sx_instance->m_callbacks = &s_callbacks;
-                g_sx = l_sx_instance;
-                break;
-        }
-        // -------------------------------------------------
         // instance
         // -------------------------------------------------
         case(CONFIG_MODE_INSTANCE):
@@ -1679,7 +1671,6 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance(*l_engine);
                 l_sx_instance->m_lsnr = l_lsnr;
                 l_sx_instance->m_config = l_config_file;
-                l_sx_instance->m_is_dir_flag = false;
                 l_sx_instance->m_bg_load = l_bg_load;
                 l_sx_instance->m_callbacks = &s_callbacks;
                 g_sx = l_sx_instance;
@@ -1700,13 +1691,13 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // modsecurity
         // -------------------------------------------------
-        case(CONFIG_MODE_LIMIT):
+        case(CONFIG_MODE_LIMITS):
         {
-                ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit(*l_kv_db);
-                l_sx_limit->m_lsnr = l_lsnr;
-                l_sx_limit->m_config = l_config_file;
-                l_sx_limit->m_callbacks = &s_callbacks;
-                g_sx = l_sx_limit;
+                ns_waflz_server::sx_limits *l_sx_limits = new ns_waflz_server::sx_limits(*l_kv_db);
+                l_sx_limits->m_lsnr = l_lsnr;
+                l_sx_limits->m_config = l_config_file;
+                l_sx_limits->m_callbacks = &s_callbacks;
+                g_sx = l_sx_limits;
                 break;
         }
         // -------------------------------------------------
@@ -1714,43 +1705,12 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_SCOPES):
         {
-                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes(*l_engine, *l_kv_db);
+                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes(*l_engine, *l_kv_db, *g_challenge);
                 l_sx_scopes->m_lsnr = l_lsnr;
                 l_sx_scopes->m_config = l_config_file;
                 l_sx_scopes->m_bg_load = l_bg_load;
-                l_sx_scopes->m_scopes_dir = false;
                 l_sx_scopes->m_callbacks = &s_callbacks;
-                // -----------------------------------------
-                // TODO FIX!!!
-                // -----------------------------------------
-#if 0
-                l_sx_scopes->m_action_mode = l_action_mode;
-                l_sx_scopes->m_b_challenge_file = l_b_challenge_file;
-                l_sx_scopes->m_conf_dir = l_conf_dir;
-#endif
-                g_sx = l_sx_scopes;
-                break;
-        }
-        // -------------------------------------------------
-        // scopes directory
-        // -------------------------------------------------
-        case(CONFIG_MODE_SCOPES_DIR):
-        {
-                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes(*l_engine, *l_kv_db);
-                l_sx_scopes->m_lsnr = l_lsnr;
-                l_sx_scopes->m_config = l_config_file;
-                l_sx_scopes->m_bg_load = l_bg_load;
-                l_sx_scopes->m_scopes_dir = true;
-                l_sx_scopes->m_callbacks = &s_callbacks;
-                // -----------------------------------------
-                // TODO FIX!!!
-                // -----------------------------------------
-#if 0
-                l_sx_scopes->m_action_mode = l_action_mode;
-                l_sx_scopes->m_b_challenge_file = l_b_challenge_file;
-                l_sx_scopes->m_an_list_file = l_an_list_file;
-                l_sx_scopes->m_conf_dir = l_conf_dir;
-#endif
+                l_sx_scopes->m_conf_dir = l_config_dir;
                 g_sx = l_sx_scopes;
                 break;
         }
@@ -1759,7 +1719,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         default:
         {
-                fprintf(stdout, "error no mode specified.\n");
+                NDBG_OUTPUT("error no mode specified.\n");
                 return STATUS_ERROR;
         }
         }
@@ -1769,7 +1729,7 @@ int main(int argc, char** argv)
         l_s = g_sx->init();
         if(l_s != STATUS_OK)
         {
-                fprintf(stdout, "performing initialization\n");
+                NDBG_OUTPUT("performing initialization\n");
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -1817,6 +1777,7 @@ cleanup:
         if(g_srvr) { delete g_srvr; g_srvr = NULL; }
         if(l_h) { delete l_h; l_h = NULL; }
         if(g_sx) { delete g_sx; g_sx = NULL; }
+        if(g_challenge) { delete g_challenge; g_challenge = NULL; }
         if(l_engine) { delete l_engine; l_engine = NULL; }
         if(l_kv_db) { delete l_kv_db; l_kv_db = NULL; }
         return STATUS_OK;

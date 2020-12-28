@@ -72,7 +72,6 @@ typedef enum {
 } server_mode_t;
 typedef enum {
         CONFIG_MODE_INSTANCE = 0,
-        CONFIG_MODE_INSTANCES,
         CONFIG_MODE_PROFILE,
         CONFIG_MODE_MODSECURITY,
         CONFIG_MODE_RULES,

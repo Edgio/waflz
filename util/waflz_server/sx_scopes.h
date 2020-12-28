@@ -254,7 +254,9 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        sx_scopes(ns_waflz::engine& a_engine, ns_waflz::kv_db &a_db);
+        sx_scopes(ns_waflz::engine& a_engine,
+                  ns_waflz::kv_db &a_db,
+                  ns_waflz::challenge& a_challenge);
         ~sx_scopes(void);
         int32_t init(void);
         ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
@@ -270,15 +272,11 @@ public:
         // -------------------------------------------------
         bool m_bg_load;
         bool m_is_rand;
-        bool m_scopes_dir;
-        bool m_action_mode;
         ns_waflz::engine& m_engine;
         ns_waflz::kv_db& m_db;
-        ns_waflz::scopes_configs* m_scopes_configs;
-        std::string m_config_path;
+        ns_waflz::challenge& m_challenge;
         std::string m_conf_dir;
-        std::string m_b_challenge_file;
-        std::string m_an_list_file;
+        ns_waflz::scopes_configs* m_scopes_configs;
         // -------------------------------------------------
         // update endpoints
         // -------------------------------------------------

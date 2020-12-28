@@ -10,7 +10,7 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
-#include "sx_limit.h"
+#include "sx_limits.h"
 #include "is2/support/ndebug.h"
 #include "waflz/kycb_db.h"
 #include "waflz/redis_db.h"
@@ -37,7 +37,7 @@ namespace ns_waflz_server {
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-sx_limit::sx_limit(ns_waflz::kv_db &a_db):
+sx_limits::sx_limits(ns_waflz::kv_db &a_db):
         m_configs(NULL),
         m_cust_id(0),
         m_db(a_db)
@@ -48,7 +48,7 @@ sx_limit::sx_limit(ns_waflz::kv_db &a_db):
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-sx_limit::~sx_limit(void)
+sx_limits::~sx_limits(void)
 {
         if(m_configs) { delete m_configs; m_configs = NULL; }
 }
@@ -57,7 +57,7 @@ sx_limit::~sx_limit(void)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t sx_limit::init(void)
+int32_t sx_limits::init(void)
 {
         char *l_buf;
         uint32_t l_buf_len;
@@ -106,7 +106,7 @@ int32_t sx_limit::init(void)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_limit::handle_rqst(waflz_pb::enforcement **ao_enf,
+ns_is2::h_resp_t sx_limits::handle_rqst(waflz_pb::enforcement **ao_enf,
                                        ns_waflz::rqst_ctx **ao_ctx,
                                        ns_is2::session &a_session,
                                        ns_is2::rqst &a_rqst,

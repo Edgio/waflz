@@ -28,7 +28,7 @@ SET(SRCS
   cb.cc
   sx_profile.cc
   sx_instance.cc
-  sx_limit.cc
+  sx_limits.cc
   sx_scopes.cc
   sx_modsecurity.cc
   waflz_server.cc

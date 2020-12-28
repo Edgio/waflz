@@ -60,7 +60,6 @@ public:
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
-        bool m_is_dir_flag;
         bool m_bg_load;
         bool m_is_rand;
         ns_waflz::engine& m_engine;

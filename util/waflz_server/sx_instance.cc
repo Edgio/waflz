@@ -29,6 +29,9 @@
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------
@@ -158,12 +161,10 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
 sx_instance::sx_instance(ns_waflz::engine& a_engine):
         m_bg_load(false),
         m_is_rand(false),
-        m_is_dir_flag(false),
         m_engine(a_engine),
         m_instances(NULL),
         m_update_instances_h(NULL)
 {
-
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -197,9 +198,25 @@ int32_t sx_instance::init(void)
         // -------------------------------------------------
         m_instances->set_locking(true);
         // -------------------------------------------------
+        // get config type -file or directory
+        // -------------------------------------------------
+        bool l_is_dir_flag = false;
+        struct stat l_stat;
+        l_s = stat(m_config.c_str(), &l_stat);
+        if(l_s != 0)
+        {
+                NDBG_PRINT("error performing stat on directory: %s.  Reason: %s\n", m_config.c_str(), strerror(errno));
+                return STATUS_ERROR;
+        }
+        // Check if is directory
+        if((l_stat.st_mode & S_IFDIR) == 0)
+        {
+                l_is_dir_flag = true;
+        }
+        // -------------------------------------------------
         // load dir
         // -------------------------------------------------
-        if(m_is_dir_flag)
+        if(l_is_dir_flag)
         {
                 //NDBG_PRINT("l_instance_dir: %s\n", l_instance_dir.c_str());
                 l_s = m_instances->load_dir(m_config.c_str(),
@@ -216,30 +233,13 @@ int32_t sx_instance::init(void)
         // -------------------------------------------------
         else
         {
-                // -----------------------------------------
-                // read file
-                // -----------------------------------------
-                char *l_buf = NULL;
-                uint32_t l_buf_len = 0;
-                //NDBG_PRINT("reading file: %s\n", l_instance_file.c_str());
-                l_s = ns_waflz::read_file(m_config.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        NDBG_PRINT("error read_file: %s\n", m_config.c_str());
-                        return STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // load instance
-                // -----------------------------------------
                 ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load(&l_instance, l_buf, l_buf_len, false);
+                l_s = m_instances->load_file(&l_instance, m_config.c_str(), m_config.length(), false);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_instances->get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; }
                         return STATUS_ERROR;
                 }
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         }
         // -------------------------------------------------
         // update instances

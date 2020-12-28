@@ -7,8 +7,8 @@
 //! Licensed under the terms of the Apache 2.0 open source license.
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
-#ifndef _WAFLZ_SERVER_SX_LIMIT_H_
-#define _WAFLZ_SERVER_SX_LIMIT_H_
+#ifndef _WAFLZ_SERVER_SX_LIMITS_H_
+#define _WAFLZ_SERVER_SX_LIMITS_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
@@ -24,15 +24,15 @@ class kv_db;
 }
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
-//: sx_limit
+//: sx_limits
 //: ----------------------------------------------------------------------------
-class sx_limit: public sx {
+class sx_limits: public sx {
 public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        sx_limit(ns_waflz::kv_db &a_db);
-        ~sx_limit(void);
+        sx_limits(ns_waflz::kv_db &a_db);
+        ~sx_limits(void);
         int32_t init(void);
         ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
                                      ns_waflz::rqst_ctx **ao_ctx,

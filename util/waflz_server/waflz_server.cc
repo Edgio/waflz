@@ -170,7 +170,7 @@ static int create_dir_once(const std::string& a_db_dir)
 //! ----------------------------------------------------------------------------
 static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
                           const std::string& a_redis_host,
-                          bool a_use_lmdb,
+                          bool a_lmdb,
                           bool a_lmdb_ip)
 {
         if(!ao_db)
@@ -235,7 +235,7 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
         // -------------------------------------------------
         // lmdb
         // -------------------------------------------------
-        else if(a_use_lmdb)
+        else if(a_lmdb)
         {
                 int32_t l_s;
                 ns_waflz::kv_db* l_db = NULL;
@@ -1028,7 +1028,7 @@ int main(int argc, char** argv)
         std::string l_out_file;
         uint16_t l_port = 12345;
         std::string l_redis_host = "";
-        bool l_use_lmdb = false;
+        bool l_lmdb = false;
         bool l_lmdb_ip = false;
         std::string l_challenge_file;
         ns_waflz::engine* l_engine = NULL;
@@ -1272,10 +1272,22 @@ int main(int argc, char** argv)
                         l_redis_host = l_arg;
                         break;
                 }
-#if 0
-                { "lmdb",         0, 0, 'L' },
-                { "interprocess", 0, 0, 'I' },
-#endif
+                // -----------------------------------------
+                // lmdb
+                // -----------------------------------------
+                case 'L':
+                {
+                        l_lmdb = true;
+                        break;
+                }
+                // -----------------------------------------
+                // interprocess
+                // -----------------------------------------
+                case 'I':
+                {
+                        l_lmdb_ip = true;
+                        break;
+                }
                 // -----------------------------------------
                 // *****************************************
                 // server config
@@ -1615,7 +1627,7 @@ int main(int argc, char** argv)
            (g_config_mode == CONFIG_MODE_SCOPES_DIR) ||
            (g_config_mode == CONFIG_MODE_SCOPES))
         {
-                l_s = init_kv_db(&l_kv_db, l_redis_host, l_use_lmdb, l_lmdb_ip);
+                l_s = init_kv_db(&l_kv_db, l_redis_host, l_lmdb, l_lmdb_ip);
                 if((l_s != STATUS_OK) ||
                    (l_kv_db == NULL))
                 {

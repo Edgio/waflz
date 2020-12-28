@@ -21,7 +21,8 @@
 //! time_util
 //! ----------------------------------------------------------------------------
 TEST_CASE( "time util test", "[time_util]" ) {
-#if !defined(__APPLE__) && !defined(__darwin__)
+#if 0
+        // Disabled due to hardware dependency
         SECTION("validate time caching") {
                 uint64_t l_cur_time_ms;
                 uint64_t l_nxt_time_ms;

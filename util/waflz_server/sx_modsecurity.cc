@@ -235,11 +235,12 @@ ns_is2::h_resp_t sx_modsecurity::handle_rqst(waflz_pb::enforcement **ao_enf,
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
         // -------------------------------------------------
-        // append action
+        // create enforcement copy...
         // -------------------------------------------------
-        if(ao_enf)
+        if(m_action)
         {
-                *ao_enf = m_action;
+                *ao_enf = new waflz_pb::enforcement();
+                (*ao_enf)->CopyFrom(*m_action);
         }
         // -------------------------------------------------
         // cleanup

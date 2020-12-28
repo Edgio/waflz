@@ -19,6 +19,7 @@
 #include "waflz/geoip2_mmdb.h"
 #include "waflz/challenge.h"
 #include "support/file_util.h"
+#include "action.pb.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -146,9 +147,9 @@ ns_is2::h_resp_t sx_limits::handle_rqst(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // process
         // -------------------------------------------------
-        const waflz_pb::enforcement *l_enfcmnt = NULL;
+        const waflz_pb::enforcement *l_enf = NULL;
         const waflz_pb::limit *l_limit = NULL;
-        l_s = l_config->process(&l_enfcmnt,
+        l_s = l_config->process(&l_enf,
                                 &l_limit,
                                 l_ctx);
         if(l_s != STATUS_OK)
@@ -158,11 +159,12 @@ ns_is2::h_resp_t sx_limits::handle_rqst(waflz_pb::enforcement **ao_enf,
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
         // -------------------------------------------------
-        // append action
+        // create enforcement copy...
         // -------------------------------------------------
-        if(ao_enf)
+        if(l_enf)
         {
-                *ao_enf = const_cast<waflz_pb::enforcement *>(l_enfcmnt);
+                *ao_enf = new waflz_pb::enforcement();
+                (*ao_enf)->CopyFrom(*l_enf);
         }
         // -------------------------------------------------
         // cleanup

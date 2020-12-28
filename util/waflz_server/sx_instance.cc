@@ -183,16 +183,10 @@ sx_instance::~sx_instance(void)
 //! ----------------------------------------------------------------------------
 int32_t sx_instance::init(void)
 {
-        int32_t l_s;
         // -------------------------------------------------
         // create instances
         // -------------------------------------------------
         m_instances = new ns_waflz::instances(m_engine, m_bg_load);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                // TODO log reason
-                return STATUS_ERROR;
-        }
         // -------------------------------------------------
         // turn on locking
         // -------------------------------------------------
@@ -202,6 +196,7 @@ int32_t sx_instance::init(void)
         // -------------------------------------------------
         bool l_is_dir_flag = false;
         struct stat l_stat;
+        int32_t l_s;
         l_s = stat(m_config.c_str(), &l_stat);
         if(l_s != 0)
         {
@@ -209,7 +204,7 @@ int32_t sx_instance::init(void)
                 return STATUS_ERROR;
         }
         // Check if is directory
-        if((l_stat.st_mode & S_IFDIR) == 0)
+        if(l_stat.st_mode & S_IFDIR)
         {
                 l_is_dir_flag = true;
         }

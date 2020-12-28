@@ -87,17 +87,11 @@ sx_scopes::~sx_scopes(void)
 //! ----------------------------------------------------------------------------
 int32_t sx_scopes::init(void)
 {
-        int32_t l_s;
         // -------------------------------------------------
         // create scope configs
         // -------------------------------------------------
         m_scopes_configs = new ns_waflz::scopes_configs(m_engine, m_db, m_challenge, false);
         m_scopes_configs->set_conf_dir(m_conf_dir);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                // TODO log error
-                return STATUS_ERROR;
-        }
         // -------------------------------------------------
         // enable locking
         // -------------------------------------------------
@@ -107,6 +101,7 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         bool l_is_dir_flag = false;
         struct stat l_stat;
+        int32_t l_s;
         l_s = stat(m_config.c_str(), &l_stat);
         if(l_s != 0)
         {
@@ -114,7 +109,7 @@ int32_t sx_scopes::init(void)
                 return STATUS_ERROR;
         }
         // Check if is directory
-        if((l_stat.st_mode & S_IFDIR) == 0)
+        if(l_stat.st_mode & S_IFDIR)
         {
                 l_is_dir_flag = true;
         }

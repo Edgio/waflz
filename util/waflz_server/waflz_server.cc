@@ -369,8 +369,15 @@ static int32_t init_engine(ns_waflz::engine** ao_engine,
         // engine
         // -------------------------------------------------
         ns_waflz::engine* l_engine = new ns_waflz::engine();
-        l_engine->set_ruleset_dir(a_ruleset_dir);
-        l_engine->set_geoip2_dbs(a_geoip2_db, a_geoip2_isp_db);
+        if(!a_ruleset_dir.empty())
+        {
+                l_engine->set_ruleset_dir(a_ruleset_dir);
+        }
+        if(!a_geoip2_db.empty() ||
+           !a_geoip2_isp_db.empty())
+        {
+                l_engine->set_geoip2_dbs(a_geoip2_db, a_geoip2_isp_db);
+        }
         // -------------------------------------------------
         // init
         // -------------------------------------------------

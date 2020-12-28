@@ -31,7 +31,7 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        sx_limit(void);
+        sx_limit(ns_waflz::kv_db &a_db);
         ~sx_limit(void);
         int32_t init(void);
         ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
@@ -42,11 +42,9 @@ public:
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
-        std::string m_redis_host;
-        std::string m_challenge_file;
         ns_waflz::configs* m_configs;
         uint64_t m_cust_id;
-        ns_waflz::kv_db *m_db;
+        ns_waflz::kv_db& m_db;
 };
 }
 #endif

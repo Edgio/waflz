@@ -87,29 +87,19 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
                 TRC_ERROR("m_profile == NULL\n");
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
+        // -------------------------------------------------
+        // get request body
+        // -------------------------------------------------
         uint64_t l_buf_len = a_rqst.get_body_len();
         ns_is2::nbq *l_q = a_rqst.get_body_q();
         // copy to buffer
         char *l_buf;
         l_buf = (char *)malloc(l_buf_len);
         l_q->read(l_buf, l_buf_len);
-        m_instances->set_locking(true);
-        if(!m_bg_load)
-        {
-                // TODO get status
-                //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
-                int32_t l_s;
-                ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load(&l_instance, l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        TRC_ERROR("performing m_profile->load\n");
-                        if(l_buf) { free(l_buf); l_buf = NULL;}
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                if(l_buf) { free(l_buf); l_buf = NULL;}
-        }
-        else
+        // -------------------------------------------------
+        // if bg load...
+        // -------------------------------------------------
+        if(m_bg_load)
         {
                 waf_instance_update_t *l_instance_update = NULL;
                 l_instance_update = new waf_instance_update_t();
@@ -127,6 +117,27 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
         }
+        // -------------------------------------------------
+        // else fg load
+        // -------------------------------------------------
+        else
+        {
+                // TODO get status
+                //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
+                int32_t l_s;
+                ns_waflz::instance *l_instance = NULL;
+                l_s = m_instances->load(&l_instance, l_buf, l_buf_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        TRC_ERROR("performing m_profile->load\n");
+                        if(l_buf) { free(l_buf); l_buf = NULL;}
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
+                if(l_buf) { free(l_buf); l_buf = NULL;}
+        }
+        // -------------------------------------------------
+        // generate response
+        // -------------------------------------------------
         std::string l_resp_str = "{\"status\": \"success\"}";
         ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
         l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
@@ -144,16 +155,13 @@ ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-sx_instance::sx_instance(void):
+sx_instance::sx_instance(ns_waflz::engine& a_engine):
         m_bg_load(false),
         m_is_rand(false),
         m_is_dir_flag(false),
-        m_engine(NULL),
+        m_engine(a_engine),
         m_instances(NULL),
-        m_update_instances_h(NULL),
-        m_ruleset_dir(),
-        m_geoip2_db(),
-        m_geoip2_isp_db()
+        m_update_instances_h(NULL)
 {
 
 }
@@ -164,7 +172,6 @@ sx_instance::sx_instance(void):
 //! ----------------------------------------------------------------------------
 sx_instance::~sx_instance(void)
 {
-        if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_instances) { delete m_instances; m_instances = NULL; }
         if(m_update_instances_h) { delete m_update_instances_h; m_update_instances_h = NULL; }
 }
@@ -177,26 +184,17 @@ int32_t sx_instance::init(void)
 {
         int32_t l_s;
         // -------------------------------------------------
-        // engine
-        // -------------------------------------------------
-        m_engine = new ns_waflz::engine();
-        m_engine->set_ruleset_dir(m_ruleset_dir);
-        m_engine->set_geoip2_dbs(m_geoip2_db, m_geoip2_isp_db);
-        l_s = m_engine->init();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing engine\n");
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
         // create instances
         // -------------------------------------------------
-        m_instances = new ns_waflz::instances(*m_engine, m_bg_load);
+        m_instances = new ns_waflz::instances(m_engine, m_bg_load);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO log reason
                 return STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // turn on locking
+        // -------------------------------------------------
         m_instances->set_locking(true);
         // -------------------------------------------------
         // load dir
@@ -205,8 +203,8 @@ int32_t sx_instance::init(void)
         {
                 //NDBG_PRINT("l_instance_dir: %s\n", l_instance_dir.c_str());
                 l_s = m_instances->load_dir(m_config.c_str(),
-                                                   m_config.length(),
-                                                   false);
+                                            m_config.length(),
+                                            false);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading config dir: %s. reason: %s\n", m_config.c_str(), m_instances->get_err_msg());

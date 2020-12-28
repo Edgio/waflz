@@ -49,7 +49,7 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        sx_instance(void);
+        sx_instance(ns_waflz::engine& a_engine);
         ~sx_instance(void);
         int32_t init(void);
         ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
@@ -63,12 +63,9 @@ public:
         bool m_is_dir_flag;
         bool m_bg_load;
         bool m_is_rand;
-        ns_waflz::engine *m_engine;
+        ns_waflz::engine& m_engine;
         ns_waflz::instances *m_instances;
         update_instances_h *m_update_instances_h;
-        std::string m_ruleset_dir;
-        std::string m_geoip2_db;
-        std::string m_geoip2_isp_db;
 };
 }
 #endif

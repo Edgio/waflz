@@ -83,14 +83,11 @@ ns_is2::h_resp_t update_profile_h::do_post(ns_is2::session &a_session,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-sx_profile::sx_profile(void):
-        m_engine(NULL),
+sx_profile::sx_profile(ns_waflz::engine& a_engine):
+        m_engine(a_engine),
         m_profile(NULL),
         m_update_profile_h(NULL),
-        m_action(NULL),
-        m_ruleset_dir(),
-        m_geoip2_db(),
-        m_geoip2_isp_db()
+        m_action(NULL)
 {
         // -------------------------------------------------
         // set up default enforcement
@@ -108,7 +105,6 @@ sx_profile::sx_profile(void):
 //! ----------------------------------------------------------------------------
 sx_profile::~sx_profile(void)
 {
-        if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_profile) { delete m_profile; m_profile = NULL; }
         if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
         if(m_action) { delete m_action; m_action = NULL; }
@@ -121,18 +117,6 @@ sx_profile::~sx_profile(void)
 int32_t sx_profile::init(void)
 {
         int32_t l_s;
-        // -------------------------------------------------
-        // engine
-        // -------------------------------------------------
-        m_engine = new ns_waflz::engine();
-        m_engine->set_ruleset_dir(m_ruleset_dir);
-        m_engine->set_geoip2_dbs(m_geoip2_db, m_geoip2_isp_db);
-        l_s = m_engine->init();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing engine. reason: %s\n", m_engine->get_err_msg());
-                return STATUS_ERROR;
-        }
         // -------------------------------------------------
         // read file
         // -------------------------------------------------
@@ -148,7 +132,7 @@ int32_t sx_profile::init(void)
         // -------------------------------------------------
         // load profile
         // -------------------------------------------------
-        m_profile = new ns_waflz::profile(*m_engine);
+        m_profile = new ns_waflz::profile(m_engine);
         //NDBG_PRINT("load profile: %s\n", l_profile_file.c_str());
         l_s = m_profile->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)

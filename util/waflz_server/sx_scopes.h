@@ -97,7 +97,6 @@ public:
                 // -----------------------------------------
                 if(m_bg_load)
                 {
-                        m_scopes_configs->set_locking(true);
                         pthread_t l_t_thread;
                         int32_t l_pthread_error = 0;
                         l_pthread_error = pthread_create(&l_t_thread,
@@ -114,7 +113,6 @@ public:
                 // -----------------------------------------
                 else
                 {
-                        m_scopes_configs->set_locking(false);
                         load(l_up_bg);
                         // TODO -error handling???
                         if(l_buf) { free(l_buf); l_buf = NULL; }
@@ -256,7 +254,7 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        sx_scopes(void);
+        sx_scopes(ns_waflz::engine& a_engine, ns_waflz::kv_db &a_db);
         ~sx_scopes(void);
         int32_t init(void);
         ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
@@ -274,16 +272,10 @@ public:
         bool m_is_rand;
         bool m_scopes_dir;
         bool m_action_mode;
-        bool m_use_lmdb;
-        bool m_lmdb_interprocess;
-        std::string m_redis_host;
-        ns_waflz::engine *m_engine;
-        ns_waflz::kv_db *m_db;
-        ns_waflz::scopes_configs *m_scopes_configs;
+        ns_waflz::engine& m_engine;
+        ns_waflz::kv_db& m_db;
+        ns_waflz::scopes_configs* m_scopes_configs;
         std::string m_config_path;
-        std::string m_ruleset_dir;
-        std::string m_geoip2_db;
-        std::string m_geoip2_isp_db;
         std::string m_conf_dir;
         std::string m_b_challenge_file;
         std::string m_an_list_file;

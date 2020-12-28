@@ -1118,9 +1118,6 @@ int main(int argc, char** argv)
                 l_sx_scopes->m_geoip2_db = l_geoip_db;
                 l_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_scopes->m_conf_dir = l_conf_dir;
-                l_sx_scopes->m_redis_host = l_redis_host;
-                l_sx_scopes->m_use_lmdb = l_use_lmdb;
-                l_sx_scopes->m_lmdb_interprocess = l_lmdb_interprocess;
                 g_sx = l_sx_scopes;
                 break;
         }

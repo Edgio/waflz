@@ -107,8 +107,8 @@ static int32_t guess_owasp_version(uint32_t &ao_owasp_version,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-sx_modsecurity::sx_modsecurity(void):
-        m_engine(NULL),
+sx_modsecurity::sx_modsecurity(ns_waflz::engine& a_engine):
+        m_engine(a_engine),
         m_waf(NULL),
         m_geoip2_mmdb(NULL),
         m_action(NULL)
@@ -129,7 +129,6 @@ sx_modsecurity::sx_modsecurity(void):
 //! ----------------------------------------------------------------------------
 sx_modsecurity::~sx_modsecurity(void)
 {
-        if(m_engine) { delete m_engine; m_engine = NULL; }
         if(m_waf) { delete m_waf; m_waf = NULL; }
         if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL; }
         if(m_action) { delete m_action; m_action = NULL; }
@@ -143,18 +142,8 @@ int32_t sx_modsecurity::init(void)
 {
         int32_t l_s;
         // -------------------------------------------------
-        // engine
-        // -------------------------------------------------
-        m_engine = new ns_waflz::engine();
-        l_s = m_engine->init();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing engine\n");
-                return STATUS_ERROR;
-        }
-        // -----------------------------------------
         // guess format from ext...
-        // -----------------------------------------
+        // -------------------------------------------------
         ns_waflz::config_parser::format_t l_fmt = ns_waflz::config_parser::MODSECURITY;
         std::string l_ext;
         l_ext = ns_waflz::get_file_ext(m_config);
@@ -178,7 +167,7 @@ int32_t sx_modsecurity::init(void)
         // -------------------------------------------------
         // make waf obj
         // -------------------------------------------------
-        m_waf = new ns_waflz::waf(*m_engine);
+        m_waf = new ns_waflz::waf(m_engine);
         l_s = m_waf->init(l_fmt, m_config, true);
         if(l_s != WAFLZ_STATUS_OK)
         {

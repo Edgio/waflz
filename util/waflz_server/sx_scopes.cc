@@ -13,9 +13,6 @@
 #include "sx_scopes.h"
 #include "waflz/engine.h"
 #include "waflz/rqst_ctx.h"
-#include "waflz/kycb_db.h"
-#include "waflz/redis_db.h"
-#include "waflz/lm_db.h"
 #include "waflz/string_util.h"
 #include "is2/support/trace.h"
 #include "is2/support/nbq.h"
@@ -45,82 +42,30 @@
 #define _SCOPEZ_SERVER_SCOPES_ID "waf-scopes-id"
 namespace ns_waflz_server {
 //! ----------------------------------------------------------------------------
-//! remove lmdb dir
-//! ----------------------------------------------------------------------------
-static int remove_dir(const std::string& a_db_dir)
-{
-        int32_t l_s;
-        struct stat l_stat;
-        l_s = stat(a_db_dir.c_str(), &l_stat);
-        if(l_s != 0)
-        {
-                return 0;
-        }
-        std::string l_file1(a_db_dir), l_file2(a_db_dir);
-        l_file1.append("/data.mdb");
-        l_file2.append("/lock.mdb");
-        unlink(l_file1.c_str());
-        unlink(l_file2.c_str());
-        l_s = rmdir(a_db_dir.c_str());
-        if(l_s != 0)
-        {
-                return -1;
-        }
-        return 0;
-}
-//! ----------------------------------------------------------------------------
-//! create_dir for lmdb
-//! ----------------------------------------------------------------------------
-static int create_dir(const std::string& a_db_dir)
-{
-        int32_t l_s;
-        l_s = remove_dir(a_db_dir);
-        if(l_s != 0)
-        {
-                return -1;
-        }
-        l_s = mkdir(a_db_dir.c_str(), 0700);
-        return l_s;
-}
-//! ----------------------------------------------------------------------------
-//! create_dir only once for lmdb
-//! ----------------------------------------------------------------------------
-static int create_dir_once(const std::string& a_db_dir)
-{
-        int32_t l_s;
-        struct stat l_stat;
-        l_s = stat(a_db_dir.c_str(), &l_stat);
-        if(l_s == 0)
-        {
-                return 0;
-        }
-        l_s = create_dir(a_db_dir);
-        return l_s;
-}
-//! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-sx_scopes::sx_scopes(void):
+sx_scopes::sx_scopes(ns_waflz::engine& a_engine, ns_waflz::kv_db &a_db):
         m_bg_load(false),
         m_is_rand(false),
-        m_use_lmdb(false),
-        m_redis_host(),
-        m_engine(NULL),
+        m_scopes_dir(false),
+        m_action_mode(false),
+        m_engine(a_engine),
+        m_db(a_db),
+        m_scopes_configs(NULL),
+        m_config_path(),
+        m_conf_dir(),
+        m_b_challenge_file(),
+        m_an_list_file(),
         m_update_scopes_h(NULL),
         m_update_acl_h(NULL),
         m_update_rules_h(NULL),
         m_update_bots_h(NULL),
         m_update_profile_h(NULL),
-        m_update_limit_h(NULL),
-        m_scopes_configs(NULL),
-        m_config_path(),
-        m_ruleset_dir(),
-        m_geoip2_db(),
-        m_geoip2_isp_db(),
-        m_conf_dir()
+        m_update_limit_h(NULL)
 {
+
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -129,8 +74,6 @@ sx_scopes::sx_scopes(void):
 //! ----------------------------------------------------------------------------
 sx_scopes::~sx_scopes(void)
 {
-        if(m_engine) { delete m_engine; m_engine = NULL; }
-        if(m_db) { delete m_db; m_db = NULL; }
         if(m_b_challenge) { delete m_b_challenge; m_b_challenge = NULL; }
         if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
         if(m_update_acl_h) { delete m_update_acl_h; m_update_acl_h = NULL; }
@@ -139,10 +82,6 @@ sx_scopes::~sx_scopes(void)
         if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
         if(m_update_limit_h) {delete m_update_limit_h; m_update_limit_h = NULL; }
         if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
-        if(m_use_lmdb)
-        {
-                remove_dir("/tmp/test_lmdb");
-        }
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -152,140 +91,6 @@ sx_scopes::~sx_scopes(void)
 int32_t sx_scopes::init(void)
 {
         int32_t l_s;
-        // -------------------------------------------------
-        // redis db
-        // -------------------------------------------------
-        if(!m_redis_host.empty())
-        {
-                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::redis_db());
-                // -----------------------------------------
-                // parse host
-                // -----------------------------------------
-                std::string l_host;
-                uint16_t l_port;
-                size_t l_last = 0;
-                size_t l_next = 0;
-                while((l_next = m_redis_host.find(":", l_last)) != std::string::npos)
-                {
-                        l_host = m_redis_host.substr(l_last, l_next-l_last);
-                        l_last = l_next + 1;
-                        break;
-                }
-                std::string l_port_str;
-                l_port_str = m_redis_host.substr(l_last);
-                if(l_port_str.empty() ||
-                   l_host.empty())
-                {
-                        NDBG_OUTPUT("error parsing redis host: %s -expected <host>:<port>\n", m_redis_host.c_str());
-                        return STATUS_ERROR;
-                }
-                // TODO -error checking
-                l_port = (uint16_t)strtoul(l_port_str.c_str(), NULL, 10);
-                // TODO -check status
-                m_db->set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_host.c_str(), l_host.length());
-                m_db->set_opt(ns_waflz::redis_db::OPT_REDIS_PORT, NULL, l_port);
-                // -----------------------------------------
-                // init db
-                // -----------------------------------------
-                l_s = m_db->init();
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing db init: Reason: %s\n", m_db->get_err_msg());
-                        return STATUS_ERROR;
-                }
-                NDBG_PRINT("USING REDIS\n");
-        }
-        // -------------------------------------------------
-        // lmdb
-        // -------------------------------------------------
-        else if(m_use_lmdb)
-        {
-                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::lm_db());
-                std::string l_db_dir("/tmp/test_lmdb");
-                if(m_lmdb_interprocess)
-                {
-                        l_s = create_dir_once(l_db_dir);
-                        if(l_s != STATUS_OK)
-                        {
-                                NDBG_PRINT("error creating dir -%s\n", l_db_dir.c_str());
-                                return STATUS_ERROR;
-                        }
-                }
-                else
-                {
-                        l_s = create_dir(l_db_dir);
-                        if(l_s != STATUS_OK)
-                        {
-                                NDBG_PRINT("error creating dir - %s\n", l_db_dir.c_str());
-                                return STATUS_ERROR;
-                        }
-                }
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error creating dir for lmdb\n");
-                        return STATUS_ERROR;
-                }
-                m_db->set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
-                m_db->set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
-                m_db->set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
-                l_s = m_db->init();
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing db init: Reason: %s\n", m_db->get_err_msg());
-                        return STATUS_ERROR;
-                }
-                if(!m_db->get_init())
-                {
-                        printf("error -%s\n", m_db->get_err_msg());
-                }
-                NDBG_PRINT("USING LMDB\n");
-        }
-        // -------------------------------------------------
-        // kyoto
-        // -------------------------------------------------
-        else
-        {
-                char l_db_file[] = "/tmp/waflz-XXXXXX.kyoto.db";
-                //uint32_t l_db_buckets = 0;
-                //uint32_t l_db_map = 0;
-                //int l_db_options = 0;
-                //l_db_options |= kyotocabinet::HashDB::TSMALL;
-                //l_db_options |= kyotocabinet::HashDB::TLINEAR;
-                //l_db_options |= kyotocabinet::HashDB::TCOMPRESS;
-                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::kycb_db());
-                errno = 0;
-                l_s = mkstemps(l_db_file,9);
-                if(l_s == -1)
-                {
-                        NDBG_PRINT("error(%d) performing mkstemp(%s) reason[%d]: %s\n",
-                                        l_s,
-                                        l_db_file,
-                                        errno,
-                                        strerror(errno));
-                        return STATUS_ERROR;
-                }
-                unlink(l_db_file);
-                m_db->set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
-                //NDBG_PRINT("l_db_file: %s\n", l_db_file);
-                l_s = m_db->init();
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing initialize_cb: Reason: %s\n", m_db->get_err_msg());
-                        return STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // engine
-        // -------------------------------------------------
-        m_engine = new ns_waflz::engine();
-        m_engine->set_ruleset_dir(m_ruleset_dir);
-        m_engine->set_geoip2_dbs(m_geoip2_db, m_geoip2_isp_db);
-        l_s = m_engine->init();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error initializing engine\n");
-                return STATUS_ERROR;
-        }
         // -------------------------------------------------
         // init bot challenge
         // -------------------------------------------------
@@ -301,13 +106,16 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         // create scope configs
         // -------------------------------------------------
-        m_scopes_configs = new ns_waflz::scopes_configs(*m_engine, *m_db, *m_b_challenge, false);
+        m_scopes_configs = new ns_waflz::scopes_configs(m_engine, m_db, *m_b_challenge, false);
         m_scopes_configs->set_conf_dir(m_conf_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO log error
                 return STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // enable locking
+        // -------------------------------------------------
         m_scopes_configs->set_locking(true);
         // -------------------------------------------------
         // load scopes dir
@@ -316,7 +124,7 @@ int32_t sx_scopes::init(void)
         {
                 if(m_an_list_file.empty())
                 {
-                        NDBG_PRINT("no an list file speified. set -l\n");
+                        NDBG_PRINT("no an list file specified. set -l\n");
                         return STATUS_ERROR;
                 }
                 char *l_buf = NULL;
@@ -327,9 +135,9 @@ int32_t sx_scopes::init(void)
                         NDBG_PRINT("error read_file: %s\n", m_an_list_file.c_str());
                         return STATUS_ERROR;
                 }
-                // -------------------------------------------------
-                // set an map to allow loading of scopes config
-                // -------------------------------------------------
+                // -----------------------------------------
+                // set an map for loading of scopes
+                // -----------------------------------------
                 l_s = m_scopes_configs->load_an_list(l_buf, l_buf_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {

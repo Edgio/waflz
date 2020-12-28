@@ -37,12 +37,10 @@ namespace ns_waflz_server {
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-sx_limit::sx_limit(void):
-        m_redis_host(),
-        m_challenge_file(),
+sx_limit::sx_limit(ns_waflz::kv_db &a_db):
         m_configs(NULL),
         m_cust_id(0),
-        m_db(NULL)
+        m_db(a_db)
 {
 }
 //! ----------------------------------------------------------------------------
@@ -52,7 +50,6 @@ sx_limit::sx_limit(void):
 //! ----------------------------------------------------------------------------
 sx_limit::~sx_limit(void)
 {
-        if(m_db) { delete m_db; m_db = NULL; }
         if(m_configs) { delete m_configs; m_configs = NULL; }
 }
 //! ----------------------------------------------------------------------------
@@ -65,83 +62,6 @@ int32_t sx_limit::init(void)
         char *l_buf;
         uint32_t l_buf_len;
         int32_t l_s;
-        // -------------------------------------------------
-        // redis db
-        // -------------------------------------------------
-        if(!m_redis_host.empty())
-        {
-                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::redis_db());
-                // -----------------------------------------
-                // parse host
-                // -----------------------------------------
-                std::string l_host;
-                uint16_t l_port;
-                size_t l_last = 0;
-                size_t l_next = 0;
-                while((l_next = m_redis_host.find(":", l_last)) != std::string::npos)
-                {
-                        l_host = m_redis_host.substr(l_last, l_next-l_last);
-                        l_last = l_next + 1;
-                        break;
-                }
-                std::string l_port_str;
-                l_port_str = m_redis_host.substr(l_last);
-                if(l_port_str.empty() ||
-                   l_host.empty())
-                {
-                        NDBG_OUTPUT("error parsing redis host: %s -expected <host>:<port>\n", m_redis_host.c_str());
-                        return STATUS_ERROR;
-                }
-                // TODO -error checking
-                l_port = (uint16_t)strtoul(l_port_str.c_str(), NULL, 10);
-                // TODO -check status
-                m_db->set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_host.c_str(), l_host.length());
-                m_db->set_opt(ns_waflz::redis_db::OPT_REDIS_PORT, NULL, l_port);
-                // -----------------------------------------
-                // init db
-                // -----------------------------------------
-                l_s = m_db->init();
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing db init: Reason: %s\n", m_db->get_err_msg());
-                        return STATUS_ERROR;
-                }
-                NDBG_PRINT("USING REDIS\n");
-        }
-        // -------------------------------------------------
-        // kyoto
-        // -------------------------------------------------
-        else
-        {
-                char l_db_file[] = "/tmp/waflz-XXXXXX.kyoto.db";
-                //uint32_t l_db_buckets = 0;
-                //uint32_t l_db_map = 0;
-                //int l_db_options = 0;
-                //l_db_options |= kyotocabinet::HashDB::TSMALL;
-                //l_db_options |= kyotocabinet::HashDB::TLINEAR;
-                //l_db_options |= kyotocabinet::HashDB::TCOMPRESS;
-                m_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::kycb_db());
-                errno = 0;
-                l_s = mkstemps(l_db_file,9);
-                if(l_s == -1)
-                {
-                        NDBG_PRINT("error(%d) performing mkstemp(%s) reason[%d]: %s\n",
-                                        l_s,
-                                        l_db_file,
-                                        errno,
-                                        strerror(errno));
-                        return STATUS_ERROR;
-                }
-                unlink(l_db_file);
-                m_db->set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
-                //NDBG_PRINT("l_db_file: %s\n", l_db_file);
-                l_s = m_db->init();
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing initialize_cb: Reason: %s\n", m_db->get_err_msg());
-                        return STATUS_ERROR;
-                }
-        }
         // -------------------------------------------------
         // load file
         // -------------------------------------------------
@@ -156,7 +76,7 @@ int32_t sx_limit::init(void)
         // -------------------------------------------------
         // load config
         // -------------------------------------------------
-        m_configs = new ns_waflz::configs(*m_db);
+        m_configs = new ns_waflz::configs(m_db);
         l_s = m_configs->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
@@ -176,7 +96,6 @@ int32_t sx_limit::init(void)
                 NDBG_PRINT("error performing get_first_id: Reason: %s\n", m_configs->get_err_msg());
                 if(m_configs) { delete m_configs; m_configs = NULL;}
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                if(m_db) { delete m_db; m_db = NULL;}
                 return STATUS_ERROR;
         }
         m_cust_id = l_first_id;

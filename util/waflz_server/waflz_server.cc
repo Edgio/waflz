@@ -10,6 +10,9 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+// ---------------------------------------------------------
+// waflz_server
+// ---------------------------------------------------------
 #include "cb.h"
 #include "sx.h"
 #include "sx_profile.h"
@@ -17,13 +20,27 @@
 #include "sx_scopes.h"
 #include "sx_modsecurity.h"
 #include "sx_limit.h"
+// ---------------------------------------------------------
+// waflz
+// ---------------------------------------------------------
 #include "waflz/rqst_ctx.h"
 #include "waflz/profile.h"
 #include "waflz/render.h"
 #include "waflz/engine.h"
+#include "waflz/kycb_db.h"
+#include "waflz/redis_db.h"
+#include "waflz/lm_db.h"
 #include "waflz/trace.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
+// ---------------------------------------------------------
+// protocol buffers
+// ---------------------------------------------------------
+#include "event.pb.h"
+#include "action.pb.h"
+// ---------------------------------------------------------
+// is2
+// ---------------------------------------------------------
 #include "is2/support/trace.h"
 #include "is2/nconn/scheme.h"
 #include "is2/nconn/nconn.h"
@@ -36,8 +53,9 @@
 #include "is2/srvr/default_rqst_h.h"
 #include "is2/handler/proxy_h.h"
 #include "is2/handler/file_h.h"
-#include "event.pb.h"
-#include "action.pb.h"
+// ---------------------------------------------------------
+// stdlibs
+// ---------------------------------------------------------
 #include <errno.h>
 #include <string>
 #include <getopt.h>
@@ -86,6 +104,290 @@ ns_is2::srvr *g_srvr = NULL;
 ns_waflz_server::sx *g_sx = NULL;
 FILE *g_out_file_ptr = NULL;
 config_mode_t g_config_mode = CONFIG_MODE_NONE;
+//! ----------------------------------------------------------------------------
+//! \details: remove lmdb dir
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+static int remove_dir(const std::string& a_db_dir)
+{
+        int32_t l_s;
+        struct stat l_stat;
+        l_s = stat(a_db_dir.c_str(), &l_stat);
+        if(l_s != 0)
+        {
+                return 0;
+        }
+        std::string l_file1(a_db_dir), l_file2(a_db_dir);
+        l_file1.append("/data.mdb");
+        l_file2.append("/lock.mdb");
+        unlink(l_file1.c_str());
+        unlink(l_file2.c_str());
+        l_s = rmdir(a_db_dir.c_str());
+        if(l_s != 0)
+        {
+                return -1;
+        }
+        return 0;
+}
+//! ----------------------------------------------------------------------------
+//! \details: create_dir for lmdb
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+static int create_dir(const std::string& a_db_dir)
+{
+        int32_t l_s;
+        l_s = remove_dir(a_db_dir);
+        if(l_s != 0)
+        {
+                return -1;
+        }
+        l_s = mkdir(a_db_dir.c_str(), 0700);
+        return l_s;
+}
+//! ----------------------------------------------------------------------------
+//! \details: create_dir only once for lmdb
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+static int create_dir_once(const std::string& a_db_dir)
+{
+        int32_t l_s;
+        struct stat l_stat;
+        l_s = stat(a_db_dir.c_str(), &l_stat);
+        if(l_s == 0)
+        {
+                return 0;
+        }
+        l_s = create_dir(a_db_dir);
+        return l_s;
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
+                          const std::string& a_redis_host,
+                          bool a_use_lmdb,
+                          bool a_lmdb_ip)
+{
+        if(!ao_db)
+        {
+                return STATUS_ERROR;
+        }
+        *ao_db = NULL;
+        // -------------------------------------------------
+        // redis db
+        // -------------------------------------------------
+        if(!a_redis_host.empty())
+        {
+                ns_waflz::kv_db* l_db = NULL;
+                l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::redis_db());
+                // -----------------------------------------
+                // parse host
+                // -----------------------------------------
+                std::string l_host;
+                uint16_t l_port;
+                size_t l_last = 0;
+                size_t l_next = 0;
+                while((l_next = a_redis_host.find(":", l_last)) != std::string::npos)
+                {
+                        l_host = a_redis_host.substr(l_last, l_next-l_last);
+                        l_last = l_next + 1;
+                        break;
+                }
+                std::string l_port_str;
+                l_port_str = a_redis_host.substr(l_last);
+                if(l_port_str.empty() ||
+                   l_host.empty())
+                {
+                        NDBG_OUTPUT("error parsing redis host: %s -expected <host>:<port>\n", a_redis_host.c_str());
+                        if(l_db) { delete l_db; l_db = NULL; }
+                        return STATUS_ERROR;
+                }
+                // TODO -error checking
+                l_port = (uint16_t)strtoul(l_port_str.c_str(), NULL, 10);
+                // TODO -check status
+                // -----------------------------------------
+                // options
+                // -----------------------------------------
+                l_db->set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_host.c_str(), l_host.length());
+                l_db->set_opt(ns_waflz::redis_db::OPT_REDIS_PORT, NULL, l_port);
+                // -----------------------------------------
+                // init db
+                // -----------------------------------------
+                int32_t l_s;
+                l_s = l_db->init();
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("error performing db init: Reason: %s\n", l_db->get_err_msg());
+                        if(l_db) { delete l_db; l_db = NULL; }
+                        return STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // done
+                // -----------------------------------------
+                NDBG_PRINT("USING REDIS\n");
+                *ao_db = l_db;
+        }
+        // -------------------------------------------------
+        // lmdb
+        // -------------------------------------------------
+        else if(a_use_lmdb)
+        {
+                int32_t l_s;
+                ns_waflz::kv_db* l_db = NULL;
+                l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::lm_db());
+                // -----------------------------------------
+                // setup disk
+                // -----------------------------------------
+                std::string l_db_dir("/tmp/test_lmdb");
+                if(a_lmdb_ip)
+                {
+                        l_s = create_dir_once(l_db_dir);
+                        if(l_s != STATUS_OK)
+                        {
+                                NDBG_PRINT("error creating dir -%s\n", l_db_dir.c_str());
+                                if(l_db) { delete l_db; l_db = NULL; }
+                                return STATUS_ERROR;
+                        }
+                }
+                else
+                {
+                        l_s = create_dir(l_db_dir);
+                        if(l_s != STATUS_OK)
+                        {
+                                NDBG_PRINT("error creating dir - %s\n", l_db_dir.c_str());
+                                if(l_db) { delete l_db; l_db = NULL; }
+                                return STATUS_ERROR;
+                        }
+                }
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("error creating dir for lmdb\n");
+                        if(l_db) { delete l_db; l_db = NULL; }
+                        return STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // options
+                // -----------------------------------------
+                l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
+                l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
+                l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
+                // -----------------------------------------
+                // init db
+                // -----------------------------------------
+                l_s = l_db->init();
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("error performing db init: Reason: %s\n", l_db->get_err_msg());
+                        if(l_db) { delete l_db; l_db = NULL; }
+                        return STATUS_ERROR;
+                }
+                if(!l_db->get_init())
+                {
+                        printf("error -%s\n", l_db->get_err_msg());
+                }
+                // -----------------------------------------
+                // done
+                // -----------------------------------------
+                NDBG_PRINT("USING LMDB\n");
+                *ao_db = l_db;
+        }
+        // -------------------------------------------------
+        // kyoto
+        // -------------------------------------------------
+        else
+        {
+                ns_waflz::kv_db* l_db = NULL;
+                l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::kycb_db());
+                // -----------------------------------------
+                // setup disk
+                // -----------------------------------------
+                char l_db_file[] = "/tmp/waflz-XXXXXX.kyoto.db";
+                //uint32_t l_db_buckets = 0;
+                //uint32_t l_db_map = 0;
+                //int l_db_options = 0;
+                //l_db_options |= kyotocabinet::HashDB::TSMALL;
+                //l_db_options |= kyotocabinet::HashDB::TLINEAR;
+                //l_db_options |= kyotocabinet::HashDB::TCOMPRESS;
+                errno = 0;
+                int32_t l_s;
+                l_s = mkstemps(l_db_file,9);
+                if(l_s == -1)
+                {
+                        NDBG_PRINT("error(%d) performing mkstemp(%s) reason[%d]: %s\n",
+                                        l_s,
+                                        l_db_file,
+                                        errno,
+                                        strerror(errno));
+                        if(l_db) { delete l_db; l_db = NULL; }
+                        return STATUS_ERROR;
+                }
+                unlink(l_db_file);
+                // -----------------------------------------
+                // options
+                // -----------------------------------------
+                l_db->set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                //NDBG_PRINT("l_db_file: %s\n", l_db_file);
+                // -----------------------------------------
+                // init db
+                // -----------------------------------------
+                l_s = l_db->init();
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("error performing initialize_cb: Reason: %s\n", l_db->get_err_msg());
+                        if(l_db) { delete l_db; l_db = NULL; }
+                        return STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // done
+                // -----------------------------------------
+                NDBG_PRINT("USING KYOTOCABINET\n");
+                *ao_db = l_db;
+        }
+        return STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+static int32_t init_engine(ns_waflz::engine** ao_engine,
+                           const std::string& a_ruleset_dir,
+                           const std::string& a_geoip2_db,
+                           const std::string& a_geoip2_isp_db)
+{
+        if(!ao_engine)
+        {
+                return STATUS_ERROR;
+        }
+        *ao_engine = NULL;
+        // -------------------------------------------------
+        // engine
+        // -------------------------------------------------
+        ns_waflz::engine* l_engine = new ns_waflz::engine();
+        l_engine->set_ruleset_dir(a_ruleset_dir);
+        l_engine->set_geoip2_dbs(a_geoip2_db, a_geoip2_isp_db);
+        // -------------------------------------------------
+        // init
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = l_engine->init();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                NDBG_PRINT("error initializing engine\n");
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // done
+        // -------------------------------------------------
+        *ao_engine = l_engine;
+        return STATUS_OK;
+}
 //! ****************************************************************************
 //! ----------------------------------------------------------------------------
 //!                           request handler
@@ -712,8 +1014,12 @@ int main(int argc, char** argv)
         // server settings
         std::string l_out_file;
         uint16_t l_port = 12345;
-        std::string l_redis_host;
+        std::string l_redis_host = "";
+        bool l_use_lmdb = false;
+        bool l_lmdb_ip = false;
         std::string l_challenge_file;
+        ns_waflz::engine* l_engine = NULL;
+        ns_waflz::kv_db* l_kv_db = NULL;
 #ifdef ENABLE_PROFILER
         std::string l_hprof_file;
         std::string l_cprof_file;
@@ -1184,13 +1490,23 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_PROFILE):
         {
-                ns_waflz_server::sx_profile *l_sx_profile = new ns_waflz_server::sx_profile();
+                // -----------------------------------------
+                // setup engine
+                // -----------------------------------------
+                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
+                if((l_s != STATUS_OK) ||
+                   (l_engine == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_engine\n");
+                        goto cleanup;
+                }
+                // -----------------------------------------
+                // init
+                // -----------------------------------------
+                ns_waflz_server::sx_profile *l_sx_profile = new ns_waflz_server::sx_profile(*l_engine);
                 l_sx_profile->m_lsnr = l_lsnr;
                 l_sx_profile->m_config = l_config_file;
                 l_sx_profile->m_callbacks = &s_callbacks;
-                l_sx_profile->m_ruleset_dir = l_ruleset_dir;
-                l_sx_profile->m_geoip2_db = l_geoip_db;
-                l_sx_profile->m_geoip2_isp_db = l_geoip_isp_db;
                 g_sx = l_sx_profile;
                 break;
         }
@@ -1199,12 +1515,22 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_INSTANCES):
         {
-                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
+                // -----------------------------------------
+                // setup engine
+                // -----------------------------------------
+                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
+                if((l_s != STATUS_OK) ||
+                   (l_engine == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_engine\n");
+                        goto cleanup;
+                }
+                // -----------------------------------------
+                // init
+                // -----------------------------------------
+                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance(*l_engine);
                 l_sx_instance->m_lsnr = l_lsnr;
                 l_sx_instance->m_config = l_config_file;
-                l_sx_instance->m_ruleset_dir = l_ruleset_dir;
-                l_sx_instance->m_geoip2_db = l_geoip_db;
-                l_sx_instance->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_instance->m_is_dir_flag = true;
                 l_sx_instance->m_bg_load = l_bg_load;
                 l_sx_instance->m_callbacks = &s_callbacks;
@@ -1216,12 +1542,22 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_INSTANCE):
         {
-                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance();
+                // -----------------------------------------
+                // setup engine
+                // -----------------------------------------
+                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
+                if((l_s != STATUS_OK) ||
+                   (l_engine == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_engine\n");
+                        goto cleanup;
+                }
+                // -----------------------------------------
+                // init
+                // -----------------------------------------
+                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance(*l_engine);
                 l_sx_instance->m_lsnr = l_lsnr;
                 l_sx_instance->m_config = l_config_file;
-                l_sx_instance->m_ruleset_dir = l_ruleset_dir;
-                l_sx_instance->m_geoip2_db = l_geoip_db;
-                l_sx_instance->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_instance->m_is_dir_flag = false;
                 l_sx_instance->m_bg_load = l_bg_load;
                 l_sx_instance->m_callbacks = &s_callbacks;
@@ -1233,7 +1569,20 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_MODSECURITY):
         {
-                ns_waflz_server::sx_modsecurity *l_sx_msx = new ns_waflz_server::sx_modsecurity();
+                // -----------------------------------------
+                // setup engine
+                // -----------------------------------------
+                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
+                if((l_s != STATUS_OK) ||
+                   (l_engine == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_engine\n");
+                        goto cleanup;
+                }
+                // -----------------------------------------
+                // init
+                // -----------------------------------------
+                ns_waflz_server::sx_modsecurity *l_sx_msx = new ns_waflz_server::sx_modsecurity(*l_engine);
                 l_sx_msx->m_lsnr = l_lsnr;
                 l_sx_msx->m_config = l_config_file;
                 l_sx_msx->m_callbacks = &s_callbacks;
@@ -1245,12 +1594,23 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_LIMIT):
         {
-                ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit();
+                // -----------------------------------------
+                // setup db
+                // -----------------------------------------
+                l_s = init_kv_db(&l_kv_db, l_redis_host, l_use_lmdb, l_lmdb_ip);
+                if((l_s != STATUS_OK) ||
+                   (l_kv_db == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_kv_db\n");
+                        goto cleanup;
+                }
+                // -----------------------------------------
+                // init
+                // -----------------------------------------
+                ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit(*l_kv_db);
                 l_sx_limit->m_lsnr = l_lsnr;
                 l_sx_limit->m_config = l_config_file;
                 l_sx_limit->m_callbacks = &s_callbacks;
-                // TODO ...
-                l_sx_limit->m_redis_host = l_redis_host;
                 g_sx = l_sx_limit;
                 break;
         }
@@ -1259,21 +1619,43 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_SCOPES):
         {
-                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes();
+                // -----------------------------------------
+                // setup engine
+                // -----------------------------------------
+                l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
+                if((l_s != STATUS_OK) ||
+                   (l_engine == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_engine\n");
+                        goto cleanup;
+                }
+                // -----------------------------------------
+                // setup db
+                // -----------------------------------------
+                l_s = init_kv_db(&l_kv_db, l_redis_host, l_use_lmdb, l_lmdb_ip);
+                if((l_s != STATUS_OK) ||
+                   (l_kv_db == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_kv_db\n");
+                        goto cleanup;
+                }
+                // -----------------------------------------
+                // init
+                // -----------------------------------------
+                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes(*l_engine, *l_kv_db);
                 l_sx_scopes->m_lsnr = l_lsnr;
                 l_sx_scopes->m_config = l_config_file;
                 l_sx_scopes->m_bg_load = l_bg_load;
                 l_sx_scopes->m_scopes_dir = false;
-                l_sx_scopes->m_action_mode = l_action_mode;
-                l_sx_scopes->m_ruleset_dir = l_ruleset_dir;
-                l_sx_scopes->m_b_challenge_file = l_b_challenge_file;
                 l_sx_scopes->m_callbacks = &s_callbacks;
-                l_sx_scopes->m_geoip2_db = l_geoip_db;
-                l_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
+                // -----------------------------------------
+                // TODO FIX!!!
+                // -----------------------------------------
+#if 0
+                l_sx_scopes->m_action_mode = l_action_mode;
+                l_sx_scopes->m_b_challenge_file = l_b_challenge_file;
                 l_sx_scopes->m_conf_dir = l_conf_dir;
-                l_sx_scopes->m_redis_host = l_redis_host;
-                l_sx_scopes->m_use_lmdb = l_use_lmdb;
-                l_sx_scopes->m_lmdb_interprocess = l_lmdb_interprocess;
+#endif
                 g_sx = l_sx_scopes;
                 break;
         }
@@ -1282,22 +1664,34 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_SCOPES_DIR):
         {
-                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes();
+                // -----------------------------------------
+                // setup db
+                // -----------------------------------------
+                l_s = init_kv_db(&l_kv_db, l_redis_host, l_use_lmdb, l_lmdb_ip);
+                if((l_s != STATUS_OK) ||
+                   (l_kv_db == NULL))
+                {
+                        NDBG_OUTPUT("error performing init_kv_db\n");
+                        goto cleanup;
+                }
+                // -----------------------------------------
+                // init
+                // -----------------------------------------
+                ns_waflz_server::sx_scopes *l_sx_scopes = new ns_waflz_server::sx_scopes(*l_engine, *l_kv_db);
                 l_sx_scopes->m_lsnr = l_lsnr;
                 l_sx_scopes->m_config = l_config_file;
                 l_sx_scopes->m_bg_load = l_bg_load;
                 l_sx_scopes->m_scopes_dir = true;
+                l_sx_scopes->m_callbacks = &s_callbacks;
+                // -----------------------------------------
+                // TODO FIX!!!
+                // -----------------------------------------
+#if 0
                 l_sx_scopes->m_action_mode = l_action_mode;
-                l_sx_scopes->m_ruleset_dir = l_ruleset_dir;
                 l_sx_scopes->m_b_challenge_file = l_b_challenge_file;
                 l_sx_scopes->m_an_list_file = l_an_list_file;
-                l_sx_scopes->m_callbacks = &s_callbacks;
-                l_sx_scopes->m_geoip2_db = l_geoip_db;
-                l_sx_scopes->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_scopes->m_conf_dir = l_conf_dir;
-                l_sx_scopes->m_redis_host = l_redis_host;
-                l_sx_scopes->m_use_lmdb = l_use_lmdb;
-                l_sx_scopes->m_lmdb_interprocess = l_lmdb_interprocess;
+#endif
                 g_sx = l_sx_scopes;
                 break;
         }
@@ -1364,5 +1758,7 @@ cleanup:
         if(g_srvr) { delete g_srvr; g_srvr = NULL; }
         if(l_h) { delete l_h; l_h = NULL; }
         if(g_sx) { delete g_sx; g_sx = NULL; }
+        if(l_engine) { delete l_engine; l_engine = NULL; }
+        if(l_kv_db) { delete l_kv_db; l_kv_db = NULL; }
         return STATUS_OK;
 }

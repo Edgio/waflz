@@ -21,6 +21,15 @@
 #include "is2/support/trace.h"
 #include "is2/support/nbq.h"
 //! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
+#ifndef STATUS_OK
+  #define STATUS_OK 0
+#endif
+#ifndef STATUS_ERROR
+  #define STATUS_ERROR -1
+#endif
+//! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
 namespace ns_waflz {
@@ -45,6 +54,12 @@ typedef struct _conf_update_bg {
         char* m_buf;
         uint32_t m_buf_len;
         ns_waflz::scopes_configs* m_scopes_configs;
+        _conf_update_bg(void):
+                m_buf(NULL),
+                m_buf_len(0),
+                m_scopes_configs(NULL)
+        {
+        }
 } conf_update_bg_t;
 //! ----------------------------------------------------------------------------
 //! update_entity_h
@@ -88,20 +103,26 @@ public:
                 // -----------------------------------------
                 // make ctx
                 // -----------------------------------------
-                conf_update_bg_t* l_up_bg = new conf_update_bg_t();
-                l_up_bg->m_buf = l_buf;
-                l_up_bg->m_buf_len = l_buf_len;
-                l_up_bg->m_scopes_configs = m_scopes_configs;
                 // -----------------------------------------
                 // if bg load...
                 // -----------------------------------------
                 if(m_bg_load)
                 {
+                        // ---------------------------------
+                        // create job
+                        // ---------------------------------
+                        conf_update_bg_t* l_up_bg = new conf_update_bg_t();
+                        l_up_bg->m_buf = l_buf;
+                        l_up_bg->m_buf_len = l_buf_len;
+                        l_up_bg->m_scopes_configs = m_scopes_configs;
+                        // ---------------------------------
+                        // create bg thread
+                        // ---------------------------------
                         pthread_t l_t_thread;
                         int32_t l_pthread_error = 0;
                         l_pthread_error = pthread_create(&l_t_thread,
                                                          NULL,
-                                                         load,
+                                                         bg_load,
                                                          l_up_bg);
                         if (l_pthread_error != 0)
                         {
@@ -113,7 +134,12 @@ public:
                 // -----------------------------------------
                 else
                 {
-                        load(l_up_bg);
+                        int32_t l_s = STATUS_OK;
+                        l_s = load(m_scopes_configs, l_buf, l_buf_len);
+                        if(l_s != STATUS_OK)
+                        {
+                                return ns_is2::H_RESP_SERVER_ERROR;
+                        }
                 }
                 // -----------------------------------------
                 // generate response
@@ -134,9 +160,9 @@ public:
         // public static methods
         // -------------------------------------------------
         // -------------------------------------------------
-        // load entity
+        // bg load entity
         // -------------------------------------------------
-        static void* load(void* a_context)
+        static void* bg_load(void* a_context)
         {
                 conf_update_bg_t* l_sc = reinterpret_cast<conf_update_bg_t*>(a_context);
                 if(!l_sc)
@@ -158,6 +184,7 @@ public:
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 TRC_ERROR("performing scopes->load\n");
+                                goto done;
                         }
                         break;
                 }
@@ -170,6 +197,7 @@ public:
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 TRC_ERROR("performing scopes->load\n");
+                                goto done;
                         }
                         break;
                 }
@@ -182,6 +210,7 @@ public:
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 TRC_ERROR("performing scopes->load\n");
+                                goto done;
                         }
                         break;
                 }
@@ -194,6 +223,7 @@ public:
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 TRC_ERROR("performing scopes->load\n");
+                                goto done;
                         }
                         break;
                 }
@@ -206,6 +236,7 @@ public:
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 TRC_ERROR("performing scopes->load\n");
+                                goto done;
                         }
                         break;
                 }
@@ -218,6 +249,7 @@ public:
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 TRC_ERROR("performing scopes->load\n");
+                                goto done;
                         }
                         break;
                 }
@@ -227,12 +259,131 @@ public:
                 default:
                 {
                         TRC_ERROR("unrecognized entity type: %d\n", m_type);
-                        break;
+                        goto done;
                 }
                 }
+done:
                 if(l_sc->m_buf) { free(l_sc->m_buf); l_sc->m_buf = NULL;}
                 delete l_sc;
                 return NULL;
+        }
+        // -------------------------------------------------
+        // bg load entity
+        // -------------------------------------------------
+        static int32_t load(ns_waflz::scopes_configs* a_scopes_configs,
+                            char* a_buf,
+                            uint32_t a_buf_len)
+        {
+                if(!a_scopes_configs ||
+                   !a_buf ||
+                   !a_buf_len)
+                {
+                        return STATUS_ERROR;
+                }
+                int32_t l_ret = STATUS_OK;
+                int32_t l_s;
+                // -----------------------------------------
+                // load per type
+                // -----------------------------------------
+                switch(m_type)
+                {
+                // -----------------------------------------
+                // scopes
+                // -----------------------------------------
+                case ENTITY_TYPE_SCOPES:
+                {
+                        l_s = a_scopes_configs->load(a_buf, a_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                                l_ret = STATUS_ERROR;
+                                goto done;
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // acl
+                // -----------------------------------------
+                case ENTITY_TYPE_ACL:
+                {
+                        l_s = a_scopes_configs->load_acl(a_buf, a_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                                l_ret = STATUS_ERROR;
+                                goto done;
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // profile
+                // -----------------------------------------
+                case ENTITY_TYPE_PROFILE:
+                {
+                        l_s = a_scopes_configs->load_profile(a_buf, a_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                                l_ret = STATUS_ERROR;
+                                goto done;
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // rules
+                // -----------------------------------------
+                case ENTITY_TYPE_RULES:
+                {
+                        l_s = a_scopes_configs->load_rules(a_buf, a_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                                l_ret = STATUS_ERROR;
+                                goto done;
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // bots
+                // -----------------------------------------
+                case ENTITY_TYPE_BOTS:
+                {
+                        l_s = a_scopes_configs->load_bots(a_buf, a_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                                l_ret = STATUS_ERROR;
+                                goto done;
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // limit
+                // -----------------------------------------
+                case ENTITY_TYPE_LIMIT:
+                {
+                        l_s = a_scopes_configs->load_limit(a_buf, a_buf_len);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                TRC_ERROR("performing scopes->load\n");
+                                l_ret = STATUS_ERROR;
+                                goto done;
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // default
+                // -----------------------------------------
+                default:
+                {
+                        TRC_ERROR("unrecognized entity type: %d\n", m_type);
+                        l_ret = STATUS_ERROR;
+                        goto done;
+                }
+                }
+done:
+                if(a_buf) { free(a_buf); a_buf = NULL;}
+                return l_ret;
         }
         // -------------------------------------------------
         // public const

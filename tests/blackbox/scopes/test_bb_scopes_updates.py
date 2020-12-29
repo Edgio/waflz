@@ -37,14 +37,14 @@ def setup_waflz_server_action():
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
-    l_bot_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
+    l_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
-                                  '-c', l_bot_challenge,
+                                  '-c', l_challenge,
                                   '-j'
                                   ])
     print('cmd: {}'.format(' '.join([l_waflz_server_path,
@@ -53,7 +53,7 @@ def setup_waflz_server_action():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
-                                  '-c', l_bot_challenge,
+                                  '-c', l_challenge,
                                   '-j'])))
                                   # '-b'])))
     time.sleep(1)

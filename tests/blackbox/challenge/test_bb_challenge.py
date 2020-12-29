@@ -71,7 +71,7 @@ def setup_waflz_server_action():
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
-    l_bot_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
+    l_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
@@ -81,7 +81,7 @@ def setup_waflz_server_action():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
-                                  '-c', l_bot_challenge,
+                                  '-c', l_challenge,
                                   '-j'])
     print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
@@ -89,7 +89,7 @@ def setup_waflz_server_action():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
-                                  '-c', l_bot_challenge,
+                                  '-c', l_challenge,
                                   '-j'])))
     time.sleep(1)
     # ------------------------------------------------------
@@ -101,6 +101,9 @@ def setup_waflz_server_action():
     # ------------------------------------------------------
     _, _, _ = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
+# ------------------------------------------------------------------------------
+# parse html
+# ------------------------------------------------------------------------------
 class html_parse(HTMLParser):
    #Store data
    m_data = ""
@@ -120,9 +123,41 @@ def solve_challenge(a_html):
     l_ectoken = l_ectoken_p.group(0)
     return 'ec_answer = ' + str(l_solution) + ';' + l_ectoken[:-1]
 # ------------------------------------------------------------------------------
+# test bot challenge events
+# ------------------------------------------------------------------------------
+def test_challenge_events(setup_waflz_server):
+    # ------------------------------------------------------
+    # test for recieving a bot challenge
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_NO_TOKEN"
+    assert l_r_json['prod_profile']['token_duration_sec'] == 3
+    # ------------------------------------------------------
+    # send random corrupted token
+    # ------------------------------------------------------
+    l_solution_cookies = 'ec_secure=d3JvbmdfdG9rZW4K;ec_answer=300'
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_TOKEN_CORRUPTED"
+    assert l_r_json['prod_profile']['token_duration_sec'] == 3
+# ------------------------------------------------------------------------------
 # test bot challenge in bot config
 # ------------------------------------------------------------------------------
-def test_bot_challenge_in_bot_config(setup_waflz_server_action):
+def test_challenge_in_bot_config(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for recieving a bot challenge
     # ------------------------------------------------------
@@ -136,8 +171,10 @@ def test_bot_challenge_in_bot_config(setup_waflz_server_action):
     # solve challenge
     # ------------------------------------------------------
     l_parser = html_parse()
+    print('l_r.text: \n{}\n'.format(l_r.text))
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
+    print('l_parser.m_data: \n{}\n'.format(l_parser.m_data))
     l_solution_cookies = solve_challenge(l_parser.m_data)
     # ------------------------------------------------------
     # test again with solved challenge and cookies
@@ -175,7 +212,7 @@ def test_bot_challenge_in_bot_config(setup_waflz_server_action):
 # ------------------------------------------------------------------------------
 # test bot challenge with limits
 # ------------------------------------------------------------------------------
-def test_bot_challenge_with_limits(setup_waflz_server_action):
+def test_challenge_with_limits(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for recieving a bot challenge
     # ------------------------------------------------------
@@ -230,7 +267,7 @@ def test_bot_challenge_with_limits(setup_waflz_server_action):
 # ------------------------------------------------------------------------------
 # test bot challenge with profile
 # ------------------------------------------------------------------------------
-def test_bot_challenge_with_profile(setup_waflz_server_action):
+def test_challenge_with_profile(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for recieving a bot challenge with attack vector
     # ------------------------------------------------------
@@ -293,35 +330,3 @@ def test_bot_challenge_with_profile(setup_waflz_server_action):
     l_parser = html_parse()
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
-# ------------------------------------------------------------------------------
-# test bot challenge events
-# ------------------------------------------------------------------------------
-def test_bot_challenge_events(setup_waflz_server):
-    # ------------------------------------------------------
-    # test for recieving a bot challenge
-    # ------------------------------------------------------
-    l_uri = G_TEST_HOST+'/test.html'
-    l_headers = {'host': 'mybot.com',
-                 'user-agent': 'bot-testing',
-                 'waf-scopes-id': '0052'}
-    l_r = requests.get(l_uri, headers=l_headers)
-    assert l_r.status_code == 200
-    l_r_json = l_r.json()
-    assert 'prod_profile' in l_r_json
-    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_NO_TOKEN"
-    assert l_r_json['prod_profile']['token_duration_sec'] == 3
-    # ------------------------------------------------------
-    # send random corrupted token
-    # ------------------------------------------------------
-    l_solution_cookies = 'ec_secure=d3JvbmdfdG9rZW4K;ec_answer=300'
-    l_uri = G_TEST_HOST+'/test.html'
-    l_headers = {'host': 'mybot.com',
-                 'user-agent': 'bot-testing',
-                 'Cookie': l_solution_cookies,
-                 'waf-scopes-id': '0052'}
-    l_r = requests.get(l_uri, headers=l_headers)
-    assert l_r.status_code == 200
-    l_r_json = l_r.json()
-    assert 'prod_profile' in l_r_json
-    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_TOKEN_CORRUPTED"
-    assert l_r_json['prod_profile']['token_duration_sec'] == 3

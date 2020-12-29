@@ -155,7 +155,7 @@ int32_t sx_scopes::init(void)
         // acl
         // -------------------------------------------------
         m_update_acl_h = new update_entity_h<ENTITY_TYPE_ACL>(m_scopes_configs, m_bg_load);
-        m_lsnr->add_route("/update_scopes", m_update_acl_h);
+        m_lsnr->add_route("/update_acl", m_update_acl_h);
         // -------------------------------------------------
         // rules
         // -------------------------------------------------
@@ -179,7 +179,6 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         // done
         // -------------------------------------------------
-        printf("listeners added\n");
         return STATUS_OK;
 }
 //! ----------------------------------------------------------------------------

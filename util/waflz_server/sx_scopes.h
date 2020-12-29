@@ -16,10 +16,10 @@
 #include "waflz/scopes.h"
 #include "waflz/scopes_configs.h"
 #include "sx.h"
-#include "is2/support/nbq.h"
 #include "is2/srvr/srvr.h"
 #include "is2/srvr/api_resp.h"
 #include "is2/support/trace.h"
+#include "is2/support/nbq.h"
 //! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
@@ -114,8 +114,6 @@ public:
                 else
                 {
                         load(l_up_bg);
-                        // TODO -error handling???
-                        if(l_buf) { free(l_buf); l_buf = NULL; }
                 }
                 // -----------------------------------------
                 // generate response

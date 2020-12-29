@@ -27,7 +27,7 @@ def run_command(command):
 # setup scopez server with scopes dir
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_scopez_server():
+def setup_waflz_server():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
@@ -39,19 +39,18 @@ def setup_scopez_server():
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
-    l_subproc = subprocess.Popen([l_scopez_server_path,
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
-                                  '-l', l_an_list,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path])
+                                  '-s', l_geoip2ISP_path])
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_scopez_server
+    yield setup_waflz_server
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
@@ -61,7 +60,7 @@ def setup_scopez_server():
 # setup scopez server with single scope for an 0050
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_scopez_server_single():
+def setup_waflz_server_single():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
@@ -72,24 +71,24 @@ def setup_scopez_server_single():
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopez_file = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes/0050.scopes.json'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
-    l_subproc = subprocess.Popen([l_scopez_server_path,
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-s', l_scopez_file,
+                                  '-S', l_scopez_file,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path])
-    print('cmd: {}'.format(' '.join([l_scopez_server_path,
+                                  '-s', l_geoip2ISP_path])
+    print('cmd: {}'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-s', l_scopez_file,
+                                  '-S', l_scopez_file,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path])))
+                                  '-s', l_geoip2ISP_path])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_scopez_server_single
+    yield setup_waflz_server_single
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
@@ -99,7 +98,7 @@ def setup_scopez_server_single():
 # setup scopez server in action mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_scopez_server_action():
+def setup_waflz_server_action():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
@@ -111,38 +110,35 @@ def setup_scopez_server_action():
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
-    l_subproc = subprocess.Popen([l_scopez_server_path,
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
-                                  '-l', l_an_list,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
-                                  '-a'])
-    print('cmd: {}'.format(' '.join([l_scopez_server_path,
+                                  '-s', l_geoip2ISP_path,
+                                  '-j'])
+    print('cmd: {}'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
                                   '-S', l_scopez_dir,
-                                  '-l', l_an_list,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
-                                  '-a'])))
+                                  '-s', l_geoip2ISP_path,
+                                  '-j'])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_scopez_server_action
+    yield setup_waflz_server_action
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
-
 # ------------------------------------------------------------------------------
 # an 0050
 # ------------------------------------------------------------------------------
-def test_scopes_dir_for_an_0050(setup_scopez_server):
+def test_scopes_dir_for_an_0050(setup_waflz_server):
     # ------------------------------------------------------
     # test without UA for AN 0050
     # ------------------------------------------------------
@@ -173,7 +169,7 @@ def test_scopes_dir_for_an_0050(setup_scopez_server):
 # ------------------------------------------------------------------------------
 # an 0051
 # ------------------------------------------------------------------------------
-def test_scopes_dir_for_an_0051(setup_scopez_server):
+def test_scopes_dir_for_an_0051(setup_waflz_server):
     # ------------------------------------------------------
     # test with wrong path for AN 0051
     # ------------------------------------------------------
@@ -230,7 +226,7 @@ def test_scopes_dir_for_an_0051(setup_scopez_server):
 # ------------------------------------------------------------------------------
 # single scope
 # ------------------------------------------------------------------------------
-def test_single_scope(setup_scopez_server_single):
+def test_single_scope(setup_waflz_server_single):
     # ------------------------------------------------------
     # test single scope for AN 0050
     # ------------------------------------------------------
@@ -271,7 +267,7 @@ def test_single_scope(setup_scopez_server_single):
 # ------------------------------------------------------------------------------
 # test audit and prod alert for an 0050
 # ------------------------------------------------------------------------------
-def test_audit_and_prod_for_scope(setup_scopez_server_single):
+def test_audit_and_prod_for_scope(setup_waflz_server_single):
     # ------------------------------------------------------
     # test audit and prod acl
     # ------------------------------------------------------
@@ -363,7 +359,7 @@ def test_audit_and_prod_for_scope(setup_scopez_server_single):
 # ------------------------------------------------------------------------------
 # test acl, rules and profile alert ordering for an 0050
 # ------------------------------------------------------------------------------
-def test_alert_order(setup_scopez_server_single):
+def test_alert_order(setup_waflz_server_single):
     # ------------------------------------------------------
     # acl alert should kick in for prod (URL blacklist) 
     # acl alert should kick in for audit(User-Agent blacklist)
@@ -430,7 +426,7 @@ def test_alert_order(setup_scopez_server_single):
 # ------------------------------------------------------------------------------
 # test limit and waf with scopes
 # ------------------------------------------------------------------------------
-def test_limit_and_waf_with_scopes(setup_scopez_server_action):
+def test_limit_and_waf_with_scopes(setup_waflz_server_action):
     # ------------------------------------------------------
     # shoot 3 request in 5 sec
     # 3rd request should get rate limited
@@ -441,7 +437,6 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
     for x in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
-
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
@@ -480,7 +475,7 @@ def test_limit_and_waf_with_scopes(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # test scopes operator
 # ------------------------------------------------------------------------------
-def test_scopes_operators(setup_scopez_server_action):
+def test_scopes_operators(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for EM
     # ------------------------------------------------------
@@ -514,7 +509,7 @@ def test_scopes_operators(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # test acl whitelist
 # ------------------------------------------------------------------------------
-def test_acl_whitelist(setup_scopez_server_action):
+def test_acl_whitelist(setup_waflz_server_action):
     # ------------------------------------------------------
     # Request with more than number of args configured in
     # profile. waf should alert
@@ -536,7 +531,7 @@ def test_acl_whitelist(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # test mutiple scopes for ratelimiting
 # ------------------------------------------------------------------------------
-def test_multiple_scopes_for_limit(setup_scopez_server_action):
+def test_multiple_scopes_for_limit(setup_waflz_server_action):
     # ------------------------------------------------------
     # Make 3 request in 5 sec.
     # 3rd request should get rate limited
@@ -547,7 +542,6 @@ def test_multiple_scopes_for_limit(setup_scopez_server_action):
     for x in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
-
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
@@ -562,14 +556,13 @@ def test_multiple_scopes_for_limit(setup_scopez_server_action):
     for x in range(2):
         l_r = requests.get(l_uri, headers=l_headers)
         assert l_r.status_code == 200
-
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == "custom response for limits from limit_id_2\n"
 # ------------------------------------------------------------------------------
 # custom rules in scopes
 # ------------------------------------------------------------------------------
-def test_custom_rules_in_scopes(setup_scopez_server_action):
+def test_custom_rules_in_scopes(setup_waflz_server_action):
     # ------------------------------------------------------
     # create request
     # ------------------------------------------------------
@@ -583,7 +576,7 @@ def test_custom_rules_in_scopes(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # chained custom rules in scopes
 # ------------------------------------------------------------------------------   
-def test_chained_custom_rules_in_scopes(setup_scopez_server_action):
+def test_chained_custom_rules_in_scopes(setup_waflz_server_action):
     # ------------------------------------------------------
     # create request
     # ------------------------------------------------------

@@ -779,33 +779,20 @@ public:
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
+                l_resp_t = ns_is2::H_RESP_NONE;
                 l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
-                if(l_resp_t != ns_is2::H_RESP_NONE)
+                if(l_resp_t != ns_is2::H_RESP_DONE)
                 {
                         if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return l_resp_t;
                 }
                 // -----------------------------------------
-                // handle action
+                // no enforcement -nothing to do
                 // -----------------------------------------
-                if(g_action_flag ||
-                   (l_enf
-                     // only enforcements for limits mode
-                     && (!g_config_mode == CONFIG_MODE_LIMITS))
-                   )
+                if(!l_enf)
                 {
-                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
-                }
-                if(l_enf) { delete l_enf; l_enf = NULL; }
-                if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                // -----------------------------------------
-                // return response
-                // -----------------------------------------
-                if(l_resp_t == ns_is2::H_RESP_NONE)
-                {
-                        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                        ns_is2::api_resp& l_api_resp = ns_is2::create_api_resp(a_session);
                         l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
                                                    "application/json",
                                                    g_sx->m_resp.length(),
@@ -814,9 +801,41 @@ public:
                         l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
                         l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
                         ns_is2::queue_api_resp(a_session, l_api_resp);
+                        if(l_ctx) { delete l_ctx; l_ctx = NULL;}
                         return ns_is2::H_RESP_DONE;
                 }
-                return l_resp_t;
+                // -----------------------------------------
+                // handle action
+                // -----------------------------------------
+                l_resp_t = ns_is2::H_RESP_NONE;
+                if(g_action_flag ||
+                   (!g_config_mode == CONFIG_MODE_LIMITS))
+                {
+                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
+                }
+                if(l_enf) { delete l_enf; l_enf = NULL; }
+                if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
+                // -----------------------------------------
+                // if != NONE -return response
+                // -----------------------------------------
+                if(l_resp_t != ns_is2::H_RESP_NONE)
+                {
+                        return l_resp_t;
+                }
+                // -----------------------------------------
+                // generate response
+                // -----------------------------------------
+                ns_is2::api_resp& l_api_resp = ns_is2::create_api_resp(a_session);
+                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                           "application/json",
+                                           g_sx->m_resp.length(),
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
+                l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
+                ns_is2::queue_api_resp(a_session, l_api_resp);
+                return ns_is2::H_RESP_DONE;
         }
 };
 //! ----------------------------------------------------------------------------
@@ -840,8 +859,9 @@ public:
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
+                l_resp_t = ns_is2::H_RESP_NONE;
                 l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
-                if(l_resp_t != ns_is2::H_RESP_NONE)
+                if(l_resp_t != ns_is2::H_RESP_DONE)
                 {
                         if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
@@ -852,6 +872,7 @@ public:
                 // -----------------------------------------
                 if(l_enf)
                 {
+                        l_resp_t = ns_is2::H_RESP_NONE;
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
                 if(l_enf) { delete l_enf; l_enf = NULL; }
@@ -889,8 +910,9 @@ public:
                 // handle request
                 // -----------------------------------------
                 ns_waflz::rqst_ctx *l_ctx = NULL;
+                l_resp_t = ns_is2::H_RESP_NONE;
                 l_resp_t = ns_waflz_server::sx::s_handle_rqst(*g_sx, &l_enf, &l_ctx, a_session, a_rqst, a_url_pmap);
-                if(l_resp_t != ns_is2::H_RESP_NONE)
+                if(l_resp_t != ns_is2::H_RESP_DONE)
                 {
                         return l_resp_t;
                 }
@@ -899,6 +921,7 @@ public:
                 // -----------------------------------------
                 if(l_enf)
                 {
+                        l_resp_t = ns_is2::H_RESP_NONE;
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }
                 if(l_enf) { delete l_enf; l_enf = NULL; }

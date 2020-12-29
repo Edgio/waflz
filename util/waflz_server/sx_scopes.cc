@@ -39,7 +39,7 @@
 #ifndef STATUS_ERROR
   #define STATUS_ERROR -1
 #endif
-#define _SCOPEZ_SERVER_SCOPES_ID "waf-scopes-id"
+#define _WAFLZ_SERVER_SCOPES_ID "waf-scopes-id"
 namespace ns_waflz_server {
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -193,7 +193,6 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                                         ns_is2::rqst &a_rqst,
                                         const ns_is2::url_pmap_t &a_url_pmap)
 {
-        ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
         if(ao_enf) { *ao_enf = NULL;}
         if(!m_scopes_configs)
         {
@@ -213,7 +212,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
         ns_is2::mutable_data_t i_hdr;
-        if(ns_is2::find_first(i_hdr, l_headers, _SCOPEZ_SERVER_SCOPES_ID, sizeof(_SCOPEZ_SERVER_SCOPES_ID)))
+        if(ns_is2::find_first(i_hdr, l_headers, _WAFLZ_SERVER_SCOPES_ID, sizeof(_WAFLZ_SERVER_SCOPES_ID)))
         {
                 std::string l_hex;
                 l_hex.assign(i_hdr.m_data, i_hdr.m_len);
@@ -332,6 +331,6 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
         {
                 delete l_ctx; l_ctx = NULL;
         }
-        return l_resp_code;
+        return ns_is2::H_RESP_DONE;
 }
 }

@@ -46,6 +46,11 @@ def setup_waflz_server():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path])
+    print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
+                                  '-f', l_profile_path,
+                                  '-r', l_ruleset_path,
+                                  '-g', l_geoip2city_path,
+                                  '-s', l_geoip2ISP_path])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
@@ -60,9 +65,9 @@ def setup_waflz_server():
 # test_bb_modsecurity_ec_access_settings_ignore_args
 # ------------------------------------------------------------------------------
 def test_bb_modsec_ec_acl_01_block_not_in_ignore_args(setup_waflz_server):
-    #"ignore_query_args": ["ignore", "this", "crap"]
+    #'ignore_query_args': ['ignore', 'this', 'crap']
     l_uri = G_TEST_HOST + '?' + 'arg1&arg2&arg3&arg4&arg5'
-    l_headers = {"host": "myhost.com"}
+    l_headers = {'host': 'myhost.com'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -79,7 +84,7 @@ def test_bb_acl_02_bypass_in_ignore_args(setup_waflz_server):
     #Test that passing ignore args lets it bypass
     #Max arg limit it 4, we pass 7
     l_uri = G_TEST_HOST + '?' + 'arg1&arg2&arg3&arg4&ignore&this&crap'
-    l_headers = {"host": "myhost.com"}
+    l_headers = {'host': 'myhost.com'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -89,10 +94,10 @@ def test_bb_acl_02_bypass_in_ignore_args(setup_waflz_server):
 # test_bb_acl_03_block_headers_not_in_ignore_header_list
 # ------------------------------------------------------------------------------
 def test_bb_acl_03_block_headers_not_in_ignore_header_list(setup_waflz_server):
-    #ignore_header": ["(?i)(benign-header)", "super-whatever-header", "^D.*"]
+    #ignore_header': ['(?i)(benign-header)', 'super-whatever-header', '^D.*']
     l_uri = G_TEST_HOST
-    l_headers = {"host": "myhost.com",
-                 "kooky-Header" : "function () { doing this is kinda dumb"
+    l_headers = {'host': 'myhost.com',
+                 'kooky-Header' : 'function () { doing this is kinda dumb'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -108,9 +113,9 @@ def test_bb_acl_03_block_headers_not_in_ignore_header_list(setup_waflz_server):
 def test_bb_acl_04_bypass_headers_in_ignore_header_list(setup_waflz_server):
     #Test ignore headers are ignored
     l_uri = G_TEST_HOST
-    l_headers = {"host": "myhost.com",
-                 "Benign-Header" : "function () { doing this is kinda dumb",
-                 "super-whatever-header" : "function () { doing this is kinda dumb"
+    l_headers = {'host': 'myhost.com',
+                 'Benign-Header' : 'function () { doing this is kinda dumb',
+                 'super-whatever-header' : 'function () { doing this is kinda dumb'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -122,13 +127,13 @@ def test_bb_acl_04_bypass_headers_in_ignore_header_list(setup_waflz_server):
 # -------------------------------------------------------------------------------
 def test_bb_acl_05_bypass_headers_in_ignore_header_list_regex(setup_waflz_server):
     ########################################
-    # Test regex "^D.*"
+    # Test regex '^D.*'
     ########################################
     l_uri = G_TEST_HOST
     #anything that starts with D should be ignored
-    l_headers = {"host": "myhost.com",
-                 "Doopdoop" : "function () { doing this is kinda dumb",
-                 "Duper-duper-deader" : "function () { doing this is kinda dumb"
+    l_headers = {'host': 'myhost.com',
+                 'Doopdoop' : 'function () { doing this is kinda dumb',
+                 'Duper-duper-deader' : 'function () { doing this is kinda dumb'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -139,10 +144,10 @@ def test_bb_acl_05_bypass_headers_in_ignore_header_list_regex(setup_waflz_server
 # test_bb_acl_06_block_cookie_not_in_ignore_cookie_list
 # ------------------------------------------------------------------------------
 def test_bb_acl_06_block_cookie_not_in_ignore_cookie_list(setup_waflz_server):
-    #"ignore_cookie": ["(?i)(sketchy_origin)", "(?i)(yousocrazy)"]
+    #'ignore_cookie': ['(?i)(sketchy_origin)', '(?i)(yousocrazy)']
     l_uri = G_TEST_HOST
-    l_headers = {"host": "myhost.com",
-                 "Cookie": "blahblah=function () { asdf asdf asdf"
+    l_headers = {'host': 'myhost.com',
+                 'Cookie': 'blahblah=function () { asdf asdf asdf'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -155,10 +160,10 @@ def test_bb_acl_06_block_cookie_not_in_ignore_cookie_list(setup_waflz_server):
 # test_bb_acl_07_bypass_cookie_in_ignore_cookie_list
 # ------------------------------------------------------------------------------
 def test_bb_acl_07_bypass_cookie_in_ignore_cookie_list(setup_waflz_server):
-    #"ignore_cookie": ["(?i)(sketchy_origin)", "(?i)(yousocrazy)"]
+    #'ignore_cookie': ['(?i)(sketchy_origin)', '(?i)(yousocrazy)']
     l_uri = G_TEST_HOST
-    l_headers = {"host" : "myhost.com",
-                 "Cookie" : "SkeTchy_Origin=function () { asdf asdf asdf"
+    l_headers = {'host' : 'myhost.com',
+                 'Cookie' : 'SkeTchy_Origin=function () { asdf asdf asdf'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -167,8 +172,8 @@ def test_bb_acl_07_bypass_cookie_in_ignore_cookie_list(setup_waflz_server):
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
     l_uri = G_TEST_HOST
-    l_headers = {"host" : "myhost.com",
-                 "Cookie" : "SkeTchy_Origin=function () { asdf asdf asdf"
+    l_headers = {'host' : 'myhost.com',
+                 'Cookie' : 'SkeTchy_Origin=function () { asdf asdf asdf'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -180,11 +185,11 @@ def test_bb_acl_07_bypass_cookie_in_ignore_cookie_list(setup_waflz_server):
 # ------------------------------------------------------------------------------
 def test_bb_acl_08_bypass_cookie_in_ignore_cookie_list_regex(setup_waflz_server):
     ########################################
-    # Test regex "^[0-9_].*$"
+    # Test regex '^[0-9_].*$'
     ########################################
     l_uri = G_TEST_HOST
-    l_headers = {"host" : "myhost.com",
-                 "Cookie" : "0_123_ADB__bloop=function () { asdf asdf asdf"
+    l_headers = {'host' : 'myhost.com',
+                 'Cookie' : '0_123_ADB__bloop=function () { asdf asdf asdf'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -196,7 +201,7 @@ def test_bb_acl_08_bypass_cookie_in_ignore_cookie_list_regex(setup_waflz_server)
 # ------------------------------------------------------------------------------
 def test_bb_acl_09_block_disallowed_http_method(setup_waflz_server):
     l_uri = G_TEST_HOST
-    l_headers = {"host" : "myhost.com"
+    l_headers = {'host' : 'myhost.com'
                 }
     l_r = requests.put(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -228,7 +233,7 @@ def test_bb_acl_10_bypass_empty_allowed_settings(setup_waflz_server):
     # urlopen (POST)
     # ------------------------------------------------------
     # print(l_url)
-    l_headers = {"Content-Type": "application/json"}
+    l_headers = {'Content-Type': 'application/json'}
     l_r = requests.post(l_url,
                         headers=l_headers,
                         data=json.dumps(l_conf))
@@ -239,8 +244,8 @@ def test_bb_acl_10_bypass_empty_allowed_settings(setup_waflz_server):
     # ------------------------------------------------------
     # test method and content is bypassed
     # ------------------------------------------------------
-    l_headers = {"host": "myhost.com",
-                 "Content-Type" : "select * from banana"
+    l_headers = {'host': 'myhost.com',
+                 'Content-Type' : 'select * from banana'
                 }
     l_r = requests.put(l_uri, headers=l_headers)
     assert l_r.status_code == 200
@@ -252,13 +257,13 @@ def test_bb_acl_10_bypass_empty_allowed_settings(setup_waflz_server):
 # ------------------------------------------------------------------------------
 def test_bb_acl_11_geoip2_lookup_softfail(setup_waflz_server):
     l_uri = G_TEST_HOST
-    l_headers = {"host" : "myhost.com",
+    l_headers = {'host' : 'myhost.com',
                  # use malformed ip for lookups
-                 "x-waflz-ip" : "0_123_ADB__bloop"
+                 'x-waflz-ip' : '0_123_ADB__bloop'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    print(l_r_json)
+    #print(l_r_json)
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'

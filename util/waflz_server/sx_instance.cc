@@ -256,7 +256,6 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
                                           ns_is2::rqst &a_rqst,
                                           const ns_is2::url_pmap_t &a_url_pmap)
 {
-        ns_is2::h_resp_t l_resp_code = ns_is2::H_RESP_NONE;
         if(ao_enf) { *ao_enf = NULL;}
         if(!m_instances)
         {
@@ -374,6 +373,6 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         {
                 delete l_ctx; l_ctx = NULL;
         }
-        return l_resp_code;
+        return ns_is2::H_RESP_DONE;
 }
 }

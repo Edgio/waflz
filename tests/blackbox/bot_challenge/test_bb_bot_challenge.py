@@ -10,13 +10,11 @@ import time
 import re
 import requests
 import pytest
-
 try:
     from html.parser import HTMLParser
 except ImportError:
     # python2 fallback
     from HTMLParser import HTMLParser
-
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -32,31 +30,29 @@ def run_command(command):
 # setup scopez server in event mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_scopez_server():
+def setup_waflz_server():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
-    l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
+    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
-    l_subproc = subprocess.Popen([l_scopez_server_path,
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-S', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path])
+                                  '-s', l_geoip2ISP_path])
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_scopez_server
+    yield setup_waflz_server
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
@@ -66,7 +62,7 @@ def setup_scopez_server():
 # setup scopez server in action mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_scopez_server_action():
+def setup_waflz_server_action():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
@@ -77,40 +73,35 @@ def setup_scopez_server_action():
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_bot_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
-    l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
-    l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
-    l_subproc = subprocess.Popen([l_scopez_server_path,
+    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-S', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
+                                  '-s', l_geoip2ISP_path,
                                   '-c', l_bot_challenge,
-                                  '-a'])
-    print('cmd: {}'.format(' '.join([l_scopez_server_path,
+                                  '-j'])
+    print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-S', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
+                                  '-s', l_geoip2ISP_path,
                                   '-c', l_bot_challenge,
-                                  '-a'])))
+                                  '-j'])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_scopez_server_action
+    yield setup_waflz_server_action
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
     _, _, _ = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
-
 class html_parse(HTMLParser):
-
    #Store data
    m_data = ""
    def handle_data(self, data):
@@ -131,7 +122,7 @@ def solve_challenge(a_html):
 # ------------------------------------------------------------------------------
 # test bot challenge in bot config
 # ------------------------------------------------------------------------------
-def test_bot_challenge_in_bot_config(setup_scopez_server_action):
+def test_bot_challenge_in_bot_config(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for recieving a bot challenge
     # ------------------------------------------------------
@@ -184,7 +175,7 @@ def test_bot_challenge_in_bot_config(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # test bot challenge with limits
 # ------------------------------------------------------------------------------
-def test_bot_challenge_with_limits(setup_scopez_server_action):
+def test_bot_challenge_with_limits(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for recieving a bot challenge
     # ------------------------------------------------------
@@ -239,7 +230,7 @@ def test_bot_challenge_with_limits(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # test bot challenge with profile
 # ------------------------------------------------------------------------------
-def test_bot_challenge_with_profile(setup_scopez_server_action):
+def test_bot_challenge_with_profile(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for recieving a bot challenge with attack vector
     # ------------------------------------------------------
@@ -305,7 +296,7 @@ def test_bot_challenge_with_profile(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # test bot challenge events
 # ------------------------------------------------------------------------------
-def test_bot_challenge_events(setup_scopez_server):
+def test_bot_challenge_events(setup_waflz_server):
     # ------------------------------------------------------
     # test for recieving a bot challenge
     # ------------------------------------------------------
@@ -334,4 +325,3 @@ def test_bot_challenge_events(setup_scopez_server):
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_TOKEN_CORRUPTED"
     assert l_r_json['prod_profile']['token_duration_sec'] == 3
-

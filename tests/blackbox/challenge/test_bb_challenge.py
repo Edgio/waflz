@@ -171,10 +171,8 @@ def test_challenge_in_bot_config(setup_waflz_server_action):
     # solve challenge
     # ------------------------------------------------------
     l_parser = html_parse()
-    print('l_r.text: \n{}\n'.format(l_r.text))
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
-    print('l_parser.m_data: \n{}\n'.format(l_parser.m_data))
     l_solution_cookies = solve_challenge(l_parser.m_data)
     # ------------------------------------------------------
     # test again with solved challenge and cookies

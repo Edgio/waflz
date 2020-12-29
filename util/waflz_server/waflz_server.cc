@@ -792,17 +792,35 @@ public:
                 // -----------------------------------------
                 if(!l_enf)
                 {
-                        ns_is2::api_resp& l_api_resp = ns_is2::create_api_resp(a_session);
-                        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
-                                                   "application/json",
-                                                   g_sx->m_resp.length(),
-                                                   a_rqst.m_supports_keep_alives,
-                                                   a_session.get_server_name());
-                        l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
-                        l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
-                        ns_is2::queue_api_resp(a_session, l_api_resp);
-                        if(l_ctx) { delete l_ctx; l_ctx = NULL;}
-                        return ns_is2::H_RESP_DONE;
+                        if(g_action_flag)
+                        {
+                                std::string l_resp_str;
+                                ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_OK, l_resp_str);
+                                ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
+                                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                                           "application/json",
+                                                            l_resp_str.length(),
+                                                            a_rqst.m_supports_keep_alives,
+                                                            a_session.get_server_name());
+                                l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
+                                ns_is2::queue_api_resp(a_session, l_api_resp);
+                                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                                return ns_is2::H_RESP_DONE;
+                        }
+                        else
+                        {
+                                ns_is2::api_resp& l_api_resp = ns_is2::create_api_resp(a_session);
+                                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
+                                                           "application/json",
+                                                           g_sx->m_resp.length(),
+                                                           a_rqst.m_supports_keep_alives,
+                                                           a_session.get_server_name());
+                                l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
+                                l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
+                                ns_is2::queue_api_resp(a_session, l_api_resp);
+                                if(l_ctx) { delete l_ctx; l_ctx = NULL;}
+                                return ns_is2::H_RESP_DONE;
+                        }
                 }
                 // -----------------------------------------
                 // handle action
@@ -1593,6 +1611,10 @@ int main(int argc, char** argv)
                         exit(STATUS_ERROR);
                 }
         }
+        // -------------------------------------------------
+        // callbacks render bot challenge
+        // -------------------------------------------------
+        ns_waflz::rqst_ctx::s_get_bot_ch_prob = ns_waflz_server::get_bot_ch_prob;
         // -------------------------------------------------
         // *************************************************
         // server setup

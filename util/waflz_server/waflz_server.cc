@@ -827,7 +827,7 @@ public:
                 // -----------------------------------------
                 l_resp_t = ns_is2::H_RESP_NONE;
                 if(g_action_flag ||
-                   (!g_config_mode == CONFIG_MODE_LIMITS))
+                   (g_config_mode == CONFIG_MODE_LIMITS))
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
                 }

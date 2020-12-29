@@ -10,12 +10,10 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
-#include "sx_instance.h"
-#include "waflz/instances.h"
-#include "waflz/instance.h"
+#include "sx_scopes.h"
 #include "waflz/engine.h"
-#include "waflz/profile.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/string_util.h"
 #include "is2/support/trace.h"
 #include "is2/support/nbq.h"
 #include "is2/support/ndebug.h"
@@ -24,14 +22,14 @@
 #include "jspb/jspb.h"
 #include "support/file_util.h"
 #include "event.pb.h"
-#include "action.pb.h"
 #include "profile.pb.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
-#include <sys/types.h>
+#include <errno.h>
+#include <string.h>
 #include <sys/stat.h>
-#include <unistd.h>
+#include <sys/types.h>
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------
@@ -41,156 +39,63 @@
 #ifndef STATUS_ERROR
   #define STATUS_ERROR -1
 #endif
-#define _WAFLZ_SERVER_HEADER_INSTANCE_ID "waf-instance-id"
+#define _WAFLZ_SERVER_SCOPES_ID "waf-scopes-id"
 namespace ns_waflz_server {
 //! ----------------------------------------------------------------------------
-//! type
-//! ----------------------------------------------------------------------------
-typedef struct _waf_instance_update {
-        char *m_buf;
-        uint32_t m_buf_len;
-        ns_waflz::instances *m_instances;
-} waf_instance_update_t;
-//! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-static void *t_load_instance(void *a_context)
-{
-        waf_instance_update_t *l_i = reinterpret_cast<waf_instance_update_t *>(a_context);
-        if(!l_i)
-        {
-                return NULL;
-        }
-        int32_t l_s;
-        ns_waflz::instance *l_instance = NULL;
-        l_s = l_i->m_instances->load(&l_instance, l_i->m_buf, l_i->m_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                TRC_ERROR("performing m_profile->load\n");
-                if(l_i->m_buf) { free(l_i->m_buf); l_i->m_buf = NULL;}
-                return NULL;
-        }
-        if(l_i->m_buf) { free(l_i->m_buf); l_i->m_buf = NULL;}
-        delete l_i;
-        return NULL;
-}
-//! ----------------------------------------------------------------------------
-//! \details: TODO
-//! \return:  TODO
-//! \param:   TODO
-//! ----------------------------------------------------------------------------
-ns_is2::h_resp_t update_instances_h::do_post(ns_is2::session &a_session,
-                                             ns_is2::rqst &a_rqst,
-                                             const ns_is2::url_pmap_t &a_url_pmap)
-{
-        if(!m_instances)
-        {
-                TRC_ERROR("m_profile == NULL\n");
-                return ns_is2::H_RESP_SERVER_ERROR;
-        }
-        // -------------------------------------------------
-        // get request body
-        // -------------------------------------------------
-        uint64_t l_buf_len = a_rqst.get_body_len();
-        ns_is2::nbq *l_q = a_rqst.get_body_q();
-        // copy to buffer
-        char *l_buf;
-        l_buf = (char *)malloc(l_buf_len);
-        l_q->read(l_buf, l_buf_len);
-        // -------------------------------------------------
-        // if bg load...
-        // -------------------------------------------------
-        if(m_bg_load)
-        {
-                waf_instance_update_t *l_instance_update = NULL;
-                l_instance_update = new waf_instance_update_t();
-                l_instance_update->m_buf = l_buf;
-                l_instance_update->m_buf_len = l_buf_len;
-                l_instance_update->m_instances = m_instances;
-                pthread_t l_t_thread;
-                int32_t l_pthread_error = 0;
-                l_pthread_error = pthread_create(&l_t_thread,
-                                                 NULL,
-                                                 t_load_instance,
-                                                 l_instance_update);
-                if (l_pthread_error != 0)
-                {
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // else fg load
-        // -------------------------------------------------
-        else
-        {
-                // TODO get status
-                //ns_is2::mem_display((const uint8_t *)l_buf, (uint32_t)l_buf_len);
-                int32_t l_s;
-                ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load(&l_instance, l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        TRC_ERROR("performing m_profile->load\n");
-                        if(l_buf) { free(l_buf); l_buf = NULL;}
-                        return ns_is2::H_RESP_SERVER_ERROR;
-                }
-                if(l_buf) { free(l_buf); l_buf = NULL;}
-        }
-        // -------------------------------------------------
-        // generate response
-        // -------------------------------------------------
-        std::string l_resp_str = "{\"status\": \"success\"}";
-        ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
-                                   "application/json",
-                                   l_resp_str.length(),
-                                   a_rqst.m_supports_keep_alives,
-                                   a_session.get_server_name());
-        l_api_resp.set_body_data(l_resp_str.c_str(), l_resp_str.length());
-        l_api_resp.set_status(ns_is2::HTTP_STATUS_OK);
-        ns_is2::queue_api_resp(a_session, l_api_resp);
-        return ns_is2::H_RESP_DONE;
-}
-//! ----------------------------------------------------------------------------
-//! \details: TODO
-//! \return:  TODO
-//! \param:   TODO
-//! ----------------------------------------------------------------------------
-sx_instance::sx_instance(ns_waflz::engine& a_engine):
+sx_scopes::sx_scopes(ns_waflz::engine& a_engine,
+                     ns_waflz::kv_db &a_db,
+                     ns_waflz::challenge& a_challenge):
         m_bg_load(false),
         m_is_rand(false),
         m_engine(a_engine),
-        m_instances(NULL),
-        m_update_instances_h(NULL)
+        m_db(a_db),
+        m_challenge(a_challenge),
+        m_conf_dir(),
+        m_scopes_configs(NULL),
+        m_update_scopes_h(NULL),
+        m_update_acl_h(NULL),
+        m_update_rules_h(NULL),
+        m_update_bots_h(NULL),
+        m_update_profile_h(NULL),
+        m_update_limit_h(NULL)
 {
+
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-sx_instance::~sx_instance(void)
+sx_scopes::~sx_scopes(void)
 {
-        if(m_instances) { delete m_instances; m_instances = NULL; }
-        if(m_update_instances_h) { delete m_update_instances_h; m_update_instances_h = NULL; }
+        if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
+        if(m_update_acl_h) { delete m_update_acl_h; m_update_acl_h = NULL; }
+        if(m_update_rules_h) { delete m_update_rules_h; m_update_rules_h = NULL; }
+        if(m_update_bots_h) { delete m_update_bots_h; m_update_bots_h = NULL; }
+        if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
+        if(m_update_limit_h) {delete m_update_limit_h; m_update_limit_h = NULL; }
+        if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t sx_instance::init(void)
+int32_t sx_scopes::init(void)
 {
         // -------------------------------------------------
-        // create instances
+        // create scope configs
         // -------------------------------------------------
-        m_instances = new ns_waflz::instances(m_engine, m_bg_load);
+        m_scopes_configs = new ns_waflz::scopes_configs(m_engine, m_db, m_challenge, false);
+        m_scopes_configs->set_conf_dir(m_conf_dir);
         // -------------------------------------------------
-        // turn on locking
+        // enable locking
         // -------------------------------------------------
-        m_instances->set_locking(true);
+        m_scopes_configs->set_locking(true);
         // -------------------------------------------------
         // get config type -file or directory
         // -------------------------------------------------
@@ -209,40 +114,71 @@ int32_t sx_instance::init(void)
                 l_is_dir_flag = true;
         }
         // -------------------------------------------------
-        // load dir
+        // load scopes dir
         // -------------------------------------------------
         if(l_is_dir_flag)
         {
-                //NDBG_PRINT("l_instance_dir: %s\n", l_instance_dir.c_str());
-                l_s = m_instances->load_dir(m_config.c_str(),
-                                            m_config.length(),
-                                            false);
+                // -----------------------------------------
+                // recurse through directory
+                // -----------------------------------------
+                //NDBG_PRINT("scopes configs dir: %s\n", m_config.c_str());
+                l_s = m_scopes_configs->load_dir(m_config.c_str(),
+                                                 m_config.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("error loading config dir: %s. reason: %s\n", m_config.c_str(), m_instances->get_err_msg());
+                        NDBG_PRINT("error loading config dir: %s. reason: %s\n", m_config.c_str(), m_scopes_configs->get_err_msg());
                         return STATUS_ERROR;
                 }
+
         }
         // -------------------------------------------------
-        // load instance
+        // load single scopes file
         // -------------------------------------------------
         else
         {
-                ns_waflz::instance *l_instance = NULL;
-                l_s = m_instances->load_file(&l_instance, m_config.c_str(), m_config.length(), false);
+                l_s = m_scopes_configs->load_file(m_config.c_str(), m_config.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_instances->get_err_msg());
+                        NDBG_PRINT("error loading config: %s. reason: %s\n", m_config.c_str(), m_scopes_configs->get_err_msg());
                         return STATUS_ERROR;
                 }
         }
         // -------------------------------------------------
-        // update instances
+        // update end points
         // -------------------------------------------------
-        m_update_instances_h = new update_instances_h();
-        m_update_instances_h->m_instances = m_instances;
-        m_update_instances_h->m_bg_load = m_bg_load;
-        m_lsnr->add_route("/update_instance", m_update_instances_h);
+        // -------------------------------------------------
+        // scopes
+        // -------------------------------------------------
+        m_update_scopes_h = new update_entity_h<ENTITY_TYPE_SCOPES>(m_scopes_configs, m_bg_load);
+        m_lsnr->add_route("/update_scopes", m_update_scopes_h);
+        // -------------------------------------------------
+        // acl
+        // -------------------------------------------------
+        m_update_acl_h = new update_entity_h<ENTITY_TYPE_ACL>(m_scopes_configs, m_bg_load);
+        m_lsnr->add_route("/update_acl", m_update_acl_h);
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+        m_update_rules_h = new update_entity_h<ENTITY_TYPE_RULES>(m_scopes_configs, m_bg_load);
+        m_lsnr->add_route("/update_rules", m_update_rules_h);
+        // -------------------------------------------------
+        // bots
+        // -------------------------------------------------
+        m_update_bots_h = new update_entity_h<ENTITY_TYPE_BOTS>(m_scopes_configs, m_bg_load);
+        m_lsnr->add_route("/update_bots", m_update_bots_h);
+        // -------------------------------------------------
+        // profile
+        // -------------------------------------------------
+        m_update_profile_h = new update_entity_h<ENTITY_TYPE_PROFILE>(m_scopes_configs, m_bg_load);
+        m_lsnr->add_route("/update_profile", m_update_profile_h);
+        // -------------------------------------------------
+        // limit
+        // -------------------------------------------------
+        m_update_limit_h = new update_entity_h<ENTITY_TYPE_LIMIT>(m_scopes_configs, m_bg_load);
+        m_lsnr->add_route("/update_limit", m_update_limit_h);
+        // -------------------------------------------------
+        // done
+        // -------------------------------------------------
         return STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -250,14 +186,14 @@ int32_t sx_instance::init(void)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
-                                          ns_waflz::rqst_ctx **ao_ctx,
-                                          ns_is2::session &a_session,
-                                          ns_is2::rqst &a_rqst,
-                                          const ns_is2::url_pmap_t &a_url_pmap)
+ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
+                                        ns_waflz::rqst_ctx **ao_ctx,
+                                        ns_is2::session &a_session,
+                                        ns_is2::rqst &a_rqst,
+                                        const ns_is2::url_pmap_t &a_url_pmap)
 {
         if(ao_enf) { *ao_enf = NULL;}
-        if(!m_instances)
+        if(!m_scopes_configs)
         {
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
@@ -268,46 +204,64 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         waflz_pb::event *l_event_prod = NULL;
         waflz_pb::event *l_event_audit = NULL;
         ns_waflz::rqst_ctx *l_ctx  = NULL;
-        std::string l_id = "";
+        m_resp = "{\"status\": \"ok\"}";
+        uint64_t l_id = 0;
         // -------------------------------------------------
         // get id from header if exists
         // -------------------------------------------------
         const ns_is2::mutable_data_map_list_t& l_headers(a_rqst.get_header_map());
         ns_is2::mutable_data_t i_hdr;
-        if(ns_is2::find_first(i_hdr, l_headers, _WAFLZ_SERVER_HEADER_INSTANCE_ID, sizeof(_WAFLZ_SERVER_HEADER_INSTANCE_ID)))
+        if(ns_is2::find_first(i_hdr, l_headers, _WAFLZ_SERVER_SCOPES_ID, sizeof(_WAFLZ_SERVER_SCOPES_ID)))
         {
-                l_id.assign(i_hdr.m_data, i_hdr.m_len);
+                std::string l_hex;
+                l_hex.assign(i_hdr.m_data, i_hdr.m_len);
+                l_s = ns_waflz::convert_hex_to_uint(l_id, l_hex.c_str());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("an provided is not a provided hex\n");
+                        return ns_is2::H_RESP_SERVER_ERROR;
+                }
         }
         // -------------------------------------------------
         // pick rand if id empty
         // -------------------------------------------------
-        if(l_id.empty() && m_is_rand)
+        if(!l_id &&
+           m_is_rand)
         {
-                m_instances->get_rand_id(l_id);
+                m_scopes_configs->get_rand_id(l_id);
         }
         // -------------------------------------------------
         // get first
         // -------------------------------------------------
-        else if(l_id.empty())
+        else if(!l_id)
         {
-                m_instances->get_first_id(l_id);
+                m_scopes_configs->get_first_id(l_id);
         }
-        if(l_id.empty())
+        // -------------------------------------------------
+        // if no id -error
+        // -------------------------------------------------
+        if(!l_id)
         {
                 if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                 if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
-        m_resp = "{\"status\": \"ok\"}";
         // -------------------------------------------------
         // process
         // -------------------------------------------------
-        l_s = m_instances->process(ao_enf, &l_event_audit, &l_event_prod, &a_session, l_id, ns_waflz::PART_MK_ALL, m_callbacks, &l_ctx);
+        l_s = m_scopes_configs->process(ao_enf,
+                                        &l_event_audit,
+                                        &l_event_prod,
+                                        &a_session,
+                                        l_id,
+                                        ns_waflz::PART_MK_ALL,
+                                        m_callbacks,
+                                        &l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                NDBG_PRINT("error processing config. reason: %s\n", m_instances->get_err_msg());
-                if(*ao_enf) { delete *ao_enf; *ao_enf = NULL; }
+                NDBG_PRINT("error processing config. reason: %s\n",
+                            m_scopes_configs->get_err_msg());
                 if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                 if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
@@ -326,11 +280,11 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         rapidjson::Document l_event_audit_json;
         if(l_event_audit)
         {
+                //NDBG_PRINT(" audit event %s", l_event_audit->DebugString().c_str());
                 l_s = ns_waflz::convert_to_json(l_event_audit_json, *l_event_audit);
                 if(l_s != JSPB_OK)
                 {
                         NDBG_PRINT("error performing convert_to_json.\n");
-                        if(*ao_enf) { delete *ao_enf; *ao_enf = NULL; }
                         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                         if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
@@ -340,17 +294,20 @@ ns_is2::h_resp_t sx_instance::handle_rqst(waflz_pb::enforcement **ao_enf,
         }
         if(l_event_prod)
         {
+                //NDBG_PRINT(" prod event %s",l_event_prod->DebugString().c_str());
                 l_s = ns_waflz::convert_to_json(l_event_prod_json, *l_event_prod);
                 if(l_s != JSPB_OK)
                 {
                         NDBG_PRINT("error performing convert_to_json.\n");
-                        if(*ao_enf) { delete *ao_enf; *ao_enf = NULL; }
                         if(l_event_audit) { delete l_event_audit; l_event_audit = NULL; }
                         if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                         if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return ns_is2::H_RESP_SERVER_ERROR;
                 }
         }
+        // -------------------------------------------------
+        // create resp...
+        // -------------------------------------------------
         rapidjson::Document l_js_doc;
         l_js_doc.SetObject();
         rapidjson::Document::AllocatorType& l_js_allocator = l_js_doc.GetAllocator();

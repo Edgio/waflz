@@ -100,6 +100,10 @@ static int32_t remove_ignored(arg_list_t &ao_arg_list,
                                          i_a->m_key_len);
                 if(l_m)
                 {
+                        // free alloc'd buffers
+                        if(i_a->m_key) { free(i_a->m_key); i_a->m_key = NULL; i_a->m_key_len = 0; }
+                        if(i_a->m_val) { free(i_a->m_val); i_a->m_val = NULL; i_a->m_val_len = 0; }
+                        // remove from list
                         ao_arg_list.erase(i_a++);
                         continue;
                 }

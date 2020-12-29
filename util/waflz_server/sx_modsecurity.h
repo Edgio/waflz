@@ -32,7 +32,7 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        sx_modsecurity(void);
+        sx_modsecurity(ns_waflz::engine& a_engine);
         ~sx_modsecurity(void);
         int32_t init(void);
         ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
@@ -43,7 +43,7 @@ public:
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
-        ns_waflz::engine *m_engine;
+        ns_waflz::engine& m_engine;
         ns_waflz::waf *m_waf;
         ns_waflz::geoip2_mmdb *m_geoip2_mmdb;
         waflz_pb::enforcement *m_action;

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# stress test scopez_server
+# stress test scopes waflz_server
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # Imports
@@ -130,7 +130,7 @@ def post_config(a_host, a_template, a_type, a_idx):
 # ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------
-def scopez_server_stress(a_verbose,
+def scopes_stress(a_verbose,
                          a_port,
                          a_template,
                          a_type,
@@ -219,7 +219,7 @@ def scopez_server_stress(a_verbose,
 # ------------------------------------------------------------------------------
 def main(argv):
     l_arg_parser = argparse.ArgumentParser(
-        description='scopez_server stress tester.',
+        description='waflz_server scopes stress tester.',
         usage='%(prog)s -t <any one template file(acl, rules, profile, scopes, limit) -a <template type> -x <request vector file>',
         epilog='')
     l_arg_parser.add_argument(
@@ -252,7 +252,7 @@ def main(argv):
         '-p',
         '--port',
         dest='port',
-        help='scopez_server port (default: 12345).',
+        help='waflz_server port (default: 12345).',
         default=12345,
         type=int,
         required=False)
@@ -266,12 +266,12 @@ def main(argv):
         required=False)
     l_args = l_arg_parser.parse_args()
     signal.signal(signal.SIGINT, signal_handler)
-    scopez_server_stress(a_verbose=l_args.verbose,
-                        a_port=l_args.port,
-                        a_template=l_args.template,
-                        a_type= l_args.type,
-                        a_vector_file=l_args.vector_file,
-                        a_num_ids=l_args.num_ids)
+    scopes_stress(a_verbose=l_args.verbose,
+                  a_port=l_args.port,
+                  a_template=l_args.template,
+                  a_type= l_args.type,
+                  a_vector_file=l_args.vector_file,
+                  a_num_ids=l_args.num_ids)
 # ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------

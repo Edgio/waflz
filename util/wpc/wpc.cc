@@ -7,9 +7,9 @@
 //! Licensed under the terms of the Apache 2.0 open source license.
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -23,16 +23,16 @@
 #include "waf_config.pb.h"
 #include "rl.pb.h"
 #include "jspb/jspb.h"
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #ifndef UNUSED
 #define UNUSED(x) ( (void)(x) )
 #endif
 
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 struct _pb_header {
         // -------------------------------------------------
         // type
@@ -72,11 +72,11 @@ struct _pb_header {
         uint32_t m_reserved;
 } __attribute__((packed));
 typedef struct _pb_header pb_header_t;
-//: ----------------------------------------------------------------------------
-//: \details Parse and print a protobuf from a given
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Parse and print a protobuf from a given
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 template <typename _Tp>
 int print_protobuf(_Tp& ao_pb,
                    char *a_buf,
@@ -112,26 +112,26 @@ int print_protobuf(_Tp& ao_pb,
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: \details Print Version info to a_stream with exit code
-//: \return  NA
-//: \param   a_stream: Where to write version info (eg sterr/stdout)
-//: \param   exit_code: Exit with return code
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Print Version info to a_stream with exit code
+//! \return  NA
+//! \param   a_stream: Where to write version info (eg sterr/stdout)
+//! \param   exit_code: Exit with return code
+//! ----------------------------------------------------------------------------
 void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
         fprintf(a_stream, "waflz protocol buffer cat (wpc).\n");
-        fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
-        fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
+        fprintf(a_stream, "Copyright (C) Verizon.\n");
+        fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details Display Help to user
-//: \return  NA
-//: \param   a_stream: Where to write version info (eg sterr/stdout)
-//: \param   exit_code: Exit with return code
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Display Help to user
+//! \return  NA
+//! \param   a_stream: Where to write version info (eg sterr/stdout)
+//! \param   exit_code: Exit with return code
+//! ----------------------------------------------------------------------------
 void print_usage(FILE* a_stream, int exit_code)
 {
         fprintf(a_stream, "Usage: wpc [OPTIONS]\n");
@@ -147,12 +147,12 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  -t, --tolerant  Tolerant of malformed headers/pbufs\n");
         exit(exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details main entry point
-//: \return  0 on Success
-//:          -1 on Failure
-//: \param   argc/argv See usage...
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details main entry point
+//! \return  0 on Success
+//!          -1 on Failure
+//! \param   argc/argv See usage...
+//! ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
         char l_opt;

@@ -12,6 +12,7 @@
 //! ----------------------------------------------------------------------------
 #include "support/ndebug.h"
 #include "op/regex.h"
+#include "waflz/engine.h"
 #include "waflz/string_util.h"
 #include "op/nms.h"
 #include "jspb/jspb.h"
@@ -69,9 +70,10 @@ const str_set_t g_ignore_ct_set(g_ignore_ct_set_vals,
 //! \return  None
 //! \param   None
 //! ----------------------------------------------------------------------------
-acl::acl(void):
+acl::acl(engine& a_engine):
         m_init(false),
         m_err_msg(),
+        m_engine(a_engine),
         m_pb(NULL),
         m_id(),
         m_cust_id(),
@@ -1627,24 +1629,45 @@ done:
 int32_t acl::process(waflz_pb::event **ao_event,
                      bool &ao_whitelist,
                      void *a_ctx,
-                     rqst_ctx &a_rqst_ctx)
+                     rqst_ctx **ao_rqst_ctx)
 {
         if(!ao_event)
         {
+                WAFLZ_PERROR(m_err_msg, "ao_event == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!a_rqst_ctx.m_init_phase_1)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        *ao_event = NULL;
-        ao_whitelist = false;
         bool l_match = false;
+        *ao_event = NULL;
         int32_t l_s;
+        // -------------------------------------------------
+        // create new if null
+        // -------------------------------------------------
+        rqst_ctx *l_rqst_ctx = NULL;
+        if(ao_rqst_ctx &&
+           *ao_rqst_ctx)
+        {
+                l_rqst_ctx = *ao_rqst_ctx;
+        }
+        if(!l_rqst_ctx)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_rqst_ctx == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // run phase 1 init
+        // -------------------------------------------------
+        l_s = l_rqst_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), NULL, NULL, NULL);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::init_phase_1");
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
         // -------------------------------------------------
         // whitelist...
         // -------------------------------------------------
-        l_s = process_whitelist(l_match, a_rqst_ctx);
+        ao_whitelist = false;
+        l_s = process_whitelist(l_match, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1659,7 +1682,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // accesslist...
         // -------------------------------------------------
-        l_s = process_accesslist(&l_event, a_rqst_ctx);
+        l_s = process_accesslist(&l_event, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1671,7 +1694,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // blacklist...
         // -------------------------------------------------
-        l_s = process_blacklist(&l_event, a_rqst_ctx);
+        l_s = process_blacklist(&l_event, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1683,7 +1706,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // settings...
         // -------------------------------------------------
-        l_s = process_settings(&l_event, a_rqst_ctx);
+        l_s = process_settings(&l_event, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1709,6 +1732,7 @@ done:
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
+        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
 }

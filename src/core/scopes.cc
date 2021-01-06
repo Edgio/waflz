@@ -615,7 +615,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                 // -----------------------------------------
                 // make acl obj
                 // -----------------------------------------
-                acl *l_acl = new acl();
+                acl *l_acl = new acl(m_engine);
                 std::string l_path;
                 l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_audit_id() +".acl.json"; 
                 char *l_buf = NULL;
@@ -675,7 +675,7 @@ acl_audit_action:
                 // -----------------------------------------
                 // make acl obj
                 // -----------------------------------------
-                acl *l_acl = new acl();
+                acl *l_acl = new acl(m_engine);
                 std::string l_path;
                 l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_prod_id() +".acl.json";
                 int32_t l_s;
@@ -1556,7 +1556,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                 waflz_pb::event *l_event = NULL;
                 bool l_wl = false;
                 int32_t l_s;
-                l_s = l_acl->process(&l_event, l_wl, a_ctx, **ao_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, a_ctx, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
@@ -1658,7 +1658,7 @@ prod:
                 waflz_pb::event *l_event = NULL;
                 bool l_wl = false;
                 int32_t l_s;
-                l_s = l_acl->process(&l_event, l_wl, a_ctx, **ao_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, a_ctx, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }

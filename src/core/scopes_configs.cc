@@ -756,7 +756,7 @@ int32_t scopes_configs::load_limit(const char* a_buf, uint32_t a_buf_len)
 int32_t scopes_configs::load_acl(void* a_js)
 {
         int32_t l_s;
-        ns_waflz::acl* l_acl = new acl();
+        ns_waflz::acl* l_acl = new acl(m_engine);
         l_s = l_acl->load(a_js);
          if(l_s != WAFLZ_STATUS_OK)
         {

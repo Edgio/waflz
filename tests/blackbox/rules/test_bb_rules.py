@@ -57,7 +57,7 @@ def setup_waflz_server():
 # ------------------------------------------------------------------------------
 def test_bb_without_rule_target_update_fail(setup_waflz_server):
     l_uri = G_TEST_HOST + '?' + 'origin=Mal%C3%A9&destination=Southeast+Asia&marketcode=MLESEA&countrycode=MV'
-    l_headers = {"host": "myhost.com"}
+    l_headers = {'host': 'myhost.com'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -80,12 +80,12 @@ def test_bb_without_rule_target_update_fail(setup_waflz_server):
     # ------------------------------------------------------
     l_conf['rule_target_updates'] = [
         {
-            "replace_target": "",
-            "rule_id": "950801",
-            "is_regex": False,
-            "is_negated": True,
-            "target_match": "origin",
-            "target": "ARGS"
+            'replace_target': '',
+            'rule_id': '950801',
+            'is_regex': False,
+            'is_negated': True,
+            'target_match': 'origin',
+            'target': 'ARGS'
         }]
     # ------------------------------------------------------
     # post conf
@@ -94,7 +94,7 @@ def test_bb_without_rule_target_update_fail(setup_waflz_server):
     # ------------------------------------------------------
     # urlopen (POST)
     # ------------------------------------------------------
-    l_headers = {"Content-Type": "application/json"}
+    l_headers = {'Content-Type': 'application/json'}
     l_r = requests.post(l_url,
                         headers=l_headers,
                         data=json.dumps(l_conf))
@@ -102,7 +102,7 @@ def test_bb_without_rule_target_update_fail(setup_waflz_server):
     #-------------------------------------------------------
     # GET the same uri which returned a 403 before RTU
     # ------------------------------------------------------
-    l_headers = {"host": "myhost.com"}
+    l_headers = {'host': 'myhost.com'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
@@ -116,8 +116,8 @@ def test_bb_without_rule_target_update_fail(setup_waflz_server):
 # ------------------------------------------------------------------------------
 def test_bb_rule_target_update_xml_var(setup_waflz_server):
     l_uri = G_TEST_HOST
-    l_headers = {"host": "myhost.com",
-                 "Content-Type": "text/xml"}
+    l_headers = {'host': 'myhost.com',
+                 'Content-Type': 'text/xml'}
     l_body = '<abc>{46AC4322-C776-4EC6-9D8A-D54607A8A0BB}</abc>'
     l_r = requests.post(l_uri,
                         headers=l_headers,
@@ -144,12 +144,12 @@ def test_bb_rule_target_update_xml_var(setup_waflz_server):
     # ------------------------------------------------------
     l_conf['rule_target_updates'] = [
         {
-            "replace_target": "",
-            "rule_id": "981173",
-            "is_regex": False,
-            "is_negated": True,
-            "target_match": "/*",
-            "target": "XML"
+            'replace_target': '',
+            'rule_id': '981173',
+            'is_regex': False,
+            'is_negated': True,
+            'target_match': '/*',
+            'target': 'XML'
         }]
     # ------------------------------------------------------
     # post conf
@@ -158,7 +158,7 @@ def test_bb_rule_target_update_xml_var(setup_waflz_server):
     # ------------------------------------------------------
     # urlopen (POST)
     # ------------------------------------------------------
-    l_headers = {"Content-Type": "application/json"}
+    l_headers = {'Content-Type': 'application/json'}
     l_r = requests.post(l_url,
                         headers=l_headers,
                         data=json.dumps(l_conf))
@@ -166,8 +166,8 @@ def test_bb_rule_target_update_xml_var(setup_waflz_server):
     #-------------------------------------------------------
     # GET the same uri which returned a 403 before RTU
     # ------------------------------------------------------
-    l_headers = {"host": "myhost.com",
-                 "Content-Type" : "text/xml"}
+    l_headers = {'host': 'myhost.com',
+                 'Content-Type' : 'text/xml'}
     l_body = '<abc>{46AC4322-C776-4EC6-9D8A-D54607A8A0BB}</abc>'
     l_r = requests.post(l_uri,
                         headers=l_headers,
@@ -179,3 +179,40 @@ def test_bb_rule_target_update_xml_var(setup_waflz_server):
     # ------------------------------------------------------
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
+# ------------------------------------------------------------------------------
+# fixture
+# ------------------------------------------------------------------------------
+@pytest.fixture(scope='module')
+def setup_waflz_server_rules():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
+    l_cwd = os.getcwd()
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_rules_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_ua.rules.json'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
+                                  '-e', l_rules_path])
+    time.sleep(1)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_waflz_server_rules
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
+# ------------------------------------------------------------------------------
+# test_bb_without_rule_target_update_fail
+# ------------------------------------------------------------------------------
+def test_bb_rule_ua(setup_waflz_server_rules):
+    l_uri = G_TEST_HOST
+    l_headers = {'User-Agent': 'bananas'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    # print(json.dumps(l_r_json,indent=4))
+    assert l_r_json['rule_intercept_status'] == 403
+    assert 'Request User-Agent is bananas' in l_r_json['rule_msg']

@@ -267,3 +267,40 @@ def test_bb_acl_11_geoip2_lookup_softfail(setup_waflz_server):
     #print(l_r_json)
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
+# ------------------------------------------------------------------------------
+# fixture
+# ------------------------------------------------------------------------------
+@pytest.fixture(scope='module')
+def setup_waflz_server_acl():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
+    l_cwd = os.getcwd()
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_acl_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_file_ext.acl.json'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
+                                  '-a', l_acl_path])
+    print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
+                                  '-a', l_acl_path])))
+    time.sleep(1)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_waflz_server_acl
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
+# ------------------------------------------------------------------------------
+# test_bb_acl_09_block_disallowed_http_method
+# ------------------------------------------------------------------------------
+def test_bb_acl_12_acl_config(setup_waflz_server_acl):
+    l_uri = G_TEST_HOST + '/index.pwd'
+    l_r = requests.get(l_uri)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert 'File extension is not allowed by policy' in l_r_json['rule_msg']
+

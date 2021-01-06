@@ -33,9 +33,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
-
 namespace ns_waflz {
-
 //! ----------------------------------------------------------------------------
 //! \details: Mark the context with the applied tx. This can be used to avoid
 //!           performing the same logic more than once. ie: tolower() on a
@@ -66,7 +64,6 @@ static void mark_tx_applied(ns_waflz::rqst_ctx *a_ctx,
                 // TODO: CMDLINE tx will also apply tolower(), Should it be included?
         }
 }
-
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
@@ -962,7 +959,6 @@ int32_t waf::init(profile &a_profile)
         l_anomaly_threshold = to_string(l_gs.anomaly_threshold());
         if(m_owasp_ruleset_version >= 300)
         {
-
                 set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", l_anomaly_threshold);
         }
         else
@@ -1518,7 +1514,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
                 NDBG_PRINT("%sSET_VAR%s: %s%s%s\n",
                            ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF,
                            ANSI_COLOR_FG_GREEN, l_sv.ShortDebugString().c_str(), ANSI_COLOR_OFF);
-
         }
 #endif
         // -------------------------------------------------
@@ -1683,10 +1678,18 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                                         // TODO log reason???
                                         return WAFLZ_STATUS_ERROR;
                                 }
-                                // mark the current transformation so the operation can check and decide if some actions
-                                // like lowering the string needs to be done by the rule. Having this we can avoid things
-                                // like calling tolower() twice on the same string.
+                                // -------------------------
+                                // mark current tx so op can
+                                // check if tolower required
+                                // by rule.
+                                // avoids multiple tolower
+                                // called on same string
+                                // -------------------------
                                 mark_tx_applied(&a_ctx, l_t_type);
+                                // -------------------------
+                                // if mutated again free
+                                // last
+                                // -------------------------
                                 if(l_mutated)
                                 {
                                         free(const_cast <char *>(l_x_data));
@@ -1730,6 +1733,7 @@ run_op:
                                         continue;
                                 }
                                 bool l_match = false;
+                                WFLZ_TRC_ALL("op val: %s%.*s%s\n", ANSI_COLOR_FG_GREEN, l_x_len, l_x_data, ANSI_COLOR_FG_MAGENTA);
                                 l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx);
                                 if(l_s != WAFLZ_STATUS_OK)
                                 {
@@ -1906,7 +1910,6 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                         }
                         l_val_ref = &l_sv_val;
                 }
-
                 //------------------------------------------
                 // *****************************************
                 //               S C O P E
@@ -2022,9 +2025,11 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                         // TODO ???
                         continue;
                 }
+                // -----------------------------------------
+                // default
+                // -----------------------------------------
                 default:
                 {
-
                 }
                 }
         }

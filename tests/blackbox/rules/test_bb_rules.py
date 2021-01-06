@@ -208,7 +208,10 @@ def setup_waflz_server_rules():
 # ------------------------------------------------------------------------------
 def test_bb_rule_ua(setup_waflz_server_rules):
     l_uri = G_TEST_HOST
-    l_headers = {'User-Agent': 'bananas'}
+    l_headers = {
+        'Host': 'example.com',
+        'User-Agent': 'bananas'
+    }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()

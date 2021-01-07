@@ -1,23 +1,3 @@
-# ----------------------------------------------------------------------------
-# Copyright (C) 2016 Verizon.  All Rights Reserved.
-# All Rights Reserved
-#
-#   Author: Reed P Morrison
-#   Date:   09/13/2016
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-#
-# ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # project setup
 # ------------------------------------------------------------------------------
@@ -111,6 +91,11 @@ SET(SRCS
     # ------------------------------------------------------
     jspb/jspb.cc
     # ------------------------------------------------------
+    # ectoken
+    # ------------------------------------------------------
+    ${CMAKE_SOURCE_DIR}/ext/ectoken/ectoken_v3.cc
+    ${CMAKE_SOURCE_DIR}/ext/ectoken/base64.cc
+    # ------------------------------------------------------
     # support
     # ------------------------------------------------------
     support/city.cc
@@ -122,15 +107,27 @@ SET(SRCS
     support/ndebug.cc
     support/base64.cc
     # ------------------------------------------------------
+    # db
+    # ------------------------------------------------------
+    db/kycb_db.cc
+    db/redis_db.cc
+    db/lm_db.cc
+    # ------------------------------------------------------
     # libinjection
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_html5.c
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_sqli.c
     ${CMAKE_SOURCE_DIR}/ext/libinjection/src/libinjection_xss.c
     # ------------------------------------------------------
-    # operators
+    # modsecurity
     # ------------------------------------------------------
     modsecurity/config_parser.cc
+    # ------------------------------------------------------
+    # parsers
+    # ------------------------------------------------------
+    parser/parser_url_encoded.cc
+    parser/parser_xml.cc
+    parser/parser_json.cc
     # ------------------------------------------------------
     # operators
     # ------------------------------------------------------
@@ -160,29 +157,6 @@ SET(SRCS
     core/rules.cc
     core/challenge.cc
     # ------------------------------------------------------
-    # parsers
-    # ------------------------------------------------------
-    parser/parser_url_encoded.cc
-    parser/parser_xml.cc
-    parser/parser_json.cc
-)
-# ------------------------------------------------------------------------------
-# if rate-limiting...
-# ------------------------------------------------------------------------------
-if(BUILD_RATE_LIMITING)
-list(APPEND SRCS
-    #---------------------------------------------
-    # ectoken
-    #---------------------------------------------
-    ${CMAKE_SOURCE_DIR}/ext/ectoken/ectoken_v3.cc
-    ${CMAKE_SOURCE_DIR}/ext/ectoken/base64.cc
-    # ------------------------------------------------------
-    # db
-    # ------------------------------------------------------
-    db/kycb_db.cc
-    db/redis_db.cc
-    db/lm_db.cc
-    # ------------------------------------------------------
     # limit
     # ------------------------------------------------------
     limit/rl_obj.cc
@@ -191,7 +165,6 @@ list(APPEND SRCS
     limit/configs.cc
     limit/limit.cc
 )
-endif()
 # ------------------------------------------------------------------------------
 # c source
 # ------------------------------------------------------------------------------
@@ -289,28 +262,53 @@ set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
 # ------------------------------------------------------------------------------
 # library
 # ------------------------------------------------------------------------------
-add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
-add_library(waflz SHARED ${SRCS} ${PB_SRCS})
-target_include_directories(waflzcore PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/proto/ ${CMAKE_BINARY_DIR}/)
-target_link_libraries(waflz ssl crypto pcre protobuf xml2 kyotocabinet hiredis)
-SET_TARGET_PROPERTIES(waflzcore
-  PROPERTIES
-  POSITION_INDEPENDENT_CODE ON
+add_library(waflz_obj OBJECT ${SRCS} ${PB_SRCS})
+add_library(waflzcore STATIC $<TARGET_OBJECTS:waflz_obj>)
+add_library(waflz SHARED $<TARGET_OBJECTS:waflz_obj>)
+# ------------------------------------------------------------------------------
+# lib settings
+# ------------------------------------------------------------------------------
+target_include_directories(waflzcore PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/proto
+    ${CMAKE_BINARY_DIR}
 )
+target_link_libraries(waflz
+    ssl
+    crypto
+    pcre
+    protobuf
+    xml2
+    kyotocabinet
+    hiredis
+)
+# ------------------------------------------------------------------------------
+# properties
+# ------------------------------------------------------------------------------
+SET_TARGET_PROPERTIES(waflz_obj
+    PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+# ------------------------------------------------------------------------------
 # Create symlink for libwaflz.so.<soversion>
+# ------------------------------------------------------------------------------
 SET_TARGET_PROPERTIES(waflz
-  PROPERTIES
-  SOVERSION 0
+    PROPERTIES
+    SOVERSION 0
 )
+# ------------------------------------------------------------------------------
+# install
+# ------------------------------------------------------------------------------
 # Add install target for the library
 install(TARGETS waflzcore
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  COMPONENT Libraries
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    COMPONENT Libraries
 )
 # Add install target for header files
 install(FILES ${HDRS}
-  DESTINATION include/waflz
-  COMPONENT Headers
+    DESTINATION include/waflz
+    COMPONENT Headers
 )
 

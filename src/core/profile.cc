@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    profile.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "profile.pb.h"
 #include "action.pb.h"
 #include "request_info.pb.h"
@@ -47,13 +34,13 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define _CONFIG_PROFILE_MAX_SIZE (1<<20)
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define VERIFY_HAS(_pb, _field) do { \
         if(!_pb.has_##_field()) { \
                 WAFLZ_PERROR(m_err_msg, "missing %s field", #_field); \
@@ -61,11 +48,11 @@
         } \
 } while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static void clear_ignore_list(pcre_list_t &a_pcre_list)
 {
         for(pcre_list_t::iterator i_r = a_pcre_list.begin();
@@ -79,11 +66,11 @@ static void clear_ignore_list(pcre_list_t &a_pcre_list)
                 }
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 profile::profile(engine &a_engine):
         m_init(false),
         m_pb(NULL),
@@ -103,13 +90,13 @@ profile::profile(engine &a_engine):
         m_il_cookie()
 {
         m_pb = new waflz_pb::profile();
-        m_acl = new acl();
+        m_acl = new acl(a_engine);
 }
-//: ----------------------------------------------------------------------------
-//: \details dtor
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details dtor
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 profile::~profile()
 {
         if(m_pb) { delete m_pb; m_pb = NULL; }
@@ -119,11 +106,11 @@ profile::~profile()
         clear_ignore_list(m_il_header);
         clear_ignore_list(m_il_cookie);
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 void profile::set_pb(waflz_pb::profile *a_pb)
 {
         if(m_pb)
@@ -133,11 +120,11 @@ void profile::set_pb(waflz_pb::profile *a_pb)
         }
         m_pb = a_pb;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t profile::load(const char *a_buf, uint32_t a_buf_len)
 {
         if(a_buf_len > _CONFIG_PROFILE_MAX_SIZE)
@@ -148,17 +135,23 @@ int32_t profile::load(const char *a_buf, uint32_t a_buf_len)
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
+        // -------------------------------------------------
+        // new pb obj
+        // -------------------------------------------------
         if(m_pb)
         {
                 delete m_pb;
                 m_pb = NULL;
         }
+        // -------------------------------------------------
+        // new acl obj
+        // -------------------------------------------------
         if(m_acl)
         {
                 delete m_acl;
                 m_acl = NULL;
         }
-        m_acl = new acl();
+        m_acl = new acl(m_engine);
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------
@@ -181,11 +174,11 @@ int32_t profile::load(const char *a_buf, uint32_t a_buf_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t profile::load(void* a_js)
 {
         m_init = false;
@@ -210,11 +203,11 @@ int32_t profile::load(void* a_js)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t profile::load(const waflz_pb::profile *a_pb)
 {
         if(!a_pb)
@@ -244,11 +237,11 @@ int32_t profile::load(const waflz_pb::profile *a_pb)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t profile::regex_list_add(const std::string &a_regex,
                                 pcre_list_t &a_pcre_list)
 {
@@ -272,11 +265,11 @@ int32_t profile::regex_list_add(const std::string &a_regex,
         a_pcre_list.push_back(l_regex);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t profile::init(void)
 {
         if(m_init)
@@ -488,16 +481,16 @@ int32_t profile::init(void)
         if(l_acl_pb) { delete l_acl_pb; l_acl_pb = NULL; }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details Validate json for generating modsecurity configuration
-//:          For now we do this simply by checking that it has all
-//:          the required elements.  We could use a json-schema
-//:          implementation in C (http://json-schema.org/implementations.html)
-//:          but we have such a nice lightweight json component, it seems
-//:          a shame to bring in a huge thing just for this use
-//: \return  0 if it is valid, ao_err_msg reset
-//:          -1 if it is not and ao_err_msg is populated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Validate json for generating modsecurity configuration
+//!          For now we do this simply by checking that it has all
+//!          the required elements.  We could use a json-schema
+//!          implementation in C (http://json-schema.org/implementations.html)
+//!          but we have such a nice lightweight json component, it seems
+//!          a shame to bring in a huge thing just for this use
+//! \return  0 if it is valid, ao_err_msg reset
+//!          -1 if it is not and ao_err_msg is populated
+//! ----------------------------------------------------------------------------
 int32_t profile::validate(void)
 {
         if(m_init)
@@ -601,11 +594,11 @@ int32_t profile::validate(void)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t profile::process(waflz_pb::event **ao_event,
                          void *a_ctx,
                          part_mk_t a_part_mk,
@@ -655,7 +648,7 @@ int32_t profile::process(waflz_pb::event **ao_event,
         if(a_part_mk & PART_MK_ACL)
         {
                 bool l_whitelist = false;
-                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, *l_rqst_ctx);
+                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());

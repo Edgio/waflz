@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    scopes_configs.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include "waflz/scopes_configs.h"
@@ -41,11 +28,11 @@
 #include "scope.pb.h"
 #include "limit.pb.h"
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 scopes_configs::scopes_configs(engine &a_engine,
                                kv_db& a_db,
                                challenge& a_challenge,
@@ -66,11 +53,11 @@ scopes_configs::scopes_configs(engine &a_engine,
                 pthread_mutex_init(&m_mutex, NULL);
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 scopes_configs::~scopes_configs()
 {
         for (cust_id_scopes_map_t::iterator  it = m_cust_id_scopes_map.begin();
@@ -86,24 +73,23 @@ scopes_configs::~scopes_configs()
                 pthread_mutex_destroy(&m_mutex);
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: loads scopes.json config files in the path specified.
+//! ----------------------------------------------------------------------------
+//! \details: loads scopes.json config files in the path specified.
 //  The file name is of the format <an>.scopes.json. If AN exists in m_an_set,
 //  then load the scopes file or else ignore and continue. This function is called
 //  on startup, other load functions do not need to check m_an_set.
 //  If a scopes file is loaded only then the m_cust_id_scopes_map is updated.
 //  Hence we do not need a double check in other functions.
-//: \return  0: success
-//: \param   a_dir_path: path of directorry which contains scopes configs
+//! \return  0: success
+//! \param   a_dir_path: path of directorry which contains scopes configs
 //           a_dir_path_len: strlen of a_dir_path
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len)
 {
-        // -----------------------------------------------------------
-        // this function should look through the given directory and
-        // look for all scopes.json files, open them and call
-        // load_file() on it
-        // -----------------------------------------------------------
+        // -------------------------------------------------
+        // look through the given directory and find
+        // scopes.json files, call load_file()
+        // -------------------------------------------------
         class is_conf_file
         {
         public:
@@ -144,9 +130,9 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                         return 0;
                 }
         };
-        // -----------------------------------------------------------
+        // -------------------------------------------------
         // scandir
-        // -----------------------------------------------------------
+        // -------------------------------------------------
         struct dirent** l_conf_list;
         int l_num_files = -1;
         l_num_files = ::scandir(a_dir_path,
@@ -155,59 +141,44 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                                 alphasort);
         if(l_num_files < 0)
         {
-                // -----------------------------------------------------------
-                // failed to build the list of directory entries
-                // -----------------------------------------------------------
                 WAFLZ_PERROR(m_err_msg, "Failed to load scope config  Reason: failed to scan profile directory: %s: %s",
                              a_dir_path,
                              (errno == 0 ? "unknown" : strerror(errno)));
                 return WAFLZ_STATUS_ERROR;
         }
-        // -----------------------------------------------------------
-        // we have a list of .scopes.conf files in the directory
-        // -----------------------------------------------------------
+        // -------------------------------------------------
+        // for each file
+        // -------------------------------------------------
         for (int i_f = 0; i_f < l_num_files; ++i_f)
         {
-                // -----------------------------------------------------------
-                // for each file
-                // -----------------------------------------------------------
                 int32_t l_s;
                 std::string l_file_name(l_conf_list[i_f]->d_name);
+                // -----------------------------------------
+                // find first
+                // -----------------------------------------
                 size_t l_pos = l_file_name.find_first_of('.');
                 if(l_pos == std::string::npos)
                 {
                         WAFLZ_PERROR(m_err_msg,"Invalid filename %s\n", l_file_name.c_str());
-                        // -----------------------------------------------------------
-                        // failed to get AN from file name
-                        // -----------------------------------------------------------
                         for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
                         free(l_conf_list);
                         return WAFLZ_STATUS_ERROR;
                 }
+                // -----------------------------------------
+                // convert hex to int
+                // -----------------------------------------
                 uint64_t l_id;
                 l_s = convert_hex_to_uint(l_id, l_file_name.substr(0, l_pos).c_str());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
-                        // -----------------------------------------------------------
-                        // failed to convert hex to int
-                        // -----------------------------------------------------------
                         for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
                         free(l_conf_list);
                         return WAFLZ_STATUS_ERROR;
                 }
-                an_set_t::iterator i_an_list;
-                i_an_list = m_an_set.find(l_id);
-                // -----------------------------------------------------------
-                // If the an is not in the set of allowed an's, skip
-                // -----------------------------------------------------------
-                if(i_an_list == m_an_set.end())
-                {
-                        continue;
-                }
-                // -----------------------------------------------------------
+                // -----------------------------------------
                 // TODO log?
-                // -----------------------------------------------------------
+                // -----------------------------------------
                 //NDBG_PRINT("Found scope config file: %s", l_conf_list[i_f]->d_name );
                 std::string l_full_path(a_dir_path);
                 l_full_path.append("/");
@@ -215,9 +186,6 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                 l_s = load_file(l_full_path.c_str(),l_full_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        // -----------------------------------------------------------
-                        // failed to load a config file
-                        // -----------------------------------------------------------
                         for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
                         free(l_conf_list);
                         return WAFLZ_STATUS_ERROR;
@@ -227,11 +195,11 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
         free(l_conf_list);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_file(const char* a_file_path,
                                          uint32_t a_file_path_len)
 {
@@ -256,11 +224,11 @@ int32_t scopes_configs::load_file(const char* a_file_path,
         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len)
 {
         // -------------------------------------------------
@@ -332,11 +300,11 @@ int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load(void* a_js)
 {
         if(!a_js)
@@ -403,11 +371,11 @@ int32_t scopes_configs::load(void* a_js)
         m_cust_id_scopes_map[l_cust_id] = l_scopes;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
                                 waflz_pb::event **ao_audit_event,
                                 waflz_pb::event **ao_prod_event,
@@ -462,11 +430,11 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 void scopes_configs::get_first_id(uint64_t &ao_id)
 {
         if(m_enable_locking)
@@ -483,11 +451,11 @@ void scopes_configs::get_first_id(uint64_t &ao_id)
                 pthread_mutex_unlock(&m_mutex);
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 void scopes_configs::get_rand_id(uint64_t &ao_id)
 {
         if(m_enable_locking)
@@ -507,11 +475,11 @@ void scopes_configs::get_rand_id(uint64_t &ao_id)
         }
 }
 
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 scopes* scopes_configs::get_scopes(uint64_t a_id)
 {
         cust_id_scopes_map_t::iterator i_i;
@@ -522,11 +490,11 @@ scopes* scopes_configs::get_scopes(uint64_t a_id)
         }
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
                                        rqst_ctx* a_ctx,
                                        uint64_t a_cust_id)
@@ -630,16 +598,16 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         *ao_alert = l_at;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details check if customer has scopes. The an_list is the list of ANs that
-//  are enabled to be inspected by scopes. We only add the check here, since
-//  we only want to avoid inspection. In load functions  for acl, limit etc
-//  we dont need to check AN since our goal is only to avoid processing.
-//  The cust_id map is updated on a reload with a check for an list in load_dir func.
-//: \return  true: if id exists in both map and set
+//! ----------------------------------------------------------------------------
+//! \details check if customer has scopes. The an_list is the list of ANs that
+//!          are enabled to be inspected by scopes. We only add the check here,
+//!          since want to avoid inspection. In load functions for acl, limit,
+//!          etc dont need to check AN since goal is to avoid processing.
+//!          cust_id map is updated on reload with check for an list in load_dir
+//! \return  true: if id exists in both map and set
 //           false: if id is missing in either map or set
-//: \param   a_cust_id: unsigned integer customer id.
-//: ----------------------------------------------------------------------------
+//! \param   a_cust_id: unsigned integer customer id.
+//! ----------------------------------------------------------------------------
 bool scopes_configs::check_id(uint64_t a_cust_id)
 {
         cust_id_scopes_map_t::iterator i_scopes;
@@ -662,11 +630,11 @@ bool scopes_configs::check_id(uint64_t a_cust_id)
         }
         return l_ret;
 }
-//: ----------------------------------------------------------------------------
-//: \details update scopes limit config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details update scopes limit config
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_limit(void* a_js)
 {
         int32_t l_s;
@@ -705,16 +673,16 @@ int32_t scopes_configs::load_limit(void* a_js)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details update limit config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details update limit config
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_limit(const char* a_buf, uint32_t a_buf_len)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // parse
-        // ---------------------------------------
+        // -------------------------------------------------
         rapidjson::Document *l_js = new rapidjson::Document();
         rapidjson::ParseResult l_ok;
         l_ok = l_js->Parse(a_buf, a_buf_len);
@@ -780,15 +748,15 @@ int32_t scopes_configs::load_limit(const char* a_buf, uint32_t a_buf_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details update scopes acl config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details update scopes acl config
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_acl(void* a_js)
 {
         int32_t l_s;
-        ns_waflz::acl* l_acl = new acl();
+        ns_waflz::acl* l_acl = new acl(m_engine);
         l_s = l_acl->load(a_js);
          if(l_s != WAFLZ_STATUS_OK)
         {
@@ -823,16 +791,16 @@ int32_t scopes_configs::load_acl(void* a_js)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details update acl config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details update acl config
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_acl(const char* a_buf, uint32_t a_buf_len)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // parse
-        // ---------------------------------------
+        // -------------------------------------------------
         rapidjson::Document *l_js = new rapidjson::Document();
         rapidjson::ParseResult l_ok;
         l_ok = l_js->Parse(a_buf, a_buf_len);
@@ -898,11 +866,11 @@ int32_t scopes_configs::load_acl(const char* a_buf, uint32_t a_buf_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details update custom rules config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details update custom rules config
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_rules(void* a_js)
 {
         int32_t l_s;
@@ -940,16 +908,16 @@ int32_t scopes_configs::load_rules(void* a_js)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details update custom rules config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details update custom rules config
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_rules(const char* a_buf, uint32_t a_buf_len)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // parse
-        // ---------------------------------------
+        // -------------------------------------------------
         rapidjson::Document *l_js = new rapidjson::Document();
         rapidjson::ParseResult l_ok;
         l_ok = l_js->Parse(a_buf, a_buf_len);
@@ -1016,11 +984,11 @@ int32_t scopes_configs::load_rules(const char* a_buf, uint32_t a_buf_len)
         return WAFLZ_STATUS_OK;
 }
 
-//: ----------------------------------------------------------------------------
-//: \details update custom bots config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details update custom bots config
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_bots(void* a_js)
 {
         int32_t l_s;
@@ -1057,16 +1025,16 @@ int32_t scopes_configs::load_bots(void* a_js)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details update custom bots config
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details update custom bots config
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes_configs::load_bots(const char* a_buf, uint32_t a_buf_len)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // parse
-        // ---------------------------------------
+        // -------------------------------------------------
         rapidjson::Document *l_js = new rapidjson::Document();
         rapidjson::ParseResult l_ok;
         l_ok = l_js->Parse(a_buf, a_buf_len);
@@ -1132,11 +1100,11 @@ int32_t scopes_configs::load_bots(const char* a_buf, uint32_t a_buf_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: -----------------------------------------------------------------------------
-//: \details update profile config
-//: \return  TODO
-//: \param   TODO
-//: -----------------------------------------------------------------------------
+//! -----------------------------------------------------------------------------
+//! \details update profile config
+//! \return  TODO
+//! \param   TODO
+//! -----------------------------------------------------------------------------
 int32_t scopes_configs::load_profile(void* a_js)
 {
         int32_t l_s;
@@ -1175,16 +1143,16 @@ int32_t scopes_configs::load_profile(void* a_js)
         }
         return WAFLZ_STATUS_OK;
 }
-//: -----------------------------------------------------------------------------
-//: \details update profile config
-//: \return  TODO
-//: \param   TODO
-//: -----------------------------------------------------------------------------
+//! -----------------------------------------------------------------------------
+//! \details update profile config
+//! \return  TODO
+//! \param   TODO
+//! -----------------------------------------------------------------------------
 int32_t scopes_configs::load_profile(const char* a_buf, uint32_t a_buf_len)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // parse
-        // ---------------------------------------
+        // -------------------------------------------------
         rapidjson::Document *l_js = new rapidjson::Document();
         rapidjson::ParseResult l_ok;
         l_ok = l_js->Parse(a_buf, a_buf_len);
@@ -1250,12 +1218,12 @@ int32_t scopes_configs::load_profile(const char* a_buf, uint32_t a_buf_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: -----------------------------------------------------------------------------
-//: \details read a new AN list file and update AN set
-//: \return  TODO
-//: \param   a_file_path: file path
-//: \param   a_file_path_len: file path len
-//: -----------------------------------------------------------------------------
+//! -----------------------------------------------------------------------------
+//! \details read a new AN list file and update AN set
+//! \return  TODO
+//! \param   a_file_path: file path
+//! \param   a_file_path_len: file path len
+//! -----------------------------------------------------------------------------
 int32_t scopes_configs::load_an_list_file(const char* a_file_path, uint32_t a_file_path_len)
 {
         int32_t l_s;
@@ -1279,12 +1247,12 @@ int32_t scopes_configs::load_an_list_file(const char* a_file_path, uint32_t a_fi
         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         return WAFLZ_STATUS_OK;
 }
-//: -----------------------------------------------------------------------------
-//: \details update an set with new data
-//: \return  TODO
-//: \param   a_buf: json data
-//: \param   a_buf_len: size of json data
-//: -----------------------------------------------------------------------------
+//! -----------------------------------------------------------------------------
+//! \details update an set with new data
+//! \return  TODO
+//! \param   a_buf: json data
+//! \param   a_buf_len: size of json data
+//! -----------------------------------------------------------------------------
 int32_t scopes_configs::load_an_list(const char* a_buf, uint32_t a_buf_len)
 {
         // -------------------------------------------------

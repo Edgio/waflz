@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    kycb_db.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/07/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #if !defined(__APPLE__) && !defined(__darwin__)
@@ -47,11 +34,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 kycb_db::kycb_db(void):
         kv_db(),
         m_db(NULL),
@@ -61,11 +48,11 @@ kycb_db::kycb_db(void):
         m_config_map(0),
         m_kv_ttl_pq()
 {}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 kycb_db::~kycb_db(void)
 {
         // -------------------------------------------------
@@ -92,11 +79,11 @@ kycb_db::~kycb_db(void)
                 m_kv_ttl_pq.pop();
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t kycb_db::init(void)
 {
         kyotocabinet::HashDB* l_db = NULL;
@@ -200,11 +187,11 @@ int32_t kycb_db::init(void)
         //TRACE("Successfully opened kc db at: '%s'", a_db_path.safe_b_str());
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t kycb_db::expire_old_keys(void)
 {
         // pop events off pq until time > now
@@ -250,11 +237,11 @@ int32_t kycb_db::expire_old_keys(void)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t kycb_db::increment_key(int64_t &ao_result,
                                const char *a_key,
                                uint32_t a_expires_ms)
@@ -288,11 +275,11 @@ int32_t kycb_db::increment_key(int64_t &ao_result,
         m_kv_ttl_pq.push(l_kv_ttl);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t kycb_db::get_key(int64_t &ao_val, const char *a_key, uint32_t a_key_len)
 {
         // -------------------------------------------------
@@ -329,11 +316,11 @@ int32_t kycb_db::get_key(int64_t &ao_val, const char *a_key, uint32_t a_key_len)
         if(l_val) { delete[] l_val; l_val = NULL; }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t kycb_db::print_all_keys(void)
 {
         kyotocabinet::HashDB::Cursor *l_cursor = (*m_db).cursor();
@@ -353,11 +340,11 @@ int32_t kycb_db::print_all_keys(void)
         NDBG_OUTPUT("+-------------------------------------+\n");
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t kycb_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
 {
         switch(a_opt)
@@ -390,11 +377,11 @@ int32_t kycb_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t kycb_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
 {
         switch(a_opt)

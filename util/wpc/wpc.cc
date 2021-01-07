@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2015 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wpc.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    01/18/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -36,16 +23,16 @@
 #include "waf_config.pb.h"
 #include "rl.pb.h"
 #include "jspb/jspb.h"
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #ifndef UNUSED
 #define UNUSED(x) ( (void)(x) )
 #endif
 
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 struct _pb_header {
         // -------------------------------------------------
         // type
@@ -85,11 +72,11 @@ struct _pb_header {
         uint32_t m_reserved;
 } __attribute__((packed));
 typedef struct _pb_header pb_header_t;
-//: ----------------------------------------------------------------------------
-//: \details Parse and print a protobuf from a given
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Parse and print a protobuf from a given
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 template <typename _Tp>
 int print_protobuf(_Tp& ao_pb,
                    char *a_buf,
@@ -125,26 +112,26 @@ int print_protobuf(_Tp& ao_pb,
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: \details Print Version info to a_stream with exit code
-//: \return  NA
-//: \param   a_stream: Where to write version info (eg sterr/stdout)
-//: \param   exit_code: Exit with return code
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Print Version info to a_stream with exit code
+//! \return  NA
+//! \param   a_stream: Where to write version info (eg sterr/stdout)
+//! \param   exit_code: Exit with return code
+//! ----------------------------------------------------------------------------
 void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
         fprintf(a_stream, "waflz protocol buffer cat (wpc).\n");
-        fprintf(a_stream, "Copyright (C) 2018 Verizon Digital Media.\n");
-        fprintf(a_stream, "               Version: %s\n", WAFLZ_VERSION);
+        fprintf(a_stream, "Copyright (C) Verizon.\n");
+        fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details Display Help to user
-//: \return  NA
-//: \param   a_stream: Where to write version info (eg sterr/stdout)
-//: \param   exit_code: Exit with return code
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Display Help to user
+//! \return  NA
+//! \param   a_stream: Where to write version info (eg sterr/stdout)
+//! \param   exit_code: Exit with return code
+//! ----------------------------------------------------------------------------
 void print_usage(FILE* a_stream, int exit_code)
 {
         fprintf(a_stream, "Usage: wpc [OPTIONS]\n");
@@ -160,12 +147,12 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  -t, --tolerant  Tolerant of malformed headers/pbufs\n");
         exit(exit_code);
 }
-//: ----------------------------------------------------------------------------
-//: \details main entry point
-//: \return  0 on Success
-//:          -1 on Failure
-//: \param   argc/argv See usage...
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details main entry point
+//! \return  0 on Success
+//!          -1 on Failure
+//! \param   argc/argv See usage...
+//! ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
         char l_opt;

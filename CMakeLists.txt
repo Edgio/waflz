@@ -1,23 +1,3 @@
-# ----------------------------------------------------------------------------
-# Copyright (C) 2016 Verizon.  All Rights Reserved.
-# All Rights Reserved
-#
-#   Author: Reed P Morrison
-#   Date:   09/13/2016
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-#
-# ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # Project setup
 # ------------------------------------------------------------------------------
@@ -38,7 +18,6 @@ option(BUILD_TESTS          "Build the unit tests." ON)
 option(BUILD_APPS           "Build the apps." OFF)
 option(BUILD_UBUNTU         "Build for Ubuntu" OFF)
 option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
-option(BUILD_RATE_LIMITING  "Build support for rate-limiting" OFF)
 # ------------------------------------------------------------------------------
 # Compiler options
 # ------------------------------------------------------------------------------
@@ -88,19 +67,12 @@ message("    Build unit tests:                          " "BUILD_TESTS          
 message("    Build applications:                        " "BUILD_APPS              " ${BUILD_APPS})
 message("    Build for Ubuntu (adds package help):      " "BUILD_UBUNTU            " ${BUILD_UBUNTU})
 message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
-message("    Build rate-limiting support:               " "BUILD_RATE_LIMITING     " ${BUILD_RATE_LIMITING})
 message("")
 # ------------------------------------------------------------------------------
 # Fortify Options
 # ------------------------------------------------------------------------------
 if (FORTIFY)
   add_definitions(-D_FORTIFY_SOURCE=2 -O1 -Wl,-z,relro,-z,now)
-endif()
-# ------------------------------------------------------------------------------
-# rate_limiting def
-# ------------------------------------------------------------------------------
-if (BUILD_RATE_LIMITING)
-  add_definitions(-DWAFLZ_RATE_LIMITING)
 endif()
 # ------------------------------------------------------------------------------
 # \brief   Find ubuntu packages based on their (optional) include and (required) library test files
@@ -194,14 +166,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # --------------------------------------------------------
   # if rate-limiting check for kv db libs
   # --------------------------------------------------------  
-  if(BUILD_RATE_LIMITING)
-    INCLUDE_DIRECTORIES(/usr/local/opt/kyoto-cabinet/include)
-    INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
-    LINK_DIRECTORIES(/usr/local/opt/kyoto-cabinet/lib)
-    LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
-    LIST(APPEND LIBRARIES kyotocabinet)
-    LIST(APPEND LIBRARIES hiredis)
-  endif()
+  INCLUDE_DIRECTORIES(/usr/local/opt/kyoto-cabinet/include)
+  INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
+  LINK_DIRECTORIES(/usr/local/opt/kyoto-cabinet/lib)
+  LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
+  LIST(APPEND LIBRARIES kyotocabinet)
+  LIST(APPEND LIBRARIES hiredis)
   # --------------------------------------------------------
   # cc flags
   # --------------------------------------------------------
@@ -262,18 +232,16 @@ if(BUILD_UBUNTU)
   # --------------------------------------------------------
   # if rate-limiting check for kv db libs
   # --------------------------------------------------------  
-  if(BUILD_RATE_LIMITING)
-    find_ubuntu_package(LIBHIREDIS "" libhiredis.a "" libhiredis-dev)
-    find_ubuntu_package(LIBKYOTOCABINET "" libkyotocabinet.a "" libkyotocabinet-dev)
-    # ------------------------------------------------------
-    # linking issue with lzo2
-    # liblzo2.a(lzo_crc.o): relocation R_X86_64_32 against `.rodata'
-    # apparently lib wasn't built with -fPIC??? :( in ubuntu
-    # distros
-    # ------------------------------------------------------
-    #find_ubuntu_package(LIBLZO2 "" liblzo2.so liblzo2-2 "")
-    LIST(APPEND LIBRARIES lzo2)
-  endif()
+  find_ubuntu_package(LIBHIREDIS "" libhiredis.a "" libhiredis-dev)
+  find_ubuntu_package(LIBKYOTOCABINET "" libkyotocabinet.a "" libkyotocabinet-dev)
+  # ------------------------------------------------------
+  # linking issue with lzo2
+  # liblzo2.a(lzo_crc.o): relocation R_X86_64_32 against `.rodata'
+  # apparently lib wasn't built with -fPIC??? :( in ubuntu
+  # distros
+  # ------------------------------------------------------
+  #find_ubuntu_package(LIBLZO2 "" liblzo2.so liblzo2-2 "")
+  LIST(APPEND LIBRARIES lzo2)
   # --------------------------------------------------------
   # xml2 -brings in a lot...
   # --------------------------------------------------------
@@ -356,8 +324,8 @@ else()
     SET(CPACK_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 endif()
 SET(CPACK_DEBIAN_PACKAGE_NAME "waflz")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Reed Morrison")
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libprotobuf-dev (>= 2.1.0-1), protobuf-compiler (>= 2.1.0-1)")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Reed Morrison, Devender Singh, Revathi Sabanayagam, Raymond Mintz, Thomas Ahn")
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "liblzo2-2 (>= 2.08-1.2)")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Waflz Libraries and tools")
 SET(CPACK_PACKAGE_DESCRIPTION "Waflz Libraries and tools")
 message(STATUS "Package Configuration:")
@@ -391,4 +359,10 @@ endif()
 add_custom_target(release
     COMMAND ${CMAKE_SOURCE_DIR}/support/deb2tar.sh -d ${CMAKE_BINARY_DIR}/${RELEASE_PACKAGE_FILE_NAME}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+# ------------------------------------------------------------------------------
+# docs
+# ------------------------------------------------------------------------------
+add_custom_target(docs
+    COMMAND doxygen ${CMAKE_CURRENT_SOURCE_DIR}/doxygen.conf WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )

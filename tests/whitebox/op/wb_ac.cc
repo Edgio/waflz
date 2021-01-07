@@ -1,42 +1,29 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_ac.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/06/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "op/ac.h"
 #include "support/ndebug.h"
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #endif
-//: ----------------------------------------------------------------------------
-//: user agent list
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! user agent list
+//! ----------------------------------------------------------------------------
 const char * const G_SMALL_LIST[] = {
         "cat",
         "car",
@@ -45,9 +32,9 @@ const char * const G_SMALL_LIST[] = {
         "fix",
         "fax"
 };
-//: ----------------------------------------------------------------------------
-//: user agent list
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! user agent list
+//! ----------------------------------------------------------------------------
 const char * const G_USER_AGENT_LIST[] = {
         "Amazon CloudFront",
         "AppleCoreMedia/1.0.0.12H606 (Apple TV; U; CPU OS 8_4_2 like Mac OS X; en_us)",
@@ -150,11 +137,11 @@ const char * const G_USER_AGENT_LIST[] = {
         "Windows-Update-Agent/10.0.10011.16384 Client-Protocol/1.58",
         "X-EC-Precache"
 };
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static int match_handler(ns_waflz::ac *a_ac, void *a_data)
 {
         if(a_data)
@@ -190,9 +177,9 @@ static int match_handler(ns_waflz::ac *a_ac, void *a_data)
         // -------------------------------------------------
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: ac test
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! ac test
+//! ----------------------------------------------------------------------------
 TEST_CASE( "ac basic test", "[ac_basic]" ) {
         // -------------------------------------------------
         // basic test

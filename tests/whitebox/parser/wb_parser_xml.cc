@@ -1,42 +1,29 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_ac.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/06/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "parser/parser_xml.h"
 #include "support/ndebug.h"
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define XML_SHORT "<monkeys><gorilla>coco</gorilla><mandrill>dooby</mandrill><baboon>groovy</baboon></monkeys>"
 #define XML_W_XXE "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <!DOCTYPE foo [ <!ENTITY writer \"Donald Duck.\"> <!ENTITY copyright \"Copyright W3Schools.\"> <!ENTITY xxe SYSTEM \"file:///etc/passwd\"> ]> <body>   <type>default</type>   <way>my_cool_method</way>   <person>     <name>joeblow</name>     <email>who@what.com</email>     <!-- <hash>abc1234</hash> -->   </person>   <thing>BONKERS</thing>   <thang>EATATJOES</thang>   <reference>BANANAS</reference> </body>"
-//: ----------------------------------------------------------------------------
-//: json parse
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! json parse
+//! ----------------------------------------------------------------------------
 TEST_CASE( "xml parse basic test", "[xml_parse_basic]" ) {
         // -------------------------------------------------
         // basic test

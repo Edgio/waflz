@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    rl_obj.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/rl_obj.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/scopes.h"
@@ -40,9 +27,9 @@
 #include <string.h>
 namespace ns_waflz
 {
-//: ----------------------------------------------------------------------------
-//: \details ctor
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details ctor
+//! ----------------------------------------------------------------------------
 rl_obj::rl_obj(bool a_case_insensitive_headers):
                 m_init(false),
                 m_pb(NULL),
@@ -55,9 +42,9 @@ rl_obj::rl_obj(bool a_case_insensitive_headers):
 {
         m_pb = new waflz_pb::config();
 }
-//: ----------------------------------------------------------------------------
-//: \details: dtor
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: dtor
+//! ----------------------------------------------------------------------------
 rl_obj::~rl_obj()
 {
         // -------------------------------------------------
@@ -102,11 +89,11 @@ rl_obj::~rl_obj()
                 m_pb = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 const std::string &rl_obj::get_customer_id(void)
 {
         static std::string s_na = "XXXNAXXX";
@@ -117,11 +104,11 @@ const std::string &rl_obj::get_customer_id(void)
         }
         return m_pb->customer_id();
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t rl_obj::compile_limit(waflz_pb::limit &ao_limit)
 {
         // -------------------------------------------------
@@ -214,11 +201,11 @@ int32_t rl_obj::compile_limit(waflz_pb::limit &ao_limit)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t rl_obj::compile_op(::waflz_pb::op_t& ao_op)
 {
         // -------------------------------------------------
@@ -402,11 +389,11 @@ int32_t rl_obj::compile_op(::waflz_pb::op_t& ao_op)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t rl_obj::compile(void)
 {
         if(!m_pb)
@@ -441,11 +428,11 @@ int32_t rl_obj::compile(void)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t rl_obj::process_condition_group(bool &ao_matched,
                                         const waflz_pb::condition_group &a_cg,
                                         rqst_ctx *a_ctx)
@@ -548,11 +535,11 @@ int32_t rl_obj::process_condition_group(bool &ao_matched,
         ao_matched = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t rl_obj::extract(const char **ao_data,
                         uint32_t &ao_data_len,
                         std::string &ao_buf,
@@ -730,14 +717,14 @@ int32_t rl_obj::extract(const char **ao_data,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: utils
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! utils
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t limit_remove(waflz_pb::config &ao_cfg, uint32_t a_off)
 {
         int l_size = ao_cfg.limits_size();
@@ -755,11 +742,11 @@ int32_t limit_remove(waflz_pb::config &ao_cfg, uint32_t a_off)
         l_r_ptr->DeleteSubrange((int)a_off,1);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 typedef google::protobuf::RepeatedPtrField<waflz_pb::limit> limit_ptr_t;
 int32_t limit_sweep(waflz_pb::config &ao_cfg)
 {

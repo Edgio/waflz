@@ -1,37 +1,24 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    instance.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _INSTANCE_H_
 #define _INSTANCE_H_
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include <string>
 #include <list>
-//: ----------------------------------------------------------------------------
-//: fwd Decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd Decl's
+//! ----------------------------------------------------------------------------
 namespace waflz_pb {
         class enforcement;
         class instance;
@@ -39,20 +26,20 @@ namespace waflz_pb {
         class event;
 }
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd decl's
+//! ----------------------------------------------------------------------------
 class profile;
 class engine;
 class rqst_ctx;
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 typedef std::list <std::string> str_list_t;
 typedef std::list <waflz_pb::enforcement *> enforcement_list_t;
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 class instance
 {
 public:

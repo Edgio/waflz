@@ -1,29 +1,16 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    decode.cc
-//: \details: uri encode and decode
-//:           based on: RFC1630, RFC1738, RFC2396
-//: \author:  Reed P. Morrison
-//: \date:    09/30/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: uri encode and decode
+//!           based on: RFC1630, RFC1738, RFC2396
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/string_util.h"
 #include "core/decode.h"
@@ -32,25 +19,25 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define VALID_HEX(X) \
         (((X >= '0') && (X <= '9')) || \
          ((X >= 'a') && (X <= 'f')) || \
          ((X >= 'A') && (X <= 'F')))
 namespace ns_waflz {
 typedef std::list<data_t> data_list_t;
-//: ----------------------------------------------------------------------------
-//: statics
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: \details: Converts a byte given as its hexadecimal representation into a
-//:           proper byte. Handles uppercase and lowercase letters but does not
-//:           check for overflows.
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! statics
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Converts a byte given as its hexadecimal representation into a
+//!           proper byte. Handles uppercase and lowercase letters but does not
+//!           check for overflows.
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static unsigned char x2c(const unsigned char *a_nbl)
 {
         unsigned char l_c;
@@ -63,11 +50,11 @@ static unsigned char x2c(const unsigned char *a_nbl)
                                    (a_nbl[1] - '0'));
         return l_c;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t css_decode(char **ao_buf,
                    uint32_t &ao_len,
                    const char *a_buf,
@@ -287,11 +274,11 @@ int32_t css_decode(char **ao_buf,
         ao_len = l_count;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t html_entity_decode(char **ao_buf,
                            uint32_t &ao_len,
                            const char *a_buf,
@@ -530,11 +517,11 @@ HTML_ENT_OUT:
         ao_len = l_count;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t js_decode_ns(char **ao_buf,
                      uint32_t &ao_len,
                      const char *a_buf,
@@ -719,12 +706,12 @@ int32_t js_decode_ns(char **ao_buf,
         ao_len = l_count;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: \notes:   IMP1 Assumes NUL-terminated.
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! \notes:   IMP1 Assumes NUL-terminated.
+//! ----------------------------------------------------------------------------
 int32_t normalize_path(char **ao_buf,
                        uint32_t &ao_len,
                        const char *a_buf,
@@ -954,12 +941,12 @@ copy:
         ao_len = strnlen(l_buf, l_buf_len);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: url decode -non strict ???
-//: \return:  TODO
-//: \param:   TODO
-//: \notes:   IMP1 Assumes NUL-terminated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: url decode -non strict ???
+//! \return:  TODO
+//! \param:   TODO
+//! \notes:   IMP1 Assumes NUL-terminated
+//! ----------------------------------------------------------------------------
 int32_t urldecode_ns(char **ao_buf,
                      uint32_t &ao_len,
                      uint32_t &ao_invalid_count,
@@ -1057,11 +1044,11 @@ int32_t urldecode_ns(char **ao_buf,
         *ao_buf = l_buf;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: load unicode map file...
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: load unicode map file...
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 #if 0
 #define CODEPAGE_SEPARATORS  " \t\n\r"
 static int unicode_map_create(directory_config *dcfg, char **error_msg)
@@ -1169,12 +1156,12 @@ static int unicode_map_create(directory_config *dcfg, char **error_msg)
         return 1;
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: url decode -non strict ???
-//: \return:  TODO
-//: \param:   TODO
-//: \notes:   IMP1 Assumes NUL-terminated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: url decode -non strict ???
+//! \return:  TODO
+//! \param:   TODO
+//! \notes:   IMP1 Assumes NUL-terminated
+//! ----------------------------------------------------------------------------
 int32_t urldecode_uni_ns(char **ao_buf, uint32_t &ao_len, const char *a_buf, uint32_t a_len)
 {
         // -------------------------------------------------
@@ -1404,11 +1391,11 @@ int32_t urldecode_uni_ns(char **ao_buf, uint32_t &ao_len, const char *a_buf, uin
         *ao_buf = l_buf;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: convert utf-8 to unicode
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: convert utf-8 to unicode
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t utf8_to_unicode(char **ao_buf,
                         uint32_t &ao_len,
                         const char *a_buf,
@@ -1659,11 +1646,11 @@ range_check:
         ao_len = l_count;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: validate buffer is valid utf8 according to RFC 3629
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: validate buffer is valid utf8 according to RFC 3629
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t validate_utf8(bool &ao_valid,
                       const char **ao_err_msg,
                       uint32_t &ao_err_off,
@@ -1835,11 +1822,11 @@ int32_t validate_utf8(bool &ao_valid,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t parse_args(arg_list_t &ao_arg_list,
                    uint32_t &ao_invalid_cnt,
                    const char *a_buf,
@@ -2008,12 +1995,12 @@ int32_t parse_args(arg_list_t &ao_arg_list,
         if(l_buf) { free(l_buf); l_buf = NULL;}
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details parse cookie string:
-//:          format: 'key1=val1; key2; key3=val3; key4\0'
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details parse cookie string:
+//!          format: 'key1=val1; key2; key3=val3; key4\0'
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static bool is_char_in_set(const char *a_arr, uint32_t a_arr_len, char a_char)
 {
         for(uint32_t i_c = 0; i_c < a_arr_len; ++i_c)
@@ -2022,12 +2009,12 @@ static bool is_char_in_set(const char *a_arr, uint32_t a_arr_len, char a_char)
         }
         return false;
 }
-//: ----------------------------------------------------------------------------
-//: \details parse cookie string:
-//:          format: 'key1=val1; key2; key3=val3; key4\0'
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details parse cookie string:
+//!          format: 'key1=val1; key2; key3=val3; key4\0'
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t parse_cookies(const_arg_list_t &ao_cookie_list,
                       const char *a_buf,
                       uint32_t a_buf_len)
@@ -2166,12 +2153,12 @@ int32_t parse_cookies(const_arg_list_t &ao_cookie_list,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details parse cookie string:
-//:          format:  Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details parse cookie string:
+//!          format:  Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t parse_content_type(data_list_t &ao_data_list, const_arg_t *a_hdr)
 {
         uint32_t i_char = 0;

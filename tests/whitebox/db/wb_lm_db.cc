@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_lm_db.cc
-//: \details: TODO
-//: \author:  Revathi Sabanayagam
-//: \date:    11/02/2020
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/lm_db.h"
@@ -31,15 +18,15 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define MONKEY_KEY "TEST::KEY::MONKEY::BONGO"
 #define BANANA_KEY "TEST::KEY::BANANA::SMELLY"
 #define TEST_KEY "TEST::KEY::TEST::NONE"
-//: ----------------------------------------------------------------------------
-//: remove dir
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! remove dir
+//! ----------------------------------------------------------------------------
 static int remove_dir(const std::string& a_db_dir)
 {
         int32_t l_s;
@@ -61,9 +48,9 @@ static int remove_dir(const std::string& a_db_dir)
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: mkdir
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! mkdir
+//! ----------------------------------------------------------------------------
 static int create_dir(const std::string& a_db_dir)
 {
         struct stat l_stat;
@@ -77,9 +64,9 @@ static int create_dir(const std::string& a_db_dir)
         return l_s;
 }
 
-//:---------------------------------------------------------------------------
-//: lm_db
-//: ----------------------------------------------------------------------------
+//!---------------------------------------------------------------------------
+//! lm_db
+//! ----------------------------------------------------------------------------
 TEST_CASE( "lmdb test", "[lmdb]" ) {
         SECTION("validate bad init") {
                 int32_t l_s;

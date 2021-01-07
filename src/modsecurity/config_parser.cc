@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2015 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    config_parser.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    09/30/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "waflz/engine.h"
@@ -44,19 +31,19 @@
 #include <regex.h>
 #include <set>
 #include <algorithm>
-//: ----------------------------------------------------------------------------
-//: Macros
-//: ----------------------------------------------------------------------------
-//: --------------------------------------------------------
-//: Errors
-//: --------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Macros
+//! ----------------------------------------------------------------------------
+//! --------------------------------------------------------
+//! Errors
+//! --------------------------------------------------------
 #define WAFLZ_CONFIG_ERROR_MSG(a_msg) \
         do { \
                 show_config_error(__FILE__,__FUNCTION__,__LINE__,a_msg); \
         } while(0)
-//: --------------------------------------------------------
-//: Scanning
-//: --------------------------------------------------------
+//! --------------------------------------------------------
+//! Scanning
+//! --------------------------------------------------------
 #define SCAN_OVER_SPACE(l_line, l_char, l_line_len) \
         do { \
                 while(isspace(int(*l_line)) && \
@@ -103,22 +90,22 @@
                         ++l_line;\
                 }\
         } while(0)
-//: --------------------------------------------------------
-//: Caseless compare
-//: --------------------------------------------------------
+//! --------------------------------------------------------
+//! Caseless compare
+//! --------------------------------------------------------
 #define STRCASECMP_KV(_match) (strcasecmp(i_kv->m_key.c_str(), _match) == 0)
 #define STRCASECMP(_str, _match) (strcasecmp(_str.c_str(), _match) == 0)
 #define BUFCASECMP(_str, _match) (strncasecmp(_str, _match, strlen(_match)) == 0)
-//: --------------------------------------------------------
-//: String 2 int
-//: --------------------------------------------------------
+//! --------------------------------------------------------
+//! String 2 int
+//! --------------------------------------------------------
 #define STR2INT(a_str) strtoul(a_str.data(), NULL, 10)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static int32_t parse_setvar(::waflz_pb::sec_action_t_setvar_t &ao_setvar,
                             const std::string &a_str)
 {
@@ -242,11 +229,11 @@ static int32_t parse_setvar(::waflz_pb::sec_action_t_setvar_t &ao_setvar,
         ao_setvar.set_val(l_sv_buf, (l_sv_len - l_sv_idx));
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::show_config_error(const char *a_file, const char *a_func, uint32_t a_line, const char *a_msg)
 {
         NDBG_OUTPUT("%s.%s.%d: Error in file: %s line: %d:%d [%s]. Reason: %s\n",
@@ -261,11 +248,11 @@ int32_t config_parser::show_config_error(const char *a_file, const char *a_func,
                         );
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::add_action(waflz_pb::sec_action_t &ao_action,
                                   const kv_list_t & a_action_list,
                                   bool &ao_is_chained)
@@ -636,10 +623,15 @@ int32_t config_parser::add_action(waflz_pb::sec_action_t &ao_action,
                         // Use first
                         if(!i_kv->m_list.empty())
                         {
-                                //: Starting in ModSecurity version v2.7 there are aliases for some phase numbers:
-                                //: 2 - request
-                                //: 4 - response
-                                //: 5 - logging
+                                // -------------------------
+                                // Starting in ModSecurity
+                                // version v2.7 there are
+                                // aliases for some phase
+                                // numbers:
+                                // 2 - request
+                                // 4 - response
+                                // 5 - logging
+                                // -------------------------
                                 std::string l_phase = *(i_kv->m_list.begin());
                                 if(STRCASECMP(l_phase, "request"))
                                 {
@@ -869,11 +861,11 @@ int32_t config_parser::add_action(waflz_pb::sec_action_t &ao_action,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::add_rule(waflz_pb::sec_config_t &ao_config,
                                 variable_list_t &a_variable_list,
                                 const std::string &a_operator_fx,
@@ -1029,11 +1021,11 @@ int32_t config_parser::add_rule(waflz_pb::sec_config_t &ao_config,
         l_rule->set_hidden(false);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::tokenize_kv_list(const std::string &a_string,
                                         const char a_delimiter,
                                         kv_list_t &ao_kv_list)
@@ -1127,11 +1119,11 @@ int32_t config_parser::tokenize_kv_list(const std::string &a_string,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::get_next_string(char **ao_line,
                                      uint32_t *ao_char,
                                      uint32_t a_line_len,
@@ -1189,11 +1181,11 @@ int32_t config_parser::get_next_string(char **ao_line,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::get_strings_from_line(const char *a_line,
                                            uint32_t a_line_len,
                                            string_list_t &ao_str_list)
@@ -1214,14 +1206,14 @@ int32_t config_parser::get_strings_from_line(const char *a_line,
         } while((l_s == WAFLZ_STATUS_OK) && !l_str.empty());
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: \notes:
-//:   Syntax:        SecRule  VARIABLES  OPERATOR      [ACTIONS]
-//:   Example Usage: SecRule  ARGS       "@rx attack"  "phase:1,log,deny,id:1"
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! \notes:
+//!   Syntax:        SecRule  VARIABLES  OPERATOR      [ACTIONS]
+//!   Example Usage: SecRule  ARGS       "@rx attack"  "phase:1,log,deny,id:1"
+//! ----------------------------------------------------------------------------
 int32_t config_parser::add_secaction(waflz_pb::sec_config_t &ao_config,
                                       const char *a_line,
                                       uint32_t a_line_len,
@@ -1299,11 +1291,11 @@ int32_t config_parser::add_secaction(waflz_pb::sec_config_t &ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::parse_vars(variable_list_t &ao_variable_list,
                                   const std::string &a_str,
                                   char a_sep)
@@ -1514,14 +1506,14 @@ int32_t config_parser::parse_vars(variable_list_t &ao_variable_list,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: \notes:
-//:   Syntax:        SecRule  VARIABLES  OPERATOR      [ACTIONS]
-//:   Example Usage: SecRule  ARGS       "@rx attack"  "phase:1,log,deny,id:1"
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! \notes:
+//!   Syntax:        SecRule  VARIABLES  OPERATOR      [ACTIONS]
+//!   Example Usage: SecRule  ARGS       "@rx attack"  "phase:1,log,deny,id:1"
+//! ----------------------------------------------------------------------------
 int32_t config_parser::add_secrule(waflz_pb::sec_config_t& ao_config,
                                    const char *a_line,
                                    uint32_t a_line_len)
@@ -1670,11 +1662,11 @@ int32_t config_parser::add_secrule(waflz_pb::sec_config_t& ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::read_wholeline(waflz_pb::sec_config_t& ao_config,
                                       const char *a_line,
                                       uint32_t a_line_len)
@@ -2170,11 +2162,11 @@ int32_t config_parser::read_wholeline(waflz_pb::sec_config_t& ao_config,
         // Includes
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::read_line(waflz_pb::sec_config_t &ao_config,
                                  std::string &ao_cur_line,
                                  const char *a_line,
@@ -2255,11 +2247,11 @@ int32_t config_parser::read_line(waflz_pb::sec_config_t &ao_config,
         // Done...
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::read_file_modsec(waflz_pb::sec_config_t& ao_config,
                                         const std::string &a_file,
                                         bool a_force)
@@ -2364,11 +2356,11 @@ int32_t config_parser::read_file_modsec(waflz_pb::sec_config_t& ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static void show_map(const count_map_t &a_count_map, const char *a_msg, bool a_used)
 {
         // Dump unimplemented guys
@@ -2437,11 +2429,11 @@ static void show_map(const count_map_t &a_count_map, const char *a_msg, bool a_u
         NDBG_OUTPUT("+---------------------------------+----------+\n");
 #endif
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void config_parser::show_status(void)
 {
         // Dump implemented guys
@@ -2462,11 +2454,11 @@ void config_parser::show_status(void)
         show_map(m_unimplemented_transformations,"Unimplemented Transforms", false);
         show_map(m_unimplemented_ctls,"Unimplemented Controls", false);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t get_pcre_match_list(const char *a_regex, const char *a_str, match_list_t &ao_match_list)
 {
         pcre *l_re;
@@ -2511,11 +2503,11 @@ int32_t get_pcre_match_list(const char *a_regex, const char *a_str, match_list_t
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::get_action_string(std::string &ao_str,
                                          const waflz_pb::sec_action_t &a_sec_action)
 {
@@ -2851,14 +2843,14 @@ int32_t config_parser::get_action_string(std::string &ao_str,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: \notes:
-//:   Syntax:        SecRule  VARIABLES  OPERATOR      [ACTIONS]
-//:   Example Usage: SecRule  ARGS       "@rx attack"  "phase:1,log,deny,id:1"
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! \notes:
+//!   Syntax:        SecRule  VARIABLES  OPERATOR      [ACTIONS]
+//!   Example Usage: SecRule  ARGS       "@rx attack"  "phase:1,log,deny,id:1"
+//! ----------------------------------------------------------------------------
 int32_t config_parser::get_modsec_rule_line(std::string &ao_str,
                                           const waflz_pb::sec_rule_t &a_secrule,
                                           const uint32_t a_indent,
@@ -3079,11 +3071,11 @@ int32_t config_parser::get_modsec_rule_line(std::string &ao_str,
         //NDBG_PRINT("%s\n", ao_str.c_str());
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::get_modsec_config_str(std::string &ao_str,
                                              const waflz_pb::sec_config_t &a_config)
 {
@@ -3377,11 +3369,11 @@ int32_t config_parser::get_modsec_config_str(std::string &ao_str,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::append_modsec_rule(std::string &ao_str,
                                          const waflz_pb::sec_rule_t &a_secrule,
                                          const uint32_t a_indent,
@@ -3397,11 +3389,11 @@ int32_t config_parser::append_modsec_rule(std::string &ao_str,
         ao_str += l_rule;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::read_file_pbuf(waflz_pb::sec_config_t& ao_config,
                                       const std::string &a_file,
                                       bool a_force)
@@ -3486,11 +3478,11 @@ int32_t config_parser::read_file_pbuf(waflz_pb::sec_config_t& ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
                                       const std::string &a_file,
                                       bool a_force)
@@ -3576,11 +3568,11 @@ int32_t config_parser::read_file_json(waflz_pb::sec_config_t& ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::read_buf_json(waflz_pb::sec_config_t& ao_config, const char* a_buf, uint64_t a_buf_len)
 {
         // -------------------------------------------------
@@ -3595,11 +3587,11 @@ int32_t config_parser::read_buf_json(waflz_pb::sec_config_t& ao_config, const ch
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::read_directory(waflz_pb::sec_config_t& ao_config,
                                       format_t a_format,
                                       const std::string &a_directory)
@@ -3668,11 +3660,11 @@ int32_t config_parser::read_directory(waflz_pb::sec_config_t& ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::read_single_line(waflz_pb::sec_config_t& ao_config,
                                         format_t a_format,
                                         std::string a_line)
@@ -3743,11 +3735,11 @@ int32_t config_parser::read_single_line(waflz_pb::sec_config_t& ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::read_file(waflz_pb::sec_config_t& ao_config,
                                  format_t a_format,
                                  const std::string &a_file,
@@ -3793,11 +3785,11 @@ int32_t config_parser::read_file(waflz_pb::sec_config_t& ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
                                     format_t a_format,
                                     const std::string &a_path)
@@ -3843,11 +3835,11 @@ int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
                                     void* a_js)
 {
@@ -3861,11 +3853,11 @@ int32_t config_parser::parse_config(waflz_pb::sec_config_t &ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t config_parser::parse_line(waflz_pb::sec_config_t &ao_config,
                                   format_t a_format,
                                   const std::string &a_line)
@@ -3879,11 +3871,11 @@ int32_t config_parser::parse_line(waflz_pb::sec_config_t &ao_config,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 config_parser::config_parser(void):
         m_verbose(false),
         m_color(false),
@@ -3910,11 +3902,11 @@ config_parser::config_parser(void):
         m_err_msg()
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 config_parser::~config_parser()
 {
 }

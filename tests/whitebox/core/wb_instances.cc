@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2017 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_instances.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    03/28/2017
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/engine.h"
 #include "waflz/def.h"
@@ -41,16 +28,16 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: Config
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Config
+//! ----------------------------------------------------------------------------
 #define WAF_CONF_1001_JSON "{\"id\":\"1001\",\"name\":\"Default Policy for www.edgecast.com\",\"customer_id\":\"0050\",\"enabled_date\":\"03/13/2014\",\"audit_profile_action\":\"alert\",\"audit_profile\":{\"name\":\"my_cool_audit_profile_name\",\"id\":\"my_cool_audit_profile_id\",\"ruleset_id\":\"OWASP-CRS-2.2.9\",\"ruleset_version\":\"2017-08-01\",\"access_settings\":{\"ip\":{\"whitelist\":[],\"blacklist\":[]},\"country\":{\"whitelist\":[],\"blacklist\":[]},\"url\":{\"whitelist\":[],\"blacklist\":[]},\"referer\":{\"whitelist\":[],\"blacklist\":[]}},\"general_settings\":{\"allowed_http_methods\":[\"GET\"],\"allowed_http_versions\":[\"HTTP/1.1\"],\"allowed_request_content_types\":[\"application/x-www-form-urlencoded\",\"multipart/form-data\",\"text/xml\",\"application/xml\",\"application/x-amf\",\"application/json\"],\"disallowed_extensions\":[\".asa\",\".asax\",\".ascx\",\".axd\",\".backup\",\".bak\",\".bat\",\".cdx\",\".cer\",\".cfg\",\".cmd\",\".com\",\".config\",\".conf\",\".cs\",\".csproj\",\".csr\",\".dat\",\".db\",\".dbf\",\".dll\",\".dos\",\".htr\",\".htw\",\".ida\",\".idc\",\".idq\",\".inc\",\".ini\",\".key\",\".licx\",\".lnk\",\".log\",\".mdb\",\".old\",\".pass\",\".pdb\",\".pol\",\".printer\",\".pwd\",\".resources\",\".resx\",\".sql\",\".sys\",\".vb\",\".vbs\",\".vbproj\",\".vsdisco\",\".webinfo\",\".xsd\",\".xsx/\"],\"disallowed_headers\":[\"Proxy-Connection\",\"Lock-Token\",\"Content-Range\",\"Translate\",\"if\"],\"max_num_args\":4,\"arg_name_length\":100,\"arg_length\":400,\"total_arg_length\":64000,\"max_file_size\":1048576,\"combined_file_sizes\":1048576,\"validate_utf8_encoding\":true,\"xml_parser\":true,\"process_request_body\":true,\"process_response_body\":false,\"response_header_name\":\"X-1001-EC-Security-Audit\",\"response_mime_types\":[\"text/plain\",\"text/html\",\"text/xml\"],\"anomaly_threshold\":5},\"policies\":[],\"disabled_rules\":[],\"custom_rules\":[]},\"prod_profile_action\":\"block\",\"prod_profile\":{\"name\":\"my_cool_production_profile_name\",\"id\":\"my_cool_production_profile_id\",\"ruleset_id\":\"OWASP-CRS-2.2.9\",\"ruleset_version\":\"2017-08-01\",\"access_settings\":{\"ip\":{\"whitelist\":[\"192.168.1.1\",\"192.168.2.1\",\"127.0.0.1\",\"192.168.3.0/24\",\"2606:2888:4033:197:2cb0:e933:d3:2f9f\",\"2606:2888:4033:197:2cb0:e933:d3:4000/126\"],\"blacklist\":[\"8.8.8.0/24\",\"4.2.2.2\",\"2606:2888:4033:197:2cb0:e933:d3:2f9e\",\"2606:2888:4033:197:2cb0:e933:d3:3000/126\"]},\"country\":{\"whitelist\":[\"US\",\"CA\"],\"blacklist\":[\"RU\",\"CN\"]},\"url\":{\"whitelist\":[\"robots.txt\"],\"blacklist\":[\"password\",\"httpd.conf\"]},\"referer\":{\"whitelist\":[\"www.google.com\"],\"blacklist\":[\".*.imgur.com\",\"www.malware.com\"]},\"user-agent\":{\"whitelist\":[\"hlo\"],\"blacklist\":[\"curl\",\"^$\"]},\"cookie\":{\"whitelist\":[\"awesome\"],\"blacklist\":[\"awww\"]},\"ignore_header\":[\"benign-header\",\"super-whatever-header\"],\"ignore_cookie\":[\"sketchy_origin\",\"yousocrazy\"]},\"general_settings\":{\"allowed_http_methods\":[\"GET\"],\"allowed_http_versions\":[\"HTTP/1.1\"],\"allowed_request_content_types\":[\"application/x-www-form-urlencoded\",\"multipart/form-data\",\"text/xml\",\"application/xml\",\"application/x-amf\",\"application/json\"],\"disallowed_extensions\":[\".asa\",\".asax\",\".ascx\",\".axd\",\".backup\",\".bak\",\".bat\",\".cdx\",\".cer\",\".cfg\",\".cmd\",\".com\",\".config\",\".conf\",\".cs\",\".csproj\",\".csr\",\".dat\",\".db\",\".dbf\",\".dll\",\".dos\",\".htr\",\".htw\",\".ida\",\".idc\",\".idq\",\".inc\",\".ini\",\".key\",\".licx\",\".lnk\",\".log\",\".mdb\",\".old\",\".pass\",\".pdb\",\".pol\",\".printer\",\".pwd\",\".resources\",\".resx\",\".sql\",\".sys\",\".vb\",\".vbs\",\".vbproj\",\".vsdisco\",\".webinfo\",\".xsd\",\".xsx/\"],\"disallowed_headers\":[\"Proxy-Connection\",\"Lock-Token\",\"Content-Range\",\"Translate\",\"if\"],\"max_num_args\":3,\"arg_name_length\":100,\"arg_length\":400,\"total_arg_length\":64000,\"max_file_size\":1048576,\"combined_file_sizes\":1048576,\"validate_utf8_encoding\":true,\"xml_parser\":true,\"process_request_body\":true,\"process_response_body\":false,\"response_header_name\":\"X-1001-EC-Security\",\"response_mime_types\":[\"text/plain\",\"text/html\",\"text/xml\"],\"anomaly_threshold\":1},\"policies\":[\"modsecurity_crs_20_protocol_violations.conf\"],\"disabled_rules\":[{\"rule_id\":\"981320\"}],\"custom_rules\":[]}}"
 #define WAF_CONF_1001_W_LM_DATE_JSON "{\"id\":\"1001\",\"name\":\"Default Policy for www.edgecast.com\",\"customer_id\":\"0050\",\"last_modified_date\":\"2016-07-20T00:45:20.744583Z\",\"enabled_date\":\"03/13/2014\",\"audit_profile_action\":\"alert\",\"audit_profile\":{\"name\":\"my_cool_audit_profile_name\",\"id\":\"my_cool_audit_profile_id\",\"ruleset_id\":\"OWASP-CRS-2.2.9\",\"ruleset_version\":\"2017-08-01\",\"access_settings\":{\"ip\":{\"whitelist\":[],\"blacklist\":[]},\"country\":{\"whitelist\":[],\"blacklist\":[]},\"url\":{\"whitelist\":[],\"blacklist\":[]},\"referer\":{\"whitelist\":[],\"blacklist\":[]}},\"general_settings\":{\"allowed_http_methods\":[\"GET\"],\"allowed_http_versions\":[\"HTTP/1.1\"],\"allowed_request_content_types\":[\"application/x-www-form-urlencoded\",\"multipart/form-data\",\"text/xml\",\"application/xml\",\"application/x-amf\",\"application/json\"],\"disallowed_extensions\":[\".asa\",\".asax\",\".ascx\",\".axd\",\".backup\",\".bak\",\".bat\",\".cdx\",\".cer\",\".cfg\",\".cmd\",\".com\",\".config\",\".conf\",\".cs\",\".csproj\",\".csr\",\".dat\",\".db\",\".dbf\",\".dll\",\".dos\",\".htr\",\".htw\",\".ida\",\".idc\",\".idq\",\".inc\",\".ini\",\".key\",\".licx\",\".lnk\",\".log\",\".mdb\",\".old\",\".pass\",\".pdb\",\".pol\",\".printer\",\".pwd\",\".resources\",\".resx\",\".sql\",\".sys\",\".vb\",\".vbs\",\".vbproj\",\".vsdisco\",\".webinfo\",\".xsd\",\".xsx/\"],\"disallowed_headers\":[\"Proxy-Connection\",\"Lock-Token\",\"Content-Range\",\"Translate\",\"if\"],\"max_num_args\":4,\"arg_name_length\":100,\"arg_length\":400,\"total_arg_length\":64000,\"max_file_size\":1048576,\"combined_file_sizes\":1048576,\"validate_utf8_encoding\":true,\"xml_parser\":true,\"process_request_body\":true,\"process_response_body\":false,\"response_header_name\":\"X-1001-EC-Security-Audit\",\"response_mime_types\":[\"text/plain\",\"text/html\",\"text/xml\"],\"anomaly_threshold\":5},\"policies\":[],\"disabled_rules\":[],\"custom_rules\":[]},\"prod_profile_action\":\"block\",\"prod_profile\":{\"name\":\"my_cool_production_profile_name\",\"id\":\"my_cool_production_profile_id\",\"ruleset_id\":\"OWASP-CRS-2.2.9\",\"ruleset_version\":\"2017-08-01\",\"access_settings\":{\"ip\":{\"whitelist\":[\"192.168.1.1\",\"192.168.2.1\",\"127.0.0.1\",\"192.168.3.0/24\",\"2606:2888:4033:197:2cb0:e933:d3:2f9f\",\"2606:2888:4033:197:2cb0:e933:d3:4000/126\"],\"blacklist\":[\"8.8.8.0/24\",\"4.2.2.2\",\"2606:2888:4033:197:2cb0:e933:d3:2f9e\",\"2606:2888:4033:197:2cb0:e933:d3:3000/126\"]},\"country\":{\"whitelist\":[\"US\",\"CA\"],\"blacklist\":[\"RU\",\"CN\"]},\"url\":{\"whitelist\":[\"robots.txt\"],\"blacklist\":[\"password\",\"httpd.conf\"]},\"referer\":{\"whitelist\":[\"www.google.com\"],\"blacklist\":[\".*.imgur.com\",\"www.malware.com\"]},\"user-agent\":{\"whitelist\":[\"hlo\"],\"blacklist\":[\"curl\",\"^$\"]},\"cookie\":{\"whitelist\":[\"awesome\"],\"blacklist\":[\"awww\"]},\"ignore_header\":[\"benign-header\",\"super-whatever-header\"],\"ignore_cookie\":[\"sketchy_origin\",\"yousocrazy\"]},\"general_settings\":{\"allowed_http_methods\":[\"GET\"],\"allowed_http_versions\":[\"HTTP/1.1\"],\"allowed_request_content_types\":[\"application/x-www-form-urlencoded\",\"multipart/form-data\",\"text/xml\",\"application/xml\",\"application/x-amf\",\"application/json\"],\"disallowed_extensions\":[\".asa\",\".asax\",\".ascx\",\".axd\",\".backup\",\".bak\",\".bat\",\".cdx\",\".cer\",\".cfg\",\".cmd\",\".com\",\".config\",\".conf\",\".cs\",\".csproj\",\".csr\",\".dat\",\".db\",\".dbf\",\".dll\",\".dos\",\".htr\",\".htw\",\".ida\",\".idc\",\".idq\",\".inc\",\".ini\",\".key\",\".licx\",\".lnk\",\".log\",\".mdb\",\".old\",\".pass\",\".pdb\",\".pol\",\".printer\",\".pwd\",\".resources\",\".resx\",\".sql\",\".sys\",\".vb\",\".vbs\",\".vbproj\",\".vsdisco\",\".webinfo\",\".xsd\",\".xsx/\"],\"disallowed_headers\":[\"Proxy-Connection\",\"Lock-Token\",\"Content-Range\",\"Translate\",\"if\"],\"max_num_args\":3,\"arg_name_length\":100,\"arg_length\":400,\"total_arg_length\":64000,\"max_file_size\":1048576,\"combined_file_sizes\":1048576,\"validate_utf8_encoding\":true,\"xml_parser\":true,\"process_request_body\":true,\"process_response_body\":false,\"response_header_name\":\"X-1001-EC-Security\",\"response_mime_types\":[\"text/plain\",\"text/html\",\"text/xml\"],\"anomaly_threshold\":1},\"policies\":[\"modsecurity_crs_20_protocol_violations.conf\"],\"disabled_rules\":[{\"rule_id\":\"981320\"}],\"custom_rules\":[{\"rule_id\":\"100\",\"description\":\"this will need to be fleshed out seriously in the future, but the basic idea is that this can hold an abstract representation of a rule, that gets rendered into modsec language as its loaded.\"}]}}"
 #define WAF_CONF_1001_W_NEW_LM_DATE_JSON "{\"id\":\"1001\",\"name\":\"Default Policy for www.edgecast.com\",\"customer_id\":\"0050\",\"last_modified_date\":\"2016-08-25T00:45:20.744583Z\",\"enabled_date\":\"03/13/2014\",\"audit_profile_action\":\"alert\",\"audit_profile\":{\"name\":\"my_cool_audit_profile_name\",\"id\":\"my_cool_audit_profile_id\",\"ruleset_id\":\"OWASP-CRS-2.2.9\",\"ruleset_version\":\"2017-08-01\",\"access_settings\":{\"ip\":{\"whitelist\":[],\"blacklist\":[]},\"country\":{\"whitelist\":[],\"blacklist\":[]},\"url\":{\"whitelist\":[],\"blacklist\":[]},\"referer\":{\"whitelist\":[],\"blacklist\":[]}},\"general_settings\":{\"allowed_http_methods\":[\"GET\"],\"allowed_http_versions\":[\"HTTP/1.1\"],\"allowed_request_content_types\":[\"application/x-www-form-urlencoded\",\"multipart/form-data\",\"text/xml\",\"application/xml\",\"application/x-amf\",\"application/json\"],\"disallowed_extensions\":[\".asa\",\".asax\",\".ascx\",\".axd\",\".backup\",\".bak\",\".bat\",\".cdx\",\".cer\",\".cfg\",\".cmd\",\".com\",\".config\",\".conf\",\".cs\",\".csproj\",\".csr\",\".dat\",\".db\",\".dbf\",\".dll\",\".dos\",\".htr\",\".htw\",\".ida\",\".idc\",\".idq\",\".inc\",\".ini\",\".key\",\".licx\",\".lnk\",\".log\",\".mdb\",\".old\",\".pass\",\".pdb\",\".pol\",\".printer\",\".pwd\",\".resources\",\".resx\",\".sql\",\".sys\",\".vb\",\".vbs\",\".vbproj\",\".vsdisco\",\".webinfo\",\".xsd\",\".xsx/\"],\"disallowed_headers\":[\"Proxy-Connection\",\"Lock-Token\",\"Content-Range\",\"Translate\",\"if\"],\"max_num_args\":4,\"arg_name_length\":100,\"arg_length\":400,\"total_arg_length\":64000,\"max_file_size\":1048576,\"combined_file_sizes\":1048576,\"validate_utf8_encoding\":true,\"xml_parser\":true,\"process_request_body\":true,\"process_response_body\":false,\"response_header_name\":\"X-1001-EC-Security-Audit\",\"response_mime_types\":[\"text/plain\",\"text/html\",\"text/xml\"],\"anomaly_threshold\":5},\"policies\":[],\"disabled_rules\":[],\"custom_rules\":[]},\"prod_profile_action\":\"block\",\"prod_profile\":{\"name\":\"my_cool_production_profile_name\",\"id\":\"my_cool_production_profile_id\",\"ruleset_id\":\"OWASP-CRS-2.2.9\",\"ruleset_version\":\"2017-08-01\",\"access_settings\":{\"ip\":{\"whitelist\":[\"192.168.1.1\",\"192.168.2.1\",\"127.0.0.1\",\"192.168.3.0/24\",\"2606:2888:4033:197:2cb0:e933:d3:2f9f\",\"2606:2888:4033:197:2cb0:e933:d3:4000/126\"],\"blacklist\":[\"8.8.8.0/24\",\"4.2.2.2\",\"2606:2888:4033:197:2cb0:e933:d3:2f9e\",\"2606:2888:4033:197:2cb0:e933:d3:3000/126\"]},\"country\":{\"whitelist\":[\"US\",\"CA\"],\"blacklist\":[\"RU\",\"CN\"]},\"url\":{\"whitelist\":[\"robots.txt\"],\"blacklist\":[\"password\",\"httpd.conf\"]},\"referer\":{\"whitelist\":[\"www.google.com\"],\"blacklist\":[\".*.imgur.com\",\"www.malware.com\"]},\"user-agent\":{\"whitelist\":[\"hlo\"],\"blacklist\":[\"curl\",\"^$\"]},\"cookie\":{\"whitelist\":[\"awesome\"],\"blacklist\":[\"awww\"]},\"ignore_header\":[\"benign-header\",\"super-whatever-header\"],\"ignore_cookie\":[\"sketchy_origin\",\"yousocrazy\"]},\"general_settings\":{\"allowed_http_methods\":[\"GET\"],\"allowed_http_versions\":[\"HTTP/1.1\"],\"allowed_request_content_types\":[\"application/x-www-form-urlencoded\",\"multipart/form-data\",\"text/xml\",\"application/xml\",\"application/x-amf\",\"application/json\"],\"disallowed_extensions\":[\".asa\",\".asax\",\".ascx\",\".axd\",\".backup\",\".bak\",\".bat\",\".cdx\",\".cer\",\".cfg\",\".cmd\",\".com\",\".config\",\".conf\",\".cs\",\".csproj\",\".csr\",\".dat\",\".db\",\".dbf\",\".dll\",\".dos\",\".htr\",\".htw\",\".ida\",\".idc\",\".idq\",\".inc\",\".ini\",\".key\",\".licx\",\".lnk\",\".log\",\".mdb\",\".old\",\".pass\",\".pdb\",\".pol\",\".printer\",\".pwd\",\".resources\",\".resx\",\".sql\",\".sys\",\".vb\",\".vbs\",\".vbproj\",\".vsdisco\",\".webinfo\",\".xsd\",\".xsx/\"],\"disallowed_headers\":[\"Proxy-Connection\",\"Lock-Token\",\"Content-Range\",\"Translate\",\"if\"],\"max_num_args\":3,\"arg_name_length\":100,\"arg_length\":400,\"total_arg_length\":64000,\"max_file_size\":1048576,\"combined_file_sizes\":1048576,\"validate_utf8_encoding\":true,\"xml_parser\":true,\"process_request_body\":true,\"process_response_body\":false,\"response_header_name\":\"X-1001-EC-Security\",\"response_mime_types\":[\"text/plain\",\"text/html\",\"text/xml\"],\"anomaly_threshold\":1},\"policies\":[\"modsecurity_crs_20_protocol_violations.conf\"],\"disabled_rules\":[{\"rule_id\":\"981320\"}],\"custom_rules\":[{\"rule_id\":\"100\",\"description\":\"this will need to be fleshed out seriously in the future, but the basic idea is that this can hold an abstract representation of a rule, that gets rendered into modsec language as its loaded.\"}]}}"
 #define WAF_CONF_1002_JSON "{\"id\":\"1002\",\"name\":\"Default Policy for www.edgecast.com\",\"customer_id\":\"0050\",\"enabled_date\":\"03/13/2014\",\"audit_profile_action\":\"alert\",\"audit_profile\":{\"name\":\"my_cool_audit_profile_name\",\"id\":\"my_cool_audit_profile_id\",\"ruleset_id\":\"OWASP-CRS-2.2.9\",\"ruleset_version\":\"2017-08-88\",\"access_settings\":{\"ip\":{\"whitelist\":[],\"blacklist\":[]},\"country\":{\"whitelist\":[],\"blacklist\":[]},\"url\":{\"whitelist\":[],\"blacklist\":[]},\"referer\":{\"whitelist\":[],\"blacklist\":[]}},\"general_settings\":{\"allowed_http_methods\":[\"GET\"],\"allowed_http_versions\":[\"HTTP/1.1\"],\"allowed_request_content_types\":[\"application/x-www-form-urlencoded\",\"multipart/form-data\",\"text/xml\",\"application/xml\",\"application/x-amf\",\"application/json\"],\"disallowed_extensions\":[\".asa\",\".asax\",\".ascx\",\".axd\",\".backup\",\".bak\",\".bat\",\".cdx\",\".cer\",\".cfg\",\".cmd\",\".com\",\".config\",\".conf\",\".cs\",\".csproj\",\".csr\",\".dat\",\".db\",\".dbf\",\".dll\",\".dos\",\".htr\",\".htw\",\".ida\",\".idc\",\".idq\",\".inc\",\".ini\",\".key\",\".licx\",\".lnk\",\".log\",\".mdb\",\".old\",\".pass\",\".pdb\",\".pol\",\".printer\",\".pwd\",\".resources\",\".resx\",\".sql\",\".sys\",\".vb\",\".vbs\",\".vbproj\",\".vsdisco\",\".webinfo\",\".xsd\",\".xsx/\"],\"disallowed_headers\":[\"Proxy-Connection\",\"Lock-Token\",\"Content-Range\",\"Translate\",\"if\"],\"max_num_args\":4,\"arg_name_length\":100,\"arg_length\":400,\"total_arg_length\":64000,\"max_file_size\":1048576,\"combined_file_sizes\":1048576,\"validate_utf8_encoding\":true,\"xml_parser\":true,\"process_request_body\":true,\"process_response_body\":false,\"response_header_name\":\"X-1001-EC-Security-Audit\",\"response_mime_types\":[\"text/plain\",\"text/html\",\"text/xml\"],\"anomaly_threshold\":5},\"policies\":[],\"disabled_rules\":[],\"custom_rules\":[]},\"prod_profile_action\":\"block\",\"prod_profile\":{\"name\":\"my_cool_production_profile_name\",\"id\":\"my_cool_production_profile_id\",\"ruleset_id\":\"OWASP-CRS-2.2.9\",\"ruleset_version\":\"2017-08-01\",\"access_settings\":{\"ip\":{\"whitelist\":[\"192.168.1.1\",\"192.168.2.1\",\"127.0.0.1\",\"192.168.3.0/24\",\"2606:2888:4033:197:2cb0:e933:d3:2f9f\",\"2606:2888:4033:197:2cb0:e933:d3:4000/126\"],\"blacklist\":[\"8.8.8.0/24\",\"4.2.2.2\",\"2606:2888:4033:197:2cb0:e933:d3:2f9e\",\"2606:2888:4033:197:2cb0:e933:d3:3000/126\"]},\"country\":{\"whitelist\":[\"US\",\"CA\"],\"blacklist\":[\"RU\",\"CN\"]},\"url\":{\"whitelist\":[\"robots.txt\"],\"blacklist\":[\"password\",\"httpd.conf\"]},\"referer\":{\"whitelist\":[\"www.google.com\"],\"blacklist\":[\".*.imgur.com\",\"www.malware.com\"]},\"user-agent\":{\"whitelist\":[\"hlo\"],\"blacklist\":[\"curl\",\"^$\"]},\"cookie\":{\"whitelist\":[\"awesome\"],\"blacklist\":[\"awww\"]},\"ignore_header\":[\"benign-header\",\"super-whatever-header\"],\"ignore_cookie\":[\"sketchy_origin\",\"yousocrazy\"]},\"general_settings\":{\"allowed_http_methods\":[\"GET\"],\"allowed_http_versions\":[\"HTTP/1.1\"],\"allowed_request_content_types\":[\"application/x-www-form-urlencoded\",\"multipart/form-data\",\"text/xml\",\"application/xml\",\"application/x-amf\",\"application/json\"],\"disallowed_extensions\":[\".asa\",\".asax\",\".ascx\",\".axd\",\".backup\",\".bak\",\".bat\",\".cdx\",\".cer\",\".cfg\",\".cmd\",\".com\",\".config\",\".conf\",\".cs\",\".csproj\",\".csr\",\".dat\",\".db\",\".dbf\",\".dll\",\".dos\",\".htr\",\".htw\",\".ida\",\".idc\",\".idq\",\".inc\",\".ini\",\".key\",\".licx\",\".lnk\",\".log\",\".mdb\",\".old\",\".pass\",\".pdb\",\".pol\",\".printer\",\".pwd\",\".resources\",\".resx\",\".sql\",\".sys\",\".vb\",\".vbs\",\".vbproj\",\".vsdisco\",\".webinfo\",\".xsd\",\".xsx/\"],\"disallowed_headers\":[\"Proxy-Connection\",\"Lock-Token\",\"Content-Range\",\"Translate\",\"if\"],\"max_num_args\":3,\"arg_name_length\":100,\"arg_length\":400,\"total_arg_length\":64000,\"max_file_size\":1048576,\"combined_file_sizes\":1048576,\"validate_utf8_encoding\":true,\"xml_parser\":true,\"process_request_body\":true,\"process_response_body\":false,\"response_header_name\":\"X-1001-EC-Security\",\"response_mime_types\":[\"text/plain\",\"text/html\",\"text/xml\"],\"anomaly_threshold\":1},\"policies\":[\"modsecurity_crs_20_protocol_violations.conf\"],\"disabled_rules\":[{\"rule_id\":\"981320\"}],\"custom_rules\":[{\"rule_id\":\"100\",\"description\":\"this will need to be fleshed out seriously in the future, but the basic idea is that this can hold an abstract representation of a rule, that gets rendered into modsec language as its loaded.\"}]}}"
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_uri[] = "243.49.2.0";
@@ -58,9 +45,9 @@ static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *
         *a_len = strlen(s_uri);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "GET /800050/origin.testsuite.com/sec_arg_check/info.html?a=%27select%20*%20from%20test_5%27 HTTP/1.1";
@@ -68,9 +55,9 @@ static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ct
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "GET";
@@ -78,9 +65,9 @@ static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "HTTP/1.1";
@@ -88,9 +75,9 @@ static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t *a_len, void *
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "http";
@@ -98,17 +85,17 @@ static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_port_cb(uint32_t *a_val, void *a_ctx)
 {
         *a_val = 80;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "/800050/origin.testsuite.com/sec_arg_check/info.html?a=%27select%20*%20from%20test_5%27";
@@ -116,9 +103,9 @@ static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_query_str_long_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "mooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnkkkkkkkkkkkkkkkkkkeeeeeeeeeeeeeeeyyyyyyyyyyssssss=100000000000000000000000000000000000000";
@@ -126,9 +113,9 @@ static int32_t get_rqst_query_str_long_cb(const char **a_data, uint32_t *a_len, 
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "a=%27select%20*%20from%20test_5%27";
@@ -136,17 +123,17 @@ static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void 
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
         *a_val = 3;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                                         uint32_t *ao_key_len,
                                         const char **ao_val,
@@ -199,9 +186,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: instances tests
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! instances tests
+//! ----------------------------------------------------------------------------
 TEST_CASE( "instances test", "[instances]" ) {
 
         // -------------------------------------------------

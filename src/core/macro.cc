@@ -1,48 +1,35 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    macro.cc
-//: \details: TODO
-//: \author:  Devender Singh
-//: \date:    03/04/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "support/ndebug.h"
 #include "core/macro.h"
 #include "core/var.h"
 #include "op/regex.h"
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define MACRO_EXP_REGEX "%{\\w*..\\w*}"
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define STRCASECMP(_str, _match) (strcasecmp(_str.c_str(), _match) == 0)
 #define STRCASECMP_KV(_match) (strcasecmp(i_k->m_key, _match.c_str()) == 0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details get var
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details get var
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_var(std::string &ao_var,
                        waflz_pb::variable_t_type_t a_type,
                        rqst_ctx *a_ctx)
@@ -79,11 +66,11 @@ static int32_t get_var(std::string &ao_var,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details Expand the str of the form %{MATCHED_VAR_NAME}
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Expand the str of the form %{MATCHED_VAR_NAME}
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t expand(std::string &ao_exp,
                       const std::string& a_str,
                       rqst_ctx *a_ctx)
@@ -505,31 +492,31 @@ static int32_t expand(std::string &ao_exp,
         //NDBG_PRINT("resolved %s: to %s\n", a_var.c_str(), l_expanded_var.c_str());
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 macro::macro():
         m_regex()
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t macro::init()
 {
         int32_t l_s;
         l_s = m_regex.init(MACRO_EXP_REGEX, strlen(MACRO_EXP_REGEX));
         return l_s;
 }
-//: ----------------------------------------------------------------------------
-//: \details check if has
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details check if has
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 bool macro::has(const std::string &a_str)
 {
         int32_t l_s;
@@ -540,11 +527,11 @@ bool macro::has(const std::string &a_str)
         }
         return false;
 }
-//: ----------------------------------------------------------------------------
-//: \details Expand the variable of the form %{MATCHED_VAR_NAME}
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Expand the variable of the form %{MATCHED_VAR_NAME}
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t macro::operator ()(std::string &ao_exp,
                            const std::string& a_str,
                            rqst_ctx *a_ctx)

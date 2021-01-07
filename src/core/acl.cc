@@ -1,30 +1,18 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    acl.cc
-//: \details: TODO
-//: \author:  Devender Singh
-//: \date:    07/14/2017
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "support/ndebug.h"
 #include "op/regex.h"
+#include "waflz/engine.h"
 #include "waflz/string_util.h"
 #include "op/nms.h"
 #include "jspb/jspb.h"
@@ -35,13 +23,13 @@
 #include "acl.pb.h"
 #include <errno.h>
 #include <limits.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define _CONFIG_ACL_MAX_SIZE (1<<20)
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define _GET_HEADER(_header, _val) do { \
         _val = NULL; \
         _val##_len = 0; \
@@ -55,9 +43,9 @@
         } \
 } while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: support for skipping Content Types with idempotent methods
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! support for skipping Content Types with idempotent methods
+//! ----------------------------------------------------------------------------
 struct case_i_comp
 {
         bool operator() (const std::string& lhs, const std::string& rhs) const
@@ -77,14 +65,15 @@ const str_set_t::value_type g_ignore_ct_set_vals[]= {
 };
 const str_set_t g_ignore_ct_set(g_ignore_ct_set_vals,
                                 g_ignore_ct_set_vals + (sizeof(g_ignore_ct_set_vals)/sizeof(g_ignore_ct_set_vals[0])));
-//: ----------------------------------------------------------------------------
-//: \details ctor
-//: \return  None
-//: \param   None
-//: ----------------------------------------------------------------------------
-acl::acl(void):
+//! ----------------------------------------------------------------------------
+//! \details ctor
+//! \return  None
+//! \param   None
+//! ----------------------------------------------------------------------------
+acl::acl(engine& a_engine):
         m_init(false),
         m_err_msg(),
+        m_engine(a_engine),
         m_pb(NULL),
         m_id(),
         m_cust_id(),
@@ -119,11 +108,11 @@ acl::acl(void):
 {
         m_pb = new waflz_pb::acl();
 }
-//: ----------------------------------------------------------------------------
-//: \brief   dtor
-//: \deatils
-//: \return  None
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \brief   dtor
+//! \deatils
+//! \return  None
+//! ----------------------------------------------------------------------------
 acl::~acl(void)
 {
 #define _DELETE_OBJ(_obj) if(_obj) { delete _obj; _obj = NULL; }
@@ -145,11 +134,11 @@ acl::~acl(void)
         _DELETE_OBJ(m_cookie_rx_blacklist);
         if(m_pb) { delete m_pb; m_pb = NULL; }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t acl::load(const char *a_buf, uint32_t a_buf_len)
 {
         if(!a_buf)
@@ -191,11 +180,11 @@ int32_t acl::load(const char *a_buf, uint32_t a_buf_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t acl::load(const waflz_pb::acl* a_pb)
 {
         if(!a_pb)
@@ -218,11 +207,11 @@ int32_t acl::load(const waflz_pb::acl* a_pb)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t acl::load(void* a_js)
 {
         const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
@@ -247,11 +236,11 @@ int32_t acl::load(void* a_js)
         return WAFLZ_STATUS_OK;
 }
 
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t compile_regex_list(regex **ao_regex,
                                   const ::google::protobuf::RepeatedPtrField< ::std::string>& a_list,
                                   uint32_t a_list_len)
@@ -298,11 +287,11 @@ static int32_t compile_regex_list(regex **ao_regex,
         *ao_regex = l_pcre;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t acl::init()
 {
         if(m_init)
@@ -500,11 +489,11 @@ int32_t acl::init()
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t acl::process_whitelist(bool &ao_match, rqst_ctx &a_ctx)
 {
         ao_match = false;
@@ -651,11 +640,11 @@ cookie_check:
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
         if(!ao_event)
@@ -993,11 +982,11 @@ cookie_check:
 done:
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
         if(!ao_event)
@@ -1335,11 +1324,11 @@ cookie_check:
 done:
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
         if(!ao_event)
@@ -1632,32 +1621,53 @@ done:
 #endif
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t acl::process(waflz_pb::event **ao_event,
                      bool &ao_whitelist,
                      void *a_ctx,
-                     rqst_ctx &a_rqst_ctx)
+                     rqst_ctx **ao_rqst_ctx)
 {
         if(!ao_event)
         {
+                WAFLZ_PERROR(m_err_msg, "ao_event == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!a_rqst_ctx.m_init_phase_1)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        *ao_event = NULL;
-        ao_whitelist = false;
         bool l_match = false;
+        *ao_event = NULL;
         int32_t l_s;
+        // -------------------------------------------------
+        // create new if null
+        // -------------------------------------------------
+        rqst_ctx *l_rqst_ctx = NULL;
+        if(ao_rqst_ctx &&
+           *ao_rqst_ctx)
+        {
+                l_rqst_ctx = *ao_rqst_ctx;
+        }
+        if(!l_rqst_ctx)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_rqst_ctx == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // run phase 1 init
+        // -------------------------------------------------
+        l_s = l_rqst_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), NULL, NULL, NULL);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::init_phase_1");
+                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
         // -------------------------------------------------
         // whitelist...
         // -------------------------------------------------
-        l_s = process_whitelist(l_match, a_rqst_ctx);
+        ao_whitelist = false;
+        l_s = process_whitelist(l_match, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1672,7 +1682,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // accesslist...
         // -------------------------------------------------
-        l_s = process_accesslist(&l_event, a_rqst_ctx);
+        l_s = process_accesslist(&l_event, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1684,7 +1694,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // blacklist...
         // -------------------------------------------------
-        l_s = process_blacklist(&l_event, a_rqst_ctx);
+        l_s = process_blacklist(&l_event, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1696,7 +1706,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // settings...
         // -------------------------------------------------
-        l_s = process_settings(&l_event, a_rqst_ctx);
+        l_s = process_settings(&l_event, *l_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1722,6 +1732,7 @@ done:
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
+        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
 }

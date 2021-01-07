@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    instance.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "event.pb.h"
 #include "profile.pb.h"
 #include "action.pb.h"
@@ -35,14 +22,14 @@
 #include <dirent.h>
 #include <string.h>
 #include <errno.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define CONFIG_SECURITY_WAF_INSTANCE_MAX_SIZE (1024*1024)
 #define CONFIG_SECURITY_WAF_PROFILE_MAX_SIZE (1024*1024)
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define VERIFY_HAS(_pb, _field) do { \
         if(!_pb.has_##_field()) { \
                 WAFLZ_PERROR(m_err_msg, "missing %s field", #_field); \
@@ -50,17 +37,17 @@
         } \
 } while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: utils
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: \details Validate custom enforcement for waf and ddos configs
-//: \return  0 if it is valid
-//:          false if not
-//: \param   ao_err_msg  The buffer to populate with an error mesage.
-//: \param   a_field TODO
-//: \param   a_doc The json object whose field to validate
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! utils
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Validate custom enforcement for waf and ddos configs
+//! \return  0 if it is valid
+//!          false if not
+//! \param   ao_err_msg  The buffer to populate with an error mesage.
+//! \param   a_field TODO
+//! \param   a_doc The json object whose field to validate
+//! ----------------------------------------------------------------------------
 static int32_t waf_config_check_enf_array(char *ao_err_msg,
                                           waflz_pb::enforcement_type_t &ao_type,
                                           const google::protobuf::RepeatedPtrField<waflz_pb::enforcement>&a_obj,
@@ -101,11 +88,11 @@ static int32_t waf_config_check_enf_array(char *ao_err_msg,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details ctor
-//: \return  None
-//: \param   a_unparsed_json  The
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details ctor
+//! \return  None
+//! \param   a_unparsed_json  The
+//! ----------------------------------------------------------------------------
 instance::instance(engine &a_engine):
         m_init(false),
         m_pb(NULL),
@@ -119,11 +106,11 @@ instance::instance(engine &a_engine):
 {
         m_pb = new waflz_pb::instance();
 }
-//: ----------------------------------------------------------------------------
-//: \brief   dtor
-//: \deatils
-//: \return  None
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \brief   dtor
+//! \deatils
+//! \return  None
+//! ----------------------------------------------------------------------------
 instance::~instance()
 {
         if(m_profile_audit)
@@ -142,11 +129,11 @@ instance::~instance()
                 m_pb = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t instance::load(const char *a_buf,
                               uint32_t a_buf_len)
 {
@@ -174,11 +161,11 @@ int32_t instance::load(const char *a_buf,
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t instance::load(void *a_js)
 {
         m_init = false;
@@ -198,19 +185,19 @@ int32_t instance::load(void *a_js)
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \brief   Validate provided input json is valid for generating modsecurity configuration
-//: \details For now we do this simply by checking that it has all
-//:          the required elements.  We could use a json-schema
-//:          implementation in C (http://json-schema.org/implementations.html)
-//:          but we have such a nice lightweight json component, it seems
-//:          a shame to bring in a huge thing just for this use
-//: \return  0 if it is valid, ao_err_msg reset
-//:          -1 if it is not and ao_err_msg is populated
-//: \param   ao_err_msg   The string containing the error message on failure
-//:                             Message will be appended -so assumes string is already empty.
-//:                             ASSUMPTION: is not null and valid
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \brief   Validate provided input json is valid for generating modsecurity configuration
+//! \details For now we do this simply by checking that it has all
+//!          the required elements.  We could use a json-schema
+//!          implementation in C (http://json-schema.org/implementations.html)
+//!          but we have such a nice lightweight json component, it seems
+//!          a shame to bring in a huge thing just for this use
+//! \return  0 if it is valid, ao_err_msg reset
+//!          -1 if it is not and ao_err_msg is populated
+//! \param   ao_err_msg   The string containing the error message on failure
+//!                             Message will be appended -so assumes string is already empty.
+//!                             ASSUMPTION: is not null and valid
+//! ----------------------------------------------------------------------------
 int32_t instance::validate(void)
 {
         if(m_init)
@@ -334,11 +321,11 @@ int32_t instance::validate(void)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 void instance::set_event_properties(waflz_pb::event &ao_event, profile &a_profile)
 {
         // -------------------------------------------------
@@ -352,11 +339,11 @@ void instance::set_event_properties(waflz_pb::event &ao_event, profile &a_profil
                 ao_event.set_response_header_name(a_profile.get_resp_header_name());
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t instance::process(const waflz_pb::enforcement **ao_enf,
                           waflz_pb::event **ao_audit_event,
                           waflz_pb::event **ao_prod_event,

@@ -36,6 +36,7 @@
 //: ----------------------------------------------------------------------------
 #define MONKEY_KEY "TEST::KEY::MONKEY::BONGO"
 #define BANANA_KEY "TEST::KEY::BANANA::SMELLY"
+#define TEST_KEY "TEST::KEY::TEST::NONE"
 //: ----------------------------------------------------------------------------
 //: remove dir
 //: ----------------------------------------------------------------------------
@@ -134,6 +135,9 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
             REQUIRE(l_result == 2);
             //sleep for 2 seconds, monkey key should have been expired
             usleep(2000000);
+            //increment the test key, this should have cleared monkey key
+            l_s = l_db.increment_key(l_result, TEST_KEY, 1000);
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
             l_s = l_db.get_key(l_result, MONKEY_KEY, strlen(MONKEY_KEY));
             REQUIRE(l_s == WAFLZ_STATUS_ERROR);
             l_s = l_db.get_key(l_result, BANANA_KEY, strlen(BANANA_KEY));
@@ -141,6 +145,8 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
             REQUIRE(l_result == 2);
             //sleep for 2 more seconds, banana key should have been expired
             usleep(2000000);
+            //increment the test key, this should have cleared banana key
+            l_s = l_db.increment_key(l_result, TEST_KEY, 1000);
             l_s = l_db.get_key(l_result, BANANA_KEY, strlen(BANANA_KEY));
             REQUIRE(l_s == WAFLZ_STATUS_ERROR);
             //increment the keys again to check value resets to 1.
@@ -152,6 +158,52 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
             REQUIRE(l_result == 1);
             l_s = remove_dir(l_db_dir);
             REQUIRE(l_s == 0);
+        }
+        SECTION("validate sweep db - test if sweeping deletes expired keys from db") {
+            int32_t l_s;
+            ns_waflz::lm_db l_db;
+            REQUIRE((l_db.get_init() == false));
+            std::string l_db_dir("/tmp/test_lmdb");
+            l_s = create_dir(l_db_dir);
+            REQUIRE((l_s == 0));
+            l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
+            l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
+            l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
+            l_s = l_db.init();
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
+            REQUIRE(l_db.get_init() == true);
+            int64_t l_result;
+            l_s = l_db.increment_key(l_result, MONKEY_KEY, 4000);
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
+            REQUIRE(l_result == 1);
+            l_s = l_db.increment_key(l_result, BANANA_KEY, 5000);
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
+            REQUIRE(l_result == 1);
+            // sweep db 
+            l_s = l_db.sweep_db();
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
+            int64_t l_out_val = -1;
+            //verify sweep db didn't delete keys before expiry
+            l_s = l_db.get_key(l_out_val, MONKEY_KEY, strlen(MONKEY_KEY));
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
+            REQUIRE(l_out_val == 1);
+            l_s = l_db.get_key(l_out_val, BANANA_KEY, strlen(BANANA_KEY));
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
+            REQUIRE(l_out_val == 1);
+            // sleep for 4 seconds and sweep db.Monkey key should have been
+            //deleted
+            sleep(4);
+            l_s = l_db.sweep_db();
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
+            l_s = l_db.get_key(l_out_val, MONKEY_KEY, strlen(MONKEY_KEY));
+            REQUIRE(l_s == WAFLZ_STATUS_ERROR);
+            l_s = l_db.get_key(l_out_val, BANANA_KEY, strlen(BANANA_KEY));
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
+            sleep(1);
+            l_s = l_db.sweep_db();
+            REQUIRE(l_s == WAFLZ_STATUS_OK);
+            l_s = l_db.get_key(l_out_val, BANANA_KEY, strlen(BANANA_KEY));
+            REQUIRE(l_s == WAFLZ_STATUS_ERROR);
         }
 }
 

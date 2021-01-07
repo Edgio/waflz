@@ -71,9 +71,10 @@ public:
         int32_t get_key(int64_t &ao_val, const char *a_key, uint32_t a_key_len);
         int32_t set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len);
         int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len);
-        int32_t print_all_keys();
+        int32_t print_all_keys(void);
         int32_t get_db_stats(db_stats_t& a_stats);
         int32_t clear_keys();
+        int32_t sweep_db();
 private:
         // -------------------------------------------------
         // private methods

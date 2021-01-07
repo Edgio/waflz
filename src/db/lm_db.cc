@@ -53,26 +53,28 @@ lm_db::lm_db(void):
 lm_db::~lm_db()
 {
         // -------------------------------------------------
-        // Sync env before restart to flush keys in meta to
-        // disk. env should be synced only if db exists.
-        // close env before restart
+        // If db exists, sync the env to flush all keys to
+        // disk. expire the keys that are created by current
+        // process using PQ. sweep db to clear any dangling
+        // keys.
         // -------------------------------------------------
         if(m_env != NULL)
         {
-
                 const char* l_path = NULL;
                 if(mdb_env_get_path(m_env, &l_path) == MDB_SUCCESS)
                 {
                         if(l_path != NULL)
                         {
                                 mdb_env_sync(m_env, 1);
+                                expire_old_keys();
+                                sweep_db();
                         }
                 }
                 mdb_env_close(m_env);
                 m_env = NULL;
         }
         // -------------------------------------------------
-        // pop events off pq until time > now
+        // clear keys from PQ
         // -------------------------------------------------
         while(!m_kv_ttl_pq.empty())
         {
@@ -196,15 +198,6 @@ int32_t lm_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-int32_t lm_db::print_all_keys()
-{
-        return WAFLZ_STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
 //: \details TODO
 //: \return  TODO
 //: \param   TODO
@@ -212,7 +205,6 @@ int32_t lm_db::print_all_keys()
 int32_t lm_db::get_key(int64_t& ao_val, const char* a_key, uint32_t a_key_len)
 {
         int32_t l_s;
-        expire_old_keys();
         // -------------------------------------------------
         // get transcation handle
         // -------------------------------------------------
@@ -588,5 +580,87 @@ int32_t lm_db::get_db_stats(db_stats_t& a_stats)
         a_stats.m_num_entries = m_stat.ms_entries;
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details delete all the expired keys from db
+//: \return  TODO
+//: \param   TODO
+//: ----------------------------------------------------------------------------
+int32_t lm_db::sweep_db()
+{
+        int32_t l_s;
+        MDB_cursor* l_cur;
+        MDB_val l_key, l_val;
+        l_s = mdb_txn_begin(m_env, NULL, 0, &m_txn);
+        if(l_s != MDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg, "sweep_db:txn begin failed");
+                return WAFLZ_STATUS_ERROR;
+        }
+        l_s = mdb_dbi_open(m_txn, NULL, 0, &m_dbi);
+        if(l_s != MDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg, "sweep_db:dbi open failed\n");
+                mdb_txn_abort(m_txn);
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // get cursor handle
+        // -------------------------------------------------
+        l_s = mdb_cursor_open(m_txn, m_dbi, &l_cur);
+        if(l_s != MDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg, "sweep_db:cursor open failed-%d, %s\n",
+                             l_s, mdb_strerror(l_s));
+                mdb_txn_abort(m_txn);
+                return -1;
+        }
+        // -------------------------------------------------
+        // parse entire db using cursor and delete all
+        // expired keys
+        // -------------------------------------------------
+        uint64_t l_ttl, l_now_ms;
+        uint32_t l_count;
+        while ((l_s = mdb_cursor_get(l_cur, &l_key, &l_val, MDB_NEXT)) == 0) 
+        {
+                l_s = get_ttl_and_count(&l_val, l_ttl, l_count);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "sweep_db:get ttl_and count failed\n");
+                        continue;
+                }
+                l_now_ms = get_time_ms();
+                if (l_ttl < l_now_ms)
+                {
+                        MDB_val* l_d_val = NULL;
+                        l_s = mdb_del(m_txn, m_dbi, &l_key, l_d_val);
+                        if(l_s != 0)
+                        {
+                                WAFLZ_PERROR(m_err_msg,"sweep_db::delete failed\n");
+                                continue;
+                        }
+                }
+        }
+        // -------------------------------------------------
+        // close cursor and batch commit
+        // -------------------------------------------------
+        mdb_cursor_close(l_cur);
+        l_s = mdb_txn_commit(m_txn);
+        if(l_s != MDB_SUCCESS)
+        {
+                mdb_txn_abort(m_txn);
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details TODO
+//: \return  TODO
+//: \param   TODO
+//: ---------------------------------------------------------------------------
+int32_t lm_db::print_all_keys(void)
+{
+        return WAFLZ_STATUS_OK;
+}
+}
+
 

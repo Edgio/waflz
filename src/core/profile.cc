@@ -90,7 +90,7 @@ profile::profile(engine &a_engine):
         m_il_cookie()
 {
         m_pb = new waflz_pb::profile();
-        m_acl = new acl();
+        m_acl = new acl(a_engine);
 }
 //! ----------------------------------------------------------------------------
 //! \details dtor
@@ -135,17 +135,23 @@ int32_t profile::load(const char *a_buf, uint32_t a_buf_len)
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
+        // -------------------------------------------------
+        // new pb obj
+        // -------------------------------------------------
         if(m_pb)
         {
                 delete m_pb;
                 m_pb = NULL;
         }
+        // -------------------------------------------------
+        // new acl obj
+        // -------------------------------------------------
         if(m_acl)
         {
                 delete m_acl;
                 m_acl = NULL;
         }
-        m_acl = new acl();
+        m_acl = new acl(m_engine);
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------
@@ -642,7 +648,7 @@ int32_t profile::process(waflz_pb::event **ao_event,
         if(a_part_mk & PART_MK_ACL)
         {
                 bool l_whitelist = false;
-                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, *l_rqst_ctx);
+                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());

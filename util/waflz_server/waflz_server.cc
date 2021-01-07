@@ -16,6 +16,8 @@
 #include "cb.h"
 #include "sx.h"
 #include "sx_profile.h"
+#include "sx_acl.h"
+#include "sx_rules.h"
 #include "sx_instance.h"
 #include "sx_scopes.h"
 #include "sx_modsecurity.h"
@@ -90,6 +92,8 @@ typedef enum {
 typedef enum {
         CONFIG_MODE_INSTANCE = 0,
         CONFIG_MODE_PROFILE,
+        CONFIG_MODE_ACL,
+        CONFIG_MODE_RULES,
         CONFIG_MODE_MODSECURITY,
         CONFIG_MODE_LIMITS,
         CONFIG_MODE_SCOPES,
@@ -1000,8 +1004,10 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "Config Modes: -specify only one\n");
         fprintf(a_stream, "  -i, --instance      waf instance (file or directory)\n");
         fprintf(a_stream, "  -f, --profile       waf profile\n");
-        fprintf(a_stream, "  -m, --modsecurity   modsecurity rules file\n");
-        fprintf(a_stream, "  -l, --limit         limit config file.\n");
+        fprintf(a_stream, "  -a, --acl           access control list (acl)\n");
+        fprintf(a_stream, "  -e, --rules         rules\n");
+        fprintf(a_stream, "  -m, --modsecurity   modsecurity rules\n");
+        fprintf(a_stream, "  -l, --limit         limit.\n");
         fprintf(a_stream, "  -b, --scopes        scopes (file or directory)\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
@@ -1030,7 +1036,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "Debug Options:\n");
         fprintf(a_stream, "  -t, --trace         tracing (error/rule/match/all)\n");
         fprintf(a_stream, "  -T, --server-trace  server tracing  (error/warn/debug/verbose/all)\n");
-        fprintf(a_stream, "  -a, --audit-mode    load and exit\n");
+        fprintf(a_stream, "  -A, --audit-mode    load and exit\n");
         fprintf(a_stream, "  \n");
 #ifdef ENABLE_PROFILER
         fprintf(a_stream, "Profile Options:\n");
@@ -1093,6 +1099,8 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 { "instance",     1, 0, 'i' },
                 { "profile",      1, 0, 'f' },
+                { "acl",          1, 0, 'a' },
+                { "rules",        1, 0, 'e' },
                 { "modsecurity",  1, 0, 'm' },
                 { "limit",        1, 0, 'l' },
                 { "scopes",       1, 0, 'S' },
@@ -1128,7 +1136,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 { "trace",        1, 0, 't' },
                 { "server-trace", 1, 0, 'T' },
-                { "audit-mode",   0, 0, 'a' },
+                { "audit-mode",   0, 0, 'A' },
                 // -----------------------------------------
                 // profile options
                 // -----------------------------------------
@@ -1143,9 +1151,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvi:f:m:l:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:aH:C:";
+        char l_short_arg_list[] = "hvi:f:a:e:m:l:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:AH:C:";
 #else
-        char l_short_arg_list[] = "hvi:f:m:l:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:a";
+        char l_short_arg_list[] = "hvi:f:a:e:m:l:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:A";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -1208,6 +1216,22 @@ int main(int argc, char** argv)
                 case 'f':
                 {
                         _TEST_SET_CONFIG_MODE(PROFILE);
+                        break;
+                }
+                // -----------------------------------------
+                // acl
+                // -----------------------------------------
+                case 'a':
+                {
+                        _TEST_SET_CONFIG_MODE(ACL);
+                        break;
+                }
+                // -----------------------------------------
+                // rules
+                // -----------------------------------------
+                case 'e':
+                {
+                        _TEST_SET_CONFIG_MODE(RULES);
                         break;
                 }
                 // -----------------------------------------
@@ -1442,7 +1466,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 // audit mode
                 // -----------------------------------------
-                case 'a':
+                case 'A':
                 {
                         l_audit_mode = true;
                         break;
@@ -1660,6 +1684,8 @@ int main(int argc, char** argv)
         // setup engine
         // -------------------------------------------------
         if((g_config_mode == CONFIG_MODE_PROFILE) ||
+           (g_config_mode == CONFIG_MODE_ACL) ||
+           (g_config_mode == CONFIG_MODE_RULES) ||
            (g_config_mode == CONFIG_MODE_MODSECURITY) ||
            (g_config_mode == CONFIG_MODE_INSTANCE) ||
            (g_config_mode == CONFIG_MODE_SCOPES))
@@ -1698,9 +1724,6 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         case(CONFIG_MODE_PROFILE):
         {
-                // -----------------------------------------
-                // init
-                // -----------------------------------------
                 ns_waflz_server::sx_profile *l_sx_profile = new ns_waflz_server::sx_profile(*l_engine);
                 l_sx_profile->m_lsnr = l_lsnr;
                 l_sx_profile->m_config = l_config_file;
@@ -1708,6 +1731,31 @@ int main(int argc, char** argv)
                 g_sx = l_sx_profile;
                 break;
         }
+        // -------------------------------------------------
+        // acl
+        // -------------------------------------------------
+        case(CONFIG_MODE_ACL):
+        {
+                ns_waflz_server::sx_acl *l_sx_acl = new ns_waflz_server::sx_acl(*l_engine);
+                l_sx_acl->m_lsnr = l_lsnr;
+                l_sx_acl->m_config = l_config_file;
+                l_sx_acl->m_callbacks = &s_callbacks;
+                g_sx = l_sx_acl;
+                break;
+        }
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+        case(CONFIG_MODE_RULES):
+        {
+                ns_waflz_server::sx_rules *l_sx_rules = new ns_waflz_server::sx_rules(*l_engine);
+                l_sx_rules->m_lsnr = l_lsnr;
+                l_sx_rules->m_config = l_config_file;
+                l_sx_rules->m_callbacks = &s_callbacks;
+                g_sx = l_sx_rules;
+                break;
+        }
+
         // -------------------------------------------------
         // instance
         // -------------------------------------------------

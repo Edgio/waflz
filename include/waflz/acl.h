@@ -20,17 +20,16 @@
 //! fwd decl's
 //! ----------------------------------------------------------------------------
 namespace waflz_pb {
-        class profile;
-        class profile_access_settings_t;
-        class event;
-        class acl;
+class profile;
+class profile_access_settings_t;
+class event;
+class acl;
 }
 namespace ns_waflz {
+class engine;
 class regex;
+class rqst_ctx;
 class nms;
-//! ----------------------------------------------------------------------------
-//! types
-//! ----------------------------------------------------------------------------
 //! ----------------------------------------------------------------------------
 //! acl
 //! ----------------------------------------------------------------------------
@@ -40,16 +39,12 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        acl(void);
+        acl(engine& a_engine);
         ~acl();
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t load(const waflz_pb::acl* a_pb);
         int32_t load(void* a_js);
-        int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx, rqst_ctx &a_rqst_ctx);
-        int32_t process_whitelist(bool &ao_match, rqst_ctx &a_ctx);
-        int32_t process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
-        int32_t process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
-        int32_t process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
+        int32_t process(waflz_pb::event **ao_event, bool &ao_whitelist, void *a_ctx, rqst_ctx **ao_rqst_ctx);
         //: ------------------------------------------------
         //:               G E T T E R S
         //: ------------------------------------------------
@@ -88,12 +83,20 @@ private:
         // disallow copy/assign
         acl(const acl &);
         acl& operator=(const acl &);
+        int32_t process_whitelist(bool &ao_match, rqst_ctx &a_ctx);
+        int32_t process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
+        int32_t process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
+        int32_t process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
         bool m_init;
         char m_err_msg[WAFLZ_ERR_LEN];
+        engine &m_engine;
         waflz_pb::acl *m_pb;
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
         std::string m_id;
         std::string m_cust_id;
         std::string m_name;

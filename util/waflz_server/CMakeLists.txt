@@ -26,6 +26,8 @@ include_directories(
 # ------------------------------------------------------------------------------
 SET(SRCS
   cb.cc
+  sx_acl.cc
+  sx_rules.cc
   sx_profile.cc
   sx_instance.cc
   sx_limits.cc

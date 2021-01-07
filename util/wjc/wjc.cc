@@ -214,7 +214,13 @@ static int32_t validate_profile(const std::string &a_file, std::string &a_rulese
         // -------------------------------------------------
         ns_waflz::engine *l_engine = new ns_waflz::engine();
         l_engine->set_ruleset_dir(a_ruleset_dir);
-        l_engine->init();
+        l_s = l_engine->init();
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "failed to init engine\n");
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                return STATUS_ERROR;
+        }
         // -------------------------------------------------
         // read file
         // -------------------------------------------------
@@ -271,6 +277,17 @@ static int32_t validate_acl(const std::string &a_file)
 {
         int32_t l_s;
         // -------------------------------------------------
+        // engine
+        // -------------------------------------------------
+        ns_waflz::engine *l_engine = new ns_waflz::engine();
+        l_s = l_engine->init();
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "failed to init engine\n");
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
         // read file
         // -------------------------------------------------
         char *l_buf = NULL;
@@ -285,7 +302,7 @@ static int32_t validate_acl(const std::string &a_file)
         // -------------------------------------------------
         // load
         // -------------------------------------------------
-        ns_waflz::acl *l_acl = new ns_waflz::acl();
+        ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
         l_s = l_acl->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -298,6 +315,7 @@ static int32_t validate_acl(const std::string &a_file)
         // cleanup
         // -------------------------------------------------
         if(l_buf) { free(l_buf); l_buf = NULL;}
+        if(l_engine) { delete l_engine; l_engine = NULL; }
         if(l_acl) { delete l_acl; l_acl = NULL; }
         return STATUS_OK;
 }
@@ -313,7 +331,13 @@ static int32_t validate_rules(const std::string &a_file)
         // engine
         // -------------------------------------------------
         ns_waflz::engine *l_engine = new ns_waflz::engine();
-        l_engine->init();
+        l_s = l_engine->init();
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "failed to init engine\n");
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                return STATUS_ERROR;
+        }
         // -------------------------------------------------
         // load file
         // -------------------------------------------------
@@ -355,7 +379,13 @@ static int32_t validate_instance(const std::string &a_file, std::string &a_rules
         // -------------------------------------------------
         ns_waflz::engine *l_engine = new ns_waflz::engine();
         l_engine->set_ruleset_dir(a_ruleset_dir);
-        l_engine->init();
+        l_s = l_engine->init();
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "failed to init engine\n");
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                return STATUS_ERROR;
+        }
         // -------------------------------------------------
         // read file
         // -------------------------------------------------
@@ -490,17 +520,6 @@ static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset
 {
         int32_t l_s;
         // -------------------------------------------------
-        // read file
-        // -------------------------------------------------
-        char *l_buf = NULL;
-        uint32_t l_buf_len = 0;
-        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
-        if(l_s != STATUS_OK)
-        {
-                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
         // ruleset_dir
         // -------------------------------------------------
         l_s = validate_ruleset_dir(a_ruleset_dir);
@@ -513,7 +532,24 @@ static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset
         // -------------------------------------------------
         ns_waflz::engine *l_engine = new ns_waflz::engine();
         l_engine->set_ruleset_dir(a_ruleset_dir);
-        l_engine->init();
+        l_s = l_engine->init();
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "failed to init engine\n");
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_buf = NULL;
+        uint32_t l_buf_len = 0;
+        l_s = ns_waflz::read_file(a_file.c_str(), &l_buf, l_buf_len);
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
+                return STATUS_ERROR;
+        }
         // -------------------------------------------------
         // config
         // -------------------------------------------------

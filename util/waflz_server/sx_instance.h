@@ -7,8 +7,8 @@
 //! Licensed under the terms of the Apache 2.0 open source license.
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
-#ifndef _WAFLZ_SERVER_SX_INSTANCE_H_
-#define _WAFLZ_SERVER_SX_INSTANCE_H_
+#ifndef _SX_INSTANCE_H_
+#define _SX_INSTANCE_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------

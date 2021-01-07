@@ -253,28 +253,54 @@ set_source_files_properties(${PB_SRCS} PROPERTIES COMPILE_FLAGS '-Wno-effc++')
 # ------------------------------------------------------------------------------
 # library
 # ------------------------------------------------------------------------------
-add_library(waflzcore STATIC ${SRCS} ${PB_SRCS})
-add_library(waflz SHARED ${SRCS} ${PB_SRCS})
-target_include_directories(waflzcore PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/proto/ ${CMAKE_BINARY_DIR}/)
-target_link_libraries(waflz ssl crypto pcre protobuf xml2 kyotocabinet hiredis lmdb)
-SET_TARGET_PROPERTIES(waflzcore
-  PROPERTIES
-  POSITION_INDEPENDENT_CODE ON
+add_library(waflz_obj OBJECT ${SRCS} ${PB_SRCS})
+add_library(waflzcore STATIC $<TARGET_OBJECTS:waflz_obj>)
+add_library(waflz SHARED $<TARGET_OBJECTS:waflz_obj>)
+# ------------------------------------------------------------------------------
+# lib settings
+# ------------------------------------------------------------------------------
+target_include_directories(waflzcore PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/proto
+    ${CMAKE_BINARY_DIR}
 )
+target_link_libraries(waflz
+    ssl
+    crypto
+    pcre
+    protobuf
+    xml2
+    kyotocabinet
+    hiredis
+    lmdb
+)
+# ------------------------------------------------------------------------------
+# properties
+# ------------------------------------------------------------------------------
+SET_TARGET_PROPERTIES(waflz_obj
+    PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+# ------------------------------------------------------------------------------
 # Create symlink for libwaflz.so.<soversion>
+# ------------------------------------------------------------------------------
 SET_TARGET_PROPERTIES(waflz
-  PROPERTIES
-  SOVERSION 0
+    PROPERTIES
+    SOVERSION 0
 )
+# ------------------------------------------------------------------------------
+# install
+# ------------------------------------------------------------------------------
 # Add install target for the library
 install(TARGETS waflzcore
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  COMPONENT Libraries
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    COMPONENT Libraries
 )
 # Add install target for header files
 install(FILES ${HDRS}
-  DESTINATION include/waflz
-  COMPONENT Headers
+    DESTINATION include/waflz
+    COMPONENT Headers
 )
 

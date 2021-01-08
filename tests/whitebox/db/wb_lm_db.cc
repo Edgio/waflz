@@ -105,15 +105,6 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 l_s = l_db.increment_key(l_result, TEST_KEY, 1000);
                 l_s = l_db.get_key(l_result, BANANA_KEY, strlen(BANANA_KEY));
                 REQUIRE(l_s == WAFLZ_STATUS_ERROR);
-                //increment the keys again to check value resets to 1.
-                l_s = l_db.increment_key(l_result, MONKEY_KEY, 1000);
-                REQUIRE(l_s == WAFLZ_STATUS_OK);
-                REQUIRE(l_result == 1);
-                l_s = l_db.increment_key(l_result, BANANA_KEY, 1000);
-                REQUIRE(l_s == WAFLZ_STATUS_OK);
-                REQUIRE(l_result == 1);
-                //sleep for 1 sec to clean up keys
-                usleep(1000000);
         }
         SECTION("validate sweep db - test if sweeping deletes expired keys from db") {
                 int32_t l_s;
@@ -133,7 +124,7 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 l_s = l_db.increment_key(l_result, MONKEY_KEY, 2000);
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 REQUIRE(l_result == 1);
-                l_s = l_db.increment_key(l_result, BANANA_KEY, 3000);
+                l_s = l_db.increment_key(l_result, BANANA_KEY, 4000);
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 REQUIRE(l_result == 1);
                 // sweep db
@@ -149,16 +140,16 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 REQUIRE(l_out_val == 1);
                 // sleep for 2 seconds and sweep db. Monkey key should have been
                 //deleted
-                usleep(2000000);
+                usleep(3000000);
                 l_s = l_db.sweep_db();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 l_s = l_db.get_key(l_out_val, MONKEY_KEY, strlen(MONKEY_KEY));
                 REQUIRE(l_s == WAFLZ_STATUS_ERROR);
                 l_s = l_db.get_key(l_out_val, BANANA_KEY, strlen(BANANA_KEY));
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
-                // sleep for 1 second and sweep db. Banana key should have been
+                // sleep for 2 more seconds and sweep db. Banana key should have been
                 // deleted
-                usleep(1000000);
+                usleep(2000000);
                 l_s = l_db.sweep_db();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 l_s = l_db.get_key(l_out_val, BANANA_KEY, strlen(BANANA_KEY));

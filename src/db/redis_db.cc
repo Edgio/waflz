@@ -242,4 +242,13 @@ int32_t redis_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
         }
         return WAFLZ_STATUS_OK;
 }
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t redis_db::get_db_stats(db_stats_t& a_stats)
+{
+        return WAFLZ_STATUS_OK;
+}
 }

@@ -14,12 +14,15 @@
 //! ----------------------------------------------------------------------------
 #include <stdint.h>
 #include <string>
-#include <lmdb.h>
 #include "waflz/kv_db.h"
 #include "waflz/def.h"
 //! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
+struct MDB_env;
+struct MDB_txn;
+struct MDB_val;
+typedef unsigned int MDB_dbi;
 namespace ns_waflz {
 // lmdb val 
 typedef struct lm_val {
@@ -56,7 +59,9 @@ public:
         int32_t set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len);
         int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len);
         int32_t print_all_keys();
+        int32_t get_db_stats(db_stats_t& a_stats);
         int32_t clear_keys();
+        int32_t sweep_db();
 private:
         // -------------------------------------------------
         // private methods

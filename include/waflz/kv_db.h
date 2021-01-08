@@ -26,6 +26,16 @@ typedef struct kv_ttl {
         std::string *m_key;
         ~kv_ttl() { if(m_key) { delete m_key; m_key = NULL; } }
 } kv_ttl_t;
+// db stats
+typedef struct db_stats {
+        uint32_t m_max_readers;
+        uint32_t m_readers_used;
+        uint32_t m_max_pages;
+        uint64_t m_pages_used;
+        uint32_t m_page_size;
+        uint64_t m_res_mem_used;
+        uint64_t m_num_entries;
+}db_stats_t;
 //! ----------------------------------------------------------------------------
 //! Priority queue sorting
 //! ----------------------------------------------------------------------------
@@ -56,6 +66,7 @@ public:
         virtual int32_t print_all_keys(void) = 0;
         virtual int32_t set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len) = 0;
         virtual int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len) = 0;
+        virtual int32_t get_db_stats(db_stats_t& a_stats) = 0;
         const char *get_err_msg(void) { return m_err_msg; }
         bool get_init(void) { return m_init; }
 protected:

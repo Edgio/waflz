@@ -112,6 +112,8 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 l_s = l_db.increment_key(l_result, BANANA_KEY, 1000);
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 REQUIRE(l_result == 1);
+                //sleep for 1 sec to clean up keys
+                usleep(1000000);
         }
         SECTION("validate sweep db - test if sweeping deletes expired keys from db") {
                 int32_t l_s;

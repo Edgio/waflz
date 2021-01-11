@@ -67,6 +67,7 @@ public:
         virtual int32_t set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len) = 0;
         virtual int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len) = 0;
         virtual int32_t get_db_stats(db_stats_t& a_stats) = 0;
+        virtual int32_t sweep_db() = 0;
         const char *get_err_msg(void) { return m_err_msg; }
         bool get_init(void) { return m_init; }
 protected:

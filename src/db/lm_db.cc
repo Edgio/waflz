@@ -57,7 +57,7 @@ lm_db::~lm_db()
                         {
                                 mdb_env_sync(m_env, 1);
                                 expire_old_keys();
-                                sweep_db();
+                                //sweep_db();
                         }
                 }
                 mdb_env_close(m_env);
@@ -611,7 +611,7 @@ int32_t lm_db::sweep_db()
                 WAFLZ_PERROR(m_err_msg, "sweep_db:cursor open failed-%d, %s",
                              l_s, mdb_strerror(l_s));
                 mdb_txn_abort(m_txn);
-                return -1;
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // parse entire db using cursor and delete all

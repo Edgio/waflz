@@ -15,6 +15,7 @@
 #include "waflz/scopes_configs.h"
 #include "waflz/scopes.h"
 #include "waflz/rules.h"
+#include "waflz/bots.h"
 #include "waflz/acl.h"
 #include "waflz/trace.h"
 #include "waflz/string_util.h"
@@ -992,7 +993,7 @@ int32_t scopes_configs::load_rules(const char* a_buf, uint32_t a_buf_len)
 int32_t scopes_configs::load_bots(void* a_js)
 {
         int32_t l_s;
-        ns_waflz::rules* l_bots = new rules(m_engine);
+        ns_waflz::bots* l_bots = new bots(m_engine, m_challenge);
         l_s = l_bots->load(a_js);
         if(l_s != WAFLZ_STATUS_OK)
         {

@@ -10,10 +10,11 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
-#include "waflz/rules.h"
+#include "waflz/bots.h"
 #include "support/ndebug.h"
 #include "waflz/engine.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/challenge.h"
 #include "waflz/waf.h"
 #include "event.pb.h"
 //! ----------------------------------------------------------------------------
@@ -26,14 +27,15 @@ namespace ns_waflz {
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-rules::rules(engine &a_engine):
+bots::bots(engine &a_engine, challenge& a_challenge):
         m_init(false),
         m_err_msg(),
         m_engine(a_engine),
         m_waf(NULL),
         m_id("NA"),
         m_cust_id("NA"),
-        m_name("NA")
+        m_name("NA"),
+        m_challenge(a_challenge)
 {
 }
 //! ----------------------------------------------------------------------------
@@ -41,7 +43,7 @@ rules::rules(engine &a_engine):
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-rules::~rules()
+bots::~bots()
 {
         if(m_waf) { delete m_waf; m_waf = NULL; }
 }
@@ -50,7 +52,7 @@ rules::~rules()
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
+int32_t bots::load_file(const char *a_buf, uint32_t a_buf_len)
 {
         if(a_buf_len > _CONFIG_PROFILE_MAX_SIZE)
         {
@@ -97,7 +99,7 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t rules::load(void* a_js)
+int32_t bots::load(void* a_js)
 {
         m_init = false;
         // -----------------------------------------
@@ -134,8 +136,9 @@ int32_t rules::load(void* a_js)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t rules::process(waflz_pb::event **ao_event,
+int32_t bots::process(waflz_pb::event **ao_event,
                        void *a_ctx,
+                       const waflz_pb::enforcement **a_scope_enf,
                        rqst_ctx **ao_rqst_ctx)
 {
         if(!ao_event)
@@ -177,7 +180,7 @@ int32_t rules::process(waflz_pb::event **ao_event,
         }
         waflz_pb::event *l_event = NULL;
         // -------------------------------------------------
-        // process waf...
+        // process custom bot rule with waf
         // -------------------------------------------------
         l_s = m_waf->process(&l_event, a_ctx, &l_rqst_ctx, true);
         if(l_s != WAFLZ_STATUS_OK)
@@ -188,9 +191,44 @@ int32_t rules::process(waflz_pb::event **ao_event,
         }
         // -------------------------------------------------
         // done...
+        // TODO: Add logic for handling reputation db later
         // -------------------------------------------------
         if(l_event)
         {
+                // -----------------------------------------
+                // There is only browser challenge for now
+                // can have more in future...
+                // Check for enforcement type
+                // if its browser challenge, verify challenge
+                // -----------------------------------------
+                const waflz_pb::enforcement *l_enf = *a_scope_enf;
+                bool l_pass = false;
+                if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
+                {
+                        // -----------------------------------------
+                        // check cookie -verify browser challenge
+                        // -----------------------------------------
+                        // default to valid for 10 min
+                        uint32_t l_valid_for_s = 600;
+                        if(l_enf->has_valid_for_sec())
+                        {
+                                l_valid_for_s = l_enf->valid_for_sec();
+                        }
+                        int32_t l_s;
+                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx, &l_event);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                // do nothing -re-issue challenge bye sending an event
+                        }
+                        if(l_pass)
+                        {
+                                // Challenge passed, delete event and return
+                                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                                if(l_event) { delete l_event; l_event =  NULL; }
+                                return WAFLZ_STATUS_OK;
+                        }
+                        l_event->set_token_duration_sec(l_valid_for_s);
+                }
                 l_s = l_rqst_ctx->append_rqst_info(*l_event, m_engine.get_geoip2_mmdb());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -209,7 +247,7 @@ int32_t rules::process(waflz_pb::event **ao_event,
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-const waflz_pb::sec_config_t* rules::get_pb(void)
+const waflz_pb::sec_config_t* bots::get_pb(void)
 {
         if(!m_waf)
         {

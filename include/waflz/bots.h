@@ -42,7 +42,10 @@ public:
         // -------------------------------------------------
         bots(engine &a_engine, challenge& a_challenge);
         ~bots();
-        int32_t process(waflz_pb::event **ao_event, void *a_ctx, const waflz_pb::enforcement **a_scope_enf, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process(waflz_pb::event **ao_event, void *a_ctx,
+                        waflz_pb::enforcement **ao_enf,
+                        const waflz_pb::enforcement **a_scope_enf,
+                        rqst_ctx **ao_rqst_ctx = NULL);
         int32_t load_file(const char *a_buf, uint32_t a_buf_len);
         int32_t load(void* a_js);
         //: ------------------------------------------------

@@ -1809,9 +1809,10 @@ limits:
                 // -----------------------------------------
                 bots* l_bots = (bots*)a_scope._bots_prod__reserved();
                 waflz_pb::event *l_event = NULL;
-                const waflz_pb::enforcement *l_enf = &(a_scope.bots_prod_action());
+                waflz_pb::enforcement *l_rdb_enf = NULL;
+                const waflz_pb::enforcement *l_scope_enf = &(a_scope.bots_prod_action());
                 int32_t l_s;
-                l_s = l_bots->process(&l_event, a_ctx, &l_enf, ao_rqst_ctx);
+                l_s = l_bots->process(&l_event, a_ctx, &l_rdb_enf, &l_scope_enf, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
@@ -1825,9 +1826,15 @@ limits:
                 l_event->set_bots_config_id(l_bots->get_id());
                 l_event->set_bots_config_name(l_bots->get_name());
                 *ao_prod_event = l_event;
-                if(a_scope.has_bots_prod_action())
+                if(l_rdb_enf)
                 {
-                        *ao_enf = &(a_scope.bots_prod_action());
+                        *ao_enf = l_rdb_enf;
+                        NDBG_PRINT("sending rdb enf\n");
+                }
+                else if(a_scope.has_bots_prod_action() &&
+                        !(*ao_rqst_ctx)->m_bot_rdb_enf)
+                {
+                        *ao_enf = l_scope_enf;
                         if((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();

@@ -424,6 +424,10 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
         {
                 *ao_enf = new waflz_pb::enforcement();
                 (*ao_enf)->CopyFrom(*l_enf);
+                if((*ao_rqst_ctx)->m_bot_rdb_enf)
+                {
+                        if(l_enf) { delete l_enf; l_enf = NULL; }
+                }
         }
         if(m_enable_locking)
         {

@@ -51,6 +51,9 @@
     #define CONFIG_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
   #endif
 #endif 
+const short int HTTP_STATUS_OK = 200;
+const short int HTTP_STATUS_AUTHENTICATION_REQUIRED = 407;
+const short int HTTP_STATUS_FORBIDDEN = 403;
 //! ----------------------------------------------------------------------------
 //! macros
 //! ----------------------------------------------------------------------------

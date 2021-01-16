@@ -7,6 +7,7 @@
           "id": "960008",
           "msg": "Request User-Agent is bots",
           "phase": 2,
+          "auditlog" : true,
           "setvar": [
             {
               "op": "INCREMENT",

@@ -93,6 +93,7 @@ lm_db::~lm_db()
 //! ----------------------------------------------------------------------------
 int32_t lm_db::init()
 {
+        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "lmdb init\n");       
         int32_t l_s;
         // -------------------------------------------------
         // create env

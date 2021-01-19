@@ -2405,7 +2405,6 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // auditlog+block = log req + custom action for auth
         // auditlog+deny  = log req + block req
         // -------------------------------------------------
-        //NDBG_PRINT("rule %s\n", a_rule.DebugString().c_str());
         if(l_action.has_auditlog())
         {
                 switch (l_action.action_type())

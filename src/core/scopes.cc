@@ -1829,7 +1829,6 @@ limits:
                 if(l_rdb_enf)
                 {
                         *ao_enf = l_rdb_enf;
-                        NDBG_PRINT("sending rdb enf\n");
                 }
                 else if(a_scope.has_bots_prod_action() &&
                         !(*ao_rqst_ctx)->m_bot_rdb_enf)

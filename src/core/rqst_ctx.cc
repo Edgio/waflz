@@ -1258,6 +1258,20 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         _SET_HEADER("X-Forwarded-For", x_forwarded_for);
         _SET_HEADER("Content-Type", content_type);
         // -------------------------------------------------
+        // Append all headers if rqst_ctx is marked for logging
+        // -------------------------------------------------
+        if(m_log_request)
+        {
+                for(data_map_t::const_iterator i_h = m_header_map.begin();
+                    i_h != m_header_map.end();
+                    ++i_h)
+                {
+                        waflz_pb::request_info::req_header_t *l_req_header = l_request_info->add_request_headers();
+                        l_req_header->set_key(i_h->first.m_data, i_h->first.m_len);
+                        l_req_header->set_value(i_h->second.m_data, i_h->second.m_len);
+                }
+        }
+        // -------------------------------------------------
         // others...
         // -------------------------------------------------
         _SET_IF_EXIST_STR(m_src_addr, virt_remote_host);

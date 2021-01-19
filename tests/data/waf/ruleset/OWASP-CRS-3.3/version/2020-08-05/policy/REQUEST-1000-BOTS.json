@@ -1,0 +1,55 @@
+{
+   "directive" : [
+      {
+         "sec_rule" : {
+            "hidden" : false,
+            "variable" : [
+               {
+                  "match" : [
+                     {
+                        "is_regex" : false,
+                        "is_negated" : false
+                     }
+                  ],
+                  "is_count" : false,
+                  "type" : "REMOTE_ADDR"
+               }
+            ],
+            "action" : {
+               "phase" : 1,
+               "t" : [
+                  "NONE"
+               ],
+               "tag" : [
+                  "REPUTATION/MALICIOUS"
+               ],
+               "msg" : "Client IP in bots block list",
+               "action_type" : "PASS",
+               "file": "REQUEST-1000-BOTS.json",
+               "log" : true,
+               "auditlog" : true,
+               "setvar": [
+                    {
+                        "op": "INCREMENT",
+                        "scope": "TX",
+                        "val": "%{tx.critical_anomaly_score}",
+                        "var": "anomaly_score"
+                    },
+                    {
+                        "op": "ASSIGN",
+                        "scope": "TX",
+                        "val": "%{rule.msg}",
+                        "var": "msg"
+                    }
+                ],
+               "id" : "70000001"
+            },
+            "operator" : {
+               "type" : "IPMATCHFROMFILE",
+               "is_negated" : false,
+               "value" : "ip_bot_reputation_db.txt",
+               "is_regex" : false            }
+         }
+      }
+   ]
+}

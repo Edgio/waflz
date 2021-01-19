@@ -16,14 +16,14 @@
                }
             ],
             "action" : {
-               "phase" : 1,
+               "phase" : 2,
                "t" : [
                   "NONE"
                ],
                "tag" : [
                   "REPUTATION/MALICIOUS"
                ],
-               "msg" : "Client IP in bots block list",
+               "msg" : "Client IP in bots audit list",
                "action_type" : "PASS",
                "file": "REQUEST-1000-BOTS.json",
                "log" : true,
@@ -47,7 +47,7 @@
             "operator" : {
                "type" : "IPMATCHFROMFILE",
                "is_negated" : false,
-               "value" : "ip_bot_reputation_db.txt",
+               "value" : "ip_audit_bots_reputation_db.txt",
                "is_regex" : false            }
          }
       }

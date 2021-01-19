@@ -233,7 +233,7 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
                 // -----------------------------------------
                 // done
                 // -----------------------------------------
-                NDBG_PRINT("USING REDIS\n");
+                //NDBG_PRINT("USING REDIS\n");
                 *ao_db = l_db;
         }
         // -------------------------------------------------
@@ -297,7 +297,7 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
                 // -----------------------------------------
                 // done
                 // -----------------------------------------
-                NDBG_PRINT("USING LMDB\n");
+                //NDBG_PRINT("USING LMDB\n");
                 *ao_db = l_db;
         }
         // -------------------------------------------------
@@ -349,7 +349,7 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
                 // -----------------------------------------
                 // done
                 // -----------------------------------------
-                NDBG_PRINT("USING KYOTOCABINET\n");
+                //NDBG_PRINT("USING KYOTOCABINET\n");
                 *ao_db = l_db;
         }
         return STATUS_OK;
@@ -1008,7 +1008,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -e, --rules         rules\n");
         fprintf(a_stream, "  -m, --modsecurity   modsecurity rules\n");
         fprintf(a_stream, "  -l, --limit         limit.\n");
-        fprintf(a_stream, "  -b, --scopes        scopes (file or directory)\n");
+        fprintf(a_stream, "  -S, --scopes        scopes (file or directory)\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");

@@ -4,7 +4,7 @@
       "sec_rule": {
         "action": {
           "action_type": "BLOCK",
-          "id": "960008",
+          "id": "77000101",
           "msg": "Request User-Agent is bots",
           "phase": 2,
           "auditlog": true,
@@ -43,6 +43,9 @@
     },
   {
    "include": "REQUEST-1000-BOTS.json"
+  },
+  {
+   "include": "REQUEST-1001-BOTS.json"
   }
   ],
   "ruleset_id": "OWASP-CRS-3.3",

@@ -16,6 +16,7 @@
 #include "waflz/kycb_db.h"
 #include "waflz/lm_db.h"
 #include "waflz/def.h"
+#include "waflz/trace.h"
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -42,6 +43,7 @@ lm_db::lm_db(void):
 //! ----------------------------------------------------------------------------
 lm_db::~lm_db()
 {
+        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "in lmdb destructor\n");
         // -------------------------------------------------
         // If db exists, sync the env to flush all keys to
         // disk. expire the keys that are created by current
@@ -55,9 +57,15 @@ lm_db::~lm_db()
                 {
                         if(l_path != NULL)
                         {
+                                int32_t l_s;
+                                WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "env path exists, sweeping keys\n");
                                 mdb_env_sync(m_env, 1);
                                 expire_old_keys();
-                                //sweep_db();
+                                l_s = sweep_db();
+                                if(l_s != WAFLZ_STATUS_OK)
+                                {
+                                        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "sweep db failed\n");
+                                }
                         }
                 }
                 mdb_env_close(m_env);

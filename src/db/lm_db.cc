@@ -52,9 +52,11 @@ lm_db::~lm_db()
         // -------------------------------------------------
         if(m_env != NULL)
         {
+                WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "env is not null\n");
                 const char* l_path = NULL;
                 if(mdb_env_get_path(m_env, &l_path) == MDB_SUCCESS)
                 {
+                        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "getting path is successful\n");
                         if(l_path != NULL)
                         {
                                 int32_t l_s;
@@ -71,6 +73,7 @@ lm_db::~lm_db()
                 mdb_env_close(m_env);
                 m_env = NULL;
         }
+        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "clearing  keys from PQ\n");
         // -------------------------------------------------
         // clear keys from PQ
         // -------------------------------------------------

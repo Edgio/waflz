@@ -56,6 +56,7 @@ lm_db::~lm_db()
                         {
                                 mdb_env_sync(m_env, 1);
                                 expire_old_keys();
+                                sweep_db();
                         }
                 }
                 mdb_env_close(m_env);

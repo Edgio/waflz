@@ -16,7 +16,6 @@
 #include "waflz/kycb_db.h"
 #include "waflz/lm_db.h"
 #include "waflz/def.h"
-#include "waflz/trace.h"
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -83,8 +82,7 @@ lm_db::~lm_db()
 //! \param   TODO
 //! ----------------------------------------------------------------------------
 int32_t lm_db::init()
-{
-        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "lmdb init\n");       
+{      
         int32_t l_s;
         // -------------------------------------------------
         // create env

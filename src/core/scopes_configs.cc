@@ -60,7 +60,6 @@ scopes_configs::scopes_configs(engine &a_engine,
 //! ----------------------------------------------------------------------------
 scopes_configs::~scopes_configs()
 {
-        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "in scopes_configs destructor\n");
         for (cust_id_scopes_map_t::iterator  it = m_cust_id_scopes_map.begin();
              it != m_cust_id_scopes_map.end();
              ++it)

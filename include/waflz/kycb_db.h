@@ -58,6 +58,7 @@ public:
         int32_t set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len);
         int32_t get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len);
         int32_t get_db_stats(db_stats_t& a_stats);
+        int32_t sweep();
 private:
         // -------------------------------------------------
         // Private methods

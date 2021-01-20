@@ -61,7 +61,7 @@ public:
         int32_t print_all_keys();
         int32_t get_db_stats(db_stats_t& a_stats);
         int32_t clear_keys();
-        int32_t sweep_db();
+        int32_t sweep();
 private:
         // -------------------------------------------------
         // private methods

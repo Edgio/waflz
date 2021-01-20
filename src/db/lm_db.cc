@@ -45,8 +45,7 @@ lm_db::~lm_db()
         // -------------------------------------------------
         // If db exists, sync the env to flush all keys to
         // disk. expire the keys that are created by current
-        // process using PQ. sweep db to clear any dangling
-        // keys.
+        // process using PQ.
         // -------------------------------------------------
         if(m_env != NULL)
         {
@@ -57,7 +56,7 @@ lm_db::~lm_db()
                         {
                                 mdb_env_sync(m_env, 1);
                                 expire_old_keys();
-                                sweep_db();
+                                sweep();
                         }
                 }
                 mdb_env_close(m_env);
@@ -584,7 +583,7 @@ int32_t lm_db::get_db_stats(db_stats_t& a_stats)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t lm_db::sweep_db()
+int32_t lm_db::sweep()
 {
         int32_t l_s;
         MDB_cursor* l_cur;
@@ -592,13 +591,13 @@ int32_t lm_db::sweep_db()
         l_s = mdb_txn_begin(m_env, NULL, 0, &m_txn);
         if(l_s != MDB_SUCCESS)
         {
-                WAFLZ_PERROR(m_err_msg, "sweep_db:txn begin failed");
+                WAFLZ_PERROR(m_err_msg, "sweep:txn begin failed");
                 return WAFLZ_STATUS_ERROR;
         }
         l_s = mdb_dbi_open(m_txn, NULL, 0, &m_dbi);
         if(l_s != MDB_SUCCESS)
         {
-                WAFLZ_PERROR(m_err_msg, "sweep_db:dbi open failed");
+                WAFLZ_PERROR(m_err_msg, "sweep:dbi open failed");
                 mdb_txn_abort(m_txn);
                 return WAFLZ_STATUS_ERROR;
         }
@@ -608,10 +607,10 @@ int32_t lm_db::sweep_db()
         l_s = mdb_cursor_open(m_txn, m_dbi, &l_cur);
         if(l_s != MDB_SUCCESS)
         {
-                WAFLZ_PERROR(m_err_msg, "sweep_db:cursor open failed-%d, %s",
+                WAFLZ_PERROR(m_err_msg, "sweep:cursor open failed-%d, %s",
                              l_s, mdb_strerror(l_s));
                 mdb_txn_abort(m_txn);
-                return -1;
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // parse entire db using cursor and delete all
@@ -624,7 +623,7 @@ int32_t lm_db::sweep_db()
                 l_s = get_ttl_and_count(&l_val, l_ttl, l_count);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        WAFLZ_PERROR(m_err_msg, "sweep_db:get ttl_and count failed");
+                        WAFLZ_PERROR(m_err_msg, "sweep:get ttl_and count failed");
                         continue;
                 }
                 l_now_ms = get_time_ms();
@@ -634,7 +633,7 @@ int32_t lm_db::sweep_db()
                         l_s = mdb_del(m_txn, m_dbi, &l_key, l_d_val);
                         if(l_s != 0)
                         {
-                                WAFLZ_PERROR(m_err_msg,"sweep_db::delete failed");
+                                WAFLZ_PERROR(m_err_msg,"sweep::delete failed");
                                 continue;
                         }
                 }

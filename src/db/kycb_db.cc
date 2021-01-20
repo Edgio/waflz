@@ -408,7 +408,7 @@ int32_t kycb_db::get_db_stats(db_stats_t& a_stats)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t kycb_db::sweep_db()
+int32_t kycb_db::sweep()
 {
         return WAFLZ_STATUS_OK;
 }

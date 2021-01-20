@@ -256,7 +256,7 @@ int32_t redis_db::get_db_stats(db_stats_t& a_stats)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t redis_db::sweep_db()
+int32_t redis_db::sweep()
 {
         return WAFLZ_STATUS_OK;
 }

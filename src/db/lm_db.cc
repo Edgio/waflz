@@ -43,37 +43,25 @@ lm_db::lm_db(void):
 //! ----------------------------------------------------------------------------
 lm_db::~lm_db()
 {
-        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "in lmdb destructor\n");
         // -------------------------------------------------
         // If db exists, sync the env to flush all keys to
         // disk. expire the keys that are created by current
-        // process using PQ. sweep db to clear any dangling
-        // keys.
+        // process using PQ.
         // -------------------------------------------------
         if(m_env != NULL)
         {
-                WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "env is not null\n");
                 const char* l_path = NULL;
                 if(mdb_env_get_path(m_env, &l_path) == MDB_SUCCESS)
                 {
-                        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "getting path is successful\n");
                         if(l_path != NULL)
                         {
-                                int32_t l_s;
-                                WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "env path exists, sweeping keys\n");
                                 mdb_env_sync(m_env, 1);
                                 expire_old_keys();
-                                l_s = sweep_db();
-                                if(l_s != WAFLZ_STATUS_OK)
-                                {
-                                        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "sweep db failed\n");
-                                }
                         }
                 }
                 mdb_env_close(m_env);
                 m_env = NULL;
         }
-        WFLZ_TRC_PRINT(ns_waflz::WFLZ_TRC_LEVEL_ERROR, "clearing  keys from PQ\n");
         // -------------------------------------------------
         // clear keys from PQ
         // -------------------------------------------------

@@ -412,7 +412,8 @@ static int32_t init_engine(ns_waflz::engine** ao_engine,
 static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx* a_ctx,
                                    ns_is2::session& a_session,
                                    ns_is2::rqst& a_rqst,
-                                   const waflz_pb::enforcement& a_enf)
+                                   const waflz_pb::enforcement& a_enf,
+                                   bool a_bot_enf=false)
 {
         if(!a_ctx)
         {
@@ -454,7 +455,15 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx* a_ctx,
         {
                 //NDBG_PRINT("ALERT\n");
                 std::string l_resp_str;
-                ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_OK, l_resp_str);
+                if(a_bot_enf)
+                {
+                        // send whole event for logging testing
+                        l_resp_str = g_sx->m_resp;
+                }
+                else
+                {
+                        ns_is2::create_json_resp_str(ns_is2::HTTP_STATUS_OK, l_resp_str);
+                }
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
                 l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
                                            "application/json",
@@ -565,12 +574,24 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx* a_ctx,
                 }
                 if(l_dcd) { free(l_dcd); l_dcd = NULL; }
                 ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
-                l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FORBIDDEN,
+                if(a_bot_enf)
+                {
+                        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FORBIDDEN,
+                                           "application/json",
+                                           g_sx->m_resp.length(),
+                                           a_rqst.m_supports_keep_alives,
+                                           a_session.get_server_name());
+                        l_api_resp.set_body_data(g_sx->m_resp.c_str(), g_sx->m_resp.length());
+                }
+                else
+                {
+                        l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_FORBIDDEN,
                                            "text/html",
                                            l_resp_len,
                                            a_rqst.m_supports_keep_alives,
                                            a_session.get_server_name());
-                l_api_resp.set_body_data(l_resp_data, l_resp_len);
+                        l_api_resp.set_body_data(l_resp_data, l_resp_len);
+                }
                 ns_is2::queue_api_resp(a_session, l_api_resp);
                 if(l_resp_data) { free(l_resp_data); l_resp_data = NULL; }
                 l_resp_code = ns_is2::H_RESP_DONE;
@@ -833,7 +854,7 @@ public:
                 if(g_action_flag ||
                    (g_config_mode == CONFIG_MODE_LIMITS))
                 {
-                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf);
+                        l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf, g_action_flag);
                 }
                 if(l_enf) { delete l_enf; l_enf = NULL; }
                 if(l_ctx && l_ctx->m_event) { delete l_ctx->m_event; l_ctx->m_event = NULL; }

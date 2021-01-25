@@ -331,7 +331,7 @@ def test_challenge_with_profile(setup_waflz_server_action):
 # ------------------------------------------------------------------------------
 # test bot rules in reputation db for audit mode
 # ------------------------------------------------------------------------------
-def test_bot_rules_with_reputation_db_audit(setup_waflz_server):
+def test_bot_rules_with_reputation_db_audit(setup_waflz_server_action):
     # ------------------------------------------------------
     # pass a IP which is set for audit mode in bots
     # ------------------------------------------------------
@@ -354,7 +354,7 @@ def test_bot_rules_with_reputation_db_audit(setup_waflz_server):
 # ------------------------------------------------------------------------------
 # test bot rules in reputation db for audit mode
 # ------------------------------------------------------------------------------
-def test_bot_rules_with_reputation_db_block(setup_waflz_server):
+def test_bot_rules_with_reputation_db_block(setup_waflz_server_action):
     # ------------------------------------------------------
     # pass a IP which is set for block mode in bots
     # ------------------------------------------------------
@@ -365,7 +365,7 @@ def test_bot_rules_with_reputation_db_block(setup_waflz_server):
                  'x-waflz-ip': '192.190.1.12'
                 }
     l_r = requests.get(l_uri, headers=l_headers)
-    assert l_r.status_code == 200
+    assert l_r.status_code == 403
     l_r_json = l_r.json()
     assert l_r_json['audit_profile'] == None
     assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 70000002
@@ -390,7 +390,6 @@ def test_bot_rules_challenge_takes_precedence(setup_waflz_server):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    assert l_r.status_code == 200
     assert 'prod_profile' in l_r_json
     # The rule for throwing browser challenge takes precedence
     assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 77000101
@@ -399,7 +398,7 @@ def test_bot_rules_challenge_takes_precedence(setup_waflz_server):
 # ------------------------------------------------------------------------------
 # test bot rules in reputation db for audit mode
 # ------------------------------------------------------------------------------
-def test_bot_rules_audit_rdb_takes_precedence(setup_waflz_server):
+def test_bot_rules_audit_rdb_takes_precedence(setup_waflz_server_action):
     # ------------------------------------------------------
     # pass a IP which is present in both reputation db
     # ------------------------------------------------------

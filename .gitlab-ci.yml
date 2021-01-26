@@ -26,7 +26,12 @@ build:
             update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7
             update-alternatives --auto gcc
         fi
-    - python3 -m pip install --upgrade pip
+    - |
+        if [[ ${UBUNTU_VERSION} == "16.04" ]]; then
+            python3 -m pip install --upgrade 'pip<21.0.0'
+        else
+            python3 -m pip install --upgrade pip
+        fi
     - pip install -r requirements.txt
   script:
     - |

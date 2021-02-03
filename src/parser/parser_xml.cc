@@ -237,7 +237,6 @@ cleanup:
 int32_t parser_xml::capture_xxe(struct _xmlNode *a_xmlNode)
 {
         xmlNode *i_n = a_xmlNode;
-
         // -------------------------------------------------
         // find XML_DTD_NODE
         // -------------------------------------------------

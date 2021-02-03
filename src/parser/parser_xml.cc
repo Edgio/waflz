@@ -156,6 +156,9 @@ int32_t parser_xml::process_chunk(const char *a_buf, uint32_t a_len)
         if(m_parsing_ctx == NULL)
         {
                 m_parsing_ctx = xmlCreatePushParserCtxt(NULL, NULL, a_buf, a_len, "body.xml");
+                // Set a flag to not replace entities
+                // name and value combo is misleading
+                m_parsing_ctx->replaceEntities = 1;
                 if(m_parsing_ctx == NULL)
                 {
                         // TODO log error??? "XML: Failed to create parsing context."
@@ -234,6 +237,7 @@ cleanup:
 int32_t parser_xml::capture_xxe(struct _xmlNode *a_xmlNode)
 {
         xmlNode *i_n = a_xmlNode;
+
         // -------------------------------------------------
         // find XML_DTD_NODE
         // -------------------------------------------------

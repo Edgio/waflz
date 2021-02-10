@@ -138,7 +138,7 @@ int32_t bots::load(void* a_js)
 //! ----------------------------------------------------------------------------
 int32_t bots::process(waflz_pb::event **ao_event,
                        void *a_ctx,
-                       waflz_pb::enforcement **ao_rdb_enf,
+                       waflz_pb::enforcement **ao_repdb_enf,
                        const waflz_pb::enforcement **a_scope_enf,
                        rqst_ctx **ao_rqst_ctx)
 {
@@ -210,16 +210,16 @@ int32_t bots::process(waflz_pb::event **ao_event,
                 {
                 case HTTP_STATUS_OK:
                 {
-                        *ao_rdb_enf = new waflz_pb::enforcement();
-                        (*ao_rdb_enf)->set_enf_type(waflz_pb::enforcement_type_t_ALERT);
-                        l_rqst_ctx->m_bot_rdb_enf = true;
+                        *ao_repdb_enf = new waflz_pb::enforcement();
+                        (*ao_repdb_enf)->set_enf_type(waflz_pb::enforcement_type_t_ALERT);
+                        l_rqst_ctx->m_bot_repdb_enf = true;
                         break;
                 }
                 case HTTP_STATUS_FORBIDDEN:
                 {
-                        *ao_rdb_enf = new waflz_pb::enforcement();
-                        (*ao_rdb_enf)->set_enf_type(waflz_pb::enforcement_type_t_BLOCK_REQUEST);
-                        l_rqst_ctx->m_bot_rdb_enf = true;
+                        *ao_repdb_enf = new waflz_pb::enforcement();
+                        (*ao_repdb_enf)->set_enf_type(waflz_pb::enforcement_type_t_BLOCK_REQUEST);
+                        l_rqst_ctx->m_bot_repdb_enf = true;
                         break;
                 }
                 case HTTP_STATUS_AUTHENTICATION_REQUIRED:
@@ -257,7 +257,7 @@ int32_t bots::process(waflz_pb::event **ao_event,
                                 }
                                 l_event->set_token_duration_sec(l_valid_for_s);
                         }
-                        l_rqst_ctx->m_bot_rdb_enf = false;
+                        l_rqst_ctx->m_bot_repdb_enf = false;
                         break;
                 }
                 }

@@ -171,7 +171,7 @@ public:
         bool m_waf_analyzed;
         bool m_limit_analyzed;
         bool m_log_request;
-        bool m_bot_rdb_enf;
+        bool m_bot_repdb_enf;
         // -------------------------------------------------
         // TODO FIX!!! -not thread safe...
         // -------------------------------------------------

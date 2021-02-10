@@ -128,7 +128,7 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 REQUIRE(l_result == 1);
                 // sweep db
-                l_s = l_db.sweep_db();
+                l_s = l_db.sweep();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 int64_t l_out_val = -1;
                 //verify sweep db didn't delete keys before expiry
@@ -141,7 +141,7 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 // sleep for 2 seconds and sweep db. Monkey key should have been
                 //deleted
                 usleep(3000000);
-                l_s = l_db.sweep_db();
+                l_s = l_db.sweep();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 l_s = l_db.get_key(l_out_val, MONKEY_KEY, strlen(MONKEY_KEY));
                 REQUIRE(l_s == WAFLZ_STATUS_ERROR);
@@ -150,7 +150,7 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 // sleep for 2 more seconds and sweep db. Banana key should have been
                 // deleted
                 usleep(2000000);
-                l_s = l_db.sweep_db();
+                l_s = l_db.sweep();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 l_s = l_db.get_key(l_out_val, BANANA_KEY, strlen(BANANA_KEY));
                 REQUIRE(l_s == WAFLZ_STATUS_ERROR);

@@ -27,7 +27,7 @@ The open source standard implementation of the [ModSecurity Rules Engine](https:
 
 ## Install
 
-### Build requirements (Ubuntu 16.04/18.04)
+### Build requirements (Ubuntu 16.04/18.04/20.04)
 
 #### Packages
 

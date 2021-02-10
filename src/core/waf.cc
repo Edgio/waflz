@@ -493,12 +493,10 @@ int32_t waf::compile(void)
         // compile
         // -------------------------------------------------
         int32_t l_s;
-//         NDBG_PRINT("calling engine compile %s\n", m_pb->DebugString().c_str());
         l_s = m_engine.compile(*m_compiled_config, *m_pb, m_ruleset_dir);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", m_engine.get_err_msg());
-                NDBG_PRINT("error%s\n", m_engine.get_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------

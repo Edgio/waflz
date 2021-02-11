@@ -51,9 +51,6 @@
     #define CONFIG_DATE_FORMAT "%Y-%m-%dT%H:%M:%S%Z"
   #endif
 #endif 
-const short int HTTP_STATUS_OK = 200;
-const short int HTTP_STATUS_AUTHENTICATION_REQUIRED = 407;
-const short int HTTP_STATUS_FORBIDDEN = 403;
 //! ----------------------------------------------------------------------------
 //! macros
 //! ----------------------------------------------------------------------------
@@ -86,6 +83,9 @@ typedef enum {
 //! constants
 //! ----------------------------------------------------------------------------
 #define DEFAULT_BODY_SIZE_MAX (128*1024)
+const short int HTTP_STATUS_OK = 200;
+const short int HTTP_STATUS_AUTHENTICATION_REQUIRED = 407;
+const short int HTTP_STATUS_FORBIDDEN = 403;
 // callbacks
 typedef int32_t (*get_rqst_data_size_cb_t)(uint32_t *a, void *);
 typedef int32_t (*get_rqst_data_cb_t)(const char **, uint32_t *, void *);

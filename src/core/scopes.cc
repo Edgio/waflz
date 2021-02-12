@@ -1959,8 +1959,11 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         // -------------------------------------------------
         waflz_pb::limit* l_limit = l_cfg->add_limits();
         l_limit->set_id(a_limit.id());
+        l_limit->set_customer_id(m_cust_id);
         if(a_limit.has_name())
-        { l_limit->set_name(a_limit.name()); }
+        {
+            l_limit->set_name(a_limit.name());
+        }
         else
         {
                 l_limit->set_name("NA");

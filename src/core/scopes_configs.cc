@@ -15,7 +15,6 @@
 #include "waflz/scopes_configs.h"
 #include "waflz/scopes.h"
 #include "waflz/rules.h"
-#include "waflz/bots.h"
 #include "waflz/acl.h"
 #include "waflz/trace.h"
 #include "waflz/string_util.h"
@@ -424,10 +423,6 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
         {
                 *ao_enf = new waflz_pb::enforcement();
                 (*ao_enf)->CopyFrom(*l_enf);
-                if((*ao_rqst_ctx)->m_bot_repdb_enf)
-                {
-                        if(l_enf) { delete l_enf; l_enf = NULL; }
-                }
         }
         if(m_enable_locking)
         {
@@ -997,7 +992,7 @@ int32_t scopes_configs::load_rules(const char* a_buf, uint32_t a_buf_len)
 int32_t scopes_configs::load_bots(void* a_js)
 {
         int32_t l_s;
-        ns_waflz::bots* l_bots = new bots(m_engine, m_challenge);
+        ns_waflz::rules* l_bots = new rules(m_engine);
         l_s = l_bots->load(a_js);
         if(l_s != WAFLZ_STATUS_OK)
         {

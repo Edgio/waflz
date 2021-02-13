@@ -15,7 +15,6 @@
 #include "waflz/config_parser.h"
 #include "waflz/acl.h"
 #include "waflz/rules.h"
-#include "waflz/bots.h"
 #include "waflz/engine.h"
 #include "waflz/rl_obj.h"
 #include "waflz/limit.h"
@@ -738,7 +737,7 @@ acl_prod_action:
                 // -----------------------------------------
                 std::string l_path;
                 l_path = a_conf_dir_path + "/bots/" + m_cust_id + "-" + a_scope.bots_prod_id() +".bots.json";
-                bots* l_bots = new bots(m_engine, m_challenge);
+                rules* l_bots = new rules(m_engine);
                 int32_t l_s;
                 l_s = l_bots->load_file(l_path.c_str(), l_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
@@ -1386,7 +1385,7 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes::load_bots(ns_waflz::bots* a_bots)
+int32_t scopes::load_bots(ns_waflz::rules* a_bots)
 {
         if(!a_bots)
         {
@@ -1807,12 +1806,10 @@ limits:
                 // -----------------------------------------
                 // process
                 // -----------------------------------------
-                bots* l_bots = (bots*)a_scope._bots_prod__reserved();
+                rules* l_bots = (rules*)a_scope._bots_prod__reserved();
                 waflz_pb::event *l_event = NULL;
-                waflz_pb::enforcement *l_repdb_enf = NULL;
-                const waflz_pb::enforcement *l_scope_enf = &(a_scope.bots_prod_action());
                 int32_t l_s;
-                l_s = l_bots->process(&l_event, a_ctx, &l_repdb_enf, &l_scope_enf, ao_rqst_ctx);
+                l_s = l_bots->process(&l_event, a_ctx, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
@@ -1825,15 +1822,40 @@ limits:
                 }
                 l_event->set_bots_config_id(l_bots->get_id());
                 l_event->set_bots_config_name(l_bots->get_name());
-                *ao_prod_event = l_event;
-                if(l_repdb_enf)
+                // -----------------------------------------
+                // Check for enforcement type
+                // if its browser challenge, verify challenge
+                // -----------------------------------------
+                const waflz_pb::enforcement *l_enf = &(a_scope.bots_prod_action());
+                bool l_pass = false;
+                if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
                 {
-                        *ao_enf = l_repdb_enf;
+                        // -----------------------------------------
+                        // check cookie -verify browser challenge
+                        // -----------------------------------------
+                        // default to valid for 10 min
+                        uint32_t l_valid_for_s = 600;
+                        if(l_enf->has_valid_for_sec())
+                        {
+                                l_valid_for_s = l_enf->valid_for_sec();
+                        }
+                        int32_t l_s;
+                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx, &l_event);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                // do nothing -re-issue challenge
+                        }
+                        if(l_pass)
+                        {
+                                // Challenge passed, move on to next step
+                                goto prod_rules;
+                        }
+                        l_event->set_token_duration_sec(l_valid_for_s);
                 }
-                else if(a_scope.has_bots_prod_action() &&
-                        !(*ao_rqst_ctx)->m_bot_repdb_enf)
+                *ao_prod_event = l_event;
+                if(a_scope.has_bots_prod_action())
                 {
-                        *ao_enf = l_scope_enf;
+                        *ao_enf = l_enf;
                         if((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();

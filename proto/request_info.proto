@@ -34,10 +34,6 @@ message request_info {
                 optional bytes content_type    = 10;
                 optional bytes range           = 11;
         }
-        message req_header_t {
-                optional bytes key = 1;
-                optional bytes value = 2;
-        }
         // Accesslog specific
         optional timespec_t epoch_time = 1;
         optional timespec_t write_time_used = 2;
@@ -64,5 +60,4 @@ message request_info {
         optional timespec_t total_conn_time = 19;
         optional bytes req_uuid = 20;
         optional bytes hostname = 21;
-        repeated req_header_t request_headers = 22;
 }

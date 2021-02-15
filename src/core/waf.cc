@@ -638,7 +638,7 @@ int32_t waf::compile(void)
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details: initialize waf from a file path. Called from bots.cc/rules.cc
+//! \details: initialize waf from a file path. Called from bots.cc/rules.cc/waflz_server
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
@@ -709,11 +709,6 @@ int32_t waf::init(config_parser::format_t a_format,
         {
                 m_pb->set_ruleset_version("__na__");
         }
-        m_ruleset_dir = m_engine.get_ruleset_dir();
-        m_ruleset_dir.append(m_pb->ruleset_id());
-        m_ruleset_dir.append("/version/");
-        m_ruleset_dir.append(m_pb->ruleset_version());
-        m_ruleset_dir.append("/policy/");
         // -------------------------------------------------
         // set id
         // -------------------------------------------------
@@ -721,22 +716,32 @@ int32_t waf::init(config_parser::format_t a_format,
         m_cust_id = m_pb->customer_id();
         m_name = m_pb->name();
         // -------------------------------------------------
-        // update includes to full path
+        // set ruleset info for custom rules
         // -------------------------------------------------
-        for(int i_d = 0; i_d < m_pb->directive_size(); ++i_d)
+        if(a_custom_rules)
         {
-                ::waflz_pb::directive_t* l_d = m_pb->mutable_directive(i_d);
-                // -----------------------------------------
-                // include
-                // -----------------------------------------
-                if(l_d->has_include())
+                m_ruleset_dir = m_engine.get_ruleset_dir();
+                m_ruleset_dir.append(m_pb->ruleset_id());
+                m_ruleset_dir.append("/version/");
+                m_ruleset_dir.append(m_pb->ruleset_version());
+                m_ruleset_dir.append("/policy/");
+                // -------------------------------------------------
+                // update includes to full path
+                // -------------------------------------------------
+                for(int i_d = 0; i_d < m_pb->directive_size(); ++i_d)
                 {
-                        std::string l_inc;
-                        l_inc.append(m_ruleset_dir);
-                        l_inc.append(l_d->include());
-                        l_d->set_include(l_inc);
+                        ::waflz_pb::directive_t* l_d = m_pb->mutable_directive(i_d);
+                        // -----------------------------------------
+                        // include
+                        // -----------------------------------------
+                        if(l_d->has_include())
+                        {
+                                std::string l_inc;
+                                l_inc.append(m_ruleset_dir);
+                                l_inc.append(l_d->include());
+                                l_d->set_include(l_inc);
+                        }
                 }
-
         }
         // -------------------------------------------------
         // compile

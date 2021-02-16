@@ -1124,7 +1124,7 @@ int main(int argc, char** argv)
                 { "rules",        1, 0, 'e' },
                 { "modsecurity",  1, 0, 'm' },
                 { "limit",        1, 0, 'l' },
-                { "scopes",       1, 0, 'S' },
+                { "scopes",       1, 0, 'b' },
                 // -----------------------------------------
                 // engine config
                 // -----------------------------------------
@@ -1172,9 +1172,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvi:f:a:e:m:l:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:AH:C:";
+        char l_short_arg_list[] = "hvi:f:a:e:m:l:b:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:AH:C:";
 #else
-        char l_short_arg_list[] = "hvi:f:a:e:m:l:S:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:A";
+        char l_short_arg_list[] = "hvi:f:a:e:m:l:b:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:A";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -1274,7 +1274,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 // scopes
                 // -----------------------------------------
-                case 'S':
+                case 'b':
                 {
                         _TEST_SET_CONFIG_MODE(SCOPES);
                         break;

@@ -44,7 +44,7 @@ def setup_waflz_server():
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopes_dir,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path])
@@ -77,7 +77,7 @@ def setup_waflz_server_action():
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopes_dir,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
@@ -85,7 +85,7 @@ def setup_waflz_server_action():
                                   '-j'])
     print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopes_dir,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
@@ -328,3 +328,92 @@ def test_challenge_with_profile(setup_waflz_server_action):
     l_parser = html_parse()
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
+# ------------------------------------------------------------------------------
+# test bot rules in reputation db for audit mode
+# ------------------------------------------------------------------------------
+def test_bot_rules_with_reputation_db_audit(setup_waflz_server_action):
+    # ------------------------------------------------------
+    # pass a IP which is set for audit mode in bots
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'monkey',
+                 'waf-scopes-id': '0052',
+                 'x-waflz-ip': '192.190.1.1'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile'] == None
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 70000001
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Client IP in bots audit list'
+    #test we are logging all headers
+    assert 'request_headers' in l_r_json['prod_profile']['req_info']
+    assert len(l_r_json['prod_profile']['req_info']['request_headers']) == 6
+    #assert l_r.text = '"'
+# ------------------------------------------------------------------------------
+# test bot rules in reputation db for audit mode
+# ------------------------------------------------------------------------------
+def test_bot_rules_with_reputation_db_block(setup_waflz_server_action):
+    # ------------------------------------------------------
+    # pass a IP which is set for block mode in bots
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'monkey',
+                 'waf-scopes-id': '0052',
+                 'x-waflz-ip': '192.190.1.12'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile'] == None
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 70000002
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Client IP in bots block list'
+    #test we are logging all headers
+    assert 'request_headers' in l_r_json['prod_profile']['req_info']
+    assert len(l_r_json['prod_profile']['req_info']['request_headers']) == 6
+# ------------------------------------------------------------------------------
+# test bot rules in reputation db but matched browser challenge rule
+# ------------------------------------------------------------------------------
+def test_bot_rules_challenge_takes_precedence(setup_waflz_server):
+    # ------------------------------------------------------
+    # pass a IP which is set for block mode reputation db
+    # Set the user-agent which matches browser challenge rule
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'waf-scopes-id': '0052',
+                 'user-agent': 'bot-testing',
+                 'x-waflz-ip': '192.190.1.12'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'prod_profile' in l_r_json
+    # The rule for throwing browser challenge takes precedence
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 77000101
+    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_NO_TOKEN"
+    assert l_r_json['prod_profile']['token_duration_sec'] == 3
+# ------------------------------------------------------------------------------
+# test bot rules in reputation db for audit mode
+# ------------------------------------------------------------------------------
+def test_bot_rules_audit_rdb_takes_precedence(setup_waflz_server_action):
+    # ------------------------------------------------------
+    # pass a IP which is present in both reputation db
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'monkey',
+                 'waf-scopes-id': '0052',
+                 'x-waflz-ip': '192.190.1.10'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile'] == None
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 70000001
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Client IP in bots audit list'
+    #test we are logging all headers
+    assert 'request_headers' in l_r_json['prod_profile']['req_info']
+    assert len(l_r_json['prod_profile']['req_info']['request_headers']) == 6

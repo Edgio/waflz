@@ -638,7 +638,7 @@ int32_t waf::compile(void)
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details: TODO
+//! \details: initialize waf from a file path. Called from bots.cc/rules.cc/waflz_server
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
@@ -699,16 +699,50 @@ int32_t waf::init(config_parser::format_t a_format,
         //l_parser->show_status();
         if(l_parser) { delete l_parser; l_parser = NULL;}
         // -------------------------------------------------
-        // set ruleset info
+        // ruleset info
         // -------------------------------------------------
-        m_pb->set_ruleset_id("__na__");
-        m_pb->set_ruleset_version("__na__");
+        if(!m_pb->has_ruleset_id())
+        {
+                 m_pb->set_ruleset_id("__na__");
+        }
+        if(!m_pb->has_ruleset_version())
+        {
+                m_pb->set_ruleset_version("__na__");
+        }
         // -------------------------------------------------
         // set id
         // -------------------------------------------------
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
         m_name = m_pb->name();
+        // -------------------------------------------------
+        // set ruleset info for custom rules
+        // -------------------------------------------------
+        if(a_custom_rules)
+        {
+                m_ruleset_dir = m_engine.get_ruleset_dir();
+                m_ruleset_dir.append(m_pb->ruleset_id());
+                m_ruleset_dir.append("/version/");
+                m_ruleset_dir.append(m_pb->ruleset_version());
+                m_ruleset_dir.append("/policy/");
+                // -------------------------------------------------
+                // update includes to full path
+                // -------------------------------------------------
+                for(int i_d = 0; i_d < m_pb->directive_size(); ++i_d)
+                {
+                        ::waflz_pb::directive_t* l_d = m_pb->mutable_directive(i_d);
+                        // -----------------------------------------
+                        // include
+                        // -----------------------------------------
+                        if(l_d->has_include())
+                        {
+                                std::string l_inc;
+                                l_inc.append(m_ruleset_dir);
+                                l_inc.append(l_d->include());
+                                l_d->set_include(l_inc);
+                        }
+                }
+        }
         // -------------------------------------------------
         // compile
         // -------------------------------------------------
@@ -782,15 +816,45 @@ int32_t waf::init(void* a_js,
         //l_parser->show_status();
         if(l_parser) { delete l_parser; l_parser = NULL;}
         // -------------------------------------------------
-        // set ruleset info
+        // ruleset info
         // -------------------------------------------------
-        m_pb->set_ruleset_id("__na__");
-        m_pb->set_ruleset_version("__na__");
+        if(!m_pb->has_ruleset_id())
+        {
+                 m_pb->set_ruleset_id("__na__");
+        }
+        if(!m_pb->has_ruleset_version())
+        {
+                m_pb->set_ruleset_version("__na__");
+        }
+        m_ruleset_dir = m_engine.get_ruleset_dir();
+        m_ruleset_dir.append(m_pb->ruleset_id());
+        m_ruleset_dir.append("/version/");
+        m_ruleset_dir.append(m_pb->ruleset_version());
+        m_ruleset_dir.append("/policy/");
         // -------------------------------------------------
         // set id
         // -------------------------------------------------
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
+        m_name = m_pb->name();
+        // -------------------------------------------------
+        // update includes to full path
+        // -------------------------------------------------
+        for(int i_d = 0; i_d < m_pb->directive_size(); ++i_d)
+        {
+                ::waflz_pb::directive_t* l_d = m_pb->mutable_directive(i_d);
+                // -----------------------------------------
+                // include
+                // -----------------------------------------
+                if(l_d->has_include())
+                {
+                        std::string l_inc;
+                        l_inc.append(m_ruleset_dir);
+                        l_inc.append(l_d->include());
+                        l_d->set_include(l_inc);
+                }
+
+        }
         // -------------------------------------------------
         // compile
         // -------------------------------------------------
@@ -871,7 +935,7 @@ int32_t waf::set_defaults(bool a_custom_rules)
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details: TODO
+//! \details: Intialize waf object for profile
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
@@ -2338,7 +2402,40 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // -------------------------------------------------
         // intercept status
         // -------------------------------------------------
-        l_sub_event->set_rule_intercept_status(403);
+        // -------------------------------------------------
+        // Special logic for handling bot rules:
+        // auditlog+pass  = log req + allow req
+        // auditlog+block = log req + custom action for auth
+        // auditlog+deny  = log req + block req
+        // -------------------------------------------------
+        if(l_action.has_auditlog())
+        {
+                switch (l_action.action_type())
+                {
+                case ::waflz_pb::sec_action_t_action_type_t_PASS:
+                {
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_OK);
+                        break;
+                }
+                case ::waflz_pb::sec_action_t_action_type_t_BLOCK:
+                {
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_AUTHENTICATION_REQUIRED);
+                        break;
+                }
+                // Rules that outright want to deny request
+                case ::waflz_pb::sec_action_t_action_type_t_DENY:
+                {
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
+                        break;
+                }
+                default:
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
+                }
+        }
+        else
+        {
+                l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
+        }
         // -------------------------------------------------
         // check for no log
         // -------------------------------------------------

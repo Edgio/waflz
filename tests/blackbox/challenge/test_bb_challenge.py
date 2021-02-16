@@ -44,7 +44,7 @@ def setup_waflz_server():
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopes_dir,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path])
@@ -77,7 +77,7 @@ def setup_waflz_server_action():
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopes_dir,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
@@ -85,7 +85,7 @@ def setup_waflz_server_action():
                                   '-j'])
     print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopes_dir,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,

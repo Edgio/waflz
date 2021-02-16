@@ -40,7 +40,7 @@ def setup_waflz_server_action():
     l_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
+                                  '-b', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
@@ -49,7 +49,7 @@ def setup_waflz_server_action():
                                   ])
     print('cmd: {}'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
+                                  '-b', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,

@@ -135,7 +135,6 @@ if(BUILD_CUSTOM_OPENSSL)
   INCLUDE_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/include")
   LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}")
   LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/lib")
-  add_definitions(-DBUILD_CUSTOM_OPENSSL=1)
 endif()
 set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
 # ------------------------------------------------------------------------------

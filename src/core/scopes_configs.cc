@@ -230,7 +230,7 @@ int32_t scopes_configs::load_file(const char* a_file_path,
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len)
+int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len, bool a_update)
 {
         // -------------------------------------------------
         // parse
@@ -262,7 +262,7 @@ int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len)
         if(l_js->IsObject())
         {
                 int32_t l_s;
-                l_s = load((void *)l_js);
+                l_s = load((void *)l_js, a_update);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_js) { delete l_js; l_js = NULL; }
@@ -282,7 +282,7 @@ int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
                         int32_t l_s;
-                        l_s = load((void *)&l_e);
+                        l_s = load((void *)&l_e, a_update);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 if(l_js) { delete l_js; l_js = NULL; }
@@ -306,7 +306,7 @@ int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes_configs::load(void* a_js)
+int32_t scopes_configs::load(void* a_js, bool a_update)
 {
         if(!a_js)
         {
@@ -365,6 +365,22 @@ int32_t scopes_configs::load(void* a_js)
                 i_scopes->second = NULL;
                 i_scopes->second = l_scopes;
                 return WAFLZ_STATUS_OK;                
+        }
+        // -------------------------------------------------
+        // if update
+        // -------------------------------------------------
+        if(a_update)
+        {
+                // -----------------------------------------
+                // skip updating scope that haven't
+                // already been loaded.
+                // -----------------------------------------
+                if(l_scopes)
+                {
+                        delete l_scopes;
+                        l_scopes = NULL;
+                }
+                return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // add to map

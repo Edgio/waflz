@@ -57,7 +57,7 @@ public:
         // -------------------------------------------------
         int32_t load_dir(const char *a_dir_path, uint32_t a_dir_path_len);
         int32_t load_file(const char *a_file_path, uint32_t a_file_path_len);
-        int32_t load(const char *a_buf, uint32_t a_buf_len);
+        int32_t load(const char *a_buf, uint32_t a_buf_len, bool a_update = false);
         int32_t load_acl(const char* a_buf, uint32_t a_buf_len);
         int32_t load_limit(const char* a_buf, uint32_t a_buf_len);
         int32_t load_rules(const char* a_buf, uint32_t a_buf_len);
@@ -89,7 +89,7 @@ private:
         // disallow copy/assign
         scopes_configs(const scopes_configs &);
         scopes_configs& operator=(const scopes_configs &);
-        int32_t load(void *a_js);
+        int32_t load(void *a_js, bool a_update = false);
         scopes* get_scopes(uint64_t a_id);
         int32_t load_acl(void* a_js);
         int32_t load_limit(void* a_js);

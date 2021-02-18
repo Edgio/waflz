@@ -129,18 +129,14 @@ macro(find_ubuntu_package output_var_prefix
   endif()
 endmacro(find_ubuntu_package)
 # ------------------------------------------------------------------------------
-# special build case for UBUNTU + OPENSSL
+# special build case for OPENSSL
 # ------------------------------------------------------------------------------
-if(BUILD_UBUNTU AND BUILD_CUSTOM_OPENSSL)
+if(BUILD_CUSTOM_OPENSSL)
   INCLUDE_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/include")
-  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libssl.so")
-  set(LIBRARIES ${LIBRARIES} "${BUILD_CUSTOM_OPENSSL}/libcrypto.so")
-  add_definitions(-DBUILD_CUSTOM_OPENSSL=1)
-elseif(BUILD_UBUNTU)
-  #set(LIBRARIES ${LIBRARIES} pthread ssl crypto)
-else()
-  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
+  LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}")
+  LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/lib")
 endif()
+set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
 # ------------------------------------------------------------------------------
 # Mac OS X
 # ------------------------------------------------------------------------------

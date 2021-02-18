@@ -210,10 +210,15 @@ int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         {
                 snprintf(s_scheme,32,"http");
         }
+        // -------------------------------------------------
+        // disabling until build in support for is2+tls
+        // -------------------------------------------------
+#if 0
         else if(l_scheme == ns_is2::SCHEME_TLS)
         {
                 snprintf(s_scheme,32,"https");
         }
+#endif
         *a_data = s_scheme;
         *a_len = strlen(s_scheme);
         return 0;

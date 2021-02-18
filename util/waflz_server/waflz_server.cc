@@ -55,6 +55,7 @@
 #include "is2/srvr/default_rqst_h.h"
 #include "is2/handler/proxy_h.h"
 #include "is2/handler/file_h.h"
+#include "is2/handler/stat_h.h"
 // ---------------------------------------------------------
 // stdlibs
 // ---------------------------------------------------------
@@ -1603,6 +1604,12 @@ int main(int argc, char** argv)
         g_srvr = new ns_is2::srvr();
         g_srvr->register_lsnr(l_lsnr);
         g_srvr->set_num_threads(0);
+        // -------------------------------------------------
+        // add stat endpoint
+        // -------------------------------------------------
+        ns_is2::stat_h *l_stat_h = new ns_is2::stat_h();
+        l_stat_h->set_route("/stat/*");
+        l_lsnr->add_route("/stat/*", l_stat_h);
         // -------------------------------------------------
         // seed random
         // -------------------------------------------------

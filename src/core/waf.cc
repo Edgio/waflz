@@ -1036,8 +1036,17 @@ int32_t waf::init(profile &a_profile)
         set_var_tx(l_conf_pb, "900016", "arg_name_length", to_string(l_gs.arg_name_length()));
         set_var_tx(l_conf_pb, "900017", "arg_length", to_string(l_gs.arg_length()));
         set_var_tx(l_conf_pb, "900018", "total_arg_length", to_string(l_gs.total_arg_length()));
-        set_var_tx(l_conf_pb, "900019", "max_file_size", to_string(l_gs.max_file_size()));
-        set_var_tx(l_conf_pb, "900020", "combined_file_sizes", to_string(l_gs.combined_file_sizes()));
+        // -------------------------------------------------
+        // add file sizes optionally
+        // -------------------------------------------------
+        if(l_gs.has_max_file_size())
+        {
+                set_var_tx(l_conf_pb, "900019", "max_file_size", to_string(l_gs.max_file_size()));
+        }
+        if(l_gs.has_combined_file_sizes())
+        {
+                set_var_tx(l_conf_pb, "900020", "combined_file_sizes", to_string(l_gs.combined_file_sizes()));
+        }
         // -------------------------------------------------
         // allowed http methods
         // -------------------------------------------------

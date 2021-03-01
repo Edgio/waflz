@@ -1364,6 +1364,11 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 {
                         goto method_check;
                 }
+                if(!m_pb->has_max_file_size())
+                {
+                        // no max file size specified
+                        goto method_check;
+                }
                 if(l_cl < m_pb->max_file_size())
                 {
                         // file size within limits

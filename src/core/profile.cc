@@ -549,8 +549,6 @@ int32_t profile::validate(void)
         VERIFY_HAS(l_gs, arg_name_length);
         VERIFY_HAS(l_gs, arg_length);
         VERIFY_HAS(l_gs, total_arg_length);
-        VERIFY_HAS(l_gs, max_file_size);
-        VERIFY_HAS(l_gs, combined_file_sizes);
         VERIFY_HAS(l_gs, anomaly_threshold);
         // -------------------------------------------------
         // set resp header name

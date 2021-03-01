@@ -105,6 +105,7 @@
       "application/x-www-form-urlencoded",
       "multipart/form-data",
       "text/xml",
+      "text/html",
       "application/xml",
       "application/x-amf",
       "application/json"

@@ -57,7 +57,7 @@ def setup_waflz_server():
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 # ------------------------------------------------------------------------------
-# test_bb_modsecurity_ec_access_settings_ignore_args
+# test_bb_profile_01_xml_parser
 # ------------------------------------------------------------------------------
 def test_bb_profile_01_xml_parser(setup_waflz_server):
     l_uri = G_TEST_HOST + 'doathing.cgi'
@@ -75,8 +75,8 @@ def test_bb_profile_01_xml_parser(setup_waflz_server):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    #assert l_r_json['rule_intercept_status'] == 403
-    #assert 'Failed to parse request body.' in l_r_json['rule_msg']
+    assert l_r_json['rule_intercept_status'] == 403
+    assert 'Failed to parse request body.' in l_r_json['rule_msg']
     #-------------------------------------------------------
     # create config
     # ------------------------------------------------------
@@ -117,4 +117,84 @@ def test_bb_profile_01_xml_parser(setup_waflz_server):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    #assert l_r_json['status'] == 'ok'
+    assert l_r_json['status'] == 'ok'
+# ------------------------------------------------------------------------------
+# test_bb_profile_02_file_sizes
+# ------------------------------------------------------------------------------
+def test_bb_profile_02_file_sizes(setup_waflz_server):
+    l_uri = G_TEST_HOST + 'doathing.cgi'
+    l_headers = {'Host': 'myhost.com',
+                 'Content-Type': 'text/html'}
+    l_body = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+    #-------------------------------------------------------
+    # create config
+    # ------------------------------------------------------
+    l_conf = {}
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_conf_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_profile.waf.prof.json'))
+    try:
+        with open(l_conf_path) as l_f:
+            l_conf = json.load(l_f)
+    except Exception as l_e:
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
+            l_conf_path, type(l_e), l_e, l_e.__doc__))
+        assert False
+    #-------------------------------------------------------
+    # validate size limits
+    # ------------------------------------------------------
+    l_conf['general_settings']['combined_file_sizes'] = 10
+    l_conf['general_settings']['max_file_size'] = 10
+    # ------------------------------------------------------
+    # post conf
+    # ------------------------------------------------------
+    l_url = '%supdate_profile'%(G_TEST_HOST)
+    # ------------------------------------------------------
+    # urlopen (POST)
+    # ------------------------------------------------------
+    l_headers = {'Content-Type': 'application/json'}
+    l_r = requests.post(l_url,
+                        headers=l_headers,
+                        data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    # ------------------------------------------------------
+    # verify alert for size limit
+    # ------------------------------------------------------
+    l_headers = {'Host': 'myhost.com',
+                 'Content-Type': 'text/html'}
+    l_r = requests.post(url=l_uri,
+                        headers=l_headers,
+                        data=l_body)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert l_r_json['rule_intercept_status'] == 403
+    assert 'Uploaded file size too large' in l_r_json['rule_msg']
+    #-------------------------------------------------------
+    # remove sizes
+    # ------------------------------------------------------
+    l_conf['general_settings'].pop('combined_file_sizes', None)
+    l_conf['general_settings'].pop('max_file_size', None)
+    # ------------------------------------------------------
+    # post conf
+    # ------------------------------------------------------
+    l_url = '%supdate_profile'%(G_TEST_HOST)
+    # ------------------------------------------------------
+    # urlopen (POST)
+    # ------------------------------------------------------
+    l_headers = {'Content-Type': 'application/json'}
+    l_r = requests.post(l_url,
+                        headers=l_headers,
+                        data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    # ------------------------------------------------------
+    # verify no alert for size limit
+    # ------------------------------------------------------
+    l_headers = {'Host': 'myhost.com',
+                 'Content-Type': 'text/html'}
+    l_r = requests.post(url=l_uri,
+                        headers=l_headers,
+                        data=l_body)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert l_r_json['status'] == 'ok'

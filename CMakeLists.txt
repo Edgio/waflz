@@ -136,7 +136,9 @@ if(BUILD_CUSTOM_OPENSSL)
   LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}")
   LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/lib")
 endif()
-set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
+endif()
 # ------------------------------------------------------------------------------
 # Mac OS X
 # ------------------------------------------------------------------------------

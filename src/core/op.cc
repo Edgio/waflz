@@ -1085,7 +1085,7 @@ OP(DETECTSQLI)
         }
         char l_fprnt[8];
         int32_t l_match = 0;
-        l_match = libinjection_sqli(a_buf, a_len, l_fprnt);
+        l_match = libinjection_sqli(a_buf, a_len, l_fprnt, sizeof(l_fprnt));
         if(l_match)
         {
                 ao_match = true;

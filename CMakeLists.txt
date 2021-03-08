@@ -18,6 +18,7 @@ option(BUILD_TESTS          "Build the unit tests." ON)
 option(BUILD_APPS           "Build the apps." OFF)
 option(BUILD_UBUNTU         "Build for Ubuntu" OFF)
 option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
+option(BUILD_REDHAT         "Build for Red Hat" OFF)
 # ------------------------------------------------------------------------------
 # Compiler options
 # ------------------------------------------------------------------------------
@@ -67,6 +68,7 @@ message("    Build unit tests:                          " "BUILD_TESTS          
 message("    Build applications:                        " "BUILD_APPS              " ${BUILD_APPS})
 message("    Build for Ubuntu (adds package help):      " "BUILD_UBUNTU            " ${BUILD_UBUNTU})
 message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
+message("    Build for Red Hat:                         " "BUILD_REDHAT            " ${BUILD_REDHAT})
 message("")
 # ------------------------------------------------------------------------------
 # Fortify Options
@@ -138,6 +140,9 @@ if(BUILD_CUSTOM_OPENSSL)
 endif()
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
+endif()
+if(BUILD_REDHAT)
+  set(LIBRARIES ${LIBRARIES} ssl crypto pcre protobuf xml2 kyotocabinet hiredis)
 endif()
 # ------------------------------------------------------------------------------
 # Mac OS X
@@ -267,7 +272,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LIBRARIES ${LIBRARIES} rt)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(LIBRARIES ${LIBRARIES} m)
-message(STATUS "Libraries: ${LIBARIES}")
+message(STATUS "Libraries: ${LIBRARIES}")
 # ------------------------------------------------------------------------------
 # Optional flags
 # ------------------------------------------------------------------------------

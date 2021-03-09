@@ -641,21 +641,29 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         // -------------------------------------------------
         // get uri, url and quert string
         // According to modsecurity:
-        // (REQUEST_URI) : This variable holds the full request URL including the query string data
-        // (e.g., /index.php?p=X). However, it will never contain a domain name, even if it was provided on the request line.
-        // (REQUEST_URI_RAW): This will contain the domain name
-        // if it was provided on the request line (e.g., http://www.example.com/index.php?p=X
-        // The domain name depends on request line. Most common form is origin-form
-        // according to https://tools.ietf.org/html/rfc7230#section-5.3.1
-        // We only support origin form at this moment, which means uri=uri in this case
+        //
+        // (REQUEST_URI) : holds the full request URL
+        // including the query string data
+        // (e.g., /index.php?p=X). However, it will never
+        // contain a domain name, even if it was provided on
+        // the request line.
+        //
+        // (REQUEST_URI_RAW): will contain the domain
+        // name if it was provided on the request line
+        // (e.g., http://www.example.com/index.php?p=X
+        // The domain name depends on request line.
+        // The most common form is origin-form according to
+        // https://tools.ietf.org/html/rfc7230#section-5.3.1
+        // waflz only supports origin form at this time,
+        // meaning uri=uri
         // -------------------------------------------------
         if(m_callbacks && m_callbacks->m_get_rqst_uri_cb)
         {
                 int32_t l_s;
                 // get uri
                 l_s = m_callbacks->m_get_rqst_uri_cb(&m_uri.m_data,
-                                        &m_uri.m_len,
-                                        m_ctx);
+                                                     &m_uri.m_len,
+                                                     m_ctx);
                 if(l_s != 0)
                 {
                         // TODO log reason???
@@ -670,9 +678,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                 if(l_q)
                 {
                         m_uri_path_len = l_q - m_uri.m_data;
-                        // -----------------------------------------
+                        // ---------------------------------
                         // get query string
-                        // -----------------------------------------
+                        // ---------------------------------
                         m_query_str.m_data = l_q + 1;
                         m_query_str.m_len = m_uri.m_len - m_uri_path_len - 1;
                 }
@@ -1145,9 +1153,9 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                         {
                                 delete m_body_parser;
                                 m_body_parser = NULL;
-                                // -------------------------------------------------
+                                // -------------------------
                                 // Change parser to json
-                                // -------------------------------------------------
+                                // -------------------------
                                 m_body_parser = new parser_json(this);
                                 l_s = m_body_parser->init();
                                 if(l_s != WAFLZ_STATUS_OK)
@@ -1156,9 +1164,9 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                                         return WAFLZ_STATUS_ERROR;
                                 }
                         }
-                        // -------------------------------------------------
-                        // Check only once in this while loop
-                        // -------------------------------------------------
+                        // ---------------------------------
+                        // check only once in while loop
+                        // ---------------------------------
                         l_is_url_encoded = false;
                 }
                 // -----------------------------------------

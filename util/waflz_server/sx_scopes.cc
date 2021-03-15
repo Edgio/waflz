@@ -268,7 +268,8 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
-        if(l_ctx && l_ctx->m_limit)
+        if(l_ctx &&
+           l_ctx->m_limit)
         {
                 waflz_pb::alert* l_alert = NULL;
                 m_scopes_configs->generate_alert(&l_alert, l_ctx, l_id);

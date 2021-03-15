@@ -628,9 +628,8 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
                 l_at->set_geoip_country_code2(a_ctx->m_geo_cn2.m_data, a_ctx->m_geo_cn2.m_len);
         }
         geoip2_mmdb& l_geoip2_mmdb = m_engine.get_geoip2_mmdb();
-        data_t l_cn_name, l_city_name;
-        l_cn_name.m_data = NULL, l_cn_name.m_len = 0;
-        l_city_name.m_data = NULL, l_city_name.m_len = 0;
+        data_t l_cn_name;
+        data_t l_city_name;
         l_s = l_geoip2_mmdb.get_country_city_name(&l_cn_name.m_data,
                                                   l_cn_name.m_len,
                                                   &l_city_name.m_data,

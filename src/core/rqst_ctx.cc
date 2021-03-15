@@ -437,6 +437,7 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                                const pcre_list_t *a_il_header,
                                const pcre_list_t *a_il_cookie)
 {
+        printf("init_phase_1\n");
         if(m_init_phase_1)
         {
                 return WAFLZ_STATUS_OK;

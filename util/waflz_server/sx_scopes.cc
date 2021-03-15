@@ -272,6 +272,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
         {
                 printf("limit event\n");
                 waflz_pb::alert* l_alert = NULL;
+                printf("ip_Addr -%s\n", l_ctx->m_src_addr.m_data);
                 l_s = m_scopes_configs->generate_alert(&l_alert, l_ctx, l_id);
                 /*rapidjson::Document l_rl_event_json;
                 l_s = ns_waflz::convert_to_json(l_rl_event_json, l_alert);

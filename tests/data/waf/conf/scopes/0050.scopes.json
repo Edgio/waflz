@@ -133,25 +133,7 @@
           "enf_type": "CUSTOM_RESPONSE",
           "response_body_base64": "VGhpcyBpcyBkZG9zIGN1c3RvbSByZXNwb25zZQo="
        }
-    }],
-    "acl_audit_action": null,
-    "acl_audit_id": null,
-    "bots_prod_id": null,
-    "bots_prod_action": null,
-    "acl_prod_id":"5wOgfHWR",
-    "acl_prod_action":{
-          "name": "acl-action",
-          "status":403,
-          "enf_type": "CUSTOM_RESPONSE",
-          "response_body_base64":"VGhpcyBpcyBhY2wgY3VzdG9tIHJlc3BvbnNlCg=="
-    },
-    "profile_prod_id":"YrLf3KkQ",
-    "profile_prod_action":{
-          "name":"profile-action",
-          "status":403,
-          "enf_type": "CUSTOM_RESPONSE",
-          "response_body_base64":"VGhpcyBpcyBwcm9maWxlIGN1c3RvbSByZXNwb25zZQo="
-    }
+    }]
   },
   {
     "id": "limit_id_2",

@@ -17,8 +17,10 @@
 #include "waflz/rules.h"
 #include "waflz/bots.h"
 #include "waflz/acl.h"
+#include "waflz/engine.h"
 #include "waflz/trace.h"
 #include "waflz/string_util.h"
+#include "waflz/geoip2_mmdb.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/error/en.h"
@@ -613,6 +615,37 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         // set customer id...
         // -------------------------------------------------
         l_at->mutable_req_info()->set_customer_id(a_cust_id);
+        // -------------------------------------------------
+        // set geo fields in rl alerts
+        // -------------------------------------------------
+        int32_t l_s;
+        geoip2_mmdb &l_geoip2_mmdb = m_engine.get_geoip2_mmdb();
+        data_t l_geo_cn2;
+        printf("ip -%s\n", a_ctx->m_src_addr.m_data);
+        l_geo_cn2.m_data = NULL;
+        l_geo_cn2.m_len = 0;
+        l_s = l_geoip2_mmdb.get_country(&l_geo_cn2.m_data, 
+                                        l_geo_cn2.m_len,
+                                        a_ctx->m_src_addr.m_data,
+                                        a_ctx->m_src_addr.m_len);
+        if(l_s != WAFLZ_STATUS_ERROR)
+        {
+                l_at->set_geoip_country_code2(l_geo_cn2.m_data, l_geo_cn2.m_len);
+        }
+        data_t l_cn_name , l_city_name;
+        l_cn_name.m_data = NULL, l_cn_name.m_len = 0;
+        l_city_name.m_data = NULL, l_city_name.m_len = 0;
+        l_s = l_geoip2_mmdb.get_country_city_name(&l_cn_name.m_data, 
+                                                   l_cn_name.m_len,
+                                                   &l_city_name.m_data,
+                                                   l_city_name.m_len,
+                                                   a_ctx->m_src_addr.m_data,
+                                                   a_ctx->m_src_addr.m_len);
+        if(l_s != WAFLZ_STATUS_ERROR)
+        {
+                l_at->set_geoip_country_name(l_cn_name.m_data, l_cn_name.m_len);
+                l_at->set_geoip_city_name(l_city_name.m_data, l_city_name.m_len);
+        }
         // -------------------------------------------------
         // done...
         // -------------------------------------------------

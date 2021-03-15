@@ -270,21 +270,11 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
         }
         if(l_ctx && l_ctx->m_limit)
         {
-                printf("limit event\n");
                 waflz_pb::alert* l_alert = NULL;
-                printf("ip_Addr -%s\n", l_ctx->m_src_addr.m_data);
-                l_s = m_scopes_configs->generate_alert(&l_alert, l_ctx, l_id);
-                /*rapidjson::Document l_rl_event_json;
-                l_s = ns_waflz::convert_to_json(l_rl_event_json, l_alert);
-                if(l_s != JSPB_OK)
-                {
-                        printf("pb to json conversion failed\n");
-                }
-                else
-                {*/
-                printf("rl event %s", l_alert->DebugString().c_str());
-                //}
-
+                m_scopes_configs->generate_alert(&l_alert, l_ctx, l_id);
+                //uncomment to print rl alert
+                //NDBG_PRINT("rl event: %s", l_alert->DebugString().c_str());
+                if(l_alert) { delete l_alert; l_alert = NULL; }
         }
         // -------------------------------------------------
         // *************************************************

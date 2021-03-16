@@ -23,6 +23,7 @@
 #include "support/file_util.h"
 #include "event.pb.h"
 #include "profile.pb.h"
+#include "limit.pb.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
@@ -266,6 +267,24 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                 if(l_event_prod) { delete l_event_prod; l_event_prod = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_SERVER_ERROR;
+        }
+
+        // YOU ARE HERE
+        if(l_ctx && l_ctx->m_limit)
+        {
+                waflz_pb::alert* l_alert = NULL;
+                l_s = m_scopes_configs->generate_alert(&l_alert, l_ctx, l_id);
+                /*rapidjson::Document l_rl_event_json;
+                l_s = ns_waflz::convert_to_json(l_rl_event_json, l_alert);
+                if(l_s != JSPB_OK)
+                {
+                        printf("pb to json conversion failed\n");
+                }
+                else
+                {*/
+                printf("rl event %s", l_alert->DebugString().c_str());
+                //}
+
         }
         // -------------------------------------------------
         // *************************************************

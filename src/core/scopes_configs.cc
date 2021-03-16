@@ -326,6 +326,7 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
         uint64_t l_cust_id = 0;
         std::string& l_id_str = l_scopes->get_cust_id();
         l_s = convert_hex_to_uint(l_cust_id, l_id_str.c_str());
+
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint");
@@ -613,6 +614,13 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         // set customer id...
         // -------------------------------------------------
         l_at->mutable_req_info()->set_customer_id(a_cust_id);
+        // -------------------------------------------------
+        // update account_type
+        // -------------------------------------------------
+        cust_id_scopes_map_t::iterator i_scopes;
+        i_scopes = m_cust_id_scopes_map.find(a_cust_id);
+        waflz_pb::limit *l_account_type = l_at->mutable_limit();
+        l_account_type->set_account_type(i_scopes->second->get_pb()->account_type());
         // -------------------------------------------------
         // done...
         // -------------------------------------------------

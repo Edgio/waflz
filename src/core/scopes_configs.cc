@@ -326,7 +326,6 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
         uint64_t l_cust_id = 0;
         std::string& l_id_str = l_scopes->get_cust_id();
         l_s = convert_hex_to_uint(l_cust_id, l_id_str.c_str());
-
         if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint");

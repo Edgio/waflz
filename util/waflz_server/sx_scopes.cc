@@ -267,7 +267,6 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_SERVER_ERROR;
         }
-
         // -------------------------------------------------
         // *************************************************
         //                R E S P O N S E

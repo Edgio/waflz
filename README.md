@@ -52,7 +52,7 @@ brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg
 
 #### Building the tools
 ```bash
-./build_simple.sh
+./build.sh
 ```
 
 And optionally install

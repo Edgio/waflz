@@ -292,7 +292,7 @@ int construct_base64_encoded_token(unsigned char* ao_encoded_message,
         memcpy(l_scratch+a_iv_len+a_ciphertext_len, a_tag, a_tag_len);
         l_scratch[l_len] = 0x0;
 
-        *ao_encoded_message_len = url_safe_base64_encode((char*)ao_encoded_message, (char*)l_scratch, l_len);
+        *ao_encoded_message_len = base64_encode((char*)ao_encoded_message, (char*)l_scratch, l_len);
         ao_encoded_message[*ao_encoded_message_len] = 0x0;
 
         OPENSSL_cleanse(l_scratch, l_len);

@@ -39,6 +39,12 @@
 #define _TOKEN_FIELD_UA "ua"
 #define _TOKEN_FIELD_TIME "time"
 #define _TOKEN_FIELD_ANS "ans"
+#define _CHALLENGE_ID_ "__ecbmchid"
+#define _CHALLENGE_ANS_ "__eccha"
+// remove after update to chall page
+#define _DEFAULT_CHL_ID_ "ec_secure"
+#define _DEFAULT_CHL_ANS_ "ec_answer"
+//
 //! ----------------------------------------------------------------------------
 //! macros
 //! ----------------------------------------------------------------------------
@@ -622,8 +628,8 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         // -------------------------------------------------
         // get __ecbmchid or ec_secure
         // -------------------------------------------------
-        l_ck_k.m_data = "__ecbmchid";
-        l_ck_k.m_len = sizeof("__ecbmchid") - 1;
+        l_ck_k.m_data = _CHALLENGE_ID_;
+        l_ck_k.m_len = sizeof(_CHALLENGE_ID_) - 1;
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {
@@ -631,8 +637,8 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
                 // DS: Remove after challenge page flips to
                 // above value
                 // -----------------------------------------
-                l_ck_k.m_data = "ec_secure";
-                l_ck_k.m_len = sizeof("ec_secure") - 1;
+                l_ck_k.m_data = _DEFAULT_CHL_ID_;
+                l_ck_k.m_len = sizeof(_DEFAULT_CHL_ID_) - 1;
                 i_h = a_ctx->m_cookie_map.find(l_ck_k);
                 if(i_h == a_ctx->m_cookie_map.end())
                 {
@@ -645,8 +651,8 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         // -------------------------------------------------
         // get __eccha or  ec_answer
         // -------------------------------------------------
-        l_ck_k.m_data = "__eccha";
-        l_ck_k.m_len = sizeof("__eccha") - 1;
+        l_ck_k.m_data = _CHALLENGE_ANS_;
+        l_ck_k.m_len = sizeof(_CHALLENGE_ANS_) - 1;
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {
@@ -654,8 +660,8 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
                 // DS: Remove after challenge page flips to
                 // above value
                 // -----------------------------------------
-                l_ck_k.m_data = "ec_answer";
-                l_ck_k.m_len = sizeof("ec_answer") - 1;
+                l_ck_k.m_data = _DEFAULT_CHL_ANS_;
+                l_ck_k.m_len = sizeof(_DEFAULT_CHL_ANS_) - 1;
                 i_h = a_ctx->m_cookie_map.find(l_ck_k);
                 if(i_h == a_ctx->m_cookie_map.end())
                 {

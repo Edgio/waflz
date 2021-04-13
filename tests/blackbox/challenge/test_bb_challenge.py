@@ -123,6 +123,16 @@ def solve_challenge(a_html):
     l_ectoken = l_ectoken_p.group(0)
     return 'ec_answer = ' + str(l_solution) + ';' + l_ectoken[:-1]
 # ------------------------------------------------------------------------------
+# Solve browser challenge with new cookie names
+# ------------------------------------------------------------------------------
+def solve_challenge_new_cookies(a_html):
+    l_problem_p = re.search('val =.[0-9]{3}\+[0-9]{3}', a_html)
+    l_problem_vars = l_problem_p.group(0).split("=")[-1].split('+')
+    l_solution = int(l_problem_vars[0]) + int(l_problem_vars[1])
+    l_ectoken_p = re.search('ec_secure=(.*?)"', a_html)
+    l_ectoken = l_ectoken_p.group(0)
+    return '__eccha = ' + str(l_solution) + ';' + l_ectoken[:-1]
+# ------------------------------------------------------------------------------
 # test bot challenge events
 # ------------------------------------------------------------------------------
 def test_challenge_events(setup_waflz_server):
@@ -173,7 +183,7 @@ def test_challenge_in_bot_config(setup_waflz_server_action):
     l_parser = html_parse()
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
-    l_solution_cookies = solve_challenge(l_parser.m_data)
+    l_solution_cookies = solve_challenge_new_cookies(l_parser.m_data)
     # ------------------------------------------------------
     # test again with solved challenge and cookies
     # ------------------------------------------------------
@@ -226,7 +236,7 @@ def test_challenge_with_limits(setup_waflz_server_action):
     l_parser = html_parse()
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
-    l_solution_cookies = solve_challenge(l_parser.m_data)
+    l_solution_cookies = solve_challenge_new_cookies(l_parser.m_data)
     # ------------------------------------------------------
     # send the solved challenge thrice
     # rate limiting should block the request

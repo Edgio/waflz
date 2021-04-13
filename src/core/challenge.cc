@@ -620,28 +620,48 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         data_t l_ck_k;
         data_map_t::const_iterator i_h;
         // -------------------------------------------------
-        // get ec_secure
+        // get __ecbmchid or ec_secure
         // -------------------------------------------------
-        l_ck_k.m_data = "ec_secure";
-        l_ck_k.m_len = sizeof("ec_secure") - 1;
+        l_ck_k.m_data = "__ecbmchid";
+        l_ck_k.m_len = sizeof("__ecbmchid") - 1;
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {
-                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_NO_TOKEN);
-                return WAFLZ_STATUS_OK;
+                // -----------------------------------------
+                // DS: Remove after challenge page flips to
+                // above value
+                // -----------------------------------------
+                l_ck_k.m_data = "ec_secure";
+                l_ck_k.m_len = sizeof("ec_secure") - 1;
+                i_h = a_ctx->m_cookie_map.find(l_ck_k);
+                if(i_h == a_ctx->m_cookie_map.end())
+                {
+                        (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_NO_TOKEN);
+                        return WAFLZ_STATUS_OK;
+                }
         }
         data_t l_ck_secure;
         l_ck_secure = i_h->second;
         // -------------------------------------------------
-        // get ec_answer
+        // get __eccha or  ec_answer
         // -------------------------------------------------
-        l_ck_k.m_data = "ec_answer";
-        l_ck_k.m_len = sizeof("ec_answer") - 1;
+        l_ck_k.m_data = "__eccha";
+        l_ck_k.m_len = sizeof("__eccha") - 1;
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {
-                (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_NO_TOKEN);
-                return WAFLZ_STATUS_OK;
+                // -----------------------------------------
+                // DS: Remove after challenge page flips to
+                // above value
+                // -----------------------------------------
+                l_ck_k.m_data = "ec_answer";
+                l_ck_k.m_len = sizeof("ec_answer") - 1;
+                i_h = a_ctx->m_cookie_map.find(l_ck_k);
+                if(i_h == a_ctx->m_cookie_map.end())
+                {
+                        (*ao_event)->set_challenge_status(waflz_pb::event_chal_status_t_CHAL_STATUS_NO_TOKEN);
+                        return WAFLZ_STATUS_OK;
+                }
         }
         data_t l_ck_answer;
         l_ck_answer = i_h->second;

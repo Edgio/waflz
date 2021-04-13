@@ -442,6 +442,13 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
         {
                 *ao_enf = new waflz_pb::enforcement();
                 (*ao_enf)->CopyFrom(*l_enf);
+                // -----------------------------------------
+                // The enforcement for bot repdb are initiated
+                // in bot.cc, which needs to be cleaned here.
+                // Usually there will always be 1 enf per scope
+                // per bot config which will be taken care by
+                // destructor
+                // -----------------------------------------
                 if((*ao_rqst_ctx)->m_bot_repdb_enf)
                 {
                         if(l_enf) { delete l_enf; l_enf = NULL; }

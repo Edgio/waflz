@@ -299,6 +299,19 @@ int32_t acl::init()
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        m_id = m_pb->id();
+        m_cust_id = m_pb->customer_id();
+        m_name = m_pb->name();
+        // -------------------------------------------------
+        // resp header names
+        // -------------------------------------------------
+        if(m_pb->has_response_header_name())
+        {
+                m_resp_header_name = m_pb->response_header_name();
+        }
+        // -------------------------------------------------
         // acl: ip
         // -------------------------------------------------
         // "ip":
@@ -307,13 +320,6 @@ int32_t acl::init()
         //     "blacklist": ["8.8.8.8"]
         // },
         // -------------------------------------------------
-        m_id = m_pb->id();
-        m_cust_id = m_pb->customer_id();
-        m_name = m_pb->name();
-        if(m_pb->has_response_header_name())
-        {
-                m_resp_header_name = m_pb->response_header_name();
-        }
         if(m_pb->has_ip())
         {
 #define _COMPILE_IP_LIST(_type) do { \
@@ -322,7 +328,8 @@ int32_t acl::init()
                 m_ip_##_type = new nms(); \
                 for(int32_t i_ip = 0; i_ip < m_pb->ip()._type##_size(); ++i_ip) { \
                         const std::string &l_str = m_pb->ip()._type(i_ip); \
-                        m_ip_##_type->add(l_str.c_str(), l_str.length()); \
+                        int32_t l_s = m_ip_##_type->add(l_str.c_str(), l_str.length()); \
+                        if(l_s != WAFLZ_STATUS_OK) { return WAFLZ_STATUS_ERROR; } \
         } } } while(0)
                 _COMPILE_IP_LIST(whitelist);
                 _COMPILE_IP_LIST(accesslist);

@@ -15,6 +15,8 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 #include <algorithm>
 //! ----------------------------------------------------------------------------
 //! constants
@@ -99,12 +101,18 @@ int32_t nms::add(const char *a_buf, uint32_t a_buf_len)
         // -------------------------------------------------
         // detect type
         // -------------------------------------------------
+        int32_t l_s = WAFLZ_STATUS_OK;
         // TODO -address type detection is crude
         if(strchr(a_buf, ':') == NULL)
         {
-                return add_ipv4(a_buf, a_buf_len);
+                l_s = add_ipv4(a_buf, a_buf_len);
         }
-        return add_ipv6(a_buf, a_buf_len);
+        else
+        {
+                l_s = add_ipv6(a_buf, a_buf_len);
+        }
+        //NDBG_PRINT("l_s: %d\n", l_s);
+        return l_s;
 #if 0
         // -------------------------------------------------
         // detect type
@@ -212,10 +220,10 @@ int32_t nms::add_ipv4_plain(const char *a_buf, uint32_t a_buf_len)
 {
         struct in_addr l_in;
         int l_s;
+        errno=0;
         l_s = inet_pton(AF_INET, a_buf, &l_in);
         if(l_s != 1)
         {
-                // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
         }
         if(!m_ipv4_mask_map)

@@ -12,9 +12,6 @@
 //! ----------------------------------------------------------------------------
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
-#if !defined(__APPLE__) && !defined(__darwin__)
-    #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#endif
 
 #if defined(__APPLE__) || defined(__darwin__)
     #include <libkern/OSByteOrder.h>

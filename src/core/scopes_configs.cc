@@ -623,6 +623,13 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         // -------------------------------------------------
         l_at->mutable_req_info()->set_customer_id(a_cust_id);
         // -------------------------------------------------
+        // set account_type
+        // -------------------------------------------------
+        cust_id_scopes_map_t::iterator i_scopes;
+        i_scopes = m_cust_id_scopes_map.find(a_cust_id);
+        waflz_pb::limit *l_account_type = l_at->mutable_limit();
+        l_account_type->set_account_type(i_scopes->second->get_pb()->account_type());
+        // -------------------------------------------------
         // set geo fields in alert.
         // country code is already set in rqst_ctx by
         // init_phase_1. do a lookup for country and

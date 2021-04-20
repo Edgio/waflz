@@ -754,6 +754,7 @@ TEST_CASE( "config test", "[config]" ) {
                 REQUIRE((l_limit != NULL));
                 REQUIRE((l_limit->has_id()));
                 REQUIRE((l_limit->id() == "080c5799-78b1-470f-91af-f1c999be94cb16715"));
+                REQUIRE((l_limit->account_type() == ""));
                 // -----------------------------------------
                 // verify match -no new enforcer
                 // -----------------------------------------

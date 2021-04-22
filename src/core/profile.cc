@@ -80,6 +80,7 @@ profile::profile(engine &a_engine):
         m_waf(NULL),
         m_id(),
         m_cust_id(),
+        m_account_type(),
         m_name(),
         m_resp_header_name(),
         m_action(waflz_pb::enforcement_type_t_NOP),
@@ -532,6 +533,10 @@ int32_t profile::validate(void)
         if(m_pb->has_customer_id())
         {
                 m_cust_id = m_pb->customer_id();
+        }
+        if(m_pb->has_account_type())
+        {
+                m_account_type = m_pb->account_type();
         }
         // -------------------------------------------------
         // general settings

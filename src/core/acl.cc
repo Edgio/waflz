@@ -77,6 +77,7 @@ acl::acl(engine& a_engine):
         m_pb(NULL),
         m_id(),
         m_cust_id(),
+        m_account_type(),
         m_name(),
         m_resp_header_name(),
         m_ip_whitelist(NULL),
@@ -303,6 +304,7 @@ int32_t acl::init()
         // -------------------------------------------------
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
+        m_account_type = m_pb->();
         m_name = m_pb->name();
         // -------------------------------------------------
         // resp header names

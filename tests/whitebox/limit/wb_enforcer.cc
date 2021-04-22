@@ -30,6 +30,7 @@
 "  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
 "  \"type\": \"ENFORCER\","\
 "  \"customer_id\": \"DEADDEAD\","\
+"  \"account_type\": \"P\","\
 "  \"enabled_date\": \"02/19/2016\","\
 "  \"limits\": ["\
 "    {"\
@@ -85,6 +86,7 @@
 "  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
 "  \"type\": \"ENFORCER\","\
 "  \"customer_id\": \"DEADDEAD\","\
+"  \"account_type\": \"P\","\
 "  \"enabled_date\": \"02/19/2016\","\
 "  \"limits\": ["\
 "    {"\
@@ -129,6 +131,7 @@
 "  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
 "  \"type\": \"ENFORCER\","\
 "  \"customer_id\": \"DEADDEAD\","\
+"  \"account_type\": \"P\","\
 "  \"enabled_date\": \"02/19/2016\","\
 "  \"limits\": ["\
 "    {"\
@@ -187,6 +190,7 @@
 "  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
 "  \"type\": \"ENFORCER\","\
 "  \"customer_id\": \"DEADDEAD\","\
+"  \"account_type\": \"P\","\
 "  \"enabled_date\": \"02/19/2016\","\
 "  \"limits\": ["\
 "    {"\
@@ -232,6 +236,7 @@
 "  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
 "  \"type\": \"ENFORCER\","\
 "  \"customer_id\": \"DEADDEAD\","\
+"  \"account_type\": \"P\","\
 "  \"enabled_date\": \"02/19/2016\","\
 "  \"limits\": ["\
 "    {"\

@@ -274,6 +274,7 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_data_case_i_set_list(),
         m_id(),
         m_cust_id(),
+        m_account_type(),
         m_name(),
         m_id_acl_map(),
         m_id_rules_map(),
@@ -490,9 +491,15 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
                 WAFLZ_PERROR(m_err_msg, "missing customer id field");
                 return WAFLZ_STATUS_ERROR;
         }
+        if(!m_pb->has_account_type())
+        {
+                WAFLZ_PERROR(m_err_msg, "missing account_type field");
+                return WAFLZ_STATUS_ERROR;
+        }
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
         m_name = m_pb->name();
+        m_account_type = m_pb->account_type();
         // -------------------------------------------------
         // for each scope - compile op and load parts
         // -------------------------------------------------

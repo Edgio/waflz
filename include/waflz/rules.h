@@ -58,6 +58,7 @@ public:
         waf *get_waf(void) { return m_waf; }
         const std::string& get_id(void) { return m_id; };
         const std::string& get_cust_id(void) { return m_cust_id; };
+        const std::string& get_account_type(void) { return m_account_type; };
         const std::string& get_name(void) { return m_name; };
         const waflz_pb::sec_config_t* get_pb(void);
 private:
@@ -85,6 +86,7 @@ private:
         // -------------------------------------------------
         std::string m_id;
         std::string m_cust_id;
+        std::string m_account_type;
         std::string m_name;
 };
 }

@@ -13,7 +13,6 @@ message acl {
         optional string customer_id = 4;
         optional string last_modified_date = 5;
         optional string last_modified_by = 6;
-        optional string account_type = 7;
         // -------------------------------------------------
         // lists
         // -------------------------------------------------

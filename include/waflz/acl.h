@@ -50,7 +50,6 @@ public:
         //: ------------------------------------------------
         const std::string& get_id(void) { return m_id; }
         const std::string& get_cust_id(void) { return m_cust_id; }
-        const std::string& get_account_type(void) { return m_account_type; }
         const std::string& get_name(void) { return m_name; }
         //: ------------------------------------------------
         //: \details Get last error message string
@@ -100,7 +99,6 @@ private:
         // -------------------------------------------------
         std::string m_id;
         std::string m_cust_id;
-        std::string m_account_type;
         std::string m_name;
         std::string m_resp_header_name;
         // ip

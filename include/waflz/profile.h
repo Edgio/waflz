@@ -70,7 +70,6 @@ public:
         waf *get_waf(void) { return m_waf; }
         const std::string& get_id(void) { return m_id; }
         const std::string& get_cust_id(void) { return m_cust_id; }
-        const std::string& get_account_type(void) { return m_account_type; }
         const std::string& get_name(void) { return m_name; }
         const std::string& get_resp_header_name(void) { return m_resp_header_name; }
         uint16_t get_action(void) { return m_action; }
@@ -107,7 +106,6 @@ private:
         // -------------------------------------------------
         std::string m_id;
         std::string m_cust_id;
-        std::string m_account_type;
         std::string m_name;
         std::string m_resp_header_name;
         uint16_t m_action;

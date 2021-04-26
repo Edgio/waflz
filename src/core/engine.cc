@@ -27,6 +27,17 @@
 #include <libxml/parser.h>
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
+//! statics
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details define error function for libxml2 to "| > /dev/null" errors
+//!          defined w/ xmlGenericErrorFunc function sig
+//! \return  NA
+//! ----------------------------------------------------------------------------
+static void xml_error_func(void *ctx, const char *msg, ...)
+{
+}
+//! ----------------------------------------------------------------------------
 //! \details TODO
 //! \return  TODO
 //! \param   TODO
@@ -181,6 +192,8 @@ int32_t engine::init()
         //             xml initialization
         // *************************************************
         // -------------------------------------------------
+        xmlGenericErrorFunc l_err_h = (xmlGenericErrorFunc)xml_error_func;
+        initGenericErrorDefaultFunc(&l_err_h);
         xmlInitParser();
         // -------------------------------------------------
         // *************************************************

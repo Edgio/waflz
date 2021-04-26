@@ -96,7 +96,6 @@ public:
         waflz_pb::sec_config_t* get_pb(void) { return m_pb; }
         const std::string& get_id(void) { return m_id; }
         const std::string& get_cust_id(void) { return m_cust_id; }
-        const std::string& get_account_type(void) { return m_account_type; }
         const std::string& get_name(void) { return m_name; }
         // -------------------------------------------------
         // properties
@@ -104,7 +103,6 @@ public:
         void set_id(const std::string &a_id) { m_id = a_id; }
         void set_name(const std::string &a_name) { m_name = a_name; }
         void set_cust_id(const std::string& a_cust_id) {m_cust_id = a_cust_id; }
-        void set_account_type(const std::string& a_account_type) {m_account_type = a_account_type; }
         void set_owasp_ruleset_version(uint32_t a_version) { m_owasp_ruleset_version = a_version; }
         void set_paranoia_level(uint32_t a_paranoia_level) { m_paranoia_level = a_paranoia_level; }
         void set_parse_xml( const bool &a_parse_xml) { m_parse_xml = a_parse_xml; }
@@ -158,7 +156,6 @@ private:
         // -------------------------------------------------
         std::string m_id;
         std::string m_cust_id;
-        std::string m_account_type;
         std::string m_name;
         std::string m_ruleset_dir;
         uint32_t m_owasp_ruleset_version;

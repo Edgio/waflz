@@ -33,7 +33,6 @@ rules::rules(engine &a_engine):
         m_waf(NULL),
         m_id("NA"),
         m_cust_id("NA"),
-        m_account_type(""),
         m_name("NA")
 {
 }
@@ -86,7 +85,6 @@ int32_t rules::load_file(const char *a_buf, uint32_t a_buf_len)
         // -----------------------------------------
         m_id = m_waf->get_id();
         m_cust_id = m_waf->get_cust_id();
-        m_account_type = m_waf->get_account_type();
         m_name = m_waf->get_name();
         // -----------------------------------------
         // done...
@@ -125,7 +123,6 @@ int32_t rules::load(void* a_js)
         // -----------------------------------------
         m_id = m_waf->get_id();
         m_cust_id = m_waf->get_cust_id();
-        m_account_type = m_waf->get_account_type();
         // -----------------------------------------
         // done...
         // -----------------------------------------

@@ -88,7 +88,6 @@ waf::waf(engine &a_engine):
         m_engine(a_engine),
         m_id("NA"),
         m_cust_id("NA"),
-        m_account_type(""),
         m_name("NA"),
         m_ruleset_dir(),
         m_owasp_ruleset_version(0),
@@ -715,7 +714,6 @@ int32_t waf::init(config_parser::format_t a_format,
         // -------------------------------------------------
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
-        m_account_type = m_pb->account_type();
         m_name = m_pb->name();
         // -------------------------------------------------
         // set ruleset info for custom rules
@@ -838,7 +836,6 @@ int32_t waf::init(void* a_js,
         // -------------------------------------------------
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
-        m_account_type = m_pb->account_type();
         m_name = m_pb->name();
         // -------------------------------------------------
         // update includes to full path

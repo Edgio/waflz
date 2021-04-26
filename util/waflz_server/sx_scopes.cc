@@ -275,7 +275,7 @@ ns_is2::h_resp_t sx_scopes::handle_rqst(waflz_pb::enforcement **ao_enf,
                 waflz_pb::alert* l_alert = NULL;
                 m_scopes_configs->generate_alert(&l_alert, l_ctx, l_id);
                 //uncomment to print rl alert
-                NDBG_PRINT("rl event: %s", l_alert->DebugString().c_str());
+                //NDBG_PRINT("rl event: %s", l_alert->DebugString().c_str());
                 if(l_alert) { delete l_alert; l_alert = NULL; }
         }
         // -------------------------------------------------

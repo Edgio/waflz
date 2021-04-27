@@ -274,7 +274,7 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_data_case_i_set_list(),
         m_id(),
         m_cust_id(),
-        m_account_type(),
+        m_account_type("__na__"),
         m_name(),
         m_id_acl_map(),
         m_id_rules_map(),
@@ -498,7 +498,7 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
         m_name = m_pb->name();
-        m_account_type = m_pb->account_type();
+        m_account_type = m_pb->account_type("__na__");
         // -------------------------------------------------
         // for each scope - compile op and load parts
         // -------------------------------------------------

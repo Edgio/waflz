@@ -631,7 +631,12 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
                 i_scopes = m_cust_id_scopes_map.find(a_cust_id);
                 waflz_pb::limit *l_limit = l_at->mutable_limit();
                 if(i_scopes->second->get_pb()->has_account_type()){
-                        l_limit->set_account_type(i_scopes->second->get_pb()->account_type());
+                        std::string l_account_type = i_scopes->second->get_account_type();
+                        if (l_account_type.empty()){
+                        }else{
+                                NDBG_PRINT("account_type not found\n");
+                                l_limit->set_account_type("__na__");
+                        }
                 }
         }
         // -------------------------------------------------

@@ -632,7 +632,7 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
                 if(i_scopes->second)
                 {
                         waflz_pb::limit *l_limit = l_at->mutable_limit();
-                        l_limit ->set_account_type(i_scopes->second->get_account_type());
+                        l_limit->set_account_type(i_scopes->second->get_account_type());
                 }
         }
         // -------------------------------------------------

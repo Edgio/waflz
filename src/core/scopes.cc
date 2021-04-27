@@ -1180,11 +1180,13 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 {
                         (*ao_audit_event)->set_scope_config_id(l_sc.id());
                         (*ao_audit_event)->set_scope_config_name(l_sc.name());
+                        (*ao_audit_event)->set_account_type(m_account_type);
                 }
                 if(*ao_prod_event)
                 {
                         (*ao_prod_event)->set_scope_config_id(l_sc.id());
                         (*ao_prod_event)->set_scope_config_name(l_sc.name());
+                        (*ao_prod_event)->set_account_type(m_account_type);
                 }
                 // -----------------------------------------
                 // break out on first scope match

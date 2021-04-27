@@ -166,6 +166,8 @@ def test_scopes_dir_for_an_0050(setup_waflz_server):
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
+    assert 'account_type' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['account_type'] == 'P'
 # ------------------------------------------------------------------------------
 # an 0051
 # ------------------------------------------------------------------------------
@@ -295,6 +297,8 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['audit_profile'] ['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile'] == None
+    assert 'account_type' in l_r_json['audit_profile']
+    assert l_r_json['audit_profile']['account_type'] == 'P'
     # ------------------------------------------------------
     # test prod acl only
     # ------------------------------------------------------

@@ -491,14 +491,13 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
                 WAFLZ_PERROR(m_err_msg, "missing customer id field");
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!m_pb->has_account_type())
+        if(m_pb->has_account_type())
         {
-                WAFLZ_PERROR(m_err_msg, "missing account_type field");
+                m_account_type = m_pb->account_type();
         }
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
         m_name = m_pb->name();
-        m_account_type = m_pb->account_type("__na__");
         // -------------------------------------------------
         // for each scope - compile op and load parts
         // -------------------------------------------------

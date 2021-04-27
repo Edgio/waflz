@@ -98,7 +98,6 @@ message config {
         optional string enabled_date = 6;
         optional string last_modified_date = 7;
         repeated limit limits = 8;
-        optional string account_type = 9;
         // -------------------------------------------------
         // pop meta info
         // -------------------------------------------------

@@ -494,7 +494,6 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
         if(!m_pb->has_account_type())
         {
                 WAFLZ_PERROR(m_err_msg, "missing account_type field");
-                return WAFLZ_STATUS_ERROR;
         }
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();

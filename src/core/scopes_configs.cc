@@ -626,9 +626,14 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         // set account_type
         // -------------------------------------------------
         cust_id_scopes_map_t::iterator i_scopes;
-        i_scopes = m_cust_id_scopes_map.find(a_cust_id);
-        waflz_pb::limit *l_account_type = l_at->mutable_limit();
-        l_account_type->set_account_type(i_scopes->second->get_pb()->account_type());
+        if (i_scopes != m_cust_id_scopes_map.end())
+        {
+                i_scopes = m_cust_id_scopes_map.find(a_cust_id);
+                waflz_pb::limit *l_limit = l_at->mutable_limit();
+                if(i_scopes->second->get_pb()->has_account_type()){
+                        l_limit->set_account_type(i_scopes->second->get_pb()->account_type());
+                }
+        }
         // -------------------------------------------------
         // set geo fields in alert.
         // country code is already set in rqst_ctx by

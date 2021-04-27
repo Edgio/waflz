@@ -143,6 +143,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif()
 if(BUILD_REDHAT)
   set(LIBRARIES ${LIBRARIES} ssl crypto pcre protobuf xml2 kyotocabinet hiredis)
+  add_definitions(-DWAFLZ_PCRE_INFO_FLAGS_MISSING)
 endif()
 # ------------------------------------------------------------------------------
 # Mac OS X

@@ -284,6 +284,10 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['audit_profile'] ['sub_event'][0]['rule_msg'] == 'Blacklist User-Agent match'
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist User-Agent match'
+    assert 'account_type' in l_r_json['audit_profile']
+    assert l_r_json['audit_profile']['account_type'] == 'P'
+    assert 'account_type' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['account_type'] == 'P'
     # ------------------------------------------------------
     # test audit acl only
     # ------------------------------------------------------
@@ -312,6 +316,8 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
+    assert 'account_type' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['account_type'] == 'P'
     # ------------------------------------------------------
     # test audit and prod profile
     # ------------------------------------------------------
@@ -323,6 +329,7 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
+    import pdb;pdb.set_trace()
     assert 'audit_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'
     assert l_r_json['prod_profile']['geoip_country_name'] == 'United States'
@@ -330,6 +337,10 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['prod_profile']['geoip_city_name'] == 'Los Angeles'
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'SQL Injection Attack Detected via libinjection'
+    assert 'account_type' in l_r_json['audit_profile']
+    assert l_r_json['audit_profile']['account_type'] == 'P'
+    assert 'account_type' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['account_type'] == 'P'
     # ------------------------------------------------------
     # test prod rule
     # ------------------------------------------------------
@@ -345,6 +356,8 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['audit_profile'] == None
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
+    assert 'account_type' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['account_type'] == 'P'
     # ------------------------------------------------------
     # test audit rule
     # ------------------------------------------------------
@@ -360,6 +373,8 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['audit_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is bananas'
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile'] == None
+    assert 'account_type' in l_r_json['audit_profile']
+    assert l_r_json['audit_profile']['account_type'] == 'P'
 # ------------------------------------------------------------------------------
 # test acl, rules and profile alert ordering for an 0050
 # ------------------------------------------------------------------------------

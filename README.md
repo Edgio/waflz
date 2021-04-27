@@ -122,13 +122,13 @@ $ curl -s "http://localhost:12345/index.html" -H"Host:" | jq '.'
         }
       ],
       "total_anomaly_score": 3,
-      "waf_profile_id": "NA",
-      "waf_profile_name": "NA"
+      "waf_profile_id": "__na__",
+      "waf_profile_name": "__na__"
     }
   ],
   "total_anomaly_score": 3,
-  "waf_profile_id": "NA",
-  "waf_profile_name": "NA"
+  "waf_profile_id": "__na__",
+  "waf_profile_name": "__na__"
 }
 ```
 

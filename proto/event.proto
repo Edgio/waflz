@@ -158,6 +158,7 @@ message event {
         //bots config specific
         optional string bots_config_id = 230;
         optional string bots_config_name = 231;
+        optional string account_type = 232;
         // -------------------------------------------------
         // !!!DEPRECATED!!!
         // -------------------------------------------------

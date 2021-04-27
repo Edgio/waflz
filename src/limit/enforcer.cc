@@ -387,13 +387,13 @@ int32_t enforcer::merge(waflz_pb::config &ao_cfg)
         }
         if(ao_cfg.has_id() &&
            (!m_pb->has_id() ||
-           (m_pb->id() == "NA")))
+           (m_pb->id() == "__na__")))
         {
                 m_pb->set_id(ao_cfg.id());
         }
         if(ao_cfg.has_name() &&
             (!m_pb->has_name() ||
-            (m_pb->name() == "NA")))
+            (m_pb->name() == "__na__")))
         {
                 m_pb->set_name(ao_cfg.name());
         }

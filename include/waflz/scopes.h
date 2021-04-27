@@ -115,6 +115,7 @@ public:
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
         std::string& get_id(void) { return m_id; }
         std::string& get_cust_id(void) { return m_cust_id; }
+        std::string& get_account_type(void) { return m_account_type; }
         std::string& get_name(void) { return m_name; }
         int32_t load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path);
         int32_t load(void *a_js, const std::string& a_conf_dir_path);
@@ -173,6 +174,7 @@ private:
         // properties
         std::string m_id;
         std::string m_cust_id;
+        std::string m_account_type;
         std::string m_name;
         // -------------------------------------------------
         // parts...

@@ -675,8 +675,8 @@ int32_t config::add_exceed_limit(waflz_pb::config **ao_cfg,
         if(*ao_cfg == NULL)
         {
                 waflz_pb::config *l_cfg = new waflz_pb::config();
-                l_cfg->set_id("NA");
-                l_cfg->set_name("NA");
+                l_cfg->set_id("__na__");
+                l_cfg->set_name("__na__");
                 l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
                 l_cfg->set_customer_id(a_cust_id);
                 l_cfg->set_enabled_date(get_date_short_str());
@@ -691,7 +691,7 @@ int32_t config::add_exceed_limit(waflz_pb::config **ao_cfg,
         { l_limit->set_name(a_limit.name()); }
         else
         {
-                l_limit->set_name("NA");
+                l_limit->set_name("__na__");
         }
         l_limit->set_disabled(false);
         // -------------------------------------------------

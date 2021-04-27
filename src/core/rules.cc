@@ -31,9 +31,9 @@ rules::rules(engine &a_engine):
         m_err_msg(),
         m_engine(a_engine),
         m_waf(NULL),
-        m_id("NA"),
-        m_cust_id("NA"),
-        m_name("NA")
+        m_id("__na__"),
+        m_cust_id("__na__"),
+        m_name("__na__")
 {
 }
 //! ----------------------------------------------------------------------------

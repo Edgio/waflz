@@ -1901,5 +1901,6 @@ cleanup:
         if(g_challenge) { delete g_challenge; g_challenge = NULL; }
         if(l_engine) { delete l_engine; l_engine = NULL; }
         if(l_kv_db) { delete l_kv_db; l_kv_db = NULL; }
+        if(l_stat_h) {delete l_stat_h; l_stat_h = NULL; }
         return STATUS_OK;
 }

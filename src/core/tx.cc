@@ -972,7 +972,7 @@ TX(SHA1)
         if(l_s != 1)
         {
                 //ERROR("host[%s]: EVP_DigestFinal_ex", a_host);
-                if(l_md_val) { delete l_md_val; l_md_val = NULL;}
+                if(l_md_val) { free(l_md_val); l_md_val = NULL;}
                 l_ret = WAFLZ_STATUS_ERROR;
                 goto cleanup;
 
@@ -1040,7 +1040,7 @@ TX(MD5)
         if(l_s != 1)
         {
                 //ERROR("host[%s]: EVP_DigestFinal_ex", a_host);
-                if(l_md_val) { delete l_md_val; l_md_val = NULL;}
+                if(l_md_val) { free(l_md_val); l_md_val = NULL;}
                 l_ret = WAFLZ_STATUS_ERROR;
                 goto cleanup;
 

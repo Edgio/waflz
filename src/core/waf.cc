@@ -534,16 +534,16 @@ int32_t waf::compile(void)
                             l_rtu.variable_size() &&
                             l_rtu.variable(0).has_type())
                         {
-                                // ---------------------------------
+                                // -------------------------
                                 // for each match
-                                // ---------------------------------
+                                // -------------------------
                                 const ::waflz_pb::variable_t& l_v = l_rtu.variable(0);
                                 for(int32_t i_m = 0; i_m < l_v.match_size(); ++i_m)
                                 {
                                         const ::waflz_pb::variable_t_match_t& l_m = l_v.match(i_m);
-                                        // -------------------------
+                                        // -----------------
                                         // only is negated for now..
-                                        // -------------------------
+                                        // -----------------
                                         if(!l_m.is_negated())
                                         {
                                                 continue;
@@ -638,7 +638,8 @@ int32_t waf::compile(void)
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details: initialize waf from a file path. Called from bots.cc/rules.cc/waflz_server
+//! \details: initialize waf from a file path.
+//!           Called from bots.cc/rules.cc/waflz_server
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
@@ -725,15 +726,15 @@ int32_t waf::init(config_parser::format_t a_format,
                 m_ruleset_dir.append("/version/");
                 m_ruleset_dir.append(m_pb->ruleset_version());
                 m_ruleset_dir.append("/policy/");
-                // -------------------------------------------------
+                // -----------------------------------------
                 // update includes to full path
-                // -------------------------------------------------
+                // -----------------------------------------
                 for(int i_d = 0; i_d < m_pb->directive_size(); ++i_d)
                 {
                         ::waflz_pb::directive_t* l_d = m_pb->mutable_directive(i_d);
-                        // -----------------------------------------
+                        // ---------------------------------
                         // include
-                        // -----------------------------------------
+                        // ---------------------------------
                         if(l_d->has_include())
                         {
                                 std::string l_inc;
@@ -1623,9 +1624,9 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
         ao_match = false;
         const waflz_pb::sec_action_t &l_a = a_rule.action();
         bool l_multimatch = l_a.multimatch();
-        // -----------------------------------------
+        // -------------------------------------------------
         // get operator
-        // -----------------------------------------
+        // -------------------------------------------------
         if(!a_rule.has_operator_() ||
            !a_rule.operator_().has_type())
         {
@@ -1635,9 +1636,9 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
         const ::waflz_pb::sec_rule_t_operator_t& l_op = a_rule.operator_();
         op_t l_op_cb = NULL;
         l_op_cb = get_op_cb(l_op.type());
-        // -----------------------------------------
+        // -------------------------------------------------
         // variable loop
-        // -----------------------------------------
+        // -------------------------------------------------
         uint32_t l_var_count = 0;
         for(int32_t i_var = 0; i_var < a_rule.variable_size(); ++i_var)
         {
@@ -2682,15 +2683,15 @@ report:
                 if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
-        // ---------------------------------
+        // -------------------------------------------------
         // add meta
-        // ---------------------------------
+        // -------------------------------------------------
         waflz_pb::event &l_event = **ao_event;
-        // ---------------------------------
-        // *********************************
+        // -------------------------------------------------
+        // *************************************************
         // handling anomaly mode natively...
-        // *********************************
-        // ---------------------------------
+        // *************************************************
+        // -------------------------------------------------
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         if (!a_custom_rules)
         {
@@ -2711,43 +2712,43 @@ report:
                 l_event.set_waf_profile_id(m_id);
                 l_event.set_waf_profile_name(m_name);
         }
-        // ---------------------------------
+        // -------------------------------------------------
         // add info from last subevent...
-        // ---------------------------------
+        // -------------------------------------------------
         // TODO -should we???
         //      -seems redundant
-        // ---------------------------------
+        // -------------------------------------------------
         if(l_event.sub_event_size())
         {
                 const ::waflz_pb::event& l_se = l_event.sub_event(l_event.sub_event_size() - 1);
-                // -------------------------
+                // -----------------------------------------
                 // rule target...
-                // -------------------------
+                // -----------------------------------------
                 ::waflz_pb::event_var_t* l_ev = l_event.add_rule_target();
                 l_ev->set_name("TX");
                 l_ev->set_param("ANOMALY_SCORE");
-                // -------------------------
+                // -----------------------------------------
                 // rule tag...
-                // -------------------------
+                // -----------------------------------------
                 l_event.add_rule_tag()->assign("OWASP_CRS/ANOMALY/EXCEEDED");
-                // -------------------------
+                // -----------------------------------------
                 // matched_var...
-                // -------------------------
+                // -----------------------------------------
                 if(l_se.has_matched_var())
                 {
                         l_event.mutable_matched_var()->CopyFrom(l_se.matched_var());
                 }
-                // -------------------------
+                // -----------------------------------------
                 // Custom rules wont have an anomaly score
                 // and setvar for rule msg. Set them here
-                // -------------------------
+                // -----------------------------------------
                 if (a_custom_rules)
                 {
                         l_event.set_rule_msg(l_se.rule_msg());
                 }
-                // -------------------------
+                // -----------------------------------------
                 // op
-                // -------------------------
+                // -----------------------------------------
                 l_event.mutable_rule_op_name()->assign("gt");
                 l_event.mutable_rule_op_param()->assign("0");
         }

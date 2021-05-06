@@ -274,6 +274,7 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_data_case_i_set_list(),
         m_id(),
         m_cust_id(),
+        m_account_type("__na__"),
         m_name(),
         m_id_acl_map(),
         m_id_rules_map(),
@@ -489,6 +490,10 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
         {
                 WAFLZ_PERROR(m_err_msg, "missing customer id field");
                 return WAFLZ_STATUS_ERROR;
+        }
+        if(m_pb->has_account_type())
+        {
+                m_account_type = m_pb->account_type();
         }
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
@@ -1173,11 +1178,13 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 {
                         (*ao_audit_event)->set_scope_config_id(l_sc.id());
                         (*ao_audit_event)->set_scope_config_name(l_sc.name());
+                        (*ao_audit_event)->set_account_type(m_account_type);
                 }
                 if(*ao_prod_event)
                 {
                         (*ao_prod_event)->set_scope_config_id(l_sc.id());
                         (*ao_prod_event)->set_scope_config_name(l_sc.name());
+                        (*ao_prod_event)->set_account_type(m_account_type);
                 }
                 // -----------------------------------------
                 // break out on first scope match
@@ -1936,8 +1943,8 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         // create enforcement
         // -------------------------------------------------
         waflz_pb::config *l_cfg = new waflz_pb::config();
-        l_cfg->set_id("NA");
-        l_cfg->set_name("NA");
+        l_cfg->set_id("__na__");
+        l_cfg->set_name("__na__");
         l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
         l_cfg->set_customer_id(m_cust_id);
         l_cfg->set_enabled_date(get_date_short_str());
@@ -1953,7 +1960,7 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         }
         else
         {
-                l_limit->set_name("NA");
+                l_limit->set_name("__na__");
         }
         l_limit->set_disabled(false);
         // -------------------------------------------------

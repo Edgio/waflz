@@ -86,9 +86,9 @@ waf::waf(engine &a_engine):
         m_is_initd(false),
         m_err_msg(),
         m_engine(a_engine),
-        m_id("NA"),
-        m_cust_id("NA"),
-        m_name("NA"),
+        m_id("__na__"),
+        m_cust_id("__na__"),
+        m_name("__na__"),
         m_ruleset_dir(),
         m_owasp_ruleset_version(0),
         m_paranoia_level(1),
@@ -1595,9 +1595,9 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         // -------------------------------------------------
 #if 0
         {
-        std::string l_id = "NA";
+        std::string l_id = "__na__";
         if(a_rule.action().has_id()) { l_id = a_rule.action().id(); }
-        std::string l_msg = "NA";
+        std::string l_msg = "__na__";
         if(a_rule.action().has_msg()) { l_msg = a_rule.action().msg(); }
         NDBG_OUTPUT("MATCHED: id: %16s :: msg: %s\n", l_id.c_str(), l_msg.c_str());
         }

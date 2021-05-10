@@ -17,6 +17,9 @@
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
+namespace waflz_pb {
+class enforcement;
+}
 namespace ns_waflz {
 class limit;
 class enforcement;
@@ -50,6 +53,7 @@ private:
         // enforcements
         // -------------------------------------------------
         ns_waflz::enforcer *m_enfx;
+        waflz_pb::enforcement *m_enf;
 };
 }
 #endif

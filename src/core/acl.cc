@@ -329,7 +329,10 @@ int32_t acl::init()
                 for(int32_t i_ip = 0; i_ip < m_pb->ip()._type##_size(); ++i_ip) { \
                         const std::string &l_str = m_pb->ip()._type(i_ip); \
                         int32_t l_s = m_ip_##_type->add(l_str.c_str(), l_str.length()); \
-                        if(l_s != WAFLZ_STATUS_OK) { return WAFLZ_STATUS_ERROR; } \
+                        if(l_s != WAFLZ_STATUS_OK) { \
+                                WAFLZ_PERROR(m_err_msg, "adding ip '%s'", l_str.c_str()); \
+                                return WAFLZ_STATUS_ERROR; \
+                        } \
         } } } while(0)
                 _COMPILE_IP_LIST(whitelist);
                 _COMPILE_IP_LIST(accesslist);

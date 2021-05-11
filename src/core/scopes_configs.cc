@@ -729,7 +729,7 @@ int32_t scopes_configs::load_limit(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                // Not linked to scopes, no need to laod
+                // Not linked to scopes, no need to load
                 if(l_limit) { delete l_limit; l_limit = NULL; }
                 return WAFLZ_STATUS_OK;
         }
@@ -847,7 +847,7 @@ int32_t scopes_configs::load_acl(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                // Not linked to scopes, no need to laod
+                // Not linked to scopes, no need to load
                 if(l_acl) { delete l_acl; l_acl = NULL; }
                 return WAFLZ_STATUS_OK;
         }
@@ -1081,7 +1081,7 @@ int32_t scopes_configs::load_bots(void* a_js)
         i_scopes = m_cust_id_scopes_map.find(l_id);
         if(i_scopes == m_cust_id_scopes_map.end())
         {
-                // Not linked to scopes, no need to laod
+                // Not linked to scopes, no need to load
                 if(l_bots) { delete l_bots; l_bots = NULL; }
                 return WAFLZ_STATUS_OK;
         }
@@ -1199,7 +1199,7 @@ int32_t scopes_configs::load_profile(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                // Not linked to scopes, no need to laod
+                // Not linked to scopes, no need to load
                 if(l_profile) { delete l_profile; l_profile = NULL; }
                 return WAFLZ_STATUS_OK;
         }

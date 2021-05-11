@@ -729,9 +729,9 @@ int32_t scopes_configs::load_limit(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
+                // Not linked to scopes, no need to laod
                 if(l_limit) { delete l_limit; l_limit = NULL; }
-                return WAFLZ_STATUS_ERROR;
+                return WAFLZ_STATUS_OK;
         }
         l_s = i_scopes->second->load_limit(l_limit);
         if(l_s != WAFLZ_STATUS_OK)
@@ -847,9 +847,9 @@ int32_t scopes_configs::load_acl(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
+                // Not linked to scopes, no need to laod
                 if(l_acl) { delete l_acl; l_acl = NULL; }
-                return WAFLZ_STATUS_ERROR;
+                return WAFLZ_STATUS_OK;
         }
         l_s = i_scopes->second->load_acl(l_acl);
         if(l_s != WAFLZ_STATUS_OK)
@@ -964,9 +964,9 @@ int32_t scopes_configs::load_rules(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
+               // WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
                 if(l_rules) { delete l_rules; l_rules = NULL; }
-                return WAFLZ_STATUS_ERROR;
+                return WAFLZ_STATUS_OK;
         }
         l_s = i_scopes->second->load_rules(l_rules);
         if(l_s != WAFLZ_STATUS_OK)
@@ -1081,9 +1081,9 @@ int32_t scopes_configs::load_bots(void* a_js)
         i_scopes = m_cust_id_scopes_map.find(l_id);
         if(i_scopes == m_cust_id_scopes_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
+                // Not linked to scopes, no need to laod
                 if(l_bots) { delete l_bots; l_bots = NULL; }
-                return WAFLZ_STATUS_ERROR;
+                return WAFLZ_STATUS_OK;
         }
         l_s = i_scopes->second->load_bots(l_bots);
         if(l_s != WAFLZ_STATUS_OK)
@@ -1199,9 +1199,9 @@ int32_t scopes_configs::load_profile(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-                WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
+                // Not linked to scopes, no need to laod
                 if(l_profile) { delete l_profile; l_profile = NULL; }
-                return WAFLZ_STATUS_ERROR;
+                return WAFLZ_STATUS_OK;
         }
         l_s = i_scopes->second->load_profile(l_profile);
         if(l_s != WAFLZ_STATUS_OK)

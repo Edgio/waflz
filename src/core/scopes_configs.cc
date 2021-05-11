@@ -964,7 +964,7 @@ int32_t scopes_configs::load_rules(void* a_js)
         if(i_scopes == m_cust_id_scopes_map.end())
         {
 
-               // WAFLZ_PERROR(m_err_msg, "customer id - %" PRIu64 " not found in the scopes map", l_id);
+                // Not linked to scopes, no need to load
                 if(l_rules) { delete l_rules; l_rules = NULL; }
                 return WAFLZ_STATUS_OK;
         }

@@ -190,7 +190,7 @@ sx_limit::sx_limit(ns_waflz::kv_db &a_db):
 {
         m_enfx = new ns_waflz::enforcer(false);
         m_enf = new waflz_pb::enforcement();
-        m_enf->set_enf_type(waflz_pb::enforcement_type_t::enforcement_type_t_ALERT);
+        m_enf->set_enf_type(waflz_pb::enforcement_type_t::enforcement_type_t_BLOCK_REQUEST);
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -281,6 +281,8 @@ ns_is2::h_resp_t sx_limit::handle_rqst(waflz_pb::enforcement **ao_enf,
         }
         if(l_enf)
         {
+                *ao_enf = new waflz_pb::enforcement();
+                (*ao_enf)->CopyFrom(*l_enf);
                 if(ao_ctx) { *ao_ctx = l_ctx; }
                 else if(l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return ns_is2::H_RESP_DONE;
@@ -320,7 +322,6 @@ ns_is2::h_resp_t sx_limit::handle_rqst(waflz_pb::enforcement **ao_enf,
         l_cfg->set_id(l_pb.id());
         l_cfg->set_name(l_pb.name());
         l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
-        // TODO FIX!!!
         l_cfg->set_customer_id(l_pb.customer_id());
         l_cfg->set_enabled_date(get_date_short_str());
         // -------------------------------------------------

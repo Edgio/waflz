@@ -1720,6 +1720,7 @@ limits:
         {
                 for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
                 {
+                        int32_t l_s;
                         const ::waflz_pb::scope_limit_config& l_slc = a_scope.limits(i_l);
                         if(!l_slc.has__reserved_1())
                         {
@@ -1728,7 +1729,12 @@ limits:
                         limit *l_limit = (limit *)l_slc._reserved_1();
                         bool l_exceeds = false;
                         const waflz_pb::condition_group *l_cg = NULL;
-                        l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
+                        l_s = l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                WAFLZ_PERROR(m_err_msg, "performing limit process.");
+                                return WAFLZ_STATUS_ERROR;
+                        }
                         if(!l_exceeds)
                         {
                                 continue;
@@ -1737,15 +1743,14 @@ limits:
                         {
                                 continue;
                         }
-                        // -----------------------------------------
-                        // signal new enforcemnt
-                        // -----------------------------------------
+                        // ---------------------------------
+                        // signal new enforcement
+                        // ---------------------------------
                         (*ao_rqst_ctx)->m_signal_enf = true;
-                        // -----------------------------------------
+                        // ---------------------------------
                         // add new exceeds
-                        // -----------------------------------------
+                        // ---------------------------------
                         const waflz_pb::enforcement& l_axn = l_slc.action();
-                        int32_t l_s;
                         waflz_pb::config *l_cfg = NULL;
                         l_s = add_exceed_limit(&l_cfg,
                                                *(l_limit->get_pb()),
@@ -1759,9 +1764,9 @@ limits:
                                 return WAFLZ_STATUS_ERROR;
                         }
                         //const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
-                        // -----------------------------------------
+                        // ---------------------------------
                         // merge enforcement
-                        // -----------------------------------------
+                        // ---------------------------------
                         //NDBG_OUTPUT("l_enfx: %s\n", l_enfcr->ShortDebugString().c_str());
                         l_s = m_enfx->merge(*l_cfg);
                         // TODO -return enforcer...
@@ -1771,17 +1776,17 @@ limits:
                                 return WAFLZ_STATUS_ERROR;
                         }
                         if(l_cfg) { delete l_cfg; l_cfg = NULL; }
-                        // -----------------------------------------
+                        // ---------------------------------
                         // process enforcer
-                        // -----------------------------------------
+                        // ---------------------------------
                         l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
-                        // -----------------------------------------
+                        // ---------------------------------
                         // enforced???
-                        // -----------------------------------------
+                        // ---------------------------------
                         if(*ao_enf)
                         {
                                 if((*ao_enf)->has_status())

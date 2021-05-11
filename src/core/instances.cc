@@ -23,20 +23,6 @@
 #include "rapidjson/error/en.h"
 #include <dirent.h>
 #include <errno.h>
-//! ----------------------------------------------------------------------------
-//! macros
-//! ----------------------------------------------------------------------------
-#ifndef SET_INSTANCES_CB
-#define SET_INSTANCES_CB(_cb, _a_cb) do { \
-        for(cust_id_coordinator_map_t::iterator _i_m = m_cust_id_coordinator_map.begin(); \
-            _i_m != m_cust_id_coordinator_map.end(); \
-            ++_i_m) { \
-                if(_i_m->second) { \
-                        _i_m->second->_cb(_a_cb); \
-                } \
-        } \
-} while(0)
-#endif
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! \details TODO

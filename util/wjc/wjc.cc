@@ -306,7 +306,7 @@ static int32_t validate_acl(const std::string &a_file)
         l_s = l_acl->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                fprintf(stderr, "failed to load acl config: %s.  Reason: %s\n", a_file.c_str(), l_acl->get_err_msg());
+                fprintf(stderr, "%s\n", l_acl->get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
                 if(l_acl) { delete l_acl; l_acl = NULL;}
                 return STATUS_ERROR;
@@ -345,8 +345,7 @@ static int32_t validate_rules(const std::string &a_file)
         l_s = l_rules->load_file(a_file.c_str(), a_file.length());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                fprintf(stderr, "failed to load rules config file - Reason: %s\n",
-                                                           l_rules->get_err_msg());
+                fprintf(stderr, "%s\n", l_rules->get_err_msg());
                 if(l_engine) { delete l_engine; l_engine = NULL;}
                 if(l_rules)  { delete l_rules; l_rules = NULL;}
                 return STATUS_ERROR;

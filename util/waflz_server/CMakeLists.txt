@@ -29,10 +29,11 @@ SET(SRCS
   sx_acl.cc
   sx_rules.cc
   sx_profile.cc
-  sx_instance.cc
-  sx_limits.cc
+  sx_limit.cc
   sx_scopes.cc
   sx_modsecurity.cc
+  sx_instance.cc
+  sx_limits.cc
   waflz_server.cc
 )
 # ------------------------------------------------------------------------------

@@ -881,7 +881,7 @@ int32_t config::process_config(waflz_pb::config **ao_cfg,
         }
         // -------------------------------------------------
         // overall algorithm:
-        //   Look up customers coordination configuration
+        //   Look up customers limits configuration
         //
         //   For each variable limit configured -(reuse a bunch of ddos::enforcer)
         //     If a limit match indicates entire limit matched

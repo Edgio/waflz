@@ -297,6 +297,7 @@ static int32_t validate_acl(const std::string &a_file)
         {
                 fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
+                if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -308,6 +309,7 @@ static int32_t validate_acl(const std::string &a_file)
         {
                 fprintf(stderr, "%s\n", l_acl->get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL;}
+                if(l_engine) { delete l_engine; l_engine = NULL; }
                 if(l_acl) { delete l_acl; l_acl = NULL;}
                 return STATUS_ERROR;
         }
@@ -547,6 +549,7 @@ static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset
         if(l_s != STATUS_OK)
         {
                 fprintf(stderr, "failed to read file at %s\n", a_file.c_str());
+                if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -561,6 +564,7 @@ static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset
                 fprintf(stderr, "%s\n", l_scopes->get_err_msg());
                 if(l_scopes) {delete l_scopes; l_scopes = NULL;}
                 if(l_buf) {free(l_buf); l_buf = NULL;}
+                if(l_engine) { delete l_engine; l_engine = NULL; }
                 return STATUS_ERROR;
         }
         // -------------------------------------------------

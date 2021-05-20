@@ -133,18 +133,18 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 ns_waflz::data_t l_v;
                 l_ctx.m_cookie_map.clear();
                 // -----------------------------------------
-                // ec_secure
+                // __ecbmchid
                 // -----------------------------------------
-                l_k.m_data = "ec_secure";
-                l_k.m_len = sizeof("ec_secure") - 1;
+                l_k.m_data = "__ecbmchid";
+                l_k.m_len = sizeof("__ecbmchid") - 1;
                 l_v.m_data = l_ctx.m_token.m_data;
                 l_v.m_len = l_ctx.m_token.m_len;
                 l_ctx.m_cookie_map[l_k] = l_v;
                 // -----------------------------------------
-                // ec_answer
+                // __eccha
                 // -----------------------------------------
-                l_k.m_data = "ec_answer";
-                l_k.m_len = sizeof("ec_answer") - 1;
+                l_k.m_data = "__eccha";
+                l_k.m_len = sizeof("__eccha") - 1;
                 l_v.m_data = "2";
                 l_v.m_len = sizeof("2") - 1;
                 l_ctx.m_cookie_map[l_k] = l_v;
@@ -193,8 +193,8 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 // -----------------------------------------
                 // wang answer
                 // -----------------------------------------
-                l_k.m_data = "ec_answer";
-                l_k.m_len = sizeof("ec_answer") - 1;
+                l_k.m_data = "__eccha";
+                l_k.m_len = sizeof("__eccha") - 1;
                 l_v.m_data = "monkeys";
                 l_v.m_len = sizeof("monkeys") - 1;
                 l_ctx.m_cookie_map[l_k] = l_v;

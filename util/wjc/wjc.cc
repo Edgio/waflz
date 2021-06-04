@@ -26,7 +26,7 @@
 #include "waflz/enforcer.h"
 #include "waflz/rl_obj.h"
 #include "waflz/limit.h"
-#include "waflz/kycb_db.h"
+#include "waflz/lm_db.h"
 #include "limit.pb.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -445,8 +445,8 @@ static int32_t validate_limit(const std::string &a_file)
         // -------------------------------------------------
         // load
         // -------------------------------------------------
-        ns_waflz::kycb_db l_kycb_db;
-        ns_waflz::limit *l_limit = new ns_waflz::limit(l_kycb_db);
+        ns_waflz::lm_db l_lm_db;
+        ns_waflz::limit *l_limit = new ns_waflz::limit(l_lm_db);
         l_s = l_limit->load(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -483,8 +483,8 @@ static int32_t validate_limits(const std::string &a_file, bool a_display_json)
         // -------------------------------------------------
         // config
         // -------------------------------------------------
-        ns_waflz::kycb_db l_kycb_db;
-        ns_waflz::config *l_config = new ns_waflz::config(l_kycb_db);
+        ns_waflz::lm_db l_lm_db;
+        ns_waflz::config *l_config = new ns_waflz::config(l_lm_db);
         l_s = l_config->load(l_buf, l_buf_len);
         if(l_s != STATUS_OK)
         {
@@ -555,9 +555,9 @@ static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset
         // -------------------------------------------------
         // config
         // -------------------------------------------------
-        ns_waflz::kycb_db l_kycb_db;
+        ns_waflz::lm_db l_lm_db;
         ns_waflz::challenge l_challenge;
-        ns_waflz::scopes *l_scopes = new ns_waflz::scopes(*l_engine, l_kycb_db, l_challenge);
+        ns_waflz::scopes *l_scopes = new ns_waflz::scopes(*l_engine, l_lm_db, l_challenge);
         l_s = l_scopes->load(l_buf, l_buf_len, a_conf_dir);
         if(l_s != STATUS_OK)
         {

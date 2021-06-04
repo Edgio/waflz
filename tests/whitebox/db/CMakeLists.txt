@@ -6,5 +6,6 @@ include_directories(
   ${CMAKE_BINARY_DIR}/proto
 )
 add_waflz_wb_test(lm_db)
-# commenting out -requires redis to run...
-#add_waflz_wb_test(redis_db)
+if(BUILD_REDIS)
+  add_waflz_wb_test(redis_db)
+endif()

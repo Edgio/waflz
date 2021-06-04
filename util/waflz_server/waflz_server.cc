@@ -30,8 +30,10 @@
 #include "waflz/profile.h"
 #include "waflz/render.h"
 #include "waflz/engine.h"
-#include "waflz/redis_db.h"
 #include "waflz/lm_db.h"
+#ifdef WAFLZ_KV_DB_REDIS
+#include "waflz/redis_db.h"
+#endif
 #include "waflz/trace.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
@@ -175,7 +177,9 @@ static int create_dir_once(const std::string& a_db_dir)
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
 static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
+#ifdef WAFLZ_KV_DB_REDIS
                           const std::string& a_redis_host,
+#endif
                           bool a_lmdb,
                           bool a_lmdb_ip)
 {
@@ -187,6 +191,7 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
         // -------------------------------------------------
         // redis db
         // -------------------------------------------------
+#ifdef WAFLZ_KV_DB_REDIS
         if(!a_redis_host.empty())
         {
                 ns_waflz::kv_db* l_db = NULL;
@@ -237,71 +242,70 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
                 // -----------------------------------------
                 //NDBG_PRINT("USING REDIS\n");
                 *ao_db = l_db;
+                return STATUS_OK;
         }
+#endif
         // -------------------------------------------------
         // lmdb
         // -------------------------------------------------
+        int32_t l_s;
+        ns_waflz::kv_db* l_db = NULL;
+        l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::lm_db());
+        // -----------------------------------------
+        // setup disk
+        // -----------------------------------------
+        std::string l_db_dir("/tmp/test_lmdb");
+        if(a_lmdb_ip)
+        {
+                l_s = create_dir_once(l_db_dir);
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_PRINT("error creating dir -%s\n", l_db_dir.c_str());
+                        if(l_db) { delete l_db; l_db = NULL; }
+                        return STATUS_ERROR;
+                }
+        }
         else
         {
-                int32_t l_s;
-                ns_waflz::kv_db* l_db = NULL;
-                l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::lm_db());
-                // -----------------------------------------
-                // setup disk
-                // -----------------------------------------
-                std::string l_db_dir("/tmp/test_lmdb");
-                if(a_lmdb_ip)
-                {
-                        l_s = create_dir_once(l_db_dir);
-                        if(l_s != STATUS_OK)
-                        {
-                                NDBG_PRINT("error creating dir -%s\n", l_db_dir.c_str());
-                                if(l_db) { delete l_db; l_db = NULL; }
-                                return STATUS_ERROR;
-                        }
-                }
-                else
-                {
-                        l_s = create_dir(l_db_dir);
-                        if(l_s != STATUS_OK)
-                        {
-                                NDBG_PRINT("error creating dir - %s\n", l_db_dir.c_str());
-                                if(l_db) { delete l_db; l_db = NULL; }
-                                return STATUS_ERROR;
-                        }
-                }
+                l_s = create_dir(l_db_dir);
                 if(l_s != STATUS_OK)
                 {
-                        NDBG_PRINT("error creating dir for lmdb\n");
+                        NDBG_PRINT("error creating dir - %s\n", l_db_dir.c_str());
                         if(l_db) { delete l_db; l_db = NULL; }
                         return STATUS_ERROR;
                 }
-                // -----------------------------------------
-                // options
-                // -----------------------------------------
-                l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
-                l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
-                l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
-                // -----------------------------------------
-                // init db
-                // -----------------------------------------
-                l_s = l_db->init();
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing db init: Reason: %s\n", l_db->get_err_msg());
-                        if(l_db) { delete l_db; l_db = NULL; }
-                        return STATUS_ERROR;
-                }
-                if(!l_db->get_init())
-                {
-                        printf("error -%s\n", l_db->get_err_msg());
-                }
-                // -----------------------------------------
-                // done
-                // -----------------------------------------
-                //NDBG_PRINT("USING LMDB\n");
-                *ao_db = l_db;
         }
+        if(l_s != STATUS_OK)
+        {
+                NDBG_PRINT("error creating dir for lmdb\n");
+                if(l_db) { delete l_db; l_db = NULL; }
+                return STATUS_ERROR;
+        }
+        // -----------------------------------------
+        // options
+        // -----------------------------------------
+        l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
+        l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
+        l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
+        // -----------------------------------------
+        // init db
+        // -----------------------------------------
+        l_s = l_db->init();
+        if(l_s != STATUS_OK)
+        {
+                NDBG_PRINT("error performing db init: Reason: %s\n", l_db->get_err_msg());
+                if(l_db) { delete l_db; l_db = NULL; }
+                return STATUS_ERROR;
+        }
+        if(!l_db->get_init())
+        {
+                printf("error -%s\n", l_db->get_err_msg());
+        }
+        // -----------------------------------------
+        // done
+        // -----------------------------------------
+        //NDBG_PRINT("USING LMDB\n");
+        *ao_db = l_db;
         return STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -992,7 +996,9 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -c, --challenge     json containing browser challenges\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "KV DB Configuration:\n");
+#ifdef WAFLZ_KV_DB_REDIS
         fprintf(a_stream, "  -R, --redis-host    redis host:port -used for counting backend\n");
+#endif
         fprintf(a_stream, "  -L, --lmdb          lmdb for rl counting\n");
         fprintf(a_stream, "  -I, --interprocess  lmdb across multiple process (if --lmdb)\n");
         fprintf(a_stream, "  \n");
@@ -1047,7 +1053,9 @@ int main(int argc, char** argv)
         // server settings
         std::string l_out_file;
         uint16_t l_port = 12345;
+#ifdef WAFLZ_KV_DB_REDIS
         std::string l_redis_host = "";
+#endif
         bool l_lmdb = false;
         bool l_lmdb_ip = false;
         std::string l_challenge_file;
@@ -1090,7 +1098,9 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 // kv db config
                 // -----------------------------------------
+#ifdef WAFLZ_KV_DB_REDIS
                 { "redis",        1, 0, 'R' },
+#endif
                 { "lmdb",         0, 0, 'L' },
                 { "interprocess", 0, 0, 'I' },
                 // -----------------------------------------
@@ -1298,6 +1308,7 @@ int main(int argc, char** argv)
                 // kv db config
                 // *****************************************
                 // -----------------------------------------
+#ifdef WAFLZ_KV_DB_REDIS
                 // -----------------------------------------
                 // redis host
                 // -----------------------------------------
@@ -1306,6 +1317,7 @@ int main(int argc, char** argv)
                         l_redis_host = l_arg;
                         break;
                 }
+#endif
                 // -----------------------------------------
                 // lmdb
                 // -----------------------------------------
@@ -1693,7 +1705,11 @@ int main(int argc, char** argv)
            (g_config_mode == CONFIG_MODE_LIMITS) ||
            (g_config_mode == CONFIG_MODE_SCOPES))
         {
-                l_s = init_kv_db(&l_kv_db, l_redis_host, l_lmdb, l_lmdb_ip);
+                l_s = init_kv_db(&l_kv_db,
+#ifdef WAFLZ_KV_DB_REDIS
+                                 l_redis_host,
+#endif
+                                 l_lmdb, l_lmdb_ip);
                 if((l_s != STATUS_OK) ||
                    (l_kv_db == NULL))
                 {

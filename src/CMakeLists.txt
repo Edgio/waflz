@@ -101,7 +101,6 @@ SET(SRCS
     # ------------------------------------------------------
     # db
     # ------------------------------------------------------
-    db/redis_db.cc
     db/lm_db.cc
     # ------------------------------------------------------
     # libinjection
@@ -157,6 +156,11 @@ SET(SRCS
     limit/configs.cc
     limit/limit.cc
 )
+if(BUILD_REDIS)
+  list(APPEND SRCS
+    db/redis_db.cc
+  )
+endif()
 # ------------------------------------------------------------------------------
 # c source
 # ------------------------------------------------------------------------------
@@ -221,7 +225,6 @@ SET(HDRS
     # db
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/include/waflz/kv_db.h
-    ${CMAKE_SOURCE_DIR}/include/waflz/redis_db.h
     ${CMAKE_SOURCE_DIR}/include/waflz/lm_db.h
     # ------------------------------------------------------
     # limit
@@ -243,6 +246,11 @@ SET(HDRS
     ${CMAKE_BINARY_DIR}/proto/rule.pb.h
     ${CMAKE_BINARY_DIR}/proto/scope.pb.h
 )
+if(BUILD_REDIS)
+  list(APPEND HDRS
+    ${CMAKE_SOURCE_DIR}/include/waflz/redis_db.h
+  )
+endif()
 # ------------------------------------------------------------------------------
 # Tell the build system protobuf files are automatically generated
 # ------------------------------------------------------------------------------
@@ -272,8 +280,12 @@ target_link_libraries(waflz
     pcre
     protobuf
     xml2
-    hiredis
 )
+if(BUILD_REDIS)
+  target_link_libraries(waflz
+    hiredis
+  )
+endif()
 # ------------------------------------------------------------------------------
 # properties
 # ------------------------------------------------------------------------------

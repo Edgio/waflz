@@ -13,7 +13,6 @@
 #include "sx_limit.h"
 #include "is2/support/ndebug.h"
 #include "waflz/def.h"
-#include "waflz/redis_db.h"
 #include "waflz/limit.h"
 #include "waflz/geoip2_mmdb.h"
 #include "waflz/enforcer.h"

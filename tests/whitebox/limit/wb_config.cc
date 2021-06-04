@@ -124,25 +124,23 @@ finish:
 //! ----------------------------------------------------------------------------
 //! generate db for testing
 //! ----------------------------------------------------------------------------
-int create_db(ns_waflz::lm_db& ao_db, char** ao_db_dir)
+int create_db(ns_waflz::lm_db& ao_db, std::string& ao_db_dir)
 {
-        if(!ao_db_dir)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
+        char l_db_dir[] = "/tmp/waflz_lmdb_XXXXXX";
         int32_t l_s;
         char *l_mkdtemp_s;
-        snprintf(*ao_db_dir, 23, "/tmp/waflz_lmdb_XXXXXX");
-        l_mkdtemp_s = mkdtemp(*ao_db_dir);
-        ao_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, *ao_db_dir, strnlen(*ao_db_dir, 23));
+        snprintf(l_db_dir, 23, "/tmp/waflz_lmdb_XXXXXX");
+        l_mkdtemp_s = mkdtemp(l_db_dir);
+        ao_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir, strnlen(l_db_dir, 23));
         ao_db.set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
         ao_db.set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
         l_s = ao_db.init();
         if(l_s != WAFLZ_STATUS_OK)
         {
-                rm_r(*ao_db_dir);
+                rm_r(l_db_dir);
                 return WAFLZ_STATUS_ERROR;
         }
+        ao_db_dir = l_db_dir;
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -768,20 +766,21 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         // TODO FIX!!!
         // -------------------------------------------------
-#if 0
         // -------------------------------------------------
         // verify load configs
         // -------------------------------------------------
         SECTION("verify load configs according to last_modified_date") {
-                ns_waflz::kycb_db l_db;
+                // -----------------------------------------
+                // create db
+                // -----------------------------------------
+                ns_waflz::lm_db l_db;
+                std::string l_db_dir;
                 int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                l_s = create_db(l_db, l_db_dir);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_db.init();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                // -----------------------------------------
+                // setup
+                // -----------------------------------------
                 ns_waflz::configs *l_c = new ns_waflz::configs(l_db);
                 std::string l_cust_id_str("16715");
                 uint64_t l_cust_id = 0;
@@ -820,20 +819,23 @@ TEST_CASE( "config test", "[config]" ) {
                 // cleanup
                 // -----------------------------------------
                 if(l_c) { delete l_c; l_c = NULL; }
+                rm_r(l_db_dir.c_str());
         }
         // -------------------------------------------------
         // Valid config
         // -------------------------------------------------
         SECTION("verify valid config config-basic tests with expiration") {
-                ns_waflz::kycb_db l_db;
+                // -----------------------------------------
+                // create db
+                // -----------------------------------------
+                ns_waflz::lm_db l_db;
+                std::string l_db_dir;
                 int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                l_s = create_db(l_db, l_db_dir);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_db.init();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                // -----------------------------------------
+                // setup
+                // -----------------------------------------
                 ns_waflz::config l_c(l_db);
                 l_s = l_c.load(VALID_COORDINATOR_CONFIG_JSON, sizeof(VALID_COORDINATOR_CONFIG_JSON));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -914,21 +916,23 @@ TEST_CASE( "config test", "[config]" ) {
                 // clean up
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                unlink(l_db_file);
+                rm_r(l_db_dir.c_str());
         }
         // -------------------------------------------------
         // Valid config
         // -------------------------------------------------
         SECTION("verify valid config config -basic tests with expiration -no rules") {
-                ns_waflz::kycb_db l_db;
+                // -----------------------------------------
+                // create db
+                // -----------------------------------------
+                ns_waflz::lm_db l_db;
+                std::string l_db_dir;
                 int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                l_s = create_db(l_db, l_db_dir);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_db.init();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                // -----------------------------------------
+                // setup
+                // -----------------------------------------
                 ns_waflz::config l_c(l_db);
                 l_s = l_c.load(NO_RULES_CONFIG_JSON, sizeof(NO_RULES_CONFIG_JSON));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -1019,21 +1023,23 @@ TEST_CASE( "config test", "[config]" ) {
                 // clean up
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                unlink(l_db_file);
+                rm_r(l_db_dir.c_str());
         }
         // -------------------------------------------------
         // Valid config file ext
         // -------------------------------------------------
         SECTION("verify valid config config chained rule with FILE_EXT") {
-                ns_waflz::kycb_db l_db;
+                // -----------------------------------------
+                // create db
+                // -----------------------------------------
+                ns_waflz::lm_db l_db;
+                std::string l_db_dir;
                 int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                l_s = create_db(l_db, l_db_dir);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_db.init();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                // -----------------------------------------
+                // setup
+                // -----------------------------------------
                 ns_waflz::config l_c(l_db);
                 l_s = l_c.load(VALID_COORDINATOR_CONFIG_JSON_FILE_EXT, sizeof(VALID_COORDINATOR_CONFIG_JSON_FILE_EXT));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -1151,21 +1157,23 @@ TEST_CASE( "config test", "[config]" ) {
                 // cleanup
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                unlink(l_db_file);
+                rm_r(l_db_dir.c_str());
         }
         // -------------------------------------------------
         // request method
         // -------------------------------------------------
         SECTION("verify request method") {
-                ns_waflz::kycb_db l_db;
+                // -----------------------------------------
+                // create db
+                // -----------------------------------------
+                ns_waflz::lm_db l_db;
+                std::string l_db_dir;
                 int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                l_s = create_db(l_db, l_db_dir);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_db.init();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                // -----------------------------------------
+                // setup
+                // -----------------------------------------
                 ns_waflz::config l_c(l_db);
                 l_s = l_c.load(REQUEST_METHOD_CONFIG_JSON, sizeof(REQUEST_METHOD_CONFIG_JSON));
                 //printf("err: %s\n", l_c.get_err_msg());
@@ -1244,21 +1252,23 @@ TEST_CASE( "config test", "[config]" ) {
                 // cleanup
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                unlink(l_db_file);
+                rm_r(l_db_dir.c_str());
         }
         // -------------------------------------------------
         // request method
         // -------------------------------------------------
         SECTION("verify request method w/ scope") {
-                ns_waflz::kycb_db l_db;
+                // -----------------------------------------
+                // create db
+                // -----------------------------------------
+                ns_waflz::lm_db l_db;
+                std::string l_db_dir;
                 int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                l_s = create_db(l_db, l_db_dir);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_db.init();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                // -----------------------------------------
+                // setup
+                // -----------------------------------------
                 ns_waflz::config *l_c = new ns_waflz::config(l_db);
                 l_s = l_c->load(REQUEST_METHOD_CONFIG_W_SCOPE_JSON, sizeof(REQUEST_METHOD_CONFIG_W_SCOPE_JSON));
                 //printf("err: %s\n", l_c.get_err_msg());
@@ -1371,21 +1381,23 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_c) { delete l_c; l_c = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                unlink(l_db_file);
+                rm_r(l_db_dir.c_str());
         }
         // -------------------------------------------------
         // request method
         // -------------------------------------------------
         SECTION("verify request method w/ scope for EM") {
-                ns_waflz::kycb_db l_db;
+                // -----------------------------------------
+                // create db
+                // -----------------------------------------
+                ns_waflz::lm_db l_db;
+                std::string l_db_dir;
                 int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
+                l_s = create_db(l_db, l_db_dir);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                l_s = l_db.init();
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                // -----------------------------------------
+                // setup
+                // -----------------------------------------
                 ns_waflz::config *l_c = new ns_waflz::config(l_db);
                 l_s = l_c->load(REQUEST_METHOD_CONFIG_W_SCOPE_EM_JSON, sizeof(REQUEST_METHOD_CONFIG_W_SCOPE_EM_JSON));
                 //NDBG_PRINT("err: %s\n", l_c->get_err_msg());
@@ -1499,8 +1511,7 @@ TEST_CASE( "config test", "[config]" ) {
                 // -----------------------------------------
                 if(l_c) { delete l_c; l_c = NULL; }
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                unlink(l_db_file);
+                rm_r(l_db_dir.c_str());
         }
-#endif
 }
 

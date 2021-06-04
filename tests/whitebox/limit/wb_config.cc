@@ -20,13 +20,131 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"
 #include "waflz/string_util.h"
+#include "waflz/lm_db.h"
 #include "limit.pb.h"
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fts.h>
 //! ----------------------------------------------------------------------------
 //! ignore unused -make testing individual tests easier
 //! ----------------------------------------------------------------------------
 #pragma GCC diagnostic ignored "-Wunused-function"
+//! ----------------------------------------------------------------------------
+//! \details: recursive dir delete "borrowed" from:
+//!           https://stackoverflow.com/a/27808574
+//! \return:  0 on SUCCESS -1 on ERROR
+//! \param:   dir: directory to delete
+//! ----------------------------------------------------------------------------
+static int rm_r(const char *dir)
+{
+        int ret = 0;
+        FTS *ftsp = NULL;
+        FTSENT *curr;
+        // -------------------------------------------------
+        // Cast needed (in C) because fts_open() takes a
+        // "char * const *", instead of a "const char *
+        // const *", which is only allowed in C++.
+        // fts_open() does not modify the argument.
+        // -------------------------------------------------
+        char *files[] = { (char*) dir, NULL };
+        // -------------------------------------------------
+        // FTS_NOCHDIR  - Avoid changing cwd, which could
+        //                cause unexpected behavior
+        //                in multithreaded programs
+        // FTS_PHYSICAL - Don't follow symlinks. Prevents
+        //                deletion of files outside of
+        //                specified directory
+        // FTS_XDEV     - Don't cross filesystem boundaries
+        // -------------------------------------------------
+        ftsp = fts_open(files, FTS_NOCHDIR | FTS_PHYSICAL | FTS_XDEV, NULL);
+        if (!ftsp)
+        {
+                fprintf(stderr, "%s: fts_open failed: %s\n", dir, strerror(errno));
+                ret = -1;
+                goto finish;
+        }
+        while ((curr = fts_read(ftsp)))
+        {
+                switch (curr->fts_info)
+                {
+                case FTS_NS:
+                case FTS_DNR:
+                case FTS_ERR:
+                {
+                        fprintf(stderr, "%s: fts_read error: %s\n",
+                                curr->fts_accpath, strerror(curr->fts_errno));
+                        break;
+                }
+                // -----------------------------------------
+                // Not reached unless
+                // FTS_LOGICAL, FTS_SEEDOT, FTS_NOSTAT were
+                // passed to fts_open()
+                // -----------------------------------------
+                case FTS_DC:
+                case FTS_DOT:
+                case FTS_NSOK:
+                {
+                        break;
+                }
+                // -----------------------------------------
+                // Do nothing. Need depth-first search,
+                // so directories are deleted
+                // in FTS_DP
+                // -----------------------------------------
+                case FTS_D:
+                {
+                        break;
+                }
+                case FTS_DP:
+                case FTS_F:
+                case FTS_SL:
+                case FTS_SLNONE:
+                case FTS_DEFAULT:
+                {
+                        if (remove(curr->fts_accpath) < 0)
+                        {
+                                fprintf(stderr, "%s: Failed to remove: %s\n",
+                                        curr->fts_path,
+                                        strerror(curr->fts_errno));
+                                ret = -1;
+                        }
+                        break;
+                }
+                }
+        }
+finish:
+        if (ftsp)
+        {
+                fts_close(ftsp);
+        }
+        return ret;
+}
+//! ----------------------------------------------------------------------------
+//! generate db for testing
+//! ----------------------------------------------------------------------------
+int create_db(ns_waflz::lm_db& ao_db, char** ao_db_dir)
+{
+        if(!ao_db_dir)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        int32_t l_s;
+        char *l_mkdtemp_s;
+        snprintf(*ao_db_dir, 23, "/tmp/waflz_lmdb_XXXXXX");
+        l_mkdtemp_s = mkdtemp(*ao_db_dir);
+        ao_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, *ao_db_dir, strnlen(*ao_db_dir, 23));
+        ao_db.set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
+        ao_db.set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
+        l_s = ao_db.init();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                rm_r(*ao_db_dir);
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
@@ -598,19 +716,14 @@ TEST_CASE( "config test", "[config]" ) {
                         NULL, //get_rqst_uuid_cb,
                         NULL //get_cust_id_cb
         };
-        // -------------------------------------------------
-        // TODO FIX!!!
-        // -------------------------------------------------
-#if 0
-
         ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         // -------------------------------------------------
         // bad config
         // -------------------------------------------------
         SECTION("verify load failures bad json 1") {
                 const char l_json[] = "woop woop [[[ bloop {##{{{{ ]} blop blop %%# &(!(*&!#))";
-                ns_waflz::kycb_db l_kycb_db;
-                ns_waflz::config l_c(l_kycb_db);
+                ns_waflz::lm_db l_db;
+                ns_waflz::config l_c(l_db);
                 int32_t l_s;
                 l_s = l_c.load(l_json, sizeof(l_json));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -621,8 +734,8 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         SECTION("verify load failures bad json 2") {
                 const char l_json[] = "blorp";
-                ns_waflz::kycb_db l_kycb_db;
-                ns_waflz::config l_c(l_kycb_db);
+                ns_waflz::lm_db l_db;
+                ns_waflz::config l_c(l_db);
                 int32_t l_s;
                 l_s = l_c.load(l_json, sizeof(l_json));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -633,8 +746,8 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         SECTION("verify load failures bad json 3") {
                 const char l_json[] = "[\"b\", \"c\",]";
-                ns_waflz::kycb_db l_kycb_db;
-                ns_waflz::config l_c(l_kycb_db);
+                ns_waflz::lm_db l_db;
+                ns_waflz::config l_c(l_db);
                 int32_t l_s;
                 l_s = l_c.load(l_json, sizeof(l_json));
                 //printf("err: %s\n", l_e.get_err_msg());
@@ -645,19 +758,22 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         SECTION("verify load failures valid json -bad config") {
                 const char l_json[] = "{\"b\": \"c\"}";
-                ns_waflz::kycb_db l_kycb_db;
-                ns_waflz::config l_c(l_kycb_db);
+                ns_waflz::lm_db l_db;
+                ns_waflz::config l_c(l_db);
                 int32_t l_s;
                 l_s = l_c.load(l_json, sizeof(l_json));
                 //printf("err: %s\n", l_e.get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_ERROR));
         }
         // -------------------------------------------------
+        // TODO FIX!!!
+        // -------------------------------------------------
+#if 0
+        // -------------------------------------------------
         // verify load configs
         // -------------------------------------------------
         SECTION("verify load configs according to last_modified_date") {
                 ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 int32_t l_s;
                 char l_db_file[] = "/tmp/XXXXXX.kycb.db";
                 l_s = mkstemp(l_db_file);
@@ -710,7 +826,6 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         SECTION("verify valid config config-basic tests with expiration") {
                 ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 int32_t l_s;
                 char l_db_file[] = "/tmp/XXXXXX.kycb.db";
                 l_s = mkstemp(l_db_file);
@@ -806,7 +921,6 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         SECTION("verify valid config config -basic tests with expiration -no rules") {
                 ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 int32_t l_s;
                 char l_db_file[] = "/tmp/XXXXXX.kycb.db";
                 l_s = mkstemp(l_db_file);
@@ -912,7 +1026,6 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         SECTION("verify valid config config chained rule with FILE_EXT") {
                 ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 int32_t l_s;
                 char l_db_file[] = "/tmp/XXXXXX.kycb.db";
                 l_s = mkstemp(l_db_file);
@@ -1045,7 +1158,6 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         SECTION("verify request method") {
                 ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 int32_t l_s;
                 char l_db_file[] = "/tmp/XXXXXX.kycb.db";
                 l_s = mkstemp(l_db_file);
@@ -1139,7 +1251,6 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         SECTION("verify request method w/ scope") {
                 ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 int32_t l_s;
                 char l_db_file[] = "/tmp/XXXXXX.kycb.db";
                 l_s = mkstemp(l_db_file);
@@ -1267,7 +1378,6 @@ TEST_CASE( "config test", "[config]" ) {
         // -------------------------------------------------
         SECTION("verify request method w/ scope for EM") {
                 ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 int32_t l_s;
                 char l_db_file[] = "/tmp/XXXXXX.kycb.db";
                 l_s = mkstemp(l_db_file);

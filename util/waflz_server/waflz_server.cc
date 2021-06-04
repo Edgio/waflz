@@ -297,10 +297,6 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
                 if(l_db) { delete l_db; l_db = NULL; }
                 return STATUS_ERROR;
         }
-        if(!l_db->get_init())
-        {
-                printf("error -%s\n", l_db->get_err_msg());
-        }
         // -----------------------------------------
         // done
         // -----------------------------------------

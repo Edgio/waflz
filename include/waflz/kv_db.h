@@ -69,7 +69,6 @@ public:
         virtual int32_t get_db_stats(db_stats_t& a_stats) = 0;
         virtual int32_t sweep() = 0;
         const char *get_err_msg(void) { return m_err_msg; }
-        bool get_init(void) { return m_init; }
 protected:
         // -------------------------------------------------
         // private members

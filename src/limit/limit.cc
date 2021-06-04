@@ -248,17 +248,6 @@ int32_t limit::process(bool &ao_exceeds,
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // db check
-        // -------------------------------------------------
-        if(!m_db.get_init())
-        {
-                // -----------------------------------------
-                // db not yet initialized -ignore request
-                // -----------------------------------------
-                WAFLZ_PERROR(m_err_msg, "db not yet initialized");
-                return WAFLZ_STATUS_OK;
-        }
-        // -------------------------------------------------
         // limits...
         // -------------------------------------------------
         waflz_pb::limit &i_limit = *m_pb;

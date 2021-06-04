@@ -1,8 +1,6 @@
 # ------------------------------------------------------------------------------
-# Project setup
+# macros
 # ------------------------------------------------------------------------------
-project(waflz)
-cmake_minimum_required(VERSION 3.5)
 macro (add_waflz_wb_test test_name)
     # SET(SRCS wb_matched_data.cc)
     add_executable("wb_${test_name}" "wb_${test_name}.cc")

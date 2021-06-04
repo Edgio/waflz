@@ -23,7 +23,7 @@
 #define MONKEY_KEY "TEST::KEY::MONKEY::BONGO"
 #define BANANA_KEY "TEST::KEY::BANANA::SMELLY"
 //! ----------------------------------------------------------------------------
-//! kycb_db
+//! redis_db
 //! ----------------------------------------------------------------------------
 TEST_CASE( "redis db test", "[redis]" ) {
         SECTION("validate bad init") {

@@ -16,6 +16,7 @@ option(BUILD_ASAN           "Build with Address Sanitizer" OFF)
 option(BUILD_UBSAN          "Build with Undefined Behavior Sanitizer" OFF)
 option(BUILD_TESTS          "Build the unit tests." ON)
 option(BUILD_APPS           "Build the apps." OFF)
+option(BUILD_REDIS          "Build support for redis" OFF)
 option(BUILD_UBUNTU         "Build for Ubuntu" OFF)
 option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
 option(BUILD_REDHAT         "Build for Red Hat" OFF)
@@ -66,6 +67,7 @@ message("    Build with Address Sanitizer:              " "BUILD_ASAN           
 message("    Build with Undefined Behavior Sanitizer:   " "BUILD_UBSAN             " ${BUILD_UBSAN})
 message("    Build unit tests:                          " "BUILD_TESTS             " ${BUILD_TESTS})
 message("    Build applications:                        " "BUILD_APPS              " ${BUILD_APPS})
+message("    Build support for redis:                   " "BUILD_REDIS             " ${BUILD_REDIS})
 message("    Build for Ubuntu (adds package help):      " "BUILD_UBUNTU            " ${BUILD_UBUNTU})
 message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
 message("    Build for Red Hat:                         " "BUILD_REDHAT            " ${BUILD_REDHAT})
@@ -142,7 +144,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
 endif()
 if(BUILD_REDHAT)
-  set(LIBRARIES ${LIBRARIES} ssl crypto pcre protobuf xml2 kyotocabinet hiredis)
+  set(LIBRARIES ${LIBRARIES} ssl crypto pcre protobuf xml2)
   add_definitions(-DWAFLZ_PCRE_INFO_FLAGS_MISSING)
 endif()
 # ------------------------------------------------------------------------------
@@ -168,14 +170,13 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   LINK_DIRECTORIES(/usr/local/opt/pcre/lib)
   LINK_DIRECTORIES(/usr/local/opt/libxml2/lib)
   # --------------------------------------------------------
-  # if rate-limiting check for kv db libs
-  # --------------------------------------------------------  
-  INCLUDE_DIRECTORIES(/usr/local/opt/kyoto-cabinet/include)
-  INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
-  LINK_DIRECTORIES(/usr/local/opt/kyoto-cabinet/lib)
-  LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
-  LIST(APPEND LIBRARIES kyotocabinet)
-  LIST(APPEND LIBRARIES hiredis)
+  # if redis
+  # --------------------------------------------------------
+  IF(BUILD_REDIS)
+    INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
+    LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
+    LIST(APPEND LIBRARIES hiredis)
+  ENDIF()
   # --------------------------------------------------------
   # cc flags
   # --------------------------------------------------------
@@ -237,15 +238,6 @@ if(BUILD_UBUNTU)
   # if rate-limiting check for kv db libs
   # --------------------------------------------------------  
   find_ubuntu_package(LIBHIREDIS "" libhiredis.a "" libhiredis-dev)
-  find_ubuntu_package(LIBKYOTOCABINET "" libkyotocabinet.a "" libkyotocabinet-dev)
-  # ------------------------------------------------------
-  # linking issue with lzo2
-  # liblzo2.a(lzo_crc.o): relocation R_X86_64_32 against `.rodata'
-  # apparently lib wasn't built with -fPIC??? :( in ubuntu
-  # distros
-  # ------------------------------------------------------
-  #find_ubuntu_package(LIBLZO2 "" liblzo2.so liblzo2-2 "")
-  LIST(APPEND LIBRARIES lzo2)
   # --------------------------------------------------------
   # xml2 -brings in a lot...
   # --------------------------------------------------------
@@ -329,7 +321,6 @@ else()
 endif()
 SET(CPACK_DEBIAN_PACKAGE_NAME "waflz")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Reed Morrison, Devender Singh, Revathi Sabanayagam, Raymond Mintz, Thomas Ahn")
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "liblzo2-2 (>= 2.08-1.2)")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Waflz Libraries and tools")
 SET(CPACK_PACKAGE_DESCRIPTION "Waflz Libraries and tools")
 message(STATUS "Package Configuration:")

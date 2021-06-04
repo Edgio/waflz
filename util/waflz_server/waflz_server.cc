@@ -30,7 +30,6 @@
 #include "waflz/profile.h"
 #include "waflz/render.h"
 #include "waflz/engine.h"
-#include "waflz/kycb_db.h"
 #include "waflz/redis_db.h"
 #include "waflz/lm_db.h"
 #include "waflz/trace.h"
@@ -242,7 +241,7 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
         // -------------------------------------------------
         // lmdb
         // -------------------------------------------------
-        else if(a_lmdb)
+        else
         {
                 int32_t l_s;
                 ns_waflz::kv_db* l_db = NULL;
@@ -301,58 +300,6 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
                 // done
                 // -----------------------------------------
                 //NDBG_PRINT("USING LMDB\n");
-                *ao_db = l_db;
-        }
-        // -------------------------------------------------
-        // kyoto
-        // -------------------------------------------------
-        else
-        {
-                ns_waflz::kv_db* l_db = NULL;
-                l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::kycb_db());
-                // -----------------------------------------
-                // setup disk
-                // -----------------------------------------
-                char l_db_file[] = "/tmp/waflz-XXXXXX.kyoto.db";
-                //uint32_t l_db_buckets = 0;
-                //uint32_t l_db_map = 0;
-                //int l_db_options = 0;
-                //l_db_options |= kyotocabinet::HashDB::TSMALL;
-                //l_db_options |= kyotocabinet::HashDB::TLINEAR;
-                //l_db_options |= kyotocabinet::HashDB::TCOMPRESS;
-                errno = 0;
-                int32_t l_s;
-                l_s = mkstemps(l_db_file,9);
-                if(l_s == -1)
-                {
-                        NDBG_PRINT("error(%d) performing mkstemp(%s) reason[%d]: %s\n",
-                                        l_s,
-                                        l_db_file,
-                                        errno,
-                                        strerror(errno));
-                        if(l_db) { delete l_db; l_db = NULL; }
-                        return STATUS_ERROR;
-                }
-                unlink(l_db_file);
-                // -----------------------------------------
-                // options
-                // -----------------------------------------
-                l_db->set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
-                //NDBG_PRINT("l_db_file: %s\n", l_db_file);
-                // -----------------------------------------
-                // init db
-                // -----------------------------------------
-                l_s = l_db->init();
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing initialize_cb: Reason: %s\n", l_db->get_err_msg());
-                        if(l_db) { delete l_db; l_db = NULL; }
-                        return STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // done
-                // -----------------------------------------
-                //NDBG_PRINT("USING KYOTOCABINET\n");
                 *ao_db = l_db;
         }
         return STATUS_OK;

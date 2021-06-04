@@ -1,12 +1,4 @@
 # ------------------------------------------------------------------------------
-# project setup
-# ------------------------------------------------------------------------------
-project(waflz C CXX)
-cmake_minimum_required(VERSION 3.5)
-if (POLICY CMP0050)
-    cmake_policy(SET CMP0050 OLD)
-endif()
-# ------------------------------------------------------------------------------
 # Can't add for now...
 # ------------------------------------------------------------------------------
 add_definitions(-DHAVE_CONFIG_H)
@@ -109,7 +101,6 @@ SET(SRCS
     # ------------------------------------------------------
     # db
     # ------------------------------------------------------
-    db/kycb_db.cc
     db/redis_db.cc
     db/lm_db.cc
     # ------------------------------------------------------
@@ -230,7 +221,6 @@ SET(HDRS
     # db
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/include/waflz/kv_db.h
-    ${CMAKE_SOURCE_DIR}/include/waflz/kycb_db.h
     ${CMAKE_SOURCE_DIR}/include/waflz/redis_db.h
     ${CMAKE_SOURCE_DIR}/include/waflz/lm_db.h
     # ------------------------------------------------------
@@ -282,7 +272,6 @@ target_link_libraries(waflz
     pcre
     protobuf
     xml2
-    kyotocabinet
     hiredis
 )
 # ------------------------------------------------------------------------------

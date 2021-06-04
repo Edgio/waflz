@@ -1,8 +1,3 @@
-# ------------------------------------------------------------------------------
-# project setup
-# ------------------------------------------------------------------------------
-project(waflz)
-cmake_minimum_required(VERSION 3.5)
 add_waflz_wb_test(nms)
 add_waflz_wb_test(ac)
 add_waflz_wb_test(byte_range)

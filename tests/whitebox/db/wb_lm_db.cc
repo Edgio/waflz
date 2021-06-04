@@ -41,7 +41,6 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
         SECTION("validate bad init") {
                 int32_t l_s;
                 ns_waflz::lm_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 const char l_bad_db_dir[] = "/fish/fish/fish";
                 l_s = l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_bad_db_dir, strlen(l_bad_db_dir));
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -51,11 +50,10 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
         SECTION("validate good init") {
                 int32_t l_s;
                 ns_waflz::lm_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 // get lmdb dir path
                 std::string l_db_dir;
                 get_lmdb_path(l_db_dir);
-                //init
+                // init
                 l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
                 l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
                 l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
@@ -65,17 +63,15 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
         SECTION("validate increment key and expiration") {
                 int32_t l_s;
                 ns_waflz::lm_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 // get lmdb dir path
                 std::string l_db_dir;
                 get_lmdb_path(l_db_dir);
-                //init
+                // init
                 l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
                 l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
                 l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
                 l_s = l_db.init();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
-                REQUIRE(l_db.get_init() == true);
                 int64_t l_result;
                 l_s = l_db.increment_key(l_result, MONKEY_KEY, 2000);
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
@@ -89,9 +85,9 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 l_s = l_db.increment_key(l_result, BANANA_KEY, 4000);
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 REQUIRE(l_result == 2);
-                //sleep for 2 seconds, monkey key should have been expired
+                // sleep for 2 seconds, monkey key should have been expired
                 usleep(2000000);
-                //increment the test key, this should have cleared monkey key
+                // increment the test key, this should have cleared monkey key
                 l_s = l_db.increment_key(l_result, TEST_KEY, 1000);
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 l_s = l_db.get_key(l_result, MONKEY_KEY, strlen(MONKEY_KEY));
@@ -99,9 +95,9 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 l_s = l_db.get_key(l_result, BANANA_KEY, strlen(BANANA_KEY));
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 REQUIRE(l_result == 2);
-                //sleep for 2 more seconds, banana key should have been expired
+                // sleep for 2 more seconds, banana key should have been expired
                 usleep(2000000);
-                //increment the test key, this should have cleared banana key
+                // increment the test key, this should have cleared banana key
                 l_s = l_db.increment_key(l_result, TEST_KEY, 1000);
                 l_s = l_db.get_key(l_result, BANANA_KEY, strlen(BANANA_KEY));
                 REQUIRE(l_s == WAFLZ_STATUS_ERROR);
@@ -109,17 +105,15 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
         SECTION("validate sweep db - test if sweeping deletes expired keys from db") {
                 int32_t l_s;
                 ns_waflz::lm_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 // get lmdb dir path
                 std::string l_db_dir;
                 get_lmdb_path(l_db_dir);
-                //init
+                // init
                 l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
                 l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
                 l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
                 l_s = l_db.init();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
-                REQUIRE(l_db.get_init() == true);
                 int64_t l_result;
                 l_s = l_db.increment_key(l_result, MONKEY_KEY, 2000);
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
@@ -131,7 +125,7 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 l_s = l_db.sweep();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 int64_t l_out_val = -1;
-                //verify sweep db didn't delete keys before expiry
+                // verify sweep db didn't delete keys before expiry
                 l_s = l_db.get_key(l_out_val, MONKEY_KEY, strlen(MONKEY_KEY));
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 REQUIRE(l_out_val == 1);
@@ -139,7 +133,7 @@ TEST_CASE( "lmdb test", "[lmdb]" ) {
                 REQUIRE(l_s == WAFLZ_STATUS_OK);
                 REQUIRE(l_out_val == 1);
                 // sleep for 2 seconds and sweep db. Monkey key should have been
-                //deleted
+                // deleted
                 usleep(3000000);
                 l_s = l_db.sweep();
                 REQUIRE(l_s == WAFLZ_STATUS_OK);

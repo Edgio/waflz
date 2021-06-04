@@ -32,7 +32,7 @@ The open source standard implementation of the [ModSecurity Rules Engine](https:
 #### Packages
 
 ```sh
-$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev python3-pip
+$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev python3-pip
 ```
 
 #### Python Packages
@@ -47,7 +47,7 @@ $ ./build.sh
 ```
 ### OS X Build requirements (brew)
 ```bash
-brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg
+brew install cmake openssl protobuf libxml2 pcre dpkg
 ```
 
 #### Building the tools

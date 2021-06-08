@@ -102,6 +102,10 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
             _ELIF_TYPE("NULL-ALERT", NULL_ALERT)
             _ELIF_TYPE("NULL_BLOCK", NULL_BLOCK)
             _ELIF_TYPE("NULL-BLOCK", NULL_BLOCK)
+            _ELIF_TYPE("IGNORE_ALERT", IGNORE_ALERT)
+            _ELIF_TYPE("IGNORE-ALERT", IGNORE_ALERT)
+            _ELIF_TYPE("IGNORE_BLOCK", IGNORE_BLOCK)
+            _ELIF_TYPE("IGNORE-BLOCK", IGNORE_BLOCK)
             else
             {
                     WAFLZ_PERROR(ao_err_msg, "unrecognized enforcement type string: %s", l_type.c_str());

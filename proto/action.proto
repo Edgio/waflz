@@ -22,6 +22,8 @@ message enforcement {
                 BROWSER_CHALLENGE = 9;
                 NULL_ALERT = 10;
                 NULL_BLOCK = 11;
+                IGNORE_ALERT= 12;
+                IGNORE_BLOCK = 13;
         }
         message header_t {
                 optional string key = 1;

@@ -98,6 +98,10 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
             _ELIF_TYPE("BLOCK-REQUEST", BLOCK_REQUEST)
             _ELIF_TYPE("BROWSER_CHALLENGE", BROWSER_CHALLENGE)
             _ELIF_TYPE("BROWSER-CHALLENGE", BROWSER_CHALLENGE)
+            _ELIF_TYPE("NULL_ALERT", NULL_ALERT)
+            _ELIF_TYPE("NULL-ALERT", NULL_ALERT)
+            _ELIF_TYPE("NULL_BLOCK", NULL_BLOCK)
+            _ELIF_TYPE("NULL-BLOCK", NULL_BLOCK)
             else
             {
                     WAFLZ_PERROR(ao_err_msg, "unrecognized enforcement type string: %s", l_type.c_str());

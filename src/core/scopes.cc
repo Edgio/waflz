@@ -1586,6 +1586,10 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         {
                                 l_event->set_waf_profile_action(a_scope.acl_audit_action().enf_type());
                         }
+                        else
+                        {
+                                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                        }
                 }
                 else
                 {
@@ -1622,6 +1626,10 @@ audit_rules:
                         if(a_scope.rules_audit_action().has_enf_type())
                         {
                                 l_event->set_waf_profile_action(a_scope.rules_audit_action().enf_type());
+                        }
+                        else
+                        {
+                                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
                         }
                 }
                 else
@@ -1669,6 +1677,10 @@ audit_profile:
                         if(a_scope.profile_audit_action().has_enf_type())
                         {
                                 l_event->set_waf_profile_action(a_scope.profile_audit_action().enf_type());
+                        }
+                        else
+                        {
+                                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
                         }
                 }
                 else

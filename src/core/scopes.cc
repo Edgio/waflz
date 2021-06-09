@@ -1580,6 +1580,17 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
+                if(a_scope.has_acl_audit_action())
+                {
+                        if(a_scope.acl_audit_action().has_enf_type())
+                        {
+                                l_event->set_waf_profile_action(a_scope.acl_audit_action().enf_type());
+                        }
+                }
+                else
+                {
+                        l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                }
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1606,6 +1617,17 @@ audit_rules:
                 }
                 l_event->set_rules_config_id(l_rules->get_id());
                 l_event->set_rules_config_name(l_rules->get_name());
+                if(a_scope.has_rules_audit_action())
+                {
+                        if(a_scope.rules_audit_action().has_enf_type())
+                        {
+                                l_event->set_waf_profile_action(a_scope.rules_audit_action().enf_type());
+                        }
+                }
+                else
+                {
+                        l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                }
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1641,6 +1663,17 @@ audit_profile:
                 if(!l_event)
                 {
                         goto prod;
+                }
+                if(a_scope.has_profile_audit_action())
+                {
+                        if(a_scope.profile_audit_action().has_enf_type())
+                        {
+                                l_event->set_waf_profile_action(a_scope.profile_audit_action().enf_type());
+                        }
+                }
+                else
+                {
+                        l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
                 }
                 *ao_audit_event = l_event;
                 goto prod;

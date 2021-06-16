@@ -106,6 +106,12 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
             _ELIF_TYPE("IGNORE-ALERT", IGNORE_ALERT)
             _ELIF_TYPE("IGNORE_BLOCK", IGNORE_BLOCK)
             _ELIF_TYPE("IGNORE-BLOCK", IGNORE_BLOCK)
+            _ELIF_TYPE("IGNORE-REDIRECT-302", IGNORE_REDIRECT_302)
+            _ELIF_TYPE("IGNORE_REDIRECT_302", IGNORE_REDIRECT_302)
+            _ELIF_TYPE("IGNORE-CUSTOME_RESPONSE", IGNORE_CUSTOM_RESPONSE)
+            _ELIF_TYPE("IGNORE_CUSTOME_RESPONSE", IGNORE_CUSTOM_RESPONSE)
+            _ELIF_TYPE("IGNORE-DROP-REQUEST", IGNORE_DROP_REQUEST)
+            _ELIF_TYPE("IGNORE_DROP_REQUEST", IGNORE_DROP_REQUEST)
             else
             {
                     WAFLZ_PERROR(ao_err_msg, "unrecognized enforcement type string: %s", l_type.c_str());
@@ -1580,20 +1586,11 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(a_scope.has_acl_audit_action())
+                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                if(a_scope.has_acl_audit_action() &&
+                   a_scope.acl_audit_action().has_enf_type())
                 {
-                        if(a_scope.acl_audit_action().has_enf_type())
-                        {
-                                l_event->set_waf_profile_action(a_scope.acl_audit_action().enf_type());
-                        }
-                        else
-                        {
-                                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
-                        }
-                }
-                else
-                {
-                        l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                         l_event->set_waf_profile_action(a_scope.acl_audit_action().enf_type());
                 }
                 *ao_audit_event = l_event;
                 goto prod;
@@ -1621,20 +1618,11 @@ audit_rules:
                 }
                 l_event->set_rules_config_id(l_rules->get_id());
                 l_event->set_rules_config_name(l_rules->get_name());
-                if(a_scope.has_rules_audit_action())
+                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                if(a_scope.has_rules_audit_action() &&
+                   a_scope.rules_audit_action().has_enf_type())
                 {
-                        if(a_scope.rules_audit_action().has_enf_type())
-                        {
-                                l_event->set_waf_profile_action(a_scope.rules_audit_action().enf_type());
-                        }
-                        else
-                        {
-                                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
-                        }
-                }
-                else
-                {
-                        l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                         l_event->set_waf_profile_action(a_scope.rules_audit_action().enf_type());
                 }
                 *ao_audit_event = l_event;
                 goto prod;
@@ -1672,20 +1660,11 @@ audit_profile:
                 {
                         goto prod;
                 }
-                if(a_scope.has_profile_audit_action())
+                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                if(a_scope.has_profile_audit_action() &&
+                   a_scope.profile_audit_action().has_enf_type())
                 {
-                        if(a_scope.profile_audit_action().has_enf_type())
-                        {
-                                l_event->set_waf_profile_action(a_scope.profile_audit_action().enf_type());
-                        }
-                        else
-                        {
-                                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
-                        }
-                }
-                else
-                {
-                        l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                         l_event->set_waf_profile_action(a_scope.profile_audit_action().enf_type());
                 }
                 *ao_audit_event = l_event;
                 goto prod;

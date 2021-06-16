@@ -26,6 +26,7 @@ message enforcement {
                 IGNORE_BLOCK = 13;
                 IGNORE_REDIRECT_302 = 14;
                 IGNORE_CUSTOM_RESPONSE = 15;
+                IGNORE_DROP_REQUEST = 16;
         }
         message header_t {
                 optional string key = 1;

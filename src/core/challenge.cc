@@ -1,24 +1,14 @@
 //! ----------------------------------------------------------------------------
-//! Copyright (C) 2018 Verizon.  All Rights Reserved.
-//! All Rights Reserved
-///
-//!  @file    challenge.cc
-//!  @brief
-//!  @author  Revathi Sabanayagam
-//!  @date    01/06/2018
-///
-//!   Licensed under the Apache License, Version 2.0 (the "License");
-//!   you may not use this file except in compliance with the License.
-//!   You may obtain a copy of the License at
-///
-//!       http://www.apache.org/licenses/LICENSE-2.0
-///
-//!   Unless required by applicable law or agreed to in writing, software
-//!   distributed under the License is distributed on an "AS IS" BASIS,
-//!   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//!   See the License for the specific language governing permissions and
-//!   limitations under the License.
-///
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
 //! ----------------------------------------------------------------------------
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -49,6 +39,9 @@
 #define _TOKEN_FIELD_UA "ua"
 #define _TOKEN_FIELD_TIME "time"
 #define _TOKEN_FIELD_ANS "ans"
+#define _CHALLENGE_ID_ "__ecbmchid"
+#define _CHALLENGE_ANS_ "__eccha"
+//
 //! ----------------------------------------------------------------------------
 //! macros
 //! ----------------------------------------------------------------------------
@@ -630,10 +623,10 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         data_t l_ck_k;
         data_map_t::const_iterator i_h;
         // -------------------------------------------------
-        // get ec_secure
+        // get __ecbmchid
         // -------------------------------------------------
-        l_ck_k.m_data = "ec_secure";
-        l_ck_k.m_len = sizeof("ec_secure") - 1;
+        l_ck_k.m_data = _CHALLENGE_ID_;
+        l_ck_k.m_len = sizeof(_CHALLENGE_ID_) - 1;
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {
@@ -643,10 +636,10 @@ int32_t challenge::verify(bool& ao_pass, uint32_t a_valid_for_s, rqst_ctx* a_ctx
         data_t l_ck_secure;
         l_ck_secure = i_h->second;
         // -------------------------------------------------
-        // get ec_answer
+        // get __eccha
         // -------------------------------------------------
-        l_ck_k.m_data = "ec_answer";
-        l_ck_k.m_len = sizeof("ec_answer") - 1;
+        l_ck_k.m_data = _CHALLENGE_ANS_;
+        l_ck_k.m_len = sizeof(_CHALLENGE_ANS_) - 1;
         i_h = a_ctx->m_cookie_map.find(l_ck_k);
         if(i_h == a_ctx->m_cookie_map.end())
         {

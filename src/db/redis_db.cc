@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    redis_db.cc
-//: \details: redis db kv implementation for waflz
-//: \author:  Reed P. Morrison
-//: \date:    06/05/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "support/ndebug.h"
 #include "waflz/redis_db.h"
 #include "waflz/def.h"
@@ -30,22 +17,22 @@
 #include <string.h>
 #include <hiredis/hiredis.h>
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 redis_db::redis_db(void):
         kv_db(),
         m_ctx(NULL),
         m_config_host("localhost"),
         m_config_port(6379)
 {}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 redis_db::~redis_db(void)
 {
         if(m_ctx)
@@ -54,11 +41,11 @@ redis_db::~redis_db(void)
                 m_ctx = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t redis_db::reconnect(void)
 {
         // -------------------------------------------------
@@ -84,11 +71,11 @@ int32_t redis_db::reconnect(void)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t redis_db::init(void)
 {
         // -------------------------------------------------
@@ -122,11 +109,11 @@ int32_t redis_db::init(void)
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t redis_db::increment_key(int64_t &ao_result,
                                 const char *a_key,
                                 uint32_t a_expires_ms)
@@ -176,11 +163,11 @@ int32_t redis_db::increment_key(int64_t &ao_result,
         if(l_r) { freeReplyObject(l_r); l_r = NULL; }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t redis_db::get_key(int64_t &ao_val, const char *a_key, uint32_t a_key_len)
 {
         if(!m_ctx)
@@ -201,21 +188,21 @@ int32_t redis_db::get_key(int64_t &ao_val, const char *a_key, uint32_t a_key_len
         if(l_r) { freeReplyObject(l_r); l_r = NULL; }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t redis_db::print_all_keys(void)
 {
         // TODO
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t redis_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
 {
         switch(a_opt)
@@ -238,11 +225,11 @@ int32_t redis_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t redis_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
 {
         switch(a_opt)
@@ -253,6 +240,24 @@ int32_t redis_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
                 return WAFLZ_STATUS_ERROR;
         }
         }
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+int32_t redis_db::get_db_stats(db_stats_t& a_stats)
+{
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+int32_t redis_db::sweep()
+{
         return WAFLZ_STATUS_OK;
 }
 }

@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    TODO.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/06/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/redis_db.h"
@@ -30,18 +17,17 @@
 #include "support/ndebug.h"
 #include <unistd.h>
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define MONKEY_KEY "TEST::KEY::MONKEY::BONGO"
 #define BANANA_KEY "TEST::KEY::BANANA::SMELLY"
-//: ----------------------------------------------------------------------------
-//: kycb_db
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! redis_db
+//! ----------------------------------------------------------------------------
 TEST_CASE( "redis db test", "[redis]" ) {
         SECTION("validate bad init") {
                 ns_waflz::redis_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 const char l_bad_host[] = "128.0.0.1";
                 int32_t l_s;
                 l_s = l_db.set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_bad_host, strlen(l_bad_host));
@@ -52,7 +38,6 @@ TEST_CASE( "redis db test", "[redis]" ) {
         }
         SECTION("validate good init") {
                 ns_waflz::redis_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 const char l_host[] = "127.0.0.1";
                 int32_t l_s;
                 l_s = l_db.set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_host, strlen(l_host));

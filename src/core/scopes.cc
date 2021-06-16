@@ -1,33 +1,21 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2019 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    scopes.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    06/06/2019
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/scopes.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/config_parser.h"
 #include "waflz/acl.h"
 #include "waflz/rules.h"
+#include "waflz/bots.h"
 #include "waflz/engine.h"
 #include "waflz/rl_obj.h"
 #include "waflz/limit.h"
@@ -47,13 +35,13 @@
 #include "limit.pb.h"
 #include "rule.pb.h"
 #include <fnmatch.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define _SCOPES_MAX_SIZE (1024*1024)
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define VERIFY_HAS(_pb, _field) do { \
         if(!_pb.has_##_field()) { \
                 WAFLZ_PERROR(m_err_msg, "missing %s field", #_field); \
@@ -71,14 +59,14 @@
     } \
     } while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: utils
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! utils
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg)
 {
         // -------------------------------------------------
@@ -110,6 +98,14 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
             _ELIF_TYPE("BLOCK-REQUEST", BLOCK_REQUEST)
             _ELIF_TYPE("BROWSER_CHALLENGE", BROWSER_CHALLENGE)
             _ELIF_TYPE("BROWSER-CHALLENGE", BROWSER_CHALLENGE)
+            _ELIF_TYPE("NULL_ALERT", NULL_ALERT)
+            _ELIF_TYPE("NULL-ALERT", NULL_ALERT)
+            _ELIF_TYPE("NULL_BLOCK", NULL_BLOCK)
+            _ELIF_TYPE("NULL-BLOCK", NULL_BLOCK)
+            _ELIF_TYPE("IGNORE_ALERT", IGNORE_ALERT)
+            _ELIF_TYPE("IGNORE-ALERT", IGNORE_ALERT)
+            _ELIF_TYPE("IGNORE_BLOCK", IGNORE_BLOCK)
+            _ELIF_TYPE("IGNORE-BLOCK", IGNORE_BLOCK)
             else
             {
                     WAFLZ_PERROR(ao_err_msg, "unrecognized enforcement type string: %s", l_type.c_str());
@@ -140,11 +136,11 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details return short date in form "<mm>/<dd>/<YYYY>"
-//: \return  None
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details return short date in form "<mm>/<dd>/<YYYY>"
+//! \return  None
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static const char *get_date_short_str(void)
 {
         // TODO thread caching???
@@ -160,11 +156,11 @@ static const char *get_date_short_str(void)
                 return s_date_str;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  None
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  None
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
                                   uint16_t a_key,
                                   rqst_ctx *a_ctx)
@@ -270,11 +266,11 @@ static int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details ctor
-//: \return  None
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details ctor
+//! \return  None
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_init(false),
         m_pb(NULL),
@@ -286,6 +282,7 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_data_case_i_set_list(),
         m_id(),
         m_cust_id(),
+        m_account_type("__na__"),
         m_name(),
         m_id_acl_map(),
         m_id_rules_map(),
@@ -298,11 +295,11 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_pb = new waflz_pb::scope_config();
         m_enfx = new enforcer(false);
 }
-//: ----------------------------------------------------------------------------
-//: \brief   dtor
-//: \deatils
-//: \return  None
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \brief   dtor
+//! \deatils
+//! \return  None
+//! ----------------------------------------------------------------------------
 scopes::~scopes()
 {
         if(m_pb) { delete m_pb; m_pb = NULL; }
@@ -345,11 +342,11 @@ scopes::~scopes()
                 if(*i_n) { delete *i_n; *i_n = NULL;}
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details compile_op
-//: \return  0/-1
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details compile_op
+//! \return  0/-1
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
 {
         // -------------------------------------------------
@@ -476,11 +473,11 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  0/-1
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  0/-1
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::compile(const std::string& a_conf_dir_path)
 {
         if(m_init)
@@ -501,6 +498,10 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
         {
                 WAFLZ_PERROR(m_err_msg, "missing customer id field");
                 return WAFLZ_STATUS_ERROR;
+        }
+        if(m_pb->has_account_type())
+        {
+                m_account_type = m_pb->account_type();
         }
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
@@ -536,11 +537,11 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path)
 {
         if(a_buf_len > _SCOPES_MAX_SIZE)
@@ -573,11 +574,11 @@ int32_t scopes::load(const char *a_buf, uint32_t a_buf_len, const std::string& a
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::load(void *a_js, const std::string& a_conf_dir_path)
 {
         m_init = false;
@@ -603,11 +604,11 @@ int32_t scopes::load(void *a_js, const std::string& a_conf_dir_path)
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                            const std::string& a_conf_dir_path)
 {
@@ -628,7 +629,7 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                 // -----------------------------------------
                 // make acl obj
                 // -----------------------------------------
-                acl *l_acl = new acl();
+                acl *l_acl = new acl(m_engine);
                 std::string l_path;
                 l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_audit_id() +".acl.json"; 
                 char *l_buf = NULL;
@@ -688,7 +689,7 @@ acl_audit_action:
                 // -----------------------------------------
                 // make acl obj
                 // -----------------------------------------
-                acl *l_acl = new acl();
+                acl *l_acl = new acl(m_engine);
                 std::string l_path;
                 l_path = a_conf_dir_path + "/acl/" + m_cust_id + "-" + a_scope.acl_prod_id() +".acl.json";
                 int32_t l_s;
@@ -750,7 +751,7 @@ acl_prod_action:
                 // -----------------------------------------
                 std::string l_path;
                 l_path = a_conf_dir_path + "/bots/" + m_cust_id + "-" + a_scope.bots_prod_id() +".bots.json";
-                rules* l_bots = new rules(m_engine);
+                bots* l_bots = new bots(m_engine, m_challenge);
                 int32_t l_s;
                 l_s = l_bots->load_file(l_path.c_str(), l_path.length());
                 if(l_s != WAFLZ_STATUS_OK)
@@ -1075,11 +1076,11 @@ limit_action:
         //NDBG_PRINT("%s\n", a_scope.DebugString().c_str());
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details extern function to call process and pass on event info
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details extern function to call process and pass on event info
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::process_request_plugin(char **ao_event,
                                        void *a_ctx,
                                        const rqst_ctx_callbacks *a_callbacks,
@@ -1101,11 +1102,11 @@ int32_t scopes::process_request_plugin(char **ao_event,
         }
         return l_s;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
@@ -1163,8 +1164,13 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         continue;
                 }
                 // -----------------------------------------
-                // process scope...
+                // process scope and mark request as analyzed
+                // for waf and rl. It doesnt matter whether
+                // a scope has rl or waf enabled, if it hits the
+                // scope, we will not double process it
                 // -----------------------------------------
+                (*ao_rqst_ctx)->m_waf_analyzed = true;
+                (*ao_rqst_ctx)->m_limit_analyzed = true;
                 l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, a_part_mk, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -1180,11 +1186,13 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 {
                         (*ao_audit_event)->set_scope_config_id(l_sc.id());
                         (*ao_audit_event)->set_scope_config_name(l_sc.name());
+                        (*ao_audit_event)->set_account_type(m_account_type);
                 }
                 if(*ao_prod_event)
                 {
                         (*ao_prod_event)->set_scope_config_id(l_sc.id());
                         (*ao_prod_event)->set_scope_config_name(l_sc.name());
+                        (*ao_prod_event)->set_account_type(m_account_type);
                 }
                 // -----------------------------------------
                 // break out on first scope match
@@ -1197,11 +1205,11 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details if a_loaded_date is >= a_new_Date
-//: \return  False
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details if a_loaded_date is >= a_new_Date
+//! \return  False
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
 {
         if(a_loaded_date == NULL ||
@@ -1217,11 +1225,11 @@ bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
         }
         return true;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::load_limit(ns_waflz::limit* a_limit)
 {
         if(!a_limit)
@@ -1275,11 +1283,11 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::load_acl(ns_waflz::acl* a_acl)
 {
         if(!a_acl)
@@ -1334,11 +1342,11 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::load_rules(ns_waflz::rules* a_rules)
 {
         if(!a_rules)
@@ -1393,12 +1401,12 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
-int32_t scopes::load_bots(ns_waflz::rules* a_bots)
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+int32_t scopes::load_bots(ns_waflz::bots* a_bots)
 {
         if(!a_bots)
         {
@@ -1447,11 +1455,11 @@ int32_t scopes::load_bots(ns_waflz::rules* a_bots)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::load_profile(ns_waflz::profile* a_profile)
 {
         if(!a_profile)
@@ -1507,11 +1515,11 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         waflz_pb::event** ao_audit_event,
                         waflz_pb::event** ao_prod_event,
@@ -1537,24 +1545,6 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         *ao_audit_event = NULL;
         *ao_prod_event = NULL;
         // -------------------------------------------------
-        // Mark rquest as analyzed by waf if either acl or
-        // waf profiles are present for this scope. Custom
-        // rules configs are not being considered here on
-        // purpose. This will allow using old instance
-        // format as well as new scopes + custom rules only
-        // -------------------------------------------------
-        (*ao_rqst_ctx)->m_waf_analyzed = ( a_scope.has__acl_audit__reserved() ||
-                           a_scope.has__profile_audit__reserved() ||
-                           a_scope.has__acl_prod__reserved() ||
-                           a_scope.has__profile_prod__reserved());
-        // -------------------------------------------------
-        // if scope has limit, mark it analyzed for limit/rl
-        // -------------------------------------------------
-        if(a_scope.limits_size())
-        {
-                (*ao_rqst_ctx)->m_limit_analyzed = true;
-        }
-        // -------------------------------------------------
         // *************************************************
         //                   A U D I T
         // *************************************************
@@ -1569,7 +1559,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                 waflz_pb::event *l_event = NULL;
                 bool l_wl = false;
                 int32_t l_s;
-                l_s = l_acl->process(&l_event, l_wl, a_ctx, **ao_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, a_ctx, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
@@ -1671,7 +1661,7 @@ prod:
                 waflz_pb::event *l_event = NULL;
                 bool l_wl = false;
                 int32_t l_s;
-                l_s = l_acl->process(&l_event, l_wl, a_ctx, **ao_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, a_ctx, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
@@ -1738,6 +1728,7 @@ limits:
         {
                 for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
                 {
+                        int32_t l_s;
                         const ::waflz_pb::scope_limit_config& l_slc = a_scope.limits(i_l);
                         if(!l_slc.has__reserved_1())
                         {
@@ -1746,7 +1737,12 @@ limits:
                         limit *l_limit = (limit *)l_slc._reserved_1();
                         bool l_exceeds = false;
                         const waflz_pb::condition_group *l_cg = NULL;
-                        l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
+                        l_s = l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                WAFLZ_PERROR(m_err_msg, "performing limit process.");
+                                return WAFLZ_STATUS_ERROR;
+                        }
                         if(!l_exceeds)
                         {
                                 continue;
@@ -1755,15 +1751,14 @@ limits:
                         {
                                 continue;
                         }
-                        // -----------------------------------------
-                        // signal new enforcemnt
-                        // -----------------------------------------
+                        // ---------------------------------
+                        // signal new enforcement
+                        // ---------------------------------
                         (*ao_rqst_ctx)->m_signal_enf = true;
-                        // -----------------------------------------
+                        // ---------------------------------
                         // add new exceeds
-                        // -----------------------------------------
+                        // ---------------------------------
                         const waflz_pb::enforcement& l_axn = l_slc.action();
-                        int32_t l_s;
                         waflz_pb::config *l_cfg = NULL;
                         l_s = add_exceed_limit(&l_cfg,
                                                *(l_limit->get_pb()),
@@ -1777,9 +1772,9 @@ limits:
                                 return WAFLZ_STATUS_ERROR;
                         }
                         //const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
-                        // -----------------------------------------
+                        // ---------------------------------
                         // merge enforcement
-                        // -----------------------------------------
+                        // ---------------------------------
                         //NDBG_OUTPUT("l_enfx: %s\n", l_enfcr->ShortDebugString().c_str());
                         l_s = m_enfx->merge(*l_cfg);
                         // TODO -return enforcer...
@@ -1789,17 +1784,17 @@ limits:
                                 return WAFLZ_STATUS_ERROR;
                         }
                         if(l_cfg) { delete l_cfg; l_cfg = NULL; }
-                        // -----------------------------------------
+                        // ---------------------------------
                         // process enforcer
-                        // -----------------------------------------
+                        // ---------------------------------
                         l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
-                        // -----------------------------------------
+                        // ---------------------------------
                         // enforced???
-                        // -----------------------------------------
+                        // ---------------------------------
                         if(*ao_enf)
                         {
                                 if((*ao_enf)->has_status())
@@ -1819,10 +1814,12 @@ limits:
                 // -----------------------------------------
                 // process
                 // -----------------------------------------
-                rules* l_bots = (rules*)a_scope._bots_prod__reserved();
+                bots* l_bots = (bots*)a_scope._bots_prod__reserved();
                 waflz_pb::event *l_event = NULL;
+                waflz_pb::enforcement *l_repdb_enf = NULL;
+                const waflz_pb::enforcement *l_scope_enf = &(a_scope.bots_prod_action());
                 int32_t l_s;
-                l_s = l_bots->process(&l_event, a_ctx, ao_rqst_ctx);
+                l_s = l_bots->process(&l_event, a_ctx, &l_repdb_enf, &l_scope_enf, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_event) { delete l_event; l_event = NULL; }
@@ -1835,40 +1832,15 @@ limits:
                 }
                 l_event->set_bots_config_id(l_bots->get_id());
                 l_event->set_bots_config_name(l_bots->get_name());
-                // -----------------------------------------
-                // Check for enforcement type
-                // if its browser challenge, verify challenge
-                // -----------------------------------------
-                const waflz_pb::enforcement *l_enf = &(a_scope.bots_prod_action());
-                bool l_pass = false;
-                if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
-                {
-                        // -----------------------------------------
-                        // check cookie -verify browser challenge
-                        // -----------------------------------------
-                        // default to valid for 10 min
-                        uint32_t l_valid_for_s = 600;
-                        if(l_enf->has_valid_for_sec())
-                        {
-                                l_valid_for_s = l_enf->valid_for_sec();
-                        }
-                        int32_t l_s;
-                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx, &l_event);
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                // do nothing -re-issue challenge
-                        }
-                        if(l_pass)
-                        {
-                                // Challenge passed, move on to next step
-                                goto prod_rules;
-                        }
-                        l_event->set_token_duration_sec(l_valid_for_s);
-                }
                 *ao_prod_event = l_event;
-                if(a_scope.has_bots_prod_action())
+                if(l_repdb_enf)
                 {
-                        *ao_enf = l_enf;
+                        *ao_enf = l_repdb_enf;
+                }
+                else if(a_scope.has_bots_prod_action() &&
+                        !(*ao_rqst_ctx)->m_bot_repdb_enf)
+                {
+                        *ao_enf = l_scope_enf;
                         if((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
@@ -1963,11 +1935,11 @@ prod_profile:
 done:
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
                                  const waflz_pb::limit& a_limit,
                                  const waflz_pb::condition_group *a_condition_group,
@@ -1984,8 +1956,8 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         // create enforcement
         // -------------------------------------------------
         waflz_pb::config *l_cfg = new waflz_pb::config();
-        l_cfg->set_id("NA");
-        l_cfg->set_name("NA");
+        l_cfg->set_id("__na__");
+        l_cfg->set_name("__na__");
         l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
         l_cfg->set_customer_id(m_cust_id);
         l_cfg->set_enabled_date(get_date_short_str());
@@ -1994,11 +1966,14 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         // -------------------------------------------------
         waflz_pb::limit* l_limit = l_cfg->add_limits();
         l_limit->set_id(a_limit.id());
+        l_limit->set_customer_id(m_cust_id);
         if(a_limit.has_name())
-        { l_limit->set_name(a_limit.name()); }
+        {
+            l_limit->set_name(a_limit.name());
+        }
         else
         {
-                l_limit->set_name("NA");
+                l_limit->set_name("__na__");
         }
         l_limit->set_disabled(false);
         // -------------------------------------------------
@@ -2079,12 +2054,12 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         *ao_cfg = l_cfg;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details  run a limit operator on some data
-//: \l_retval number of entries added to ao_match_list
-//:           -1 on failure
-//: \param    TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details  run a limit operator on some data
+//! \l_retval number of entries added to ao_match_list
+//!           -1 on failure
+//! \param    TODO
+//! ----------------------------------------------------------------------------
 int32_t rl_run_op(bool &ao_matched,
                   const waflz_pb::op_t &a_op,
                   const char *a_data,
@@ -2289,13 +2264,13 @@ int32_t rl_run_op(bool &ao_matched,
         // -------------------------------------------------
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details check if request "in scope"
-//: \return  true if in scope
-//:          false if not in scope
-//: \param   a_scope TODO
-//: \param   a_ctx   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details check if request "in scope"
+//! \return  true if in scope
+//!          false if not in scope
+//! \param   a_scope TODO
+//! \param   a_ctx   TODO
+//! ----------------------------------------------------------------------------
 int32_t in_scope(bool &ao_match,
                  const waflz_pb::scope &a_scope,
                  rqst_ctx *a_ctx)
@@ -2374,53 +2349,53 @@ int32_t in_scope(bool &ao_match,
         ao_match = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party lib to create a scopes obj
-//: \return  a scopes object
-//: \param   a_engine: waflz engine object
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to create a scopes obj
+//! \return  a scopes object
+//! \param   a_engine: waflz engine object
+//! ----------------------------------------------------------------------------
 extern "C" scopes *create_scopes(engine *a_engine)
 {
         ns_waflz::kv_db* l_db = NULL;
         ns_waflz::challenge *l_c = NULL;
         return new scopes(*a_engine, *l_db, *l_c);
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party lib to load a scopes config in json frmt
-//: \return  0 on success
-//:          -1 on failure
-//: \param   a_scope: scopes object
-//: \param   a_buf: a char pointer to contents of a scopes config file
-//: \param   a_len: length of a_buf
-//: \param   a_conf_dir: the location of acl, waf, rules config
-//:          which are part of a scope config
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to load a scopes config in json frmt
+//! \return  0 on success
+//!          -1 on failure
+//! \param   a_scope: scopes object
+//! \param   a_buf: a char pointer to contents of a scopes config file
+//! \param   a_len: length of a_buf
+//! \param   a_conf_dir: the location of acl, waf, rules config
+//!          which are part of a scope config
+//! ----------------------------------------------------------------------------
 extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir)
 {
         std::string l_conf_dir(a_conf_dir);
         return a_scope->load(a_buf, a_len, l_conf_dir);
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party lib to process a request through waflz
-//: \return  0 on success
-//:          -1 on failure
-//: \param   a_scope: scopes object
-//: \param   ao_ctx: void pointer of the request ctx of the calling http library
-//: \param   a_rqst_ctx: object of waflz rqst_ctx class, which holds all 
-//:          the pieces of a http request
-//: \param   a_callbacks: callback struct which tells rqst_ctx where to get 
-//:          the peices of a http request from the given ao_ctx
-//: \param   ao_event: event details, if there was an action taken by waflz
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to process a request through waflz
+//! \return  0 on success
+//!          -1 on failure
+//! \param   a_scope: scopes object
+//! \param   ao_ctx: void pointer of the request ctx of the calling http library
+//! \param   a_rqst_ctx: object of waflz rqst_ctx class, which holds all 
+//!          the pieces of a http request
+//! \param   a_callbacks: callback struct which tells rqst_ctx where to get 
+//!          the peices of a http request from the given ao_ctx
+//! \param   ao_event: event details, if there was an action taken by waflz
+//! ----------------------------------------------------------------------------
 extern "C" int32_t process_waflz(scopes *a_scope, void *ao_ctx, rqst_ctx *a_rqst_ctx, const rqst_ctx_callbacks *a_callbacks, char **ao_event)
 {
         return a_scope->process_request_plugin(ao_event, ao_ctx, a_callbacks, &a_rqst_ctx);
 }
-//: ----------------------------------------------------------------------------
-//: \details C binding for third party lib to do a graceful cleanup of scopes object
-//: \return  0: success
-//: \param   a_scope: scopes object
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to do a graceful cleanup of scopes object
+//! \return  0: success
+//! \param   a_scope: scopes object
+//! ----------------------------------------------------------------------------
 extern "C" int32_t cleanup_scopes(scopes *a_scopes)
 {
         if(a_scopes)

@@ -2309,7 +2309,7 @@ int libinjection_is_sqli(struct libinjection_sqli_state * sql_state)
     return FALSE;
 }
 
-int libinjection_sqli(const char* input, size_t slen, char fingerprint[])
+int libinjection_sqli(const char* input, size_t slen, char fingerprint[], size_t fingerprint_len)
 {
     int issqli;
     struct libinjection_sqli_state state;
@@ -2317,7 +2317,8 @@ int libinjection_sqli(const char* input, size_t slen, char fingerprint[])
     libinjection_sqli_init(&state, input, slen, 0);
     issqli = libinjection_is_sqli(&state);
     if (issqli) {
-        strcpy(fingerprint, state.fingerprint);
+        strncpy(fingerprint, state.fingerprint, fingerprint_len);
+        fingerprint[fingerprint_len - 1] = 0;
     } else {
         fingerprint[0] = '\0';
     }

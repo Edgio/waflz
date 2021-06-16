@@ -1,43 +1,122 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2017 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_integration.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/06/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "jspb/jspb.h"
 #include "support/time_util.h"
 #include "waflz/def.h"
 #include "waflz/enforcer.h"
 #include "waflz/config.h"
-#include "waflz/kycb_db.h"
+#include "waflz/lm_db.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"
 #include "limit.pb.h"
 #include <string.h>
 #include <unistd.h>
-//: ----------------------------------------------------------------------------
-//: Config
-//: ----------------------------------------------------------------------------
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fts.h>
+//! ----------------------------------------------------------------------------
+//! \details: recursive dir delete "borrowed" from:
+//!           https://stackoverflow.com/a/27808574
+//! \return:  0 on SUCCESS -1 on ERROR
+//! \param:   dir: directory to delete
+//! ----------------------------------------------------------------------------
+static int rm_r(const char *dir)
+{
+        int ret = 0;
+        FTS *ftsp = NULL;
+        FTSENT *curr;
+        // -------------------------------------------------
+        // Cast needed (in C) because fts_open() takes a
+        // "char * const *", instead of a "const char *
+        // const *", which is only allowed in C++.
+        // fts_open() does not modify the argument.
+        // -------------------------------------------------
+        char *files[] = { (char*) dir, NULL };
+        // -------------------------------------------------
+        // FTS_NOCHDIR  - Avoid changing cwd, which could
+        //                cause unexpected behavior
+        //                in multithreaded programs
+        // FTS_PHYSICAL - Don't follow symlinks. Prevents
+        //                deletion of files outside of
+        //                specified directory
+        // FTS_XDEV     - Don't cross filesystem boundaries
+        // -------------------------------------------------
+        ftsp = fts_open(files, FTS_NOCHDIR | FTS_PHYSICAL | FTS_XDEV, NULL);
+        if (!ftsp)
+        {
+                fprintf(stderr, "%s: fts_open failed: %s\n", dir, strerror(errno));
+                ret = -1;
+                goto finish;
+        }
+        while ((curr = fts_read(ftsp)))
+        {
+                switch (curr->fts_info)
+                {
+                case FTS_NS:
+                case FTS_DNR:
+                case FTS_ERR:
+                {
+                        fprintf(stderr, "%s: fts_read error: %s\n",
+                                curr->fts_accpath, strerror(curr->fts_errno));
+                        break;
+                }
+                // -----------------------------------------
+                // Not reached unless
+                // FTS_LOGICAL, FTS_SEEDOT, FTS_NOSTAT were
+                // passed to fts_open()
+                // -----------------------------------------
+                case FTS_DC:
+                case FTS_DOT:
+                case FTS_NSOK:
+                {
+                        break;
+                }
+                // -----------------------------------------
+                // Do nothing. Need depth-first search,
+                // so directories are deleted
+                // in FTS_DP
+                // -----------------------------------------
+                case FTS_D:
+                {
+                        break;
+                }
+                case FTS_DP:
+                case FTS_F:
+                case FTS_SL:
+                case FTS_SLNONE:
+                case FTS_DEFAULT:
+                {
+                        if (remove(curr->fts_accpath) < 0)
+                        {
+                                fprintf(stderr, "%s: Failed to remove: %s\n",
+                                        curr->fts_path,
+                                        strerror(curr->fts_errno));
+                                ret = -1;
+                        }
+                        break;
+                }
+                }
+        }
+finish:
+        if (ftsp)
+        {
+                fts_close(ftsp);
+        }
+        return ret;
+}
+//! ----------------------------------------------------------------------------
+//! config
 //! ----------------------------------------------------------------------------
 #define COORDINATOR_CONFIG_JSON_NO_RULES \
 "{"\
@@ -69,16 +148,18 @@
 "  ]"\
 "}"\
 
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_size_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_header_size_cb
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
         *a_val = 1;
         return 0;
 }
+//! ----------------------------------------------------------------------------
+//! get_rqst_header_w_idx_cb
+//! ----------------------------------------------------------------------------
 static const char *s_header_user_agent = "monkey";
-
 static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                                         uint32_t *ao_key_len,
                                         const char **ao_val,
@@ -117,9 +198,9 @@ static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *
         *a_len = strlen(s_ip);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: config tests
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! config tests
+//! ----------------------------------------------------------------------------
 TEST_CASE( "no rules test", "[no_rules]" ) {
         static ns_waflz::rqst_ctx_callbacks s_callbacks = {
                         get_rqst_src_addr_cb,
@@ -153,14 +234,14 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 // -----------------------------------------
                 // db setup
                 // -----------------------------------------
-                ns_waflz::kycb_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 int32_t l_s;
-                char l_db_file[] = "/tmp/XXXXXX.kycb.db";
-                l_s = mkstemp(l_db_file);
-                unlink(l_db_file);
-                l_s = l_db.set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                ns_waflz::lm_db l_db;
+                char *l_mkdtemp_s;
+                char l_db_dir[] = "/tmp/waflz_lmdb_XXXXXX";
+                l_mkdtemp_s = mkdtemp(l_db_dir);
+                l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir, strnlen(l_db_dir, 23));
+                l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
+                l_db.set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
                 l_s = l_db.init();
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
@@ -266,7 +347,7 @@ TEST_CASE( "no rules test", "[no_rules]" ) {
                 // cleanup
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-                unlink(l_db_file);
+                rm_r(l_db_dir);
         }
 }
 

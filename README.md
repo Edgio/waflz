@@ -5,9 +5,17 @@
 </p>
 
 # waflz
-A multitenant ModSecurity compatible WAF engine. [Docs](https://verizondigital.github.io/waflz/ "waflz docs")
+> _A multitenant ModSecurity compatible WAF engine. [Docs](https://verizondigital.github.io/waflz/ "waflz docs")_
 
-### Overview
+## Table of Contents
+
+- [Background](#background)
+- [Install](#install)
+- [Usage](#usage)
+- [Contribute](#contribute)
+- [License](#license)
+
+## Background
 An implementation of a WAF engine in c/c++ supporting processing a subset of ModSecurity rules functionalties, configurable with either json or ModSecurity rules.  waflz is optimized to support running many WAF profiles side by side, by using [faster](https://github.com/VerizonDigital/waflz/blob/master/src/op/nms.h "IP tree")/[smaller](https://github.com/VerizonDigital/waflz/blob/master/src/op/ac.h "Aho–Corasick") internal data types and sharing common ruleset data between the profiles -ie if multiple WAF profiles refer to the same ruleset(s), the ruleset(s) are loaded only once for all and shared in memory.
 
 ### Rationale
@@ -16,32 +24,35 @@ The VDMS global edge platform is a multitenant CDN supporting our hundreds of th
 ### Capabilities
 The open source standard implementation of the [ModSecurity Rules Engine](https://github.com/SpiderLabs/ModSecurity "ModSecurity") -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  Several ModSecurity capabilities eg [SecRemoteRules](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRemoteRules "SecRemoteRules") and [inspectFile](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#inspectFile "inspectFile"), were intentionally ommitted, due to potential performance impacts in a multitenant environment.  A list of currently supported variables, operators and transforms are listed in the [capabilities section of the docs](https://verizondigital.github.io/waflz/capabilities "waflz capabilities")
 
-### Build requirements (Ubuntu 16.04/18.04)
 
-## Packages
+## Install
+
+### Build requirements (Ubuntu 16.04/18.04/20.04)
+
+#### Packages
 
 ```sh
-$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev python3-pip liblmdb-dev
+$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev python3-pip
 ```
 
-## Python Packages
+#### Python Packages
 ```sh
 $ pip3 install -r requirements.txt
 ```
 
-### Build steps
+#### Build steps
 
 ```sh
 $ ./build.sh
 ```
 ### OS X Build requirements (brew)
 ```bash
-brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg lmdb
+brew install cmake openssl protobuf libxml2 pcre dpkg
 ```
 
-### Building the tools
+#### Building the tools
 ```bash
-./build_simple.sh
+./build.sh
 ```
 
 And optionally install
@@ -49,6 +60,7 @@ And optionally install
 cd ./build
 sudo make install
 ```
+## Usage
 
 ### Running standalone waflz_server for testing WAF rules
 
@@ -110,12 +122,21 @@ $ curl -s "http://localhost:12345/index.html" -H"Host:" | jq '.'
         }
       ],
       "total_anomaly_score": 3,
-      "waf_profile_id": "NA",
-      "waf_profile_name": "NA"
+      "waf_profile_id": "__na__",
+      "waf_profile_name": "__na__"
     }
   ],
   "total_anomaly_score": 3,
-  "waf_profile_id": "NA",
-  "waf_profile_name": "NA"
+  "waf_profile_id": "__na__",
+  "waf_profile_name": "__na__"
 }
 ```
+
+## Contribute
+
+- We welcome issues, questions and pull requests.
+
+
+## License
+
+This project is licensed under the terms of the Apache 2.0 open source license. Please refer to the `LICENSE-2.0.txt` file for the full terms.

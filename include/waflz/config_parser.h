@@ -1,37 +1,24 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2015 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    config_parser.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    09/30/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _CONFIG_PARSER_H
 #define _CONFIG_PARSER_H
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include <string>
 #include <list>
 #include <map>
 #include "waflz/def.h"
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define MODSECURITY_RULE_PHASE_REQUEST_HEADERS       1
 #define MODSECURITY_RULE_PHASE_REQUEST_BODY          2
 #define MODSECURITY_RULE_PHASE_RESPONSE_HEADERS      3
@@ -39,9 +26,9 @@
 #define MODSECURITY_RULE_PHASE_LOGGING               5
 // indent...
 #define MODSECURITY_RULE_INDENT_SIZE                 4
-//: ----------------------------------------------------------------------------
-//: fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd decl's
+//! ----------------------------------------------------------------------------
 namespace waflz_pb {
         class sec_action_t;
         class sec_rule_t;
@@ -50,9 +37,9 @@ namespace waflz_pb {
         class variable_t;
 };
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 typedef std::map <std::string, uint32_t> count_map_t;
 typedef std::list <std::string> string_list_t;
 typedef struct _kv {
@@ -68,9 +55,9 @@ class engine;
 typedef std::list <kv_t> kv_list_t;
 typedef std::list <waflz_pb::variable_t *> variable_list_t;
 typedef std::list <std::string> match_list_t;
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! ----------------------------------------------------------------------------
 class config_parser
 {
 public:
@@ -179,9 +166,9 @@ private:
         // -------------------------------------------------
         char m_err_msg[WAFLZ_ERR_LEN];
 };
-//: ----------------------------------------------------------------------------
-//: Prototypes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Prototypes
+//! ----------------------------------------------------------------------------
 int32_t get_pcre_match_list(const char *a_regex, const char *a_str, match_list_t &ao_match_list);
 }
 #endif

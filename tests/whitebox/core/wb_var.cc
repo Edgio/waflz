@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_var.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/06/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
@@ -31,9 +18,9 @@
 #include "support/ndebug.h"
 #include <string.h>
 #include <unistd.h>
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_uri[] = "172.217.5.206";
@@ -41,9 +28,9 @@ static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *
         *a_len = strlen(s_uri);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_url_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "bananas.com/800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose";
@@ -51,9 +38,9 @@ static int32_t get_rqst_url_cb(const char **a_data, uint32_t *a_len, void *a_ctx
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "GET /800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose HTTP/1.1";
@@ -61,9 +48,9 @@ static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ct
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "GETZ";
@@ -71,9 +58,9 @@ static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "HTTP/1.1";
@@ -81,9 +68,9 @@ static int32_t get_rqst_protocol_cb(const char **a_data, uint32_t *a_len, void *
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "http";
@@ -91,17 +78,17 @@ static int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_port_cb(uint32_t *a_val, void *a_ctx)
 {
         *a_val = 80;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "/800050/origin.testsuite.com/sec_arg_check/info.html?you=crazy&screws=loose";
@@ -109,9 +96,9 @@ static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_path_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "/800050/origin.testsuite.com/sec_arg_check/info.html";
@@ -119,9 +106,9 @@ static int32_t get_rqst_path_cb(const char **a_data, uint32_t *a_len, void *a_ct
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "you=crazy&screws=loose";
@@ -129,9 +116,9 @@ static int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void 
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_body_str_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_body_str_cb
+//! ----------------------------------------------------------------------------
 #define _RQST_BODY_JSON "{\"monkeys\": \"bananas\", \"koalas\": \"fruitloops\", \"seamonkeys\": \"plankton\"}"
 #define _RQST_BODY_XML "<monkeys><gorilla>coco</gorilla><mandrill>dooby</mandrill><baboon>groovy</baboon></monkeys>"
 static const char *g_body_str = _RQST_BODY_JSON;
@@ -146,17 +133,17 @@ static int32_t get_rqst_body_str_cb(char *ao_data,
         *ao_is_eos = true;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_size_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_header_size_cb
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
         *a_val = 6;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_w_idx_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_header_w_idx_cb
+//! ----------------------------------------------------------------------------
 static const char *g_header_user_agent = "my_cool_user_agent";
 static const char *g_header_accept = "my_cool_accept_value";
 static const char *g_header_referer = "my_cool_referer_value";
@@ -235,9 +222,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: parse
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! parse
+//! ----------------------------------------------------------------------------
 TEST_CASE( "test var", "[var]" ) {
         ns_waflz::geoip2_mmdb l_geoip2_mmdb;
         ns_waflz::init_var_cb_vector();

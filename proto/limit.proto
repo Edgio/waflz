@@ -50,6 +50,7 @@ message limit {
         optional string customer_id = 4;
         optional string last_modified_date = 5;
         optional string last_modified_by = 6;
+        optional string account_type = 7;
         // -------------------------------------------------
         // settings
         // -------------------------------------------------
@@ -114,6 +115,12 @@ message alert {
         optional limit limit = 2;
         optional enforcement action = 3;
         optional condition_group condition_group = 4;
+        // -------------------------------------------------
+        // geoip fields
+        // -------------------------------------------------
+        optional string geoip_country_code2 = 5;
+        optional string geoip_country_name = 6;
+        optional string geoip_city_name = 7;
 }
 
 

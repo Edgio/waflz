@@ -1,30 +1,17 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    rl_obj.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _RL_OBJ_H_
 #define _RL_OBJ_H_
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
 #include "string.h"
@@ -33,9 +20,9 @@
 #include <list>
 #include <unordered_set>
 #include <inttypes.h>
-//: ----------------------------------------------------------------------------
-//: fwd Decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd Decl's
+//! ----------------------------------------------------------------------------
 namespace waflz_pb
 {
 class enforcer;
@@ -49,27 +36,27 @@ class scope;
 }
 namespace ns_waflz
 {
-//: ----------------------------------------------------------------------------
-//: fwd Decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd Decl's
+//! ----------------------------------------------------------------------------
 class regex;
 class rqst_ctx;
 class nms;
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 typedef std::unordered_set<data_t, data_t_hash, data_comp_unordered> data_set_t;
 typedef std::unordered_set<data_t, data_t_case_hash, data_case_i_comp_unordered> data_case_i_set_t;
-//: ----------------------------------------------------------------------------
-//: compiled operators
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! compiled operators
+//! ----------------------------------------------------------------------------
 typedef std::list<regex *> regex_list_t;
 typedef std::list<nms *> nms_list_t;
 typedef std::list<data_set_t *> data_set_list_t;
 typedef std::list<data_case_i_set_t *> data_case_i_set_list_t;
-//: ----------------------------------------------------------------------------
-//: rl_obj
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! rl_obj
+//! ----------------------------------------------------------------------------
 class rl_obj
 {
 public:
@@ -136,9 +123,9 @@ private:
                         rqst_ctx *a_ctx);
         int32_t compile_op(::waflz_pb::op_t& ao_op);
 };
-//: ----------------------------------------------------------------------------
-//: utils
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! utils
+//! ----------------------------------------------------------------------------
 int32_t limit_remove(waflz_pb::config &ao_cfg, uint32_t a_off);
 int32_t limit_sweep(waflz_pb::config &ao_cfg);
 }

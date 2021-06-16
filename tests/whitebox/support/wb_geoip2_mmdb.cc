@@ -1,37 +1,24 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_geoip2_mmdb.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    01/04/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: cncludes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! cncludes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
 #include "waflz/geoip2_mmdb.h"
 #include "support/ndebug.h"
 #include <unistd.h>
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: kycb_db
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! geoip2
+//! ----------------------------------------------------------------------------
 TEST_CASE( "maxminds geoip2 mmdb test", "[geoip2_mmdb]" ) {
 
         char l_cwd[1024];

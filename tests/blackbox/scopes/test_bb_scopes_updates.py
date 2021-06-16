@@ -25,7 +25,7 @@ def run_command(command):
 # setup scopez server in action mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_scopez_server_action():
+def setup_waflz_server_action():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
@@ -36,44 +36,44 @@ def setup_scopez_server_action():
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
-    l_bot_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
-    l_subproc = subprocess.Popen([l_scopez_server_path,
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-b', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
-                                  '-c', l_bot_challenge,
-                                  '-a'
+                                  '-s', l_geoip2ISP_path,
+                                  '-c', l_challenge,
+                                  '-j'
                                   ])
-    print('cmd: {}'.format(' '.join([l_scopez_server_path,
+    print('cmd: {}'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-b', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
-                                  '-c', l_bot_challenge,
-                                  '-a'])))
+                                  '-s', l_geoip2ISP_path,
+                                  '-c', l_challenge,
+                                  '-j'])))
                                   # '-b'])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_scopez_server_action
+    yield setup_waflz_server_action
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
     _, _, _ = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
-
-def test_acl_config_update(setup_scopez_server_action):
-    '''
+# ------------------------------------------------------------------------------
+# acl config update
+# ------------------------------------------------------------------------------
+def test_acl_config_update(setup_waflz_server_action):
+    """
     update acl config 0050-ZrLf2KkQ - remove gizoogle from
     user agent black list and test if request returns 200
-    '''
+    """
     # ------------------------------------------------------
     # test an 0050 with user-agent acl 'gizoogle' in the 
     # request
@@ -119,12 +119,14 @@ def test_acl_config_update(setup_scopez_server_action):
                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
-
-def test_rules_config_update(setup_scopez_server_action):
-    '''
+# ------------------------------------------------------------------------------
+# rules config update
+# ------------------------------------------------------------------------------
+def test_rules_config_update(setup_waflz_server_action):
+    """
     update rules config 0050-ZrLf3KKq.rules.json - change 
     user agent to Donkeez from Monkeez
-    '''
+    """
     # ------------------------------------------------------
     # test an 0050 with user-agent 'Monkeez' in the 
     # request
@@ -183,12 +185,14 @@ def test_rules_config_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is rules custom response\n'
-
-def test_profile_config_update(setup_scopez_server_action):
-    '''
+# ------------------------------------------------------------------------------
+# profile config update
+# ------------------------------------------------------------------------------
+def test_profile_config_update(setup_waflz_server_action):
+    """
     update profile config 0050-YrLf3KkQ.wafprof.json - change
     ignore_query_args to test from ignore
-    '''
+    """
     # ------------------------------------------------------
     # test an 0050 with sql injection
     # ------------------------------------------------------
@@ -251,8 +255,10 @@ def test_profile_config_update(setup_scopez_server_action):
                  'waf-scopes-id': '0050'}
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
-
-def test_limit_config_update(setup_scopez_server_action):
+# ------------------------------------------------------------------------------
+# limit config update
+# ------------------------------------------------------------------------------
+def test_limit_config_update(setup_waflz_server_action):
     # ------------------------------------------------------
     # Make 3 request in 2 sec for 3rd and
     # 4th scope. Third request should get rate limited
@@ -266,7 +272,6 @@ def test_limit_config_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is ddos custom response\n'
-
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'test.limit.com',
                  'waf-scopes-id': '0050'}
@@ -332,8 +337,10 @@ def test_limit_config_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'custom response for limits from limit_id_2\n'
-
-def test_scopes_update(setup_scopez_server_action):
+# ------------------------------------------------------------------------------
+# scopes config update
+# ------------------------------------------------------------------------------
+def test_scopes_update(setup_waflz_server_action):
     #-------------------------------------------------------
     #  check second scope for AN 0051 working correctly
     # ------------------------------------------------------
@@ -391,8 +398,10 @@ def test_scopes_update(setup_scopez_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is from RX scope\n'
-
-def test_scopes_linkage_update(setup_scopez_server_action):
+# ------------------------------------------------------------------------------
+# scopes linkage update
+# ------------------------------------------------------------------------------
+def test_scopes_linkage_update(setup_waflz_server_action):
     """
     Test linkage update. Update rules config in second scope
     (0050-scopes.json) to 0050-0gG8osWJ.rules.json from
@@ -457,7 +466,7 @@ def test_scopes_linkage_update(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # test /update_bots endpoint
 # ------------------------------------------------------------------------------
-def test_update_bots_endpoint(setup_scopez_server_action):
+def test_update_bots_endpoint(setup_waflz_server_action):
     l_url = G_TEST_HOST + '/update_bots'
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_test_file = os.path.realpath(os.path.join(l_file_path,

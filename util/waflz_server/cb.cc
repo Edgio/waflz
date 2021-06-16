@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2019 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    cb.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    09/30/2019
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "cb.h"
 #include "is2/srvr/rqst.h"
 #include "is2/srvr/session.h"
@@ -38,15 +25,15 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 namespace ns_waflz_server {
-//: ----------------------------------------------------------------------------
-//: extern...
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! extern...
+//! ----------------------------------------------------------------------------
 bool g_random_ips = false;
 __thread char g_clnt_addr_str[INET6_ADDRSTRLEN];
 __thread char g_rqst_line[4096];
-//: ----------------------------------------------------------------------------
-//: get ip callback
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get ip callback
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_ip_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         // -------------------------------------------------
@@ -54,21 +41,28 @@ int32_t get_rqst_ip_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         // -------------------------------------------------
         if(g_random_ips)
         {
-                uint32_t l_addr;
                 // -----------------------------------------
-                //   16843009 == 1.1.1.1
-                // 4294967295 == 255.255.255.255
+                // skip 0.0.0.0/8;
+                // ip ranges from 1.0.0.0 to 255.255.255.255
                 // -----------------------------------------
-                l_addr = ((uint32_t)rand()) % (4294967295 + 1 - 16843009) + 16843009;
-                snprintf(g_clnt_addr_str, INET6_ADDRSTRLEN, "%d.%d.%d.%d",
-                         ((l_addr & 0xFF000000) >> 24),
-                         ((l_addr & 0x00FF0000) >> 16),
-                         ((l_addr & 0x0000FF00) >> 8),
-                         ((l_addr & 0x000000FF)));
-                //NDBG_PRINT("addr: %s\n", s_clnt_addr_str);
-                *a_data = g_clnt_addr_str;
-                *a_len = strnlen(g_clnt_addr_str, INET6_ADDRSTRLEN);
-                return 0;
+#ifdef CPP17
+                static std::random_device s_rd;
+                static std::uniform_int_distribution<> s_dist(0x01000000, 0xFFFFFFFF);
+                uint32_t l_randaddr = htonl(s_dist(s_rd));
+                std::string l_randip_str(INET_ADDRSTRLEN, '#');
+                inet_ntop(AF_INET, &g_clnt_addr_str, l_randip_str.data(), INET_ADDRSTRLEN);
+#else
+                // -----------------------------------------
+                // four random octets
+                // -packed in network order
+                // -----------------------------------------
+                uint32_t l_randaddr = rand()%255 << 24
+                                    | rand()%255 << 16
+                                    | rand()%255 << 8
+                                    | rand()/((RAND_MAX + 1u)/255);
+                char l_randip_str[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &g_clnt_addr_str, l_randip_str, INET_ADDRSTRLEN);
+#endif
         }
         // -------------------------------------------------
         // request object
@@ -134,9 +128,9 @@ int32_t get_rqst_ip_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = strnlen(g_clnt_addr_str, INET6_ADDRSTRLEN);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get rqst line callback
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get rqst line callback
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -158,9 +152,9 @@ int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = strnlen(g_rqst_line, 4096);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get rqst method callback
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get rqst method callback
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -177,9 +171,9 @@ int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = strlen(l_rqst->get_method_str());
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_protocol_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_protocol_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_protocol_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         char s_protocol[32];
@@ -200,9 +194,9 @@ int32_t get_rqst_protocol_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = strlen(s_protocol);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_scheme_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_scheme_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         char s_scheme[32];
@@ -216,17 +210,22 @@ int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         {
                 snprintf(s_scheme,32,"http");
         }
+        // -------------------------------------------------
+        // disabling until build in support for is2+tls
+        // -------------------------------------------------
+#if 0
         else if(l_scheme == ns_is2::SCHEME_TLS)
         {
                 snprintf(s_scheme,32,"https");
         }
+#endif
         *a_data = s_scheme;
         *a_len = strlen(s_scheme);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_port_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_port_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_port_cb(uint32_t *a_val, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -237,9 +236,9 @@ int32_t get_rqst_port_cb(uint32_t *a_val, void *a_ctx)
         *a_val = l_ctx->m_lsnr->get_port();
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_port_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_port_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_host_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -265,9 +264,9 @@ int32_t get_rqst_host_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = strlen("localhost");
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_url_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_url_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_url_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -284,9 +283,9 @@ int32_t get_rqst_url_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = l_rqst->get_url().m_len;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_uri_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_uri_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -303,9 +302,9 @@ int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = l_rqst->get_url().m_len;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_uri_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_uri_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_path_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -322,9 +321,9 @@ int32_t get_rqst_path_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = l_rqst->get_url_path().m_len;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_query_str_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_query_str_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -341,9 +340,9 @@ int32_t get_rqst_query_str_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = l_rqst->get_url_query().m_len;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_id_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_id_cb
+//! ----------------------------------------------------------------------------
 #define _UUID_STR  "aabbccddeeff"
 int32_t get_rqst_uuid_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
@@ -351,9 +350,9 @@ int32_t get_rqst_uuid_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         *a_len = strlen(_UUID_STR);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_size_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_header_size_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
         ns_is2::session *l_ctx = (ns_is2::session *)a_ctx;
@@ -369,9 +368,9 @@ int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
         *a_val = l_rqst->get_header_list().size();
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_w_idx_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_header_w_idx_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_header_w_idx_cb(const char **ao_key,
                                         uint32_t *ao_key_len,
                                         const char **ao_val,
@@ -406,9 +405,9 @@ int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         *ao_val_len = i_h->m_val_len;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_body_str_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_body_str_cb
+//! ----------------------------------------------------------------------------
 int32_t get_rqst_body_str_cb(char *ao_data,
                              uint32_t *ao_data_len,
                              bool *ao_is_eos,
@@ -493,18 +492,18 @@ int32_t get_rqst_body_str_cb(char *ao_data,
         //NDBG_PRINT(": a_to_read:   %u\n", a_to_read);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_bot_ch_prob
-//: ----------------------------------------------------------------------------
-int32_t get_bot_ch_prob(std::string &ao_bot_challenge, uint32_t *ao_ans)
+//! ----------------------------------------------------------------------------
+//! get_bot_ch_prob
+//! ----------------------------------------------------------------------------
+int32_t get_bot_ch_prob(std::string &ao_challenge, uint32_t *ao_ans)
 {
         int l_num_one, l_num_two = 0;
         srand (ns_waflz::get_time_ms());
         l_num_one = rand() % 100 + 100;
         l_num_two = rand() % 100 + 100;
-        ao_bot_challenge += ns_waflz::to_string(l_num_one);
-        ao_bot_challenge += "+";
-        ao_bot_challenge += ns_waflz::to_string(l_num_two);
+        ao_challenge += ns_waflz::to_string(l_num_one);
+        ao_challenge += "+";
+        ao_challenge += ns_waflz::to_string(l_num_two);
         *ao_ans = l_num_one + l_num_two;
         return 0;
 }

@@ -10,13 +10,11 @@ import time
 import re
 import requests
 import pytest
-
 try:
     from html.parser import HTMLParser
 except ImportError:
     # python2 fallback
     from HTMLParser import HTMLParser
-
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -32,31 +30,29 @@ def run_command(command):
 # setup scopez server in event mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_scopez_server():
+def setup_waflz_server():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
-    l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
+    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
-    l_subproc = subprocess.Popen([l_scopez_server_path,
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path])
+                                  '-s', l_geoip2ISP_path])
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_scopez_server
+    yield setup_waflz_server
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
@@ -66,7 +62,7 @@ def setup_scopez_server():
 # setup scopez server in action mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_scopez_server_action():
+def setup_waflz_server_action():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
@@ -75,42 +71,40 @@ def setup_scopez_server_action():
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
-    l_bot_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
+    l_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
-    l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
-    l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
-    l_subproc = subprocess.Popen([l_scopez_server_path,
+    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
-                                  '-c', l_bot_challenge,
-                                  '-a'])
-    print('cmd: {}'.format(' '.join([l_scopez_server_path,
+                                  '-s', l_geoip2ISP_path,
+                                  '-c', l_challenge,
+                                  '-j'])
+    print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
-                                  '-c', l_bot_challenge,
-                                  '-a'])))
+                                  '-s', l_geoip2ISP_path,
+                                  '-c', l_challenge,
+                                  '-j'])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_scopez_server_action
+    yield setup_waflz_server_action
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
     _, _, _ = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
-
+# ------------------------------------------------------------------------------
+# parse html
+# ------------------------------------------------------------------------------
 class html_parse(HTMLParser):
-
    #Store data
    m_data = ""
    def handle_data(self, data):
@@ -125,13 +119,45 @@ def solve_challenge(a_html):
     l_problem_p = re.search('val =.[0-9]{3}\+[0-9]{3}', a_html)
     l_problem_vars = l_problem_p.group(0).split("=")[-1].split('+')
     l_solution = int(l_problem_vars[0]) + int(l_problem_vars[1])
-    l_ectoken_p = re.search('ec_secure=(.*?)"', a_html)
+    l_ectoken_p = re.search('__ecbmchid=(.*?)"', a_html)
     l_ectoken = l_ectoken_p.group(0)
-    return 'ec_answer = ' + str(l_solution) + ';' + l_ectoken[:-1]
+    return '__eccha = ' + str(l_solution) + ';' + l_ectoken[:-1]
+# ------------------------------------------------------------------------------
+# test bot challenge events
+# ------------------------------------------------------------------------------
+def test_challenge_events(setup_waflz_server):
+    # ------------------------------------------------------
+    # test for recieving a bot challenge
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_NO_TOKEN"
+    assert l_r_json['prod_profile']['token_duration_sec'] == 3
+    # ------------------------------------------------------
+    # send random corrupted token
+    # ------------------------------------------------------
+    l_solution_cookies = '__ecbmchid=d3JvbmdfdG9rZW4K;__eccha=300'
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'prod_profile' in l_r_json
+    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_TOKEN_CORRUPTED"
+    assert l_r_json['prod_profile']['token_duration_sec'] == 3
 # ------------------------------------------------------------------------------
 # test bot challenge in bot config
 # ------------------------------------------------------------------------------
-def test_bot_challenge_in_bot_config(setup_scopez_server_action):
+def test_challenge_in_bot_config(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for recieving a bot challenge
     # ------------------------------------------------------
@@ -184,7 +210,7 @@ def test_bot_challenge_in_bot_config(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # test bot challenge with limits
 # ------------------------------------------------------------------------------
-def test_bot_challenge_with_limits(setup_scopez_server_action):
+def test_challenge_with_limits(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for recieving a bot challenge
     # ------------------------------------------------------
@@ -239,7 +265,7 @@ def test_bot_challenge_with_limits(setup_scopez_server_action):
 # ------------------------------------------------------------------------------
 # test bot challenge with profile
 # ------------------------------------------------------------------------------
-def test_bot_challenge_with_profile(setup_scopez_server_action):
+def test_challenge_with_profile(setup_waflz_server_action):
     # ------------------------------------------------------
     # test for recieving a bot challenge with attack vector
     # ------------------------------------------------------
@@ -303,35 +329,91 @@ def test_bot_challenge_with_profile(setup_scopez_server_action):
     l_parser.feed(l_r.text)
     assert 'function' in l_parser.m_data
 # ------------------------------------------------------------------------------
-# test bot challenge events
+# test bot rules in reputation db for audit mode
 # ------------------------------------------------------------------------------
-def test_bot_challenge_events(setup_scopez_server):
+def test_bot_rules_with_reputation_db_audit(setup_waflz_server_action):
     # ------------------------------------------------------
-    # test for recieving a bot challenge
+    # pass a IP which is set for audit mode in bots
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'mybot.com',
+                 'user-agent': 'monkey',
+                 'waf-scopes-id': '0052',
+                 'x-waflz-ip': '192.190.1.1'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile'] == None
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 70000001
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Client IP in bots audit list'
+    #test we are logging all headers
+    assert 'request_headers' in l_r_json['prod_profile']['req_info']
+    assert len(l_r_json['prod_profile']['req_info']['request_headers']) == 6
+    #assert l_r.text = '"'
+# ------------------------------------------------------------------------------
+# test bot rules in reputation db for audit mode
+# ------------------------------------------------------------------------------
+def test_bot_rules_with_reputation_db_block(setup_waflz_server_action):
+    # ------------------------------------------------------
+    # pass a IP which is set for block mode in bots
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'user-agent': 'monkey',
+                 'waf-scopes-id': '0052',
+                 'x-waflz-ip': '192.190.1.12'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 403
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile'] == None
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 70000002
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Client IP in bots block list'
+    #test we are logging all headers
+    assert 'request_headers' in l_r_json['prod_profile']['req_info']
+    assert len(l_r_json['prod_profile']['req_info']['request_headers']) == 6
+# ------------------------------------------------------------------------------
+# test bot rules in reputation db but matched browser challenge rule
+# ------------------------------------------------------------------------------
+def test_bot_rules_challenge_takes_precedence(setup_waflz_server):
+    # ------------------------------------------------------
+    # pass a IP which is set for block mode reputation db
+    # Set the user-agent which matches browser challenge rule
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mybot.com',
+                 'waf-scopes-id': '0052',
                  'user-agent': 'bot-testing',
-                 'waf-scopes-id': '0052'}
+                 'x-waflz-ip': '192.190.1.12'
+                }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert 'prod_profile' in l_r_json
+    # The rule for throwing browser challenge takes precedence
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 77000101
     assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_NO_TOKEN"
     assert l_r_json['prod_profile']['token_duration_sec'] == 3
+# ------------------------------------------------------------------------------
+# test bot rules in reputation db for audit mode
+# ------------------------------------------------------------------------------
+def test_bot_rules_audit_rdb_takes_precedence(setup_waflz_server_action):
     # ------------------------------------------------------
-    # send random corrupted token
+    # pass a IP which is present in both reputation db
     # ------------------------------------------------------
-    l_solution_cookies = 'ec_secure=d3JvbmdfdG9rZW4K;ec_answer=300'
     l_uri = G_TEST_HOST+'/test.html'
     l_headers = {'host': 'mybot.com',
-                 'user-agent': 'bot-testing',
-                 'Cookie': l_solution_cookies,
-                 'waf-scopes-id': '0052'}
+                 'user-agent': 'monkey',
+                 'waf-scopes-id': '0052',
+                 'x-waflz-ip': '192.190.1.10'
+                }
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    assert 'prod_profile' in l_r_json
-    assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_TOKEN_CORRUPTED"
-    assert l_r_json['prod_profile']['token_duration_sec'] == 3
-
+    assert l_r_json['audit_profile'] == None
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_id'] == 70000001
+    assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Client IP in bots audit list'
+    #test we are logging all headers
+    assert 'request_headers' in l_r_json['prod_profile']['req_info']
+    assert len(l_r_json['prod_profile']['req_info']['request_headers']) == 6

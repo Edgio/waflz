@@ -1,34 +1,20 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    enforcers.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "support/time_util.h"
 #include "support/file_util.h"
 #include "support/ndebug.h"
 #include "waflz/configs.h"
 #include "waflz/config.h"
-#include "waflz/kycb_db.h"
 #include "waflz/string_util.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/error.h"
@@ -38,25 +24,25 @@
 #include <dirent.h>
 #include <string.h>
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: obj type utils
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! obj type utils
+//! ----------------------------------------------------------------------------
 #define LIMIT_OBJ_CONFIG_STR "CONFIG"
 #define LIMIT_OBJ_COORDINATOR_STR "ddos-coordinator"
 #define LIMIT_OBJ_ENFORCER_STR "ddos-enforcer"
 #define LIMIT_OBJ_ENFORCEMENT_STR "ddos-enforcement"
-//: ----------------------------------------------------------------------------
-//: rl type enum
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! rl type enum
+//! ----------------------------------------------------------------------------
 typedef enum {
         _LIMIT_OBJ_NONE = 0,
         _LIMIT_OBJ_CONFIG,
 } limit_obj_t;
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static limit_obj_t limit_obj_get_type(const char *a_buf)
 {
         if(strncasecmp(LIMIT_OBJ_CONFIG_STR, a_buf, sizeof(LIMIT_OBJ_CONFIG_STR)) == 0)
@@ -70,11 +56,11 @@ static limit_obj_t limit_obj_get_type(const char *a_buf)
         }
         return _LIMIT_OBJ_NONE;
 }
-//: ----------------------------------------------------------------------------
-//: \details Initialize a ddos config using the provided
-//:          parameter to load in all the configurations and
-//:          initialize the customer-id based structures to track limits
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Initialize a ddos config using the provided
+//!          parameter to load in all the configurations and
+//!          initialize the customer-id based structures to track limits
+//! ----------------------------------------------------------------------------
 configs::configs(kv_db &a_kv_db, bool a_case_insensitive_headers):
         m_init(false),
         m_err_msg(),
@@ -83,9 +69,9 @@ configs::configs(kv_db &a_kv_db, bool a_case_insensitive_headers):
         m_lowercase_headers(a_case_insensitive_headers)
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details dtor
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details dtor
+//! ----------------------------------------------------------------------------
 configs::~configs()
 {
         for (cust_id_config_map_t::iterator it = m_cust_id_config_map.begin();
@@ -96,11 +82,11 @@ configs::~configs()
                 it->second = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t configs::load(void *a_js)
 {
         if(!a_js)
@@ -210,11 +196,11 @@ int32_t configs::load(void *a_js)
         i_cust->second = l_c;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t configs::load(const char *a_buf, uint32_t a_buf_len)
 {
         // ---------------------------------------
@@ -270,11 +256,11 @@ int32_t configs::load(const char *a_buf, uint32_t a_buf_len)
         if(l_js) { delete l_js; l_js = NULL; }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t configs::load_dir(const char *a_config_dir_str,
                           uint32_t a_config_dir_str_len)
 {
@@ -368,11 +354,11 @@ int32_t configs::load_dir(const char *a_config_dir_str,
         free(l_conf_list);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t configs::load_file(const char *a_file_path,
                                        uint32_t a_file_path_len)
 {
@@ -394,11 +380,11 @@ int32_t configs::load_file(const char *a_file_path,
         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t configs::get_first_id(uint64_t &ao_id)
 {
         if(m_cust_id_config_map.empty())
@@ -409,11 +395,11 @@ int32_t configs::get_first_id(uint64_t &ao_id)
         ao_id = m_cust_id_config_map.begin()->first;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t configs::get_config(config** ao_config, uint64_t a_cust_id)
 {
         cust_id_config_map_t::iterator i_e;

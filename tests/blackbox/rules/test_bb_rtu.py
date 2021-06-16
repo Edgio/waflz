@@ -11,6 +11,7 @@ import sys
 import json
 import time
 import requests
+import base64
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -62,7 +63,7 @@ def test_bb_rtu_request_body(setup_waflz_server):
     l_headers = {'host': 'myhost.com',
                  'Content-Type': 'application/x-www-form-urlencoded',
                  'User-Agent': 'Mozilla'}
-    l_body = 'java.io.BufferedInputStream'
+    l_body = 'java.io.FileWriter'
     l_r = requests.post(l_uri,
                         headers=l_headers,
                         data=l_body)
@@ -70,7 +71,7 @@ def test_bb_rtu_request_body(setup_waflz_server):
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
     assert l_r_json['rule_intercept_status'] == 403
-    assert 'Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: Suspicious Java class detected' in l_r_json['rule_msg']
+    assert 'Suspicious Java class detected' in l_r_json['sub_event'][0]['rule_msg']
     assert l_r_json['matched_var']['name'] == 'UkVRVUVTVF9CT0RZ'
     #-------------------------------------------------------
     # create config
@@ -130,9 +131,117 @@ def test_bb_rtu_request_body(setup_waflz_server):
                         data=l_body)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
-    print(json.dumps(l_r_json, indent=4))
     #-------------------------------------------------------
     # check no event is returned
     # ------------------------------------------------------
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
+# ------------------------------------------------------------------------------
+# test_bb_rtu_chained_rule
+# ------------------------------------------------------------------------------
+def test_bb_rtu_chained_rule(setup_waflz_server):
+    l_uri = G_TEST_HOST
+    l_headers = {'host': 'myhost.com',
+                 'Cookie': 'mycookie=true|c|-1|easyweb|-|1607356144310|554290487_890|https://mysite.com/waw/brk/wb/wbr/static/main/index.html|webbroker - order status|1607356081298|/page/trading/order-status?accountid=uass7j-9elpoiabja6eykgubinbzfbh1b2hw2zbetqs=',
+                 'User-Agent': 'Mozilla'}
+    l_r = requests.get(l_uri,
+                        headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert l_r_json['rule_intercept_status'] == 403
+    # ------------------------------------------------------
+    # Get event from a chained rule and check rule target
+    # "rule_target": [
+    #            {
+    #                "name": "UkVRVUVTVF9DT09LSUVT",
+    #                "param": "/__utm/",
+    #                "is_negated": true
+    #            }
+    # ------------------------------------------------------
+    assert 932200 == l_r_json['sub_event'][0]['rule_id']
+    assert base64.b64decode(l_r_json['matched_var']['value']).decode("utf-8") == 'true|c|-1|easyweb|-|1607356144310|554290487_890|https://mysite.com/waw/brk/wb/wbr/static/main/index.html|webbroker - order status|1607356081298|/page/trading/order-status?accountid=uass7j-9elpoiabja6eykgubinbzfbh1b2hw2zbetqs='
+    assert '/__utm/' in l_r_json['sub_event'][0]['rule_target'][0]['param']
+    #-------------------------------------------------------
+    # create config
+    # ------------------------------------------------------
+    l_conf = {}
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_conf_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_rtu.waf.prof.json'))
+    try:
+        with open(l_conf_path) as l_f:
+            l_conf = json.load(l_f)
+    except Exception as l_e:
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
+            l_conf_path, type(l_e), l_e, l_e.__doc__))
+        assert False
+    #-------------------------------------------------------
+    # add rtu
+    # ------------------------------------------------------
+    l_conf['rule_target_updates'] = [
+        {
+         "rule_id" : "932200",
+         "target_match" : "mycookie",
+         "is_regex" : False,
+         "target" : "REQUEST_COOKIES"
+        }
+    ]
+    # ------------------------------------------------------
+    # post conf
+    # ------------------------------------------------------
+    l_url = '%supdate_profile' % (G_TEST_HOST)
+    # ------------------------------------------------------
+    # urlopen (POST)
+    # ------------------------------------------------------
+    l_headers = {'Content-Type': 'application/json'}
+    l_r = requests.post(l_url,
+                        headers=l_headers,
+                        data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    #-------------------------------------------------------
+    # GET the same uri which returned a 403 before RTU
+    # ------------------------------------------------------
+    l_headers = {'host': 'myhost.com',
+                 'Cookie': 'mycookie=true|c|-1|easyweb|-|1607356144310|554290487_890|https://mysite.com/waw/brk/wb/wbr/static/main/index.html|webbroker - order status|1607356081298|/page/trading/order-status?accountid=uass7j-9elpoiabja6eykgubinbzfbh1b2hw2zbetqs=',
+                 'User-Agent': 'Mozilla'}
+    l_r = requests.post(l_uri,
+                        headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    #-------------------------------------------------------
+    # check no event is returned
+    # ------------------------------------------------------
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
+    #-------------------------------------------------------
+    # Now change the cookie name to something else than RTU
+    # the chained rule should fire on this one again
+    # ------------------------------------------------------
+    l_headers = {'host': 'myhost.com',
+                 'Cookie': 'banana=true|c|-1|easyweb|-|1607356144310|554290487_890|https://mysite.com/waw/brk/wb/wbr/static/main/index.html|webbroker - order status|1607356081298|/page/trading/order-status?accountid=uass7j-9elpoiabja6eykgubinbzfbh1b2hw2zbetqs=',
+                 'User-Agent': 'Mozilla'}
+    l_r = requests.get(l_uri,
+                        headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    #-------------------------------------------------------
+    # check we get an event from same rule
+    # ------------------------------------------------------
+    assert 932200 == l_r_json['sub_event'][0]['rule_id']
+    assert base64.b64decode(l_r_json['matched_var']['value']).decode("utf-8") == 'true|c|-1|easyweb|-|1607356144310|554290487_890|https://mysite.com/waw/brk/wb/wbr/static/main/index.html|webbroker - order status|1607356081298|/page/trading/order-status?accountid=uass7j-9elpoiabja6eykgubinbzfbh1b2hw2zbetqs='
+    # ------------------------------------------------------
+    # Check rule targets to make sure that the RTU is applied
+    # Rule 932200 targets before RTU
+    # REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|REQUEST_COOKIES_NAMES|ARGS_NAMES|ARGS|XML:/*
+    # After applying the RTU the REQUEST_COOKIES should
+    # have mycookie as a negated target, which means RTU was applied
+    # the rule target will look like this
+    #    "rule_target": [
+    #            {
+    #                "name": "UkVRVUVTVF9DT09LSUVT",
+    #                "param": "mycookie",
+    #                "is_negated": true
+    #            },
+    #
+    # ------------------------------------------------------
+    assert 'mycookie' in l_r_json['sub_event'][0]['rule_target'][0]['param']

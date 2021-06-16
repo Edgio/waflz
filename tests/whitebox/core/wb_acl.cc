@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2017 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_profile_acl.cc
-//: \details: TODO
-//: \author:  Reed Morrison
-//: \date:    12/30/2017
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/engine.h"
 #include "waflz/profile.h"
@@ -34,9 +21,9 @@
 #include "event.pb.h"
 #include "support/ndebug.h"
 #include <unistd.h>
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static waflz_pb::profile *init_std_profile_pb(void)
 {
         // -----------------------------------------
@@ -89,9 +76,9 @@ static waflz_pb::profile *init_std_profile_pb(void)
         UNUSED(l_ax_refr);
         return l_pb;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static const char *s_ip = "156.123.12.7";
 static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
@@ -99,9 +86,9 @@ static int32_t get_rqst_src_addr_cb(const char **a_data, uint32_t *a_len, void *
         *a_len = strlen(s_ip);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
         static const char s_line[] = "GET / HTTP/1.1";
@@ -109,9 +96,9 @@ static int32_t get_rqst_line_cb(const char **a_data, uint32_t *a_len, void *a_ct
         *a_len = strlen(s_line);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 static const char *s_uri = "cats.com";
 static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
@@ -119,17 +106,17 @@ static int32_t get_rqst_uri_cb(const char **a_data, uint32_t *a_len, void *a_ctx
         *a_len = strlen(s_uri);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_size_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_header_size_cb
+//! ----------------------------------------------------------------------------
 static int32_t get_rqst_header_size_cb(uint32_t *a_val, void *a_ctx)
 {
         *a_val = 8;
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: s_get_rqst_method_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! s_get_rqst_method_cb
+//! ----------------------------------------------------------------------------
 static const char *s_method = "GET";
 static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 {
@@ -137,9 +124,9 @@ static int32_t get_rqst_method_cb(const char **a_data, uint32_t *a_len, void *a_
         *a_len = strlen(s_method);
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: get_rqst_header_w_idx_cb
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get_rqst_header_w_idx_cb
+//! ----------------------------------------------------------------------------
 #if 0
 > User-Agent: curl/7.47.0
 > Accept: *
@@ -250,9 +237,9 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: acl tests
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! acl tests
+//! ----------------------------------------------------------------------------
 TEST_CASE( "acl test", "[acl]" )
 {
         // -------------------------------------------------

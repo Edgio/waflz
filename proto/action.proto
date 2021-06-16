@@ -20,6 +20,10 @@ message enforcement {
                 ALERT = 7;
                 BLOCK_REQUEST = 8;
                 BROWSER_CHALLENGE = 9;
+                NULL_ALERT = 10;
+                NULL_BLOCK = 11;
+                IGNORE_ALERT= 12;
+                IGNORE_BLOCK = 13;
         }
         message header_t {
                 optional string key = 1;
@@ -47,3 +51,4 @@ message enforcement {
         // cookie expiry
         optional uint32 valid_for_sec = 200;
 }
+

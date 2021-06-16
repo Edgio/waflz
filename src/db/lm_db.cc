@@ -1,40 +1,29 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    lm_db.cc
-//: \details: TODO
-//: \author:  Revathi Sabanayagam
-//: \date:    11/02/2020
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "support/time_util.h"
 #include "support/ndebug.h"
-#include "waflz/kycb_db.h"
+#include "liblmdb/lmdb.h"
 #include "waflz/lm_db.h"
 #include "waflz/def.h"
-#include "waflz/lm_db.h"
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 lm_db::lm_db(void):
         kv_db(),
         m_db_dir_path(),
@@ -45,25 +34,35 @@ lm_db::lm_db(void):
         m_dbi(),
         m_kv_ttl_pq()
 {}
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 lm_db::~lm_db()
 {
         // -------------------------------------------------
-        // env sync to flush keys to disk before restart
-        // and close env
+        // If db exists, sync the env to flush all keys to
+        // disk. expire the keys that are created by current
+        // process using PQ.
         // -------------------------------------------------
         if(m_env != NULL)
         {
-                mdb_env_sync(m_env, 1);
+                const char* l_path = NULL;
+                if(mdb_env_get_path(m_env, &l_path) == MDB_SUCCESS)
+                {
+                        if(l_path != NULL)
+                        {
+                                mdb_env_sync(m_env, 1);
+                                expire_old_keys();
+                                sweep();
+                        }
+                }
                 mdb_env_close(m_env);
                 m_env = NULL;
         }
         // -------------------------------------------------
-        // pop events off pq until time > now
+        // clear keys from PQ
         // -------------------------------------------------
         while(!m_kv_ttl_pq.empty())
         {
@@ -77,11 +76,11 @@ lm_db::~lm_db()
                 m_kv_ttl_pq.pop();
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::init()
 {
         int32_t l_s;
@@ -137,11 +136,11 @@ int32_t lm_db::init()
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
 {
         switch(a_opt)
@@ -169,11 +168,11 @@ int32_t lm_db::set_opt(uint32_t a_opt, const void *a_buf, uint64_t a_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
 {
         switch(a_opt)
@@ -186,24 +185,23 @@ int32_t lm_db::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::print_all_keys()
 {
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::get_key(int64_t& ao_val, const char* a_key, uint32_t a_key_len)
 {
         int32_t l_s;
-        expire_old_keys();
         // -------------------------------------------------
         // get transcation handle
         // -------------------------------------------------
@@ -248,11 +246,11 @@ int32_t lm_db::get_key(int64_t& ao_val, const char* a_key, uint32_t a_key_len)
         mdb_txn_abort(m_txn);
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::increment_key(int64_t& ao_result, const char* a_key, uint32_t a_expires_ms)
 {
         int32_t l_s;
@@ -360,11 +358,11 @@ int32_t lm_db::increment_key(int64_t& ao_result, const char* a_key, uint32_t a_e
         m_kv_ttl_pq.push(l_kv_ttl); 
         return WAFLZ_STATUS_OK;
 }
-//: ---------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ---------------------------------------------------------------------------
+//! ---------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ---------------------------------------------------------------------------
 int32_t lm_db::expire_old_keys(void)
 {
         int32_t l_s;
@@ -478,11 +476,11 @@ int32_t lm_db::expire_old_keys(void)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::clear_keys()
 {
         int32_t l_s;
@@ -513,11 +511,11 @@ int32_t lm_db::clear_keys()
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::get_ttl_and_count(MDB_val* a_val, uint64_t& ao_ttl, uint32_t& ao_count)
 {
         if(a_val == NULL)
@@ -533,11 +531,11 @@ int32_t lm_db::get_ttl_and_count(MDB_val* a_val, uint64_t& ao_ttl, uint32_t& ao_
         ao_count = l_v->m_count;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t lm_db::set_ttl_and_count(MDB_val* a_val, lm_val_t* a_lm_val, uint64_t a_ttl, uint32_t a_count)
 {
         if(a_val == NULL || a_lm_val == NULL)
@@ -550,5 +548,107 @@ int32_t lm_db::set_ttl_and_count(MDB_val* a_val, lm_val_t* a_lm_val, uint64_t a_
         a_val->mv_size = sizeof(lm_val_t); 
         return WAFLZ_STATUS_OK;
 }
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+int32_t lm_db::get_db_stats(db_stats_t& a_stats)
+{
+        int32_t l_s;
+        MDB_envinfo l_einfo;
+        MDB_stat l_stat;
+        l_s = mdb_env_stat(m_env, &l_stat);
+        if(l_s !=  MDB_SUCCESS)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        l_s = mdb_env_info(m_env, &l_einfo);
+        if(l_s != MDB_SUCCESS)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        a_stats.m_max_readers = l_einfo.me_maxreaders;
+        a_stats.m_readers_used = l_einfo.me_numreaders;
+        a_stats.m_max_pages = l_einfo.me_mapsize / l_stat.ms_psize;
+        a_stats.m_pages_used = l_stat.ms_leaf_pages + l_stat.ms_branch_pages + l_stat.ms_overflow_pages;
+        a_stats.m_page_size = l_stat.ms_psize;
+        a_stats.m_res_mem_used = a_stats.m_pages_used * a_stats.m_page_size;
+        a_stats.m_num_entries = l_stat.ms_entries;
+        return WAFLZ_STATUS_OK;
 }
+//! ----------------------------------------------------------------------------
+//! \details delete all expired keys from db
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+int32_t lm_db::sweep()
+{
+        int32_t l_s;
+        MDB_cursor* l_cur;
+        MDB_val l_key, l_val;
+        l_s = mdb_txn_begin(m_env, NULL, 0, &m_txn);
+        if(l_s != MDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg, "sweep:txn begin failed");
+                return WAFLZ_STATUS_ERROR;
+        }
+        l_s = mdb_dbi_open(m_txn, NULL, 0, &m_dbi);
+        if(l_s != MDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg, "sweep:dbi open failed");
+                mdb_txn_abort(m_txn);
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // get cursor handle
+        // -------------------------------------------------
+        l_s = mdb_cursor_open(m_txn, m_dbi, &l_cur);
+        if(l_s != MDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg, "sweep:cursor open failed-%d, %s",
+                             l_s, mdb_strerror(l_s));
+                mdb_txn_abort(m_txn);
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // parse entire db using cursor and delete all
+        // expired keys
+        // -------------------------------------------------
+        uint64_t l_ttl, l_now_ms;
+        uint32_t l_count;
+        while ((l_s = mdb_cursor_get(l_cur, &l_key, &l_val, MDB_NEXT)) == 0) 
+        {
+                l_s = get_ttl_and_count(&l_val, l_ttl, l_count);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "sweep:get ttl_and count failed");
+                        continue;
+                }
+                l_now_ms = get_time_ms();
+                if (l_ttl < l_now_ms)
+                {
+                        MDB_val* l_d_val = NULL;
+                        l_s = mdb_del(m_txn, m_dbi, &l_key, l_d_val);
+                        if(l_s != 0)
+                        {
+                                WAFLZ_PERROR(m_err_msg,"sweep::delete failed");
+                                continue;
+                        }
+                }
+        }
+        // -------------------------------------------------
+        // close cursor and batch commit
+        // -------------------------------------------------
+        mdb_cursor_close(l_cur);
+        l_s = mdb_txn_commit(m_txn);
+        if(l_s != MDB_SUCCESS)
+        {
+                mdb_txn_abort(m_txn);
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
+}
+
 

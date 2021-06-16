@@ -1,27 +1,14 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2019 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    sx_limit.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    05/07/2019
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-#ifndef _WAFLZ_SERVER_SX_LIMIT_H_
-#define _WAFLZ_SERVER_SX_LIMIT_H_
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+#ifndef _SX_LIMIT_H_
+#define _SX_LIMIT_H_
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
@@ -30,9 +17,13 @@
 //: ----------------------------------------------------------------------------
 //: fwd decl's
 //: ----------------------------------------------------------------------------
-namespace ns_waflz {
-class configs;
+namespace waflz_pb {
 class enforcement;
+}
+namespace ns_waflz {
+class limit;
+class enforcement;
+class enforcer;
 class kv_db;
 }
 namespace ns_waflz_server {
@@ -44,7 +35,7 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        sx_limit(void);
+        sx_limit(ns_waflz::kv_db &a_db);
         ~sx_limit(void);
         int32_t init(void);
         ns_is2::h_resp_t handle_rqst(waflz_pb::enforcement **ao_enf,
@@ -55,11 +46,14 @@ public:
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
-        std::string m_redis_host;
-        std::string m_challenge_file;
-        ns_waflz::configs* m_configs;
-        uint64_t m_cust_id;
-        ns_waflz::kv_db *m_db;
+        ns_waflz::limit* m_limit;
+        ns_waflz::kv_db& m_db;
+private:
+        // -------------------------------------------------
+        // enforcements
+        // -------------------------------------------------
+        ns_waflz::enforcer *m_enfx;
+        waflz_pb::enforcement *m_enf;
 };
 }
 #endif

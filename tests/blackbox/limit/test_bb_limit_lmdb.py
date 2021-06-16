@@ -27,33 +27,39 @@ def run_command(command):
 # setup single scopez server with lmdb
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_scopez_server_lmdb():
+def setup_waflz_server_lmdb():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
-    l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
+    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
-    l_subproc = subprocess.Popen([l_scopez_server_path,
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
-                                  '-m',
-                                  '-a'])
+                                  '-s', l_geoip2ISP_path,
+                                  '-L',
+                                  '-j'])
+    print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
+                                  '-d', l_conf_dir,
+                                  '-b', l_scopes_dir,
+                                  '-r', l_ruleset_path,
+                                  '-g', l_geoip2city_path,
+                                  '-s', l_geoip2ISP_path,
+                                  '-L',
+                                  '-j'])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_scopez_server_lmdb
+    yield setup_waflz_server_lmdb
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
@@ -63,63 +69,60 @@ def setup_scopez_server_lmdb():
 # setup three scopez server with lmdb in different ports
 # ------------------------------------------------------------------------------
 @pytest.fixture()
-def setup_multiple_scopez_server_lmdb():
+def setup_multiple_waflz_server_lmdb():
     # ------------------------------------------------------
     # setup
     # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
+    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
     l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
-    l_scopez_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/scopez_server/scopez_server'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
     l_port1 = str(12345)
     l_port2 = str(12346)
     l_port3 = str(12347)
     # ------------------------------------------------------
     # start three scopez server in 3 ports
     # ------------------------------------------------------
-    l_subproc1 = subprocess.Popen([l_scopez_server_path,
+    l_subproc1 = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
+                                  '-s', l_geoip2ISP_path,
                                   '-p', l_port1,
-                                  '-m',
-                                  '-a',
+                                  '-L',
+                                  '-j',
                                   '-I'])
-    l_subproc2 = subprocess.Popen([l_scopez_server_path,
+    l_subproc2 = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
+                                  '-s', l_geoip2ISP_path,
                                   '-p', l_port2,
-                                  '-m',
-                                  '-a',
+                                  '-L',
+                                  '-j',
                                   '-I'])
-    l_subproc3 = subprocess.Popen([l_scopez_server_path,
+    l_subproc3 = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
-                                  '-S', l_scopez_dir,
-                                  '-l', l_an_list,
+                                  '-b', l_scopes_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-i', l_geoip2ISP_path,
+                                  '-s', l_geoip2ISP_path,
                                   '-p', l_port3,
-                                  '-m',
-                                  '-a',
+                                  '-L',
+                                  '-j',
                                   '-I'])
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
-    yield setup_multiple_scopez_server_lmdb
+    yield setup_multiple_waflz_server_lmdb
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
@@ -132,7 +135,7 @@ def setup_multiple_scopez_server_lmdb():
 # ------------------------------------------------------------------------------
 # Test single process rl using lmdb
 # ------------------------------------------------------------------------------
-def test_single_process_counting(setup_scopez_server_lmdb):
+def test_single_process_counting(setup_waflz_server_lmdb):
     # ------------------------------------------------------
     # Make 3 request in 2 sec.
     # 4th request should get rate limited
@@ -158,10 +161,10 @@ def test_single_process_counting(setup_scopez_server_lmdb):
 # Spread requests across multiple process.After enforcement, again start 
 # making requests to the process in the same order, behavior should be same
 # ------------------------------------------------------------------------------
-def test_multiple_process_counting1(setup_multiple_scopez_server_lmdb):
+def test_multiple_process_counting1(setup_multiple_waflz_server_lmdb):
     # ------------------------------------------------------
     # Make 3 request in 2 sec to different
-    # scopez_server
+    # waflz_server
     # ------------------------------------------------------
     l_url1 = 'http://127.0.0.1:12345/test.html'
     l_url2 = 'http://127.0.0.1:12346/test.html'
@@ -209,10 +212,10 @@ def test_multiple_process_counting1(setup_multiple_scopez_server_lmdb):
 # This proves ttl in value is working properly, because 3rd process PQ
 # would have been empty
 # ------------------------------------------------------------------------------
-def test_multiple_process_counting2(setup_multiple_scopez_server_lmdb):
+def test_multiple_process_counting2(setup_multiple_waflz_server_lmdb):
     # ------------------------------------------------------
     # Make 3 request in 2 sec to 2 
-    # scopez_server
+    # waflz_server
     # ------------------------------------------------------
     l_url1 = 'http://127.0.0.1:12345/test.html'
     l_url2 = 'http://127.0.0.1:12346/test.html'
@@ -253,7 +256,7 @@ def test_multiple_process_counting2(setup_multiple_scopez_server_lmdb):
 # This should have cleared scope1 key in P1 using PQ and counting should
 # have been reset for scope1.
 # ------------------------------------------------------------------------------
-def test_multiple_process_counting3(setup_multiple_scopez_server_lmdb):
+def test_multiple_process_counting3(setup_multiple_waflz_server_lmdb):
     l_url1 = 'http://127.0.0.1:12345/test.html'
     l_url2 = 'http://127.0.0.1:12346/test.html'
     l_url3 = 'http://127.0.0.1:12347/test.html'
@@ -293,4 +296,3 @@ def test_multiple_process_counting3(setup_multiple_scopez_server_lmdb):
     assert l_r.status_code == 403
     #sleep through enforcement period
     time.sleep(2)
-

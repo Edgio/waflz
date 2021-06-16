@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    file_util.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    04/15/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "file_util.h"
 #include <stdlib.h>
@@ -33,30 +20,30 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-//: ----------------------------------------------------------------------------
-//: Macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Macros
+//! ----------------------------------------------------------------------------
 #define FILE_UTIL_ERR_LEN 4096
 #define FILE_UTIL_PERROR(...) do { \
                 snprintf(ns_waflz::g_err_msg, FILE_UTIL_ERR_LEN, __VA_ARGS__); \
         }while(0)
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: Globals
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Globals
+//! ----------------------------------------------------------------------------
 static char g_err_msg[FILE_UTIL_ERR_LEN];
-//: ----------------------------------------------------------------------------
-//: utils
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: \brief   Read file into buffer
-//: \details Reads file at a_file into buffer object up to a_max_file_size
-//: \return  0 on Success
-//:          -1 on Failure
-//: \param   a_file: file to read from
-//: \param   ao_buf: reference to buffer object to write into
-//: \param   ao_len: file length (returned)
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! utils
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \brief   Read file into buffer
+//! \details Reads file at a_file into buffer object up to a_max_file_size
+//! \return  0 on Success
+//!          -1 on Failure
+//! \param   a_file: file to read from
+//! \param   ao_buf: reference to buffer object to write into
+//! \param   ao_len: file length (returned)
+//! ----------------------------------------------------------------------------
 int32_t read_file(const char *a_file, char **ao_buf, uint32_t &ao_len)
 {
         FILE_UTIL_PERROR("none");
@@ -107,14 +94,14 @@ int32_t read_file(const char *a_file, char **ao_buf, uint32_t &ao_len)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details Writes data from a_buffer into tmp file with prefix a_prefix
-//: \return  0 on Success
-//:          -1 on Failure
-//: \param   a_buffer: buffer object to write into tmp file with
-//: \param   a_prefix: prefix to use for naming tmp file
-//: \param   ao_tmp_file_name: Name of tmp file created (including path)
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details Writes data from a_buffer into tmp file with prefix a_prefix
+//! \return  0 on Success
+//!          -1 on Failure
+//! \param   a_buffer: buffer object to write into tmp file with
+//! \param   a_prefix: prefix to use for naming tmp file
+//! \param   ao_tmp_file_name: Name of tmp file created (including path)
+//! ----------------------------------------------------------------------------
 int32_t write_tmp(const char *a_prefix,
                   const char *a_buf,
                   uint32_t a_len,
@@ -160,10 +147,10 @@ int32_t write_tmp(const char *a_prefix,
         l_fd = -1;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Get last error
-//: \return:  Last error reason
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Get last error
+//! \return:  Last error reason
+//! ----------------------------------------------------------------------------
 const char * get_err_msg(void)
 {
         return g_err_msg;

@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2015 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    waf.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    02/16/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "rule.pb.h"
 #include "event.pb.h"
 #include "profile.pb.h"
@@ -47,11 +34,41 @@
 #include <dirent.h>
 #include <errno.h>
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Mark the context with the applied tx. This can be used to avoid
+//!           performing the same logic more than once. ie: tolower() on a
+//!           particular operation that uses the ac when a previous tx already
+//!           lowered the string.
+//! \param:   A context(output)
+//! \param:   A transformation type.
+//! \return:  Sets the context with the appropiated applied tx.
+//! ----------------------------------------------------------------------------
+static void mark_tx_applied(ns_waflz::rqst_ctx *a_ctx,
+                waflz_pb::sec_action_t_transformation_type_t const &tx_type)
+{
+        switch(tx_type)
+        {
+        case waflz_pb::sec_action_t_transformation_type_t::
+                sec_action_t_transformation_type_t_LOWERCASE:
+        {
+                a_ctx->m_src_asn_str.m_tx_applied |= ns_waflz::TX_APPLIED_TOLOWER;
+                break;
+        }
+        case waflz_pb::sec_action_t_transformation_type_t::
+                sec_action_t_transformation_type_t_CMDLINE:
+        {
+                a_ctx->m_src_asn_str.m_tx_applied |= ns_waflz::TX_APPLIED_CMDLINE;
+                break;
+        }
+        default:;
+                // TODO: CMDLINE tx will also apply tolower(), Should it be included?
+        }
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 waf::waf(engine &a_engine):
         // -------------------------------------------------
         // protobuf
@@ -69,9 +86,9 @@ waf::waf(engine &a_engine):
         m_is_initd(false),
         m_err_msg(),
         m_engine(a_engine),
-        m_id("NA"),
-        m_cust_id("NA"),
-        m_name("NA"),
+        m_id("__na__"),
+        m_cust_id("__na__"),
+        m_name("__na__"),
         m_ruleset_dir(),
         m_owasp_ruleset_version(0),
         m_paranoia_level(1),
@@ -81,11 +98,11 @@ waf::waf(engine &a_engine):
 {
         m_compiled_config = new compiled_config_t();
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 waf::~waf()
 {
         if(m_compiled_config) { delete m_compiled_config; m_compiled_config = NULL; }
@@ -99,11 +116,11 @@ waf::~waf()
                 *i_d = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 #if 0
 void waf::show(void)
 {
@@ -112,22 +129,22 @@ void waf::show(void)
         NDBG_OUTPUT("%s\n", l_config.c_str());
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 #if 0
 void waf::show_status(void)
 {
         m_parser.show_status();
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint32_t waf::get_request_body_in_memory_limit(void)
 {
         if(m_pb &&
@@ -137,11 +154,11 @@ uint32_t waf::get_request_body_in_memory_limit(void)
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::get_str(std::string &ao_str, config_parser::format_t a_format)
 {
         bool l_s;
@@ -205,17 +222,17 @@ int32_t waf::get_str(std::string &ao_str, config_parser::format_t a_format)
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: types for organizing rule modifications
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types for organizing rule modifications
+//! ----------------------------------------------------------------------------
 typedef std::map <waflz_pb::variable_t_type_t, waflz_pb::variable_t> _type_var_map_t;
 typedef std::map <std::string, _type_var_map_t> _id_tv_map_t;
-//: ----------------------------------------------------------------------------
-//: \details: This function generates a modified rule based on RTUs.
-//:           The RTUs are stored in id to variable map (a_tv_map).
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: This function generates a modified rule based on RTUs.
+//!           The RTUs are stored in id to variable map (a_tv_map).
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static int32_t create_modified_rule(::waflz_pb::directive_t** ao_drx,
                                     regex_list_t &ao_rx_list,
                                     const _type_var_map_t& a_tv_map,
@@ -230,81 +247,99 @@ static int32_t create_modified_rule(::waflz_pb::directive_t** ao_drx,
         ::waflz_pb::sec_rule_t *l_mx_r = l_drx->mutable_sec_rule();
         l_mx_r->CopyFrom(a_rule);
         // -------------------------------------------------
-        // for each var...
+        // Apply RTU on chained rules as well
         // -------------------------------------------------
-        for(int32_t i_v = 0; i_v < l_mx_r->variable_size(); ++i_v)
+        int32_t l_cr_idx = -1;
+        do
         {
-                ::waflz_pb::variable_t& l_v = *(l_mx_r->mutable_variable(i_v));
-                if(!l_v.has_type())
+                waflz_pb::sec_rule_t *l_rule = NULL;
+                if(l_cr_idx == -1)
                 {
-                        continue;
+                        l_rule = l_mx_r;
+                }
+                if((l_cr_idx >= 0) &&
+                    (l_cr_idx < l_mx_r->chained_rule_size()))
+                {
+                        l_rule = l_mx_r->mutable_chained_rule(l_cr_idx);
                 }
                 // -----------------------------------------
-                // variable is type...
+                // for each var...
                 // -----------------------------------------
-                _type_var_map_t::const_iterator i_vm = a_tv_map.find(l_v.type());
-                if(i_vm == a_tv_map.end())
+                for(int32_t i_v = 0; i_v < l_rule->variable_size(); ++i_v)
                 {
-                        continue;
-                }
-                // -----------------------------------------
-                // if replace -replace whole var
-                // -----------------------------------------
-                if(a_replace)
-                {
-                        l_v.CopyFrom(i_vm->second);
-                        continue;
-                }
-                const ::waflz_pb::variable_t& l_vm = i_vm->second;
-                // -----------------------------------------
-                // update the variable match
-                // -----------------------------------------
-                for(int32_t i_m = 0; i_m < l_vm.match_size(); ++i_m)
-                {
-                        const ::waflz_pb::variable_t_match_t& l_mm = l_vm.match(i_m);
-                        if(!l_mm.has_value())
+                        ::waflz_pb::variable_t& l_v = *(l_rule->mutable_variable(i_v));
+                        if(!l_v.has_type())
                         {
                                 continue;
                         }
-                        ::waflz_pb::variable_t_match_t* l_new_mx = l_v.add_match();
-                        l_new_mx->CopyFrom(l_mm);
                         // ---------------------------------
-                        // regex...
+                        // variable is type...
                         // ---------------------------------
-                        if(l_mm.is_regex())
+                        _type_var_map_t::const_iterator i_vm = a_tv_map.find(l_v.type());
+                        if(i_vm == a_tv_map.end())
                         {
-                                regex *l_pcre = NULL;
-                                l_pcre = new regex();
-                                const std::string &l_rx = l_mm.value();
-                                int32_t l_s;
-                                l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
-                                if(l_s != WAFLZ_STATUS_OK)
+                                continue;
+                        }
+                        // ---------------------------------
+                        // if replace -replace whole var
+                        // ---------------------------------
+                        if(a_replace)
+                        {
+                                l_v.CopyFrom(i_vm->second);
+                                continue;
+                        }
+                        const ::waflz_pb::variable_t& l_vm = i_vm->second;
+                        // ---------------------------------
+                        // update the variable match
+                        // ---------------------------------
+                        for(int32_t i_m = 0; i_m < l_vm.match_size(); ++i_m)
+                        {
+                                const ::waflz_pb::variable_t_match_t& l_mm = l_vm.match(i_m);
+                                if(!l_mm.has_value())
                                 {
-                                        // TODO -log error reason???
-                                        return WAFLZ_STATUS_ERROR;
+                                        continue;
                                 }
-                                ao_rx_list.push_back(l_pcre);
-                                l_new_mx->set__reserved_1((uint64_t)l_pcre);
+                                ::waflz_pb::variable_t_match_t* l_new_mx = l_v.add_match();
+                                l_new_mx->CopyFrom(l_mm);
+                                // -------------------------
+                                // regex...
+                                // -------------------------
+                                if(l_mm.is_regex())
+                                {
+                                        regex *l_pcre = NULL;
+                                        l_pcre = new regex();
+                                        const std::string &l_rx = l_mm.value();
+                                        int32_t l_s;
+                                        l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
+                                        if(l_s != WAFLZ_STATUS_OK)
+                                        {
+                                                // TODO -log error reason???
+                                                return WAFLZ_STATUS_ERROR;
+                                        }
+                                        ao_rx_list.push_back(l_pcre);
+                                        l_new_mx->set__reserved_1((uint64_t)l_pcre);
+                                }
                         }
                 }
-        }
+                ++l_cr_idx;
+        } while (l_cr_idx < l_mx_r->chained_rule_size());
         *ao_drx = l_drx;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Modify the directives based on a_dr_id_set, ao_id_tv_map
-//:           and ao_id_tv_replace_map. The modified rules are stored in
-//:           ao_mx_directive_list (m_mx_rule_list) and the references to rules
-//:           in _compiled_config are updated to refer these
-//:           instead of the rules in global rulesets
-//: \return:  TODO
-//: \param:   ao_directive_list: list of all directives
-//:           ao_mx_directive_list: list of all modified directives
-//:           ao_rx_list: list of all compiled regex
-//:           a_dr_id_set: ids of rule to be removed
-//:           ao_id_tv_map: rule id to variable map, for updating target
-//:           ao_id_tv_replace_map: rule id to varaible replace map
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Modify the directives based on a_dr_id_set, ao_id_tv_map
+//!           and ao_id_tv_replace_map. The modified rules are stored in
+//!           ao_mx_directive_list (m_mx_rule_list) and the references to rules
+//!           in _compiled_config are updated to refer these
+//!           instead of the rules in global rulesets
+//! \return:  TODO
+//! \param:   ao_directive_list: list of all directives
+//!           ao_mx_directive_list: list of all modified directives
+//!           ao_rx_list: list of all compiled regex
+//!           a_dr_id_set: ids of rule to be removed
+//!           ao_id_tv_map: rule id to variable map, for updating target
+//!           ao_id_tv_replace_map: rule id to varaible replace map
+//! ----------------------------------------------------------------------------
 static int32_t modify_directive_list(directive_list_t &ao_directive_list,
                                      directive_list_t &ao_mx_directive_list,
                                      regex_list_t &ao_rx_list,
@@ -431,7 +466,7 @@ static int32_t modify_directive_list(directive_list_t &ao_directive_list,
                                 {
                                         ::waflz_pb::directive_t* l_drx = NULL;
                                         int32_t l_s;
-                                        l_s = create_modified_rule(&l_drx, ao_rx_list, l_tv_map, *l_rule, false);
+                                        l_s = create_modified_rule(&l_drx, ao_rx_list, l_tv_map, l_r, false);
                                         if(l_s != WAFLZ_STATUS_OK)
                                         {
                                                 return WAFLZ_STATUS_ERROR;
@@ -447,11 +482,11 @@ static int32_t modify_directive_list(directive_list_t &ao_directive_list,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::compile(void)
 {
         // -------------------------------------------------
@@ -499,16 +534,16 @@ int32_t waf::compile(void)
                             l_rtu.variable_size() &&
                             l_rtu.variable(0).has_type())
                         {
-                                // ---------------------------------
+                                // -------------------------
                                 // for each match
-                                // ---------------------------------
+                                // -------------------------
                                 const ::waflz_pb::variable_t& l_v = l_rtu.variable(0);
                                 for(int32_t i_m = 0; i_m < l_v.match_size(); ++i_m)
                                 {
                                         const ::waflz_pb::variable_t_match_t& l_m = l_v.match(i_m);
-                                        // -------------------------
+                                        // -----------------
                                         // only is negated for now..
-                                        // -------------------------
+                                        // -----------------
                                         if(!l_m.is_negated())
                                         {
                                                 continue;
@@ -602,11 +637,12 @@ int32_t waf::compile(void)
         if(l_id_tv_replace_map) { delete l_id_tv_replace_map; l_id_tv_replace_map = NULL; }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: initialize waf from a file path.
+//!           Called from bots.cc/rules.cc/waflz_server
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::init(config_parser::format_t a_format,
                   const std::string &a_path,
                   bool a_apply_defaults,
@@ -664,16 +700,50 @@ int32_t waf::init(config_parser::format_t a_format,
         //l_parser->show_status();
         if(l_parser) { delete l_parser; l_parser = NULL;}
         // -------------------------------------------------
-        // set ruleset info
+        // ruleset info
         // -------------------------------------------------
-        m_pb->set_ruleset_id("__na__");
-        m_pb->set_ruleset_version("__na__");
+        if(!m_pb->has_ruleset_id())
+        {
+                 m_pb->set_ruleset_id("__na__");
+        }
+        if(!m_pb->has_ruleset_version())
+        {
+                m_pb->set_ruleset_version("__na__");
+        }
         // -------------------------------------------------
         // set id
         // -------------------------------------------------
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
         m_name = m_pb->name();
+        // -------------------------------------------------
+        // set ruleset info for custom rules
+        // -------------------------------------------------
+        if(a_custom_rules)
+        {
+                m_ruleset_dir = m_engine.get_ruleset_dir();
+                m_ruleset_dir.append(m_pb->ruleset_id());
+                m_ruleset_dir.append("/version/");
+                m_ruleset_dir.append(m_pb->ruleset_version());
+                m_ruleset_dir.append("/policy/");
+                // -----------------------------------------
+                // update includes to full path
+                // -----------------------------------------
+                for(int i_d = 0; i_d < m_pb->directive_size(); ++i_d)
+                {
+                        ::waflz_pb::directive_t* l_d = m_pb->mutable_directive(i_d);
+                        // ---------------------------------
+                        // include
+                        // ---------------------------------
+                        if(l_d->has_include())
+                        {
+                                std::string l_inc;
+                                l_inc.append(m_ruleset_dir);
+                                l_inc.append(l_d->include());
+                                l_d->set_include(l_inc);
+                        }
+                }
+        }
         // -------------------------------------------------
         // compile
         // -------------------------------------------------
@@ -686,11 +756,11 @@ int32_t waf::init(config_parser::format_t a_format,
         m_is_initd = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::init(void* a_js,
                   bool a_apply_defaults,
                   bool a_custom_rules)
@@ -747,15 +817,45 @@ int32_t waf::init(void* a_js,
         //l_parser->show_status();
         if(l_parser) { delete l_parser; l_parser = NULL;}
         // -------------------------------------------------
-        // set ruleset info
+        // ruleset info
         // -------------------------------------------------
-        m_pb->set_ruleset_id("__na__");
-        m_pb->set_ruleset_version("__na__");
+        if(!m_pb->has_ruleset_id())
+        {
+                 m_pb->set_ruleset_id("__na__");
+        }
+        if(!m_pb->has_ruleset_version())
+        {
+                m_pb->set_ruleset_version("__na__");
+        }
+        m_ruleset_dir = m_engine.get_ruleset_dir();
+        m_ruleset_dir.append(m_pb->ruleset_id());
+        m_ruleset_dir.append("/version/");
+        m_ruleset_dir.append(m_pb->ruleset_version());
+        m_ruleset_dir.append("/policy/");
         // -------------------------------------------------
         // set id
         // -------------------------------------------------
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
+        m_name = m_pb->name();
+        // -------------------------------------------------
+        // update includes to full path
+        // -------------------------------------------------
+        for(int i_d = 0; i_d < m_pb->directive_size(); ++i_d)
+        {
+                ::waflz_pb::directive_t* l_d = m_pb->mutable_directive(i_d);
+                // -----------------------------------------
+                // include
+                // -----------------------------------------
+                if(l_d->has_include())
+                {
+                        std::string l_inc;
+                        l_inc.append(m_ruleset_dir);
+                        l_inc.append(l_d->include());
+                        l_d->set_include(l_inc);
+                }
+
+        }
         // -------------------------------------------------
         // compile
         // -------------------------------------------------
@@ -768,11 +868,11 @@ int32_t waf::init(void* a_js,
         m_is_initd = true;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void set_var_tx(waflz_pb::sec_config_t &ao_conf_pb,
                 const char *a_id,
                 const char *a_var,
@@ -791,11 +891,11 @@ void set_var_tx(waflz_pb::sec_config_t &ao_conf_pb,
         l_sv->set_var(a_var);
         l_sv->set_val(a_val);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::set_defaults(bool a_custom_rules)
 {
         ::waflz_pb::sec_config_t& l_conf_pb = *m_pb;
@@ -835,11 +935,11 @@ int32_t waf::set_defaults(bool a_custom_rules)
         set_var_tx(l_conf_pb, "900020", "combined_file_sizes", "6291456");
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Intialize waf object for profile
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::init(profile &a_profile)
 {
         if(!a_profile.get_pb())
@@ -924,7 +1024,6 @@ int32_t waf::init(profile &a_profile)
         l_anomaly_threshold = to_string(l_gs.anomaly_threshold());
         if(m_owasp_ruleset_version >= 300)
         {
-
                 set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", l_anomaly_threshold);
         }
         else
@@ -938,8 +1037,17 @@ int32_t waf::init(profile &a_profile)
         set_var_tx(l_conf_pb, "900016", "arg_name_length", to_string(l_gs.arg_name_length()));
         set_var_tx(l_conf_pb, "900017", "arg_length", to_string(l_gs.arg_length()));
         set_var_tx(l_conf_pb, "900018", "total_arg_length", to_string(l_gs.total_arg_length()));
-        set_var_tx(l_conf_pb, "900019", "max_file_size", to_string(l_gs.max_file_size()));
-        set_var_tx(l_conf_pb, "900020", "combined_file_sizes", to_string(l_gs.combined_file_sizes()));
+        // -------------------------------------------------
+        // add file sizes optionally
+        // -------------------------------------------------
+        if(l_gs.has_max_file_size())
+        {
+                set_var_tx(l_conf_pb, "900019", "max_file_size", to_string(l_gs.max_file_size()));
+        }
+        if(l_gs.has_combined_file_sizes())
+        {
+                set_var_tx(l_conf_pb, "900020", "combined_file_sizes", to_string(l_gs.combined_file_sizes()));
+        }
         // -------------------------------------------------
         // allowed http methods
         // -------------------------------------------------
@@ -1340,11 +1448,11 @@ done:
         return WAFLZ_STATUS_OK;
 }
 #if 0
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::init_line(config_parser::format_t a_format, const std::string &a_line)
 {
          // Check if already is initd
@@ -1379,11 +1487,11 @@ int32_t waf::init_line(config_parser::format_t a_format, const std::string &a_li
         return WAFLZ_STATUS_OK;
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process_rule(waflz_pb::event **ao_event,
                           const waflz_pb::sec_rule_t &a_rule,
                           rqst_ctx &a_ctx)
@@ -1480,7 +1588,6 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
                 NDBG_PRINT("%sSET_VAR%s: %s%s%s\n",
                            ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF,
                            ANSI_COLOR_FG_GREEN, l_sv.ShortDebugString().c_str(), ANSI_COLOR_OFF);
-
         }
 #endif
         // -------------------------------------------------
@@ -1488,9 +1595,9 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         // -------------------------------------------------
 #if 0
         {
-        std::string l_id = "NA";
+        std::string l_id = "__na__";
         if(a_rule.action().has_id()) { l_id = a_rule.action().id(); }
-        std::string l_msg = "NA";
+        std::string l_msg = "__na__";
         if(a_rule.action().has_msg()) { l_msg = a_rule.action().msg(); }
         NDBG_OUTPUT("MATCHED: id: %16s :: msg: %s\n", l_id.c_str(), l_msg.c_str());
         }
@@ -1503,11 +1610,11 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                                bool &ao_match,
                                const waflz_pb::sec_rule_t &a_rule,
@@ -1517,9 +1624,9 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
         ao_match = false;
         const waflz_pb::sec_action_t &l_a = a_rule.action();
         bool l_multimatch = l_a.multimatch();
-        // -----------------------------------------
+        // -------------------------------------------------
         // get operator
-        // -----------------------------------------
+        // -------------------------------------------------
         if(!a_rule.has_operator_() ||
            !a_rule.operator_().has_type())
         {
@@ -1529,9 +1636,9 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
         const ::waflz_pb::sec_rule_t_operator_t& l_op = a_rule.operator_();
         op_t l_op_cb = NULL;
         l_op_cb = get_op_cb(l_op.type());
-        // -----------------------------------------
+        // -------------------------------------------------
         // variable loop
-        // -----------------------------------------
+        // -------------------------------------------------
         uint32_t l_var_count = 0;
         for(int32_t i_var = 0; i_var < a_rule.variable_size(); ++i_var)
         {
@@ -1645,6 +1752,18 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                                         // TODO log reason???
                                         return WAFLZ_STATUS_ERROR;
                                 }
+                                // -------------------------
+                                // mark current tx so op can
+                                // check if tolower required
+                                // by rule.
+                                // avoids multiple tolower
+                                // called on same string
+                                // -------------------------
+                                mark_tx_applied(&a_ctx, l_t_type);
+                                // -------------------------
+                                // if mutated again free
+                                // last
+                                // -------------------------
                                 if(l_mutated)
                                 {
                                         free(const_cast <char *>(l_x_data));
@@ -1688,6 +1807,7 @@ run_op:
                                         continue;
                                 }
                                 bool l_match = false;
+                                WFLZ_TRC_ALL("op val: %s%.*s%s\n", ANSI_COLOR_FG_GREEN, l_x_len, l_x_data, ANSI_COLOR_FG_MAGENTA);
                                 l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx);
                                 if(l_s != WAFLZ_STATUS_OK)
                                 {
@@ -1733,6 +1853,7 @@ run_op:
                                 l_x_data = NULL;
                                 l_x_len = 0;
                                 l_mutated = false;
+                                a_ctx.m_src_asn_str.m_tx_applied = 0; // Reset
                         }
                         // ---------------------------------
                         // got a match -outtie
@@ -1863,7 +1984,6 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                         }
                         l_val_ref = &l_sv_val;
                 }
-
                 //------------------------------------------
                 // *****************************************
                 //               S C O P E
@@ -1979,19 +2099,21 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                         // TODO ???
                         continue;
                 }
+                // -----------------------------------------
+                // default
+                // -----------------------------------------
                 default:
                 {
-
                 }
                 }
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process_match(waflz_pb::event** ao_event,
                            const waflz_pb::sec_rule_t& a_rule,
                            rqst_ctx& a_ctx)
@@ -2290,7 +2412,40 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // -------------------------------------------------
         // intercept status
         // -------------------------------------------------
-        l_sub_event->set_rule_intercept_status(403);
+        // -------------------------------------------------
+        // Special logic for handling bot rules:
+        // auditlog+pass  = log req + allow req
+        // auditlog+block = log req + custom action for auth
+        // auditlog+deny  = log req + block req
+        // -------------------------------------------------
+        if(l_action.has_auditlog())
+        {
+                switch (l_action.action_type())
+                {
+                case ::waflz_pb::sec_action_t_action_type_t_PASS:
+                {
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_OK);
+                        break;
+                }
+                case ::waflz_pb::sec_action_t_action_type_t_BLOCK:
+                {
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_AUTHENTICATION_REQUIRED);
+                        break;
+                }
+                // Rules that outright want to deny request
+                case ::waflz_pb::sec_action_t_action_type_t_DENY:
+                {
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
+                        break;
+                }
+                default:
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
+                }
+        }
+        else
+        {
+                l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
+        }
         // -------------------------------------------------
         // check for no log
         // -------------------------------------------------
@@ -2315,11 +2470,11 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process_phase(waflz_pb::event **ao_event,
                            const directive_list_t &a_dl,
                            const marker_map_t &a_mm,
@@ -2412,11 +2567,11 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
         }
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::process(waflz_pb::event **ao_event,
                      void *a_ctx,
                      rqst_ctx **ao_rqst_ctx,
@@ -2528,15 +2683,15 @@ report:
                 if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_OK;
         }
-        // ---------------------------------
+        // -------------------------------------------------
         // add meta
-        // ---------------------------------
+        // -------------------------------------------------
         waflz_pb::event &l_event = **ao_event;
-        // ---------------------------------
-        // *********************************
+        // -------------------------------------------------
+        // *************************************************
         // handling anomaly mode natively...
-        // *********************************
-        // ---------------------------------
+        // *************************************************
+        // -------------------------------------------------
 #ifdef WAFLZ_NATIVE_ANOMALY_MODE
         if (!a_custom_rules)
         {
@@ -2557,43 +2712,43 @@ report:
                 l_event.set_waf_profile_id(m_id);
                 l_event.set_waf_profile_name(m_name);
         }
-        // ---------------------------------
+        // -------------------------------------------------
         // add info from last subevent...
-        // ---------------------------------
+        // -------------------------------------------------
         // TODO -should we???
         //      -seems redundant
-        // ---------------------------------
+        // -------------------------------------------------
         if(l_event.sub_event_size())
         {
                 const ::waflz_pb::event& l_se = l_event.sub_event(l_event.sub_event_size() - 1);
-                // -------------------------
+                // -----------------------------------------
                 // rule target...
-                // -------------------------
+                // -----------------------------------------
                 ::waflz_pb::event_var_t* l_ev = l_event.add_rule_target();
                 l_ev->set_name("TX");
                 l_ev->set_param("ANOMALY_SCORE");
-                // -------------------------
+                // -----------------------------------------
                 // rule tag...
-                // -------------------------
+                // -----------------------------------------
                 l_event.add_rule_tag()->assign("OWASP_CRS/ANOMALY/EXCEEDED");
-                // -------------------------
+                // -----------------------------------------
                 // matched_var...
-                // -------------------------
+                // -----------------------------------------
                 if(l_se.has_matched_var())
                 {
                         l_event.mutable_matched_var()->CopyFrom(l_se.matched_var());
                 }
-                // -------------------------
+                // -----------------------------------------
                 // Custom rules wont have an anomaly score
                 // and setvar for rule msg. Set them here
-                // -------------------------
+                // -----------------------------------------
                 if (a_custom_rules)
                 {
                         l_event.set_rule_msg(l_se.rule_msg());
                 }
-                // -------------------------
+                // -----------------------------------------
                 // op
-                // -------------------------
+                // -----------------------------------------
                 l_event.mutable_rule_op_name()->assign("gt");
                 l_event.mutable_rule_op_param()->assign("0");
         }

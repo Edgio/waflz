@@ -1,30 +1,17 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    scopes.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    06/06/2019
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _SCOPES_H_
 #define _SCOPES_H_
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 #include "waflz/def.h"
 #include "waflz/city.h"
@@ -45,9 +32,9 @@ typedef struct engine_t engine;
 typedef struct scopes_t scopes;
 typedef struct rqst_ctx_t rqst_ctx;
 #endif
-//: ----------------------------------------------------------------------------
-//: fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd decl's
+//! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 namespace waflz_pb {
         class enforcement;
@@ -62,25 +49,26 @@ namespace waflz_pb {
 #endif
 #ifdef __cplusplus
 namespace ns_waflz {
-//: ----------------------------------------------------------------------------
-//: fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd decl's
+//! ----------------------------------------------------------------------------
 class engine;
 class rqst_ctx;
 class acl;
 class rules;
+class bots;
 class profile;
 class limit;
 class kv_db;
 class enforcer;
 class challenge;
 class regex;
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! TODO
+//! ----------------------------------------------------------------------------
 class scopes
 {
 public:
@@ -110,13 +98,13 @@ public:
         typedef std::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
         typedef std::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
         typedef std::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
-        typedef std::unordered_map<std::string, rules*, str_hash> id_bots_map_t;
+        typedef std::unordered_map<std::string, bots*, str_hash> id_bots_map_t;
 #else
         typedef std::tr1::unordered_map<std::string, acl*, str_hash> id_acl_map_t;
         typedef std::tr1::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
         typedef std::tr1::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
         typedef std::tr1::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
-        typedef std::tr1::unordered_map<std::string, rules*, str_hash> id_bots_map_t;
+        typedef std::tr1::unordered_map<std::string, bots*, str_hash> id_bots_map_t;
 #endif
         // -------------------------------------------------
         // Public methods
@@ -127,12 +115,13 @@ public:
         const waflz_pb::scope_config *get_pb(void) { return m_pb; }
         std::string& get_id(void) { return m_id; }
         std::string& get_cust_id(void) { return m_cust_id; }
+        std::string& get_account_type(void) { return m_account_type; }
         std::string& get_name(void) { return m_name; }
         int32_t load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path);
         int32_t load(void *a_js, const std::string& a_conf_dir_path);
         int32_t load_acl(ns_waflz::acl* a_acl);
         int32_t load_rules(ns_waflz::rules* a_rules);
-        int32_t load_bots(ns_waflz::rules* a_bots);
+        int32_t load_bots(ns_waflz::bots* a_bots);
         int32_t load_profile(ns_waflz::profile* a_profile);
         int32_t load_limit(ns_waflz::limit* a_limit);
         int32_t process(const waflz_pb::enforcement **ao_enf,
@@ -185,6 +174,7 @@ private:
         // properties
         std::string m_id;
         std::string m_cust_id;
+        std::string m_account_type;
         std::string m_name;
         // -------------------------------------------------
         // parts...
@@ -203,23 +193,23 @@ private:
         // -------------------------------------------------
         challenge& m_challenge;
 };
-//: ----------------------------------------------------------------------------
-//: run operation
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! run operation
+//! ----------------------------------------------------------------------------
 int32_t rl_run_op(bool &ao_matched,
                   const waflz_pb::op_t &a_op,
                   const char *a_data,
                   uint32_t a_data_len,
                   bool a_case_insensitive);
-//: ----------------------------------------------------------------------------
-//: check scope
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! check scope
+//! ----------------------------------------------------------------------------
 int32_t in_scope(bool &ao_match,
                  const waflz_pb::scope &a_scope,
                  rqst_ctx *a_ctx);
-//: ----------------------------------------------------------------------------
-//: get/convert enforcement
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! get/convert enforcement
+//! ----------------------------------------------------------------------------
 int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg);
 #endif
 #ifdef __cplusplus

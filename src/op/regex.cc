@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    regex.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    11/30/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "regex.h"
 #include "pcre.h"
@@ -30,18 +17,18 @@
 #include <string.h>
 #include <string>
 #include <list>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define _WAFLZ_PCRE_MATCH_LIMIT 1000
 #define _WAFLZ_PCRE_MATCH_LIMIT_RECURSION 1000
 namespace ns_waflz
 {
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 regex::regex(void):
         m_regex(NULL),
         m_regex_study(NULL),
@@ -49,11 +36,11 @@ regex::regex(void):
         m_err_ptr(NULL),
         m_err_off(-1)
 {}
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 regex::~regex()
 {
         if(m_regex)
@@ -71,21 +58,21 @@ regex::~regex()
                 m_regex_study = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void regex::get_err_info(const char** a_reason, int& a_offset)
 {
         *a_reason = m_err_ptr;
         a_offset = m_err_off;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t regex::init(const char* a_buf, uint32_t a_len)
 {
         if(!a_buf ||
@@ -140,11 +127,11 @@ int32_t regex::init(const char* a_buf, uint32_t a_len)
         m_regex_study->match_limit_recursion = _WAFLZ_PCRE_MATCH_LIMIT_RECURSION;
         return WAFLZ_STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int regex::compare(const char* a_buf, uint32_t a_len, std::string* ao_captured)
 {
         // -----------------------------------------
@@ -193,11 +180,11 @@ int regex::compare(const char* a_buf, uint32_t a_len, std::string* ao_captured)
         }
         return l_s;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int regex::compare_all(const char* a_buf, uint32_t a_len, data_list_t* ao_captured)
 {
         // -----------------------------------------
@@ -258,11 +245,11 @@ int regex::compare_all(const char* a_buf, uint32_t a_len, data_list_t* ao_captur
         } while (l_s > 0);
         return l_ret_val;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void regex::display(void)
 {
         // -------------------------------------------------
@@ -290,11 +277,15 @@ void regex::display(void)
         _DISPLAY_PCRE_PROP(PCRE_INFO_JIT);
         _DISPLAY_PCRE_PROP_UL(PCRE_INFO_JITSIZE);
         _DISPLAY_PCRE_PROP(PCRE_INFO_MINLENGTH);
+#ifndef WAFLZ_PCRE_INFO_FLAGS_MISSING
         _DISPLAY_PCRE_PROP_U(PCRE_INFO_MATCHLIMIT);
+#endif
         _DISPLAY_PCRE_PROP(PCRE_INFO_OPTIONS);
         _DISPLAY_PCRE_PROP(PCRE_INFO_SIZE);
         _DISPLAY_PCRE_PROP_UL(PCRE_INFO_STUDYSIZE);
+#ifndef WAFLZ_PCRE_INFO_FLAGS_MISSING
         _DISPLAY_PCRE_PROP_UL(PCRE_INFO_RECURSIONLIMIT);
+#endif
         _DISPLAY_PCRE_PROP(PCRE_INFO_REQUIREDCHAR);
 }
 }

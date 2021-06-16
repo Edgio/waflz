@@ -1,29 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    TODO.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/06/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include "catch/catch.hpp"
@@ -31,18 +17,16 @@
 #include "support/time_util.h"
 #include <unistd.h>
 #include <stdio.h>
-//: ----------------------------------------------------------------------------
-//: time_util
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! time_util
+//! ----------------------------------------------------------------------------
 TEST_CASE( "time util test", "[time_util]" ) {
-
-#if !defined(__APPLE__) && !defined(__darwin__)
+#if 0
+        // Disabled due to hardware dependency
         SECTION("validate time caching") {
                 uint64_t l_cur_time_ms;
                 uint64_t l_nxt_time_ms;
-
                 ns_waflz::time_set_max_resolution_us(100000);
-
                 // Verify same time after sleep
                 l_cur_time_ms = ns_waflz::get_time_ms();
                 usleep(1100);
@@ -52,11 +36,9 @@ TEST_CASE( "time util test", "[time_util]" ) {
                 usleep(1100);
                 l_nxt_time_ms = ns_waflz::get_time_ms();
                 REQUIRE((l_cur_time_ms == l_nxt_time_ms));
-
                 ns_waflz::time_set_max_resolution_us(1000);
                 l_cur_time_ms = ns_waflz::get_time_ms();
                 l_cur_time_ms = ns_waflz::get_time_ms();
-
                 // Verify diff time after sleep
                 l_cur_time_ms = ns_waflz::get_time_ms();
                 usleep(1100);
@@ -77,7 +59,6 @@ TEST_CASE( "time util test", "[time_util]" ) {
                 printf("l_nxt_time: %" PRIu64 "\n", l_nxt_time_ms);
                 REQUIRE((l_nxt_time_ms >= 3));
                 REQUIRE((l_nxt_time_ms < 8));
-
                 l_cur_time_ms = ns_waflz::get_time_ms();
                 usleep(5000);
                 l_nxt_time_ms = ns_waflz::get_delta_time_ms(l_cur_time_ms);

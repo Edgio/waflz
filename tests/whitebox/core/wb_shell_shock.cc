@@ -1,41 +1,28 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    wb_shell_shock.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/06/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/engine.h"
 #include "waflz/def.h"
 #include "waflz/profile.h"
 #include "waflz/waf.h"
 #include "proto/rule.pb.h"
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define MSX_SHELL_SHOCK_RULE "SecRule REQUEST_HEADERS|REQUEST_LINE|REQUEST_BODY|REQUEST_HEADERS_NAMES \"@contains () {\" \"phase:2,rev:'1',ver:'EC/1.0.0',maturity:'1',accuracy:'8',t:none,t:urlDecodeUni,t:Utf8toUnicode,id:'431000',msg:'Bash shellshock attack detected',tag:'CVE-2014-6271',block\""
-//: ----------------------------------------------------------------------------
-//: read_file
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! read_file
+//! ----------------------------------------------------------------------------
 TEST_CASE( "shell shock", "[shell_shock]" ) {
 
         // -------------------------------------------------

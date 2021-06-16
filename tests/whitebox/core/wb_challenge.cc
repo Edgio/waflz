@@ -1,24 +1,11 @@
 //! ----------------------------------------------------------------------------
-//! Copyright (C) 2018 Verizon.  All Rights Reserved.
-//! All Rights Reserved
-///
-//! \file:    wb_challenge.cc
+//! Copyright Verizon.
+//!
+//! \file:    TODO
 //! \details: TODO
-//! \author:  Revathi Sabanayagam
-//! \date:    01/06/2018
-///
-//!   Licensed under the Apache License, Version 2.0 (the "License");
-//!   you may not use this file except in compliance with the License.
-//!   You may obtain a copy of the License at
-///
-//!       http://www.apache.org/licenses/LICENSE-2.0
-///
-//!   Unless required by applicable law or agreed to in writing, software
-//!   distributed under the License is distributed on an "AS IS" BASIS,
-//!   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//!   See the License for the specific language governing permissions and
-//!   limitations under the License.
-///
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
 //! ----------------------------------------------------------------------------
 //! Includes
@@ -146,18 +133,18 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 ns_waflz::data_t l_v;
                 l_ctx.m_cookie_map.clear();
                 // -----------------------------------------
-                // ec_secure
+                // __ecbmchid
                 // -----------------------------------------
-                l_k.m_data = "ec_secure";
-                l_k.m_len = sizeof("ec_secure") - 1;
+                l_k.m_data = "__ecbmchid";
+                l_k.m_len = sizeof("__ecbmchid") - 1;
                 l_v.m_data = l_ctx.m_token.m_data;
                 l_v.m_len = l_ctx.m_token.m_len;
                 l_ctx.m_cookie_map[l_k] = l_v;
                 // -----------------------------------------
-                // ec_answer
+                // __eccha
                 // -----------------------------------------
-                l_k.m_data = "ec_answer";
-                l_k.m_len = sizeof("ec_answer") - 1;
+                l_k.m_data = "__eccha";
+                l_k.m_len = sizeof("__eccha") - 1;
                 l_v.m_data = "2";
                 l_v.m_len = sizeof("2") - 1;
                 l_ctx.m_cookie_map[l_k] = l_v;
@@ -206,8 +193,8 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 // -----------------------------------------
                 // wang answer
                 // -----------------------------------------
-                l_k.m_data = "ec_answer";
-                l_k.m_len = sizeof("ec_answer") - 1;
+                l_k.m_data = "__eccha";
+                l_k.m_len = sizeof("__eccha") - 1;
                 l_v.m_data = "monkeys";
                 l_v.m_len = sizeof("monkeys") - 1;
                 l_ctx.m_cookie_map[l_k] = l_v;

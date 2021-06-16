@@ -1,24 +1,11 @@
 //! ----------------------------------------------------------------------------
-//! Copyright (C) 2016 Verizon.  All Rights Reserved.
-//! All Rights Reserved
-//:
-//! @file:    config.cc
-//! @details: TODO
-//! @author:  Reed P. Morrison
-//! @date:    11/30/2016
-//:
-//!   Licensed under the Apache License, Version 2.0 (the "License");
-//!   you may not use this file except in compliance with the License.
-//!   You may obtain a copy of the License at
-//:
-//!       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//!   Unless required by applicable law or agreed to in writing, software
-//!   distributed under the License is distributed on an "AS IS" BASIS,
-//!   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//!   See the License for the specific language governing permissions and
-//!   limitations under the License.
-//:
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
 //! ----------------------------------------------------------------------------
 //! includes
@@ -688,8 +675,8 @@ int32_t config::add_exceed_limit(waflz_pb::config **ao_cfg,
         if(*ao_cfg == NULL)
         {
                 waflz_pb::config *l_cfg = new waflz_pb::config();
-                l_cfg->set_id("NA");
-                l_cfg->set_name("NA");
+                l_cfg->set_id("__na__");
+                l_cfg->set_name("__na__");
                 l_cfg->set_type(waflz_pb::config_type_t_ENFORCER);
                 l_cfg->set_customer_id(a_cust_id);
                 l_cfg->set_enabled_date(get_date_short_str());
@@ -704,7 +691,7 @@ int32_t config::add_exceed_limit(waflz_pb::config **ao_cfg,
         { l_limit->set_name(a_limit.name()); }
         else
         {
-                l_limit->set_name("NA");
+                l_limit->set_name("__na__");
         }
         l_limit->set_disabled(false);
         // -------------------------------------------------
@@ -894,10 +881,10 @@ int32_t config::process_config(waflz_pb::config **ao_cfg,
         }
         // -------------------------------------------------
         // overall algorithm:
-        //   Look up customers coordination configuration
+        //   Look up customers limits configuration
         //
-        //   For each variable limit configured -(reuse a bunch of ddos::enforcer)
-        //     If a limit match indicates entire limit matched
+        //   For each variable limit configured
+        //     If limit match indicates entire limit matched
         //       Construct db key
         //       Increment key value in db
         //       If value above limits limit
@@ -910,17 +897,6 @@ int32_t config::process_config(waflz_pb::config **ao_cfg,
         {
                 // TODO log error reason
                 return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // db check
-        // -------------------------------------------------
-        if(!m_db.get_init())
-        {
-                // -----------------------------------------
-                // db not yet initialized -ignore request
-                // -----------------------------------------
-                WAFLZ_PERROR(m_err_msg, "db not yet initialized");
-                return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // limits...

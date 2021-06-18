@@ -25,41 +25,58 @@ The VDMS global edge platform is a multitenant CDN supporting our hundreds of th
 The open source standard implementation of the [ModSecurity Rules Engine](https://github.com/SpiderLabs/ModSecurity "ModSecurity") -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  Several ModSecurity capabilities eg [SecRemoteRules](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRemoteRules "SecRemoteRules") and [inspectFile](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#inspectFile "inspectFile"), were intentionally ommitted, due to potential performance impacts in a multitenant environment.  A list of currently supported variables, operators and transforms are listed in the [capabilities section of the docs](https://verizondigital.github.io/waflz/capabilities "waflz capabilities")
 
 
-## Install
+## Building
 
-### Build requirements (Ubuntu 16.04/18.04/20.04)
+### Ubuntu (16.04/18.04/20.04)
 
-#### Packages
+#### Package Requirements
 
 ```sh
 $ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev python3-pip
 ```
 
-#### Python Packages
+#### Python Package Requirements
 ```sh
 $ pip3 install -r requirements.txt
 ```
 
-#### Build steps
+#### Build
+This script will build, run tests, and create packages
 
 ```sh
 $ ./build.sh
 ```
-### OS X Build requirements (brew)
-```bash
-brew install cmake openssl protobuf libxml2 pcre dpkg
-```
 
-#### Building the tools
-```bash
-./build.sh
-```
-
-And optionally install
+#### Install (optional)
 ```bash
 cd ./build
 sudo make install
 ```
+
+#### Run Tests Only (optional)
+```bash
+cd ./build
+make test
+```
+
+### OS X
+
+#### Package Requirements (with HomeBrew)
+```bash
+brew install cmake openssl protobuf libxml2 pcre dpkg
+```
+
+#### Python Package Requirements
+```sh
+$ pip3 install -r requirements.txt
+```
+
+#### Build
+```bash
+$ ./build.sh
+```
+
+
 ## Usage
 
 ### Running standalone waflz_server for testing WAF rules

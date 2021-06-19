@@ -10,7 +10,7 @@
 ## Table of Contents
 
 - [Background](#background)
-- [Install](#install)
+- [Building](#building)
 - [Usage](#usage)
 - [Contribute](#contribute)
 - [License](#license)

@@ -10,7 +10,7 @@
 ## Table of Contents
 
 - [Background](#background)
-- [Install](#install)
+- [Building](#building)
 - [Usage](#usage)
 - [Contribute](#contribute)
 - [License](#license)
@@ -61,7 +61,7 @@ make test
 
 ### OS X
 
-#### Package Requirements (with HomeBrew)
+#### Package Requirements (with Homebrew)
 ```bash
 brew install cmake openssl protobuf libxml2 pcre dpkg
 ```

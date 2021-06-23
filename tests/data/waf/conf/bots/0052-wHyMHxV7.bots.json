@@ -1,9 +1,6 @@
 {
   "directive": [
     {
-        "include": "REQUEST-1001-BOTS.json"
-    },
-    {
       "sec_rule": {
         "action": {
           "action_type": "BLOCK",
@@ -45,7 +42,10 @@
       }
     },
   {
-      "include": "REQUEST-1000-BOTS.json"
+   "include": "REQUEST-1000-BOTS.json"
+  },
+  {
+   "include": "REQUEST-1001-BOTS.json"
   }
   ],
   "ruleset_id": "OWASP-CRS-3.3",

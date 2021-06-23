@@ -366,7 +366,6 @@ static int32_t validate_rules(const std::string &a_file)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-
 static int32_t validate_bots(const std::string& a_file, std::string& a_ruleset_dir)
 {
         int32_t l_s;

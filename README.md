@@ -11,6 +11,8 @@
 
 - [Background](#background)
 - [Building](#building)
+- [Running Tests](#running-tests)
+- [Source Code Layout](#source-code-layout)
 - [Usage](#usage)
 - [Contribute](#contribute)
 - [License](#license)
@@ -48,22 +50,16 @@ $ ./build.sh
 ```
 
 #### Install (optional)
-```bash
+```sh
 cd ./build
 sudo make install
-```
-
-#### Run Tests Only (optional)
-```bash
-cd ./build
-make test
 ```
 
 ### OS X
 
 #### Package Requirements (with Homebrew)
-```bash
-brew install cmake openssl protobuf libxml2 pcre dpkg
+```sh
+$ brew install cmake openssl protobuf libxml2 pcre dpkg
 ```
 
 #### Python Package Requirements
@@ -72,10 +68,29 @@ $ pip3 install -r requirements.txt
 ```
 
 #### Build
-```bash
+```sh
 $ ./build.sh
 ```
 
+## Running Tests
+```sh
+$ cd ./build
+$ make test
+```
+
+## Source Code Layout
+The waflz root directory contains this README, the build.sh script which automates building/testing/packaging, and other files related to CI/CD.
+
+Inside the root are the following important directories:
+
+- `docs`: Contains everything necessary to generate documentation.  Changes should be made inside the source subdirectory.
+- `ext`: External libraries that are compiled and used by waflz
+- `include/waflz`: The core C/C++ header files
+- `proto`: The Protocol Buffer definition files used by waflz
+- `src`: The core C/C++ source files, organized by functionality
+- `sub`: Contains the submodules used by waflz
+- `tests`: Contains the waflz test suite, which includes blackbox, whitebox, and stress testing
+- `util`: Utility applications that are useful for testing and validation of the waflz library
 
 ## Usage
 

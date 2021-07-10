@@ -931,7 +931,6 @@ int32_t waf::set_defaults(bool a_custom_rules)
         set_var_tx(l_conf_pb, "900016", "arg_name_length", "1024");
         set_var_tx(l_conf_pb, "900017", "arg_length", "8000");
         set_var_tx(l_conf_pb, "900018", "total_arg_length", "64000");
-        set_var_tx(l_conf_pb, "900019", "max_file_size", "6291456");
         set_var_tx(l_conf_pb, "900020", "combined_file_sizes", "6291456");
         return WAFLZ_STATUS_OK;
 }
@@ -1040,10 +1039,6 @@ int32_t waf::init(profile &a_profile)
         // -------------------------------------------------
         // add file sizes optionally
         // -------------------------------------------------
-        if(l_gs.has_max_file_size())
-        {
-                set_var_tx(l_conf_pb, "900019", "max_file_size", to_string(l_gs.max_file_size()));
-        }
         if(l_gs.has_combined_file_sizes())
         {
                 set_var_tx(l_conf_pb, "900020", "combined_file_sizes", to_string(l_gs.combined_file_sizes()));

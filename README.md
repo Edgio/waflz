@@ -1,65 +1,97 @@
-![waflz-ci](https://github.com/VerizonDigital/waflz/workflows/waflz-ci/badge.svg)
+![waflz-ci](https://github.com/EdgeCast/waflz/workflows/waflz-ci/badge.svg)
 
 <p align="center">
 <img src="/docs/_images/waflz_white.svg" title="waflz" width="200"/>
 </p>
 
 # waflz
-> _A multitenant ModSecurity compatible WAF engine. [Docs](https://verizondigital.github.io/waflz/ "waflz docs")_
+> _A multitenant ModSecurity compatible WAF engine. [Docs](https://edgecast.github.io/waflz/ "waflz docs")_
 
 ## Table of Contents
 
 - [Background](#background)
-- [Install](#install)
+- [Building](#building)
+- [Running Tests](#running-tests)
+- [Source Code Layout](#source-code-layout)
 - [Usage](#usage)
 - [Contribute](#contribute)
 - [License](#license)
 
 ## Background
-An implementation of a WAF engine in c/c++ supporting processing a subset of ModSecurity rules functionalties, configurable with either json or ModSecurity rules.  waflz is optimized to support running many WAF profiles side by side, by using [faster](https://github.com/VerizonDigital/waflz/blob/master/src/op/nms.h "IP tree")/[smaller](https://github.com/VerizonDigital/waflz/blob/master/src/op/ac.h "Aho–Corasick") internal data types and sharing common ruleset data between the profiles -ie if multiple WAF profiles refer to the same ruleset(s), the ruleset(s) are loaded only once for all and shared in memory.
+An implementation of a WAF engine in c/c++ supporting processing a subset of ModSecurity rules functionalties, configurable with either json or ModSecurity rules.  waflz is optimized to support running many WAF profiles side by side, by using [faster](https://github.com/edgecast/waflz/blob/master/src/op/nms.h "IP tree")/[smaller](https://github.com/edgecast/waflz/blob/master/src/op/ac.h "Aho–Corasick") internal data types and sharing common ruleset data between the profiles -ie if multiple WAF profiles refer to the same ruleset(s), the ruleset(s) are loaded only once for all and shared in memory.
 
 ### Rationale
 The VDMS global edge platform is a multitenant CDN supporting our hundreds of thousands individual customer configurations from any given location.  The VDMS WAF supports running OWASP Core Rulesets as well as some third-party rulesets.  The performance and resource allocation of any given customer configuration has the potential of impacting others -ie eventually all configurations live in memory on a physical server in a "Point of Presence" (POP) in a datacenter.  It was important then to the VDMS CDN the WAF be as high performant, memory constrained, and deterministic as possible.
 
 ### Capabilities
-The open source standard implementation of the [ModSecurity Rules Engine](https://github.com/SpiderLabs/ModSecurity "ModSecurity") -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  Several ModSecurity capabilities eg [SecRemoteRules](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRemoteRules "SecRemoteRules") and [inspectFile](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#inspectFile "inspectFile"), were intentionally ommitted, due to potential performance impacts in a multitenant environment.  A list of currently supported variables, operators and transforms are listed in the [capabilities section of the docs](https://verizondigital.github.io/waflz/capabilities "waflz capabilities")
+The open source standard implementation of the [ModSecurity Rules Engine](https://github.com/SpiderLabs/ModSecurity "ModSecurity") -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  Several ModSecurity capabilities eg [SecRemoteRules](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRemoteRules "SecRemoteRules") and [inspectFile](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#inspectFile "inspectFile"), were intentionally ommitted, due to potential performance impacts in a multitenant environment.  A list of currently supported variables, operators and transforms are listed in the [capabilities section of the docs](https://edgecast.github.io/waflz/capabilities "waflz capabilities")
 
 
-## Install
+## Building
 
-### Build requirements (Ubuntu 16.04/18.04/20.04)
+### Ubuntu (16.04/18.04/20.04)
 
-#### Packages
+#### Package Requirements
 
 ```sh
 $ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev python3-pip
 ```
 
-#### Python Packages
+#### Python Package Requirements
 ```sh
 $ pip3 install -r requirements.txt
 ```
 
-#### Build steps
+#### Build
+This script will build, run tests, and create packages
 
 ```sh
 $ ./build.sh
 ```
-### OS X Build requirements (brew)
-```bash
-brew install cmake openssl protobuf libxml2 pcre dpkg
-```
 
-#### Building the tools
-```bash
-./build.sh
-```
-
-And optionally install
-```bash
+#### Install (optional)
+```sh
 cd ./build
 sudo make install
 ```
+
+### OS X
+
+#### Package Requirements (with Homebrew)
+```sh
+$ brew install cmake openssl protobuf libxml2 pcre dpkg
+```
+
+#### Python Package Requirements
+```sh
+$ pip3 install -r requirements.txt
+```
+
+#### Build
+```sh
+$ ./build.sh
+```
+
+## Running Tests
+```sh
+$ cd ./build
+$ make test
+```
+
+## Source Code Layout
+The waflz root directory contains this README, the build.sh script which automates building/testing/packaging, and other files related to CI/CD.
+
+Inside the root are the following important directories:
+
+- `docs`: Contains everything necessary to generate documentation.  Changes should be made inside the source subdirectory.
+- `ext`: External libraries that are compiled and used by waflz
+- `include/waflz`: The core C/C++ header files
+- `proto`: The Protocol Buffer definition files used by waflz
+- `src`: The core C/C++ source files, organized by functionality
+- `sub`: Contains the submodules used by waflz
+- `tests`: Contains the waflz test suite, which includes blackbox, whitebox, and stress testing
+- `util`: Utility applications that are useful for testing and validation of the waflz library
+
 ## Usage
 
 ### Running standalone waflz_server for testing WAF rules

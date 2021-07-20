@@ -15,6 +15,7 @@
 #include "waflz/acl.h"
 #include "waflz/engine.h"
 #include "waflz/rules.h"
+#include "waflz/bots.h"
 #include "waflz/challenge.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
@@ -75,6 +76,7 @@ typedef enum {
         CONFIG_MODE_PROFILE,
         CONFIG_MODE_MODSECURITY,
         CONFIG_MODE_RULES,
+        CONFIG_MODE_BOTS,
         CONFIG_MODE_ACL,
         CONFIG_MODE_LIMIT,
         CONFIG_MODE_LIMITS,
@@ -364,6 +366,59 @@ static int32_t validate_rules(const std::string &a_file)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
+static int32_t validate_bots(const std::string& a_file, std::string& a_ruleset_dir)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // ruleset_dir
+        // -------------------------------------------------
+        l_s = validate_ruleset_dir(a_ruleset_dir);
+        if(l_s != STATUS_OK)
+        {
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // engine
+        // -------------------------------------------------
+        ns_waflz::engine* l_engine = new ns_waflz::engine();
+        l_engine->set_ruleset_dir(a_ruleset_dir);
+        l_s = l_engine->init();
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "failed to init engine\n");
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // create dummy challenge object
+        // -------------------------------------------------
+        ns_waflz::challenge* l_challenge = new ns_waflz::challenge();
+        // -------------------------------------------------
+        // load file
+        // -------------------------------------------------
+        ns_waflz::bots* l_bots = new ns_waflz::bots(*l_engine, *l_challenge);
+        l_s = l_bots->load_file(a_file.c_str(), a_file.length());
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                fprintf(stderr, "%s\n", l_bots->get_err_msg());
+                if(l_engine) { delete l_engine; l_engine = NULL; }
+                if(l_bots)  { delete l_bots; l_bots = NULL; }
+                if(l_challenge) { delete l_challenge; l_challenge = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_engine) { delete l_engine; l_engine = NULL; }
+        if(l_bots)  { delete l_bots; l_bots = NULL; }
+        if(l_challenge) { delete l_challenge; l_challenge = NULL; }
+        return STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static int32_t validate_instance(const std::string &a_file, std::string &a_ruleset_dir)
 {
         int32_t l_s;
@@ -607,7 +662,8 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "  -i, --instance     WAF instance\n");
         fprintf(a_stream, "  -p, --profile      WAF profile\n");
         fprintf(a_stream, "  -a, --acl          ACL\n");
-        fprintf(a_stream, "  -R, --rules        WAF rules\n");
+        fprintf(a_stream, "  -R, --rules        custom rules\n");
+        fprintf(a_stream, "  -b, --bots         bot rules\n");
         fprintf(a_stream, "  -l  --limit        Rate limit\n");
         fprintf(a_stream, "  -L  --limits       Rate limits\n");
         fprintf(a_stream, "  -d  --config-dir   Configuration directory\n");
@@ -644,6 +700,7 @@ int main(int argc, char** argv)
                 { "profile",     1, 0, 'p' },
                 { "acl",         1, 0, 'a' },
                 { "rules",       1, 0, 'R' },
+                { "bots",        1, 0, 'b' },
                 { "limit",       1, 0, 'l' },
                 { "limits",      1, 0, 'L' },
                 { "config-dir",  1, 0, 'd' },
@@ -652,7 +709,7 @@ int main(int argc, char** argv)
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-        while ((l_opt = getopt_long_only(argc, argv, "hvr:i:p:a:R:l:L:d:s:j", l_long_options, &l_option_index)) != -1)
+        while ((l_opt = getopt_long_only(argc, argv, "hvr:i:p:a:R:b:l:L:d:s:j", l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)
                 {
@@ -722,6 +779,15 @@ int main(int argc, char** argv)
                 {
                         l_file = optarg;
                         l_config_mode = CONFIG_MODE_RULES;
+                        break;
+                }
+                // -----------------------------------------
+                // bots
+                // -----------------------------------------
+                case 'b':
+                {
+                        l_file = optarg;
+                        l_config_mode = CONFIG_MODE_BOTS;
                         break;
                 }
                 // -----------------------------------------
@@ -837,6 +903,18 @@ int main(int argc, char** argv)
         case(CONFIG_MODE_RULES):
         {
                 l_s = validate_rules(l_file);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
+        }
+        // -------------------------------------------------
+        // bots
+        // -------------------------------------------------
+        case(CONFIG_MODE_BOTS):
+        {
+                l_s = validate_bots(l_file, l_ruleset_dir);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;

@@ -1249,8 +1249,8 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
         id_limit_map_t::iterator i_t = m_id_limit_map.find(l_id);
         if(i_t == m_id_limit_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "limit id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_limit) { delete a_limit; a_limit = NULL; }
+                return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // check if limit is latest

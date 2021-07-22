@@ -2396,6 +2396,8 @@ extern "C" scopes *create_scopes(engine *a_engine)
 //! ----------------------------------------------------------------------------
 extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir)
 {
+        //ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ALL);
+        //ns_waflz::trc_file_open("/tmp/waflz.log");
         std::string l_conf_dir(a_conf_dir);
         return a_scope->load(a_buf, a_len, l_conf_dir);
 }
@@ -2428,5 +2430,13 @@ extern "C" int32_t cleanup_scopes(scopes *a_scopes)
                 a_scopes = NULL;
         }
         return WAFLZ_STATUS_OK;
+}
+extern "C" const char *get_waflz_error_msg(scopes *a_scopes)
+{
+        if (a_scopes)
+        {
+                return a_scopes->get_err_msg();
+        }
+        return NULL;
 }
 }

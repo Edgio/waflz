@@ -219,6 +219,7 @@ scopes *create_scopes(engine *a_engine);
 int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir);
 int32_t process_waflz(scopes *a_scope, void *ao_ctx, rqst_ctx *a_rqst_ctx, const rqst_ctx_callbacks *a_callbacks, char **ao_event);
 int32_t cleanup_scopes(scopes *a_scopes);
+const char *get_waflz_error_msg(scopes *a_scopes);
 #ifdef __cplusplus
 }
 } // namespace waflz

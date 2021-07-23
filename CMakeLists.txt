@@ -75,52 +75,17 @@ if(BUILD_REDIS)
   add_definitions(-DWAFLZ_KV_DB_REDIS)
 endif()
 # ------------------------------------------------------------------------------
-# \brief   Find ubuntu packages based on their (optional) include and (required) library test files
-# \details
-# \param   output_var_prefix    The prefix for variables output_var_prefix{_INCLUDE_DIR,_LIBS} that are set on success
-# \param   include_test_file    The file to look for via find_path to see if it exists anywhere
-# \param   library_test_file    The file to look for and add to the LIBRARIES variable
-# \param   ubuntu_package       The package to add to CPACK package depends list
-# \param   ubuntu_build_package The package to suggest installing to proceed building properly
+# fail if not found
 # ------------------------------------------------------------------------------
-macro(find_ubuntu_package output_var_prefix
-      include_test_file
-      library_test_file
-      ubuntu_package
-      ubuntu_build_package)
-  # handle optional prefix_path arg
-  if(${ARGC} EQUAL 6)
-          set(prefix_path "${ARGN}")
-          message(STATUS "Got prefix path: '${prefix_path}' for package: ${ubuntu_build_package}")
+macro(fail_if_not_found_library a_lib)
+  find_library(${a_lib}_LIBRARY
+               NAME ${a_lib}
+               PATH_SUFFIXES ${CMAKE_LIBRARY_ARCHITECTURE})
+  if(NOT ${a_lib}_LIBRARY)
+    message(FATAL_ERROR "${a_lib} library not found")
   endif()
-  if(NOT "${include_test_file}" STREQUAL "")
-          find_path(${output_var_prefix}_INCLUDE_DIR ${include_test_file}) # HINTS ${prefix_path} NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH NO_SYSTEN_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH)
-          if(${output_var_prefix}_INCLUDE_DIR)
-                  message(STATUS "Found ${output_var_prefix} include: ${${output_var_prefix}_INCLUDE_DIR}")
-          else()
-                  message("aaaa Failed to find ${output_var_prefix} include.  Suggested ubuntu package: ${ubuntu_build_package}")
-                  LIST(APPEND MISSING_UBUNTU_PACKAGES "'${ubuntu_build_package}'")
-                  SET(FAILED_PACKAGES 1)
-          endif()
-  endif()
-  if(NOT "${library_test_file}" STREQUAL "")
-          find_library(${output_var_prefix}_LIBS ${library_test_file} HINTS ${prefix_path} NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH)
-          if(${output_var_prefix}_LIBS)
-                  message(STATUS "Found ${output_var_prefix} lib: ${${output_var_prefix}_LIBS}")
-                  LIST(APPEND LIBRARIES ${${output_var_prefix}_LIBS})
-          else()
-                  message("Failed to find ${output_var_prefix} library.  Suggested ubuntu package: ${ubuntu_build_package}")
-                  LIST(APPEND MISSING_UBUNTU_PACKAGES "'${ubuntu_build_package}'")
-                  SET(FAILED_PACKAGES 1)
-          endif()
-  endif()
-  if(NOT "${ubuntu_package}" STREQUAL "")
-          LIST(APPEND CPACK_DEBIAN_PACKAGE_DEPENDS_LIST "${ubuntu_package}")
-  endif()
-  if(NOT "${ubuntu_build_package}" STREQUAL "")
-          LIST(APPEND CPACK_DEBIAN_PACKAGE_BUILDS_DEPENDS_LIST "${ubuntu_build_package}")
-  endif()
-endmacro(find_ubuntu_package)
+  set(LIBRARIES ${LIBRARIES} ${a_lib})
+endmacro(fail_if_not_found_library)
 # ------------------------------------------------------------------------------
 # special build case for OPENSSL
 # ------------------------------------------------------------------------------
@@ -196,7 +161,7 @@ endif()
 if(BUILD_PROFILER)
   add_definitions(-DENABLE_PROFILER=1)
   if(BUILD_UBUNTU)
-    find_ubuntu_package(LIBPROFILER google/profiler.h libprofiler.a google-perftools libgoogle-perftools-dev)
+    fail_if_not_found_library(libprofiler.a)
     set(LIBRARIES ${LIBRARIES} unwind)
   else()
     set(LIBRARIES ${LIBRARIES} tcmalloc profiler)
@@ -207,9 +172,8 @@ endif()
 # ------------------------------------------------------------------------------
 if(BUILD_TCMALLOC)
   if(BUILD_UBUNTU)
-    find_ubuntu_package(LIBTCMALLOC google/tcmalloc.h libtcmalloc.a "" libgoogle-perftools-dev)
-    find_ubuntu_package(LIBUNWIND libunwind.h libunwind.a "" libunwind8-dev)
-    # yes it's wierd as shit to have to include this again...
+    fail_if_not_found_library(libtcmalloc.a)
+    fail_if_not_found_library(libunwind.a)
     LIST(APPEND LIBRARIES pthread)
   endif()
 endif()
@@ -218,26 +182,26 @@ endif()
 # ------------------------------------------------------------------------------
 if(BUILD_UBUNTU)
   if(BUILD_APPS)
-    find_ubuntu_package(LIBSSL openssl/ssl.h libssl.a libssl1.0.0 libssl-dev)
+    fail_if_not_found_library(libssl.a)
   endif()
-  find_ubuntu_package(LIBCRYPTO openssl/crypto.h libcrypto.a libssl1.0.0 libssl-dev)
-  find_ubuntu_package(LIBPCRE pcre.h libpcre.a libpcre.so libpcre3-dev)
-  find_ubuntu_package(LIBPROTOBUF google/protobuf/message.h libprotobuf.a libprotobuf libprotobuf-dev)
+  fail_if_not_found_library(libcrypto.a)
+  fail_if_not_found_library(libpcre.a)
+  fail_if_not_found_library(libprotobuf.a)
   # --------------------------------------------------------
   # if rate-limiting check for kv db libs
   # --------------------------------------------------------  
   if(BUILD_REDIS)
-    find_ubuntu_package(LIBHIREDIS "" libhiredis.a "" libhiredis-dev)
+    fail_if_not_found_library(libhiredis.a)
   endif()
   # --------------------------------------------------------
   # xml2 -brings in a lot...
   # --------------------------------------------------------
-  find_ubuntu_package(LIBXML2 libxml2/libxml/xmlversion.h libxml2.a libxml2 libxml2-dev)
-  find_ubuntu_package(LIBZ zlib.h libz.a zlib1g zlib1g-dev)
-  find_ubuntu_package(LIBZMA "" liblzma.a "" liblzma-dev)
-  find_ubuntu_package(LIBICU unicode/uversion.h libicuuc.a libicu libicu-dev)
-  find_ubuntu_package(LIBICUDATA unicode/uversion.h libicudata.a libicu libicu-dev)
-  find_ubuntu_package(LIBICUIL8N unicode/uversion.h libicui18n.a libicu libicu-dev)
+  fail_if_not_found_library(libxml2.a)
+  fail_if_not_found_library(libz.a)
+  fail_if_not_found_library(liblzma.a)
+  fail_if_not_found_library(libicuuc.a)
+  fail_if_not_found_library(libicudata.a)
+  fail_if_not_found_library(libicui18n.a)
 endif()
 # ------------------------------------------------------------------------------
 #

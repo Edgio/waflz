@@ -1087,9 +1087,10 @@ limit_action:
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes::process_request_plugin(char **ao_event,
-                                       void *a_ctx,
-                                       const rqst_ctx_callbacks *a_callbacks,
+int32_t scopes::process_request_plugin(void **ao_enf, size_t *ao_enf_len,
+                                       void **ao_audit_event, size_t *ao_audit_event_len,
+                                       void **ao_prod_event, size_t *ao_prod_event_len,
+                                       void *a_ctx, const rqst_ctx_callbacks *a_callbacks,
                                        rqst_ctx **ao_rqst_ctx)
 {
         waflz_pb::event *l_audit_event = NULL;
@@ -1097,14 +1098,36 @@ int32_t scopes::process_request_plugin(char **ao_event,
         const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
         l_s = process(&l_enf, &l_audit_event, &l_prod_event, a_ctx, PART_MK_ALL, a_callbacks, ao_rqst_ctx);
-        // TODO: dev handle both audit and prod
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // Serialize all proto msgs
+        // -------------------------------------------------
+        if(l_enf)
+        {
+                size_t l_enf_size = l_enf->ByteSize();
+                void *l_enf_buffer = malloc(l_enf_size);
+                l_enf->SerializeToArray(l_enf_buffer, l_enf_size);
+                *ao_enf = l_enf_buffer;
+                *ao_enf_len = l_enf_size;
+        }
+        if(l_audit_event)
+        {
+                size_t l_a_e_size = l_audit_event->ByteSize();
+                void *l_a_e_buffer = malloc(l_a_e_size);
+                l_audit_event->SerializeToArray(l_a_e_buffer, l_a_e_size);
+                *ao_audit_event = l_a_e_buffer;
+                *ao_audit_event_len = l_a_e_size;
+        }
         if(l_prod_event)
         {
-
-                int32_t l_len = strlen(l_prod_event->DebugString().c_str());
-                char *l_event = (char*)malloc(sizeof(char) * l_len + 1);
-                strncpy(l_event, l_prod_event->DebugString().c_str(), l_len);
-                *ao_event = l_event;
+                size_t l_p_e_size = l_prod_event->ByteSize();
+                void *l_p_e_buffer = malloc(l_p_e_size);
+                l_prod_event->SerializeToArray(l_p_e_buffer, l_p_e_size);
+                *ao_prod_event = l_p_e_buffer;
+                *ao_prod_event_len = l_p_e_size;
         }
         return l_s;
 }
@@ -2396,8 +2419,8 @@ extern "C" scopes *create_scopes(engine *a_engine)
 //! ----------------------------------------------------------------------------
 extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir)
 {
-        //ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ALL);
-        //ns_waflz::trc_file_open("/tmp/waflz.log");
+        ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ALL);
+        ns_waflz::trc_file_open("/tmp/waflz.log");
         std::string l_conf_dir(a_conf_dir);
         return a_scope->load(a_buf, a_len, l_conf_dir);
 }
@@ -2406,16 +2429,24 @@ extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_le
 //! \return  0 on success
 //!          -1 on failure
 //! \param   a_scope: scopes object
-//! \param   ao_ctx: void pointer of the request ctx of the calling http library
+//! \param   a_ctx: void pointer of the request ctx of the calling http library
 //! \param   a_rqst_ctx: object of waflz rqst_ctx class, which holds all 
 //!          the pieces of a http request
 //! \param   a_callbacks: callback struct which tells rqst_ctx where to get 
 //!          the peices of a http request from the given ao_ctx
 //! \param   ao_event: event details, if there was an action taken by waflz
 //! ----------------------------------------------------------------------------
-extern "C" int32_t process_waflz(scopes *a_scope, void *ao_ctx, rqst_ctx *a_rqst_ctx, const rqst_ctx_callbacks *a_callbacks, char **ao_event)
+extern "C" int32_t process_waflz(void **ao_enf, size_t *ao_enf_len,
+                                 void **ao_audit_event, size_t *ao_audit_event_len,
+                                 void **ao_prod_event, size_t *ao_prod_event_len,
+                                 scopes *a_scope, void *a_ctx,
+                                 const rqst_ctx_callbacks *a_callbacks, rqst_ctx *a_rqst_ctx)
 {
-        return a_scope->process_request_plugin(ao_event, ao_ctx, a_callbacks, &a_rqst_ctx);
+        return a_scope->process_request_plugin(ao_enf, ao_enf_len,
+                                ao_audit_event, ao_audit_event_len,
+                                ao_prod_event, ao_prod_event_len,
+                                a_ctx, a_callbacks,
+                                &a_rqst_ctx);
 }
 //! ----------------------------------------------------------------------------
 //! \details C binding for third party lib to do a graceful cleanup of scopes object

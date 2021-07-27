@@ -131,9 +131,10 @@ public:
                         part_mk_t a_part_mk,
                         const rqst_ctx_callbacks *a_callbacks,
                         rqst_ctx **ao_rqst_ctx);
-        int32_t process_request_plugin(char **ao_event,
-                                       void *a_ctx,
-                                       const rqst_ctx_callbacks *a_callbacks,
+        int32_t process_request_plugin(void **ao_enf, size_t *ao_enf_len,
+                                       void **ao_audit_event, size_t *ao_audit_event_len,
+                                       void **ao_prod_event, size_t *ao_prod_event_len,
+                                       void *a_ctx, const rqst_ctx_callbacks *a_callbacks,
                                        rqst_ctx **ao_rqst_ctx);
 private:
         // -------------------------------------------------
@@ -216,8 +217,13 @@ int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg);
 extern "C" {
 #endif
 scopes *create_scopes(engine *a_engine);
-int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir);
-int32_t process_waflz(scopes *a_scope, void *ao_ctx, rqst_ctx *a_rqst_ctx, const rqst_ctx_callbacks *a_callbacks, char **ao_event);
+int32_t load_config(scopes *a_scope, const char *a_buf,
+                    uint32_t a_len, const char *a_conf_dir);
+int32_t process_waflz(void **ao_enf, size_t *ao_enf_len,
+                      void **ao_audit_event, size_t *ao_audit_event_len,
+                      void **ao_prod_event, size_t *ao_prod_event_len,
+                      scopes *a_scope, void *a_ctx,
+                      const rqst_ctx_callbacks *a_callbacks, rqst_ctx *a_rqst_ctx);
 int32_t cleanup_scopes(scopes *a_scopes);
 const char *get_waflz_error_msg(scopes *a_scopes);
 #ifdef __cplusplus

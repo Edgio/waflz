@@ -12,8 +12,6 @@
 //! ----------------------------------------------------------------------------
 #include "sx_limits.h"
 #include "is2/support/ndebug.h"
-#include "waflz/kycb_db.h"
-#include "waflz/redis_db.h"
 #include "waflz/configs.h"
 #include "waflz/config.h"
 #include "waflz/geoip2_mmdb.h"

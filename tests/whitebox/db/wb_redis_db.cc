@@ -23,12 +23,11 @@
 #define MONKEY_KEY "TEST::KEY::MONKEY::BONGO"
 #define BANANA_KEY "TEST::KEY::BANANA::SMELLY"
 //! ----------------------------------------------------------------------------
-//! kycb_db
+//! redis_db
 //! ----------------------------------------------------------------------------
 TEST_CASE( "redis db test", "[redis]" ) {
         SECTION("validate bad init") {
                 ns_waflz::redis_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 const char l_bad_host[] = "128.0.0.1";
                 int32_t l_s;
                 l_s = l_db.set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_bad_host, strlen(l_bad_host));
@@ -39,7 +38,6 @@ TEST_CASE( "redis db test", "[redis]" ) {
         }
         SECTION("validate good init") {
                 ns_waflz::redis_db l_db;
-                REQUIRE((l_db.get_init() == false));
                 const char l_host[] = "127.0.0.1";
                 int32_t l_s;
                 l_s = l_db.set_opt(ns_waflz::redis_db::OPT_REDIS_HOST, l_host, strlen(l_host));

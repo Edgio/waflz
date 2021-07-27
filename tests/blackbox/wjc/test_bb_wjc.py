@@ -35,7 +35,6 @@ def test_bb_wjc_bad_regex(setup_wjc):
     global g_file_path
     global g_ruleset_path
     global g_wjc_path
-
     l_profile_path = os.path.realpath(os.path.join(g_file_path, 'test_bb_wjc_bad_regex.waf.prof.json'))
     l_sp = subprocess.Popen([g_wjc_path, '-p', l_profile_path, '-r', g_ruleset_path], stderr=subprocess.PIPE)
     l_sp_stderr = l_sp.communicate()[1]
@@ -57,3 +56,17 @@ def test_bb_wjc_bad_asn(setup_wjc):
     # print('return code: %d'%(l_sp.returncode))
     assert l_sp.returncode != 0
     assert l_sp_stderr == b'expecting type: uint32 for field: \'waflz_pb.acl.lists_asn_t.blacklist\'\n'
+# ------------------------------------------------------------------------------
+# test output with bad ip
+# ------------------------------------------------------------------------------
+def test_bb_wjc_bad_ip(setup_wjc):
+    global g_file_path
+    global g_ruleset_path
+    global g_wjc_path
+    l_acl_path = os.path.realpath(os.path.join(g_file_path, 'test_bb_wjc_bad_ip.acl.json'))
+    l_sp = subprocess.Popen([g_wjc_path, '-a', l_acl_path], stderr=subprocess.PIPE)
+    l_sp_stderr = l_sp.communicate()[1]
+    # print(l_sp_stderr)
+    # print('return code: %d'%(l_sp.returncode))
+    assert l_sp.returncode != 0
+    assert l_sp_stderr == b'adding ip \'8.8.8.8,\'\n'

@@ -13,7 +13,6 @@
 #include "support/time_util.h"
 #include "support/ndebug.h"
 #include "liblmdb/lmdb.h"
-#include "waflz/kycb_db.h"
 #include "waflz/lm_db.h"
 #include "waflz/def.h"
 #include <errno.h>

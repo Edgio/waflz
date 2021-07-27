@@ -22,7 +22,7 @@
 struct redisContext;
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
-//! kycb_db
+//! redis_db
 //! ----------------------------------------------------------------------------
 class redis_db: public kv_db {
 public:
@@ -33,7 +33,7 @@ public:
         {
                 OPT_REDIS_HOST = 0,
                 OPT_REDIS_PORT = 1,
-                OPT_KYCB_SENTINEL = 999
+                OPT_REDIS_SENTINEL = 999
         } opt_t;
         // -------------------------------------------------
         // public methods

@@ -881,10 +881,10 @@ int32_t config::process_config(waflz_pb::config **ao_cfg,
         }
         // -------------------------------------------------
         // overall algorithm:
-        //   Look up customers coordination configuration
+        //   Look up customers limits configuration
         //
-        //   For each variable limit configured -(reuse a bunch of ddos::enforcer)
-        //     If a limit match indicates entire limit matched
+        //   For each variable limit configured
+        //     If limit match indicates entire limit matched
         //       Construct db key
         //       Increment key value in db
         //       If value above limits limit
@@ -897,17 +897,6 @@ int32_t config::process_config(waflz_pb::config **ao_cfg,
         {
                 // TODO log error reason
                 return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // db check
-        // -------------------------------------------------
-        if(!m_db.get_init())
-        {
-                // -----------------------------------------
-                // db not yet initialized -ignore request
-                // -----------------------------------------
-                WAFLZ_PERROR(m_err_msg, "db not yet initialized");
-                return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // limits...

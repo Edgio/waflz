@@ -1,0 +1,108 @@
+{
+  "allowed_http_methods": [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "HEAD",
+    "OPTIONS",
+    "PATCH"
+  ],
+  "asn": {
+    "accesslist": [],
+    "blacklist": [],
+    "whitelist": []
+  },
+  "cookie": {
+    "accesslist": [],
+    "blacklist": [
+      "bot"
+    ],
+    "whitelist": [
+      "trusted"
+    ]
+  },
+  "country": {
+    "accesslist": [],
+    "blacklist": [],
+    "whitelist": []
+  },
+  "customer_id": "DEADDEAD",
+  "disallowed_extensions": [
+    ".asa",
+    ".asax",
+    ".ascx",
+    ".axd",
+    ".backup",
+    ".bak",
+    ".bat",
+    ".cdx",
+    ".cer",
+    ".cfg",
+    ".cmd",
+    ".conf",
+    ".config",
+    ".cs",
+    ".csproj",
+    ".csr",
+    ".dat",
+    ".db",
+    ".dbf",
+    ".dll",
+    ".dos",
+    ".exe",
+    ".htr",
+    ".htw",
+    ".ida",
+    ".idc",
+    ".idq",
+    ".inc",
+    ".ini",
+    ".key",
+    ".licx",
+    ".lnk",
+    ".log",
+    ".mdb",
+    ".old",
+    ".pass",
+    ".pdb",
+    ".pol",
+    ".printer",
+    ".pwd",
+    ".resources",
+    ".resx",
+    ".sql",
+    ".sys",
+    ".vb",
+    ".vbproj",
+    ".vbs",
+    ".vsdisco",
+    ".webinfo",
+    ".xsd",
+    ".xsx"
+  ],
+  "disallowed_headers": [],
+  "id": "bow5Zlbf",
+  "ip": {
+    "accesslist": [],
+    "blacklist": ["8.8.8.8,"],
+    "whitelist": []
+  },
+  "last_modified_date": "2021-04-09T07:10:50.614530Z",
+  "name": "Alert Only",
+  "referer": {
+    "accesslist": [],
+    "blacklist": [],
+    "whitelist": []
+  },
+  "url": {
+    "accesslist": [],
+    "blacklist": [],
+    "whitelist": []
+  },
+  "user_agent": {
+    "accesslist": [],
+    "blacklist": [],
+    "whitelist": []
+  }
+}

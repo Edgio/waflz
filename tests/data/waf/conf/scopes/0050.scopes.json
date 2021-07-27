@@ -82,7 +82,7 @@
         "x-ec-rules": "rejected"
       },
       "status": 403,
-      "enf_type": "CUSTOM_RESPONSE"
+      "enf_type": "IGNORE_CUSTOM_RESPONSE"
     },
     "rules_prod_id":"ZrLf3KkQ",
     "rules_prod_action": {

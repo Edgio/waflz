@@ -98,6 +98,20 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
             _ELIF_TYPE("BLOCK-REQUEST", BLOCK_REQUEST)
             _ELIF_TYPE("BROWSER_CHALLENGE", BROWSER_CHALLENGE)
             _ELIF_TYPE("BROWSER-CHALLENGE", BROWSER_CHALLENGE)
+            _ELIF_TYPE("NULL_ALERT", NULL_ALERT)
+            _ELIF_TYPE("NULL-ALERT", NULL_ALERT)
+            _ELIF_TYPE("NULL_BLOCK", NULL_BLOCK)
+            _ELIF_TYPE("NULL-BLOCK", NULL_BLOCK)
+            _ELIF_TYPE("IGNORE_ALERT", IGNORE_ALERT)
+            _ELIF_TYPE("IGNORE-ALERT", IGNORE_ALERT)
+            _ELIF_TYPE("IGNORE_BLOCK", IGNORE_BLOCK)
+            _ELIF_TYPE("IGNORE-BLOCK", IGNORE_BLOCK)
+            _ELIF_TYPE("IGNORE-REDIRECT-302", IGNORE_REDIRECT_302)
+            _ELIF_TYPE("IGNORE_REDIRECT_302", IGNORE_REDIRECT_302)
+            _ELIF_TYPE("IGNORE-CUSTOM_RESPONSE", IGNORE_CUSTOM_RESPONSE)
+            _ELIF_TYPE("IGNORE_CUSTOM_RESPONSE", IGNORE_CUSTOM_RESPONSE)
+            _ELIF_TYPE("IGNORE-DROP-REQUEST", IGNORE_DROP_REQUEST)
+            _ELIF_TYPE("IGNORE_DROP_REQUEST", IGNORE_DROP_REQUEST)
             else
             {
                     WAFLZ_PERROR(ao_err_msg, "unrecognized enforcement type string: %s", l_type.c_str());
@@ -1235,8 +1249,8 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
         id_limit_map_t::iterator i_t = m_id_limit_map.find(l_id);
         if(i_t == m_id_limit_map.end())
         {
-                WAFLZ_PERROR(m_err_msg, "limit id %s not attached to any scopes", l_id.c_str());
-                return WAFLZ_STATUS_ERROR;
+                if(a_limit) { delete a_limit; a_limit = NULL; }
+                return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // check if limit is latest
@@ -1572,6 +1586,12 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
+                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                if(a_scope.has_acl_audit_action() &&
+                   a_scope.acl_audit_action().has_enf_type())
+                {
+                         l_event->set_waf_profile_action(a_scope.acl_audit_action().enf_type());
+                }
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1598,6 +1618,12 @@ audit_rules:
                 }
                 l_event->set_rules_config_id(l_rules->get_id());
                 l_event->set_rules_config_name(l_rules->get_name());
+                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                if(a_scope.has_rules_audit_action() &&
+                   a_scope.rules_audit_action().has_enf_type())
+                {
+                         l_event->set_waf_profile_action(a_scope.rules_audit_action().enf_type());
+                }
                 *ao_audit_event = l_event;
                 goto prod;
         }
@@ -1633,6 +1659,12 @@ audit_profile:
                 if(!l_event)
                 {
                         goto prod;
+                }
+                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                if(a_scope.has_profile_audit_action() &&
+                   a_scope.profile_audit_action().has_enf_type())
+                {
+                         l_event->set_waf_profile_action(a_scope.profile_audit_action().enf_type());
                 }
                 *ao_audit_event = l_event;
                 goto prod;
@@ -1720,6 +1752,7 @@ limits:
         {
                 for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
                 {
+                        int32_t l_s;
                         const ::waflz_pb::scope_limit_config& l_slc = a_scope.limits(i_l);
                         if(!l_slc.has__reserved_1())
                         {
@@ -1728,7 +1761,12 @@ limits:
                         limit *l_limit = (limit *)l_slc._reserved_1();
                         bool l_exceeds = false;
                         const waflz_pb::condition_group *l_cg = NULL;
-                        l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
+                        l_s = l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                WAFLZ_PERROR(m_err_msg, "performing limit process.");
+                                return WAFLZ_STATUS_ERROR;
+                        }
                         if(!l_exceeds)
                         {
                                 continue;
@@ -1737,15 +1775,14 @@ limits:
                         {
                                 continue;
                         }
-                        // -----------------------------------------
-                        // signal new enforcemnt
-                        // -----------------------------------------
+                        // ---------------------------------
+                        // signal new enforcement
+                        // ---------------------------------
                         (*ao_rqst_ctx)->m_signal_enf = true;
-                        // -----------------------------------------
+                        // ---------------------------------
                         // add new exceeds
-                        // -----------------------------------------
+                        // ---------------------------------
                         const waflz_pb::enforcement& l_axn = l_slc.action();
-                        int32_t l_s;
                         waflz_pb::config *l_cfg = NULL;
                         l_s = add_exceed_limit(&l_cfg,
                                                *(l_limit->get_pb()),
@@ -1759,9 +1796,9 @@ limits:
                                 return WAFLZ_STATUS_ERROR;
                         }
                         //const ::waflz_pb::enforcement& l_a = a_scope.limits(i_l).action();
-                        // -----------------------------------------
+                        // ---------------------------------
                         // merge enforcement
-                        // -----------------------------------------
+                        // ---------------------------------
                         //NDBG_OUTPUT("l_enfx: %s\n", l_enfcr->ShortDebugString().c_str());
                         l_s = m_enfx->merge(*l_cfg);
                         // TODO -return enforcer...
@@ -1771,17 +1808,17 @@ limits:
                                 return WAFLZ_STATUS_ERROR;
                         }
                         if(l_cfg) { delete l_cfg; l_cfg = NULL; }
-                        // -----------------------------------------
+                        // ---------------------------------
                         // process enforcer
-                        // -----------------------------------------
+                        // ---------------------------------
                         l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
-                        // -----------------------------------------
+                        // ---------------------------------
                         // enforced???
-                        // -----------------------------------------
+                        // ---------------------------------
                         if(*ao_enf)
                         {
                                 if((*ao_enf)->has_status())
@@ -2359,6 +2396,8 @@ extern "C" scopes *create_scopes(engine *a_engine)
 //! ----------------------------------------------------------------------------
 extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir)
 {
+        //ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ALL);
+        //ns_waflz::trc_file_open("/tmp/waflz.log");
         std::string l_conf_dir(a_conf_dir);
         return a_scope->load(a_buf, a_len, l_conf_dir);
 }
@@ -2391,5 +2430,13 @@ extern "C" int32_t cleanup_scopes(scopes *a_scopes)
                 a_scopes = NULL;
         }
         return WAFLZ_STATUS_OK;
+}
+extern "C" const char *get_waflz_error_msg(scopes *a_scopes)
+{
+        if (a_scopes)
+        {
+                return a_scopes->get_err_msg();
+        }
+        return NULL;
 }
 }

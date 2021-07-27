@@ -38,33 +38,21 @@ public:
         ~geoip2_mmdb();
         int32_t init(const std::string& a_city_mmdb_path,
                      const std::string& a_asn_mmdb_path);
-        //: ------------------------------------------------
-        //:                  D B   O P S
-        //: ------------------------------------------------
+        // -------------------------------------------------
+        //                  D B   O P S
+        // -------------------------------------------------
         int32_t get_country(const char **ao_buf, uint32_t &ao_buf_len,
                             const char *a_ip, uint32_t a_ip_len);
         int32_t get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_len);
         int32_t get_country_city_name(const char **ao_cn_name, uint32_t &ao_cn_name_len,
                                       const char **ao_city_name, uint32_t &ao_city_name_len,
                                       const char *a_ip, uint32_t a_ip_len);
-        //: ------------------------------------------------
-        //:               G E T T E R S
-        //: ------------------------------------------------
-        //: ------------------------------------------------
-        //: \details Get last error message string
-        //: \return  last error message (in buffer)
-        //: ------------------------------------------------
+        // -------------------------------------------------
+        //                G E T T E R S
+        // -------------------------------------------------
         const char *get_err_msg(void)
         {
                 return m_err_msg;
-        }
-        //: ------------------------------------------------
-        //: \details Get init state
-        //: \return  init state
-        //: ------------------------------------------------
-        bool get_init(void)
-        {
-                return m_init;
         }
 private:
         // -------------------------------------------------

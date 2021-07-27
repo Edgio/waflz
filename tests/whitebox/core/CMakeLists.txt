@@ -1,8 +1,3 @@
-# ------------------------------------------------------------------------------
-# project setup
-# ------------------------------------------------------------------------------
-project(waflz_core_tests)
-cmake_minimum_required(VERSION 3.5)
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/include

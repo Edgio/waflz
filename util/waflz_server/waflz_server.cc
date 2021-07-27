@@ -21,6 +21,7 @@
 #include "sx_instance.h"
 #include "sx_scopes.h"
 #include "sx_modsecurity.h"
+#include "sx_limit.h"
 #include "sx_limits.h"
 // ---------------------------------------------------------
 // waflz
@@ -29,9 +30,10 @@
 #include "waflz/profile.h"
 #include "waflz/render.h"
 #include "waflz/engine.h"
-#include "waflz/kycb_db.h"
-#include "waflz/redis_db.h"
 #include "waflz/lm_db.h"
+#ifdef WAFLZ_KV_DB_REDIS
+#include "waflz/redis_db.h"
+#endif
 #include "waflz/trace.h"
 #include "support/ndebug.h"
 #include "support/base64.h"
@@ -91,13 +93,14 @@ typedef enum {
         SERVER_MODE_NONE
 } server_mode_t;
 typedef enum {
-        CONFIG_MODE_INSTANCE = 0,
-        CONFIG_MODE_PROFILE,
+        CONFIG_MODE_PROFILE = 0,
         CONFIG_MODE_ACL,
         CONFIG_MODE_RULES,
         CONFIG_MODE_MODSECURITY,
-        CONFIG_MODE_LIMITS,
+        CONFIG_MODE_LIMIT,
         CONFIG_MODE_SCOPES,
+        CONFIG_MODE_INSTANCE,
+        CONFIG_MODE_LIMITS,
         CONFIG_MODE_NONE
 } config_mode_t;
 //! ----------------------------------------------------------------------------
@@ -174,7 +177,9 @@ static int create_dir_once(const std::string& a_db_dir)
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
 static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
+#ifdef WAFLZ_KV_DB_REDIS
                           const std::string& a_redis_host,
+#endif
                           bool a_lmdb,
                           bool a_lmdb_ip)
 {
@@ -186,6 +191,7 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
         // -------------------------------------------------
         // redis db
         // -------------------------------------------------
+#ifdef WAFLZ_KV_DB_REDIS
         if(!a_redis_host.empty())
         {
                 ns_waflz::kv_db* l_db = NULL;
@@ -236,123 +242,66 @@ static int32_t init_kv_db(ns_waflz::kv_db** ao_db,
                 // -----------------------------------------
                 //NDBG_PRINT("USING REDIS\n");
                 *ao_db = l_db;
+                return STATUS_OK;
         }
+#endif
         // -------------------------------------------------
         // lmdb
         // -------------------------------------------------
-        else if(a_lmdb)
+        int32_t l_s;
+        ns_waflz::kv_db* l_db = NULL;
+        l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::lm_db());
+        // -----------------------------------------
+        // setup disk
+        // -----------------------------------------
+        std::string l_db_dir("/tmp/test_lmdb");
+        if(a_lmdb_ip)
         {
-                int32_t l_s;
-                ns_waflz::kv_db* l_db = NULL;
-                l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::lm_db());
-                // -----------------------------------------
-                // setup disk
-                // -----------------------------------------
-                std::string l_db_dir("/tmp/test_lmdb");
-                if(a_lmdb_ip)
-                {
-                        l_s = create_dir_once(l_db_dir);
-                        if(l_s != STATUS_OK)
-                        {
-                                NDBG_PRINT("error creating dir -%s\n", l_db_dir.c_str());
-                                if(l_db) { delete l_db; l_db = NULL; }
-                                return STATUS_ERROR;
-                        }
-                }
-                else
-                {
-                        l_s = create_dir(l_db_dir);
-                        if(l_s != STATUS_OK)
-                        {
-                                NDBG_PRINT("error creating dir - %s\n", l_db_dir.c_str());
-                                if(l_db) { delete l_db; l_db = NULL; }
-                                return STATUS_ERROR;
-                        }
-                }
+                l_s = create_dir_once(l_db_dir);
                 if(l_s != STATUS_OK)
                 {
-                        NDBG_PRINT("error creating dir for lmdb\n");
+                        NDBG_PRINT("error creating dir -%s\n", l_db_dir.c_str());
                         if(l_db) { delete l_db; l_db = NULL; }
                         return STATUS_ERROR;
                 }
-                // -----------------------------------------
-                // options
-                // -----------------------------------------
-                l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
-                l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
-                l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
-                // -----------------------------------------
-                // init db
-                // -----------------------------------------
-                l_s = l_db->init();
-                if(l_s != STATUS_OK)
-                {
-                        NDBG_PRINT("error performing db init: Reason: %s\n", l_db->get_err_msg());
-                        if(l_db) { delete l_db; l_db = NULL; }
-                        return STATUS_ERROR;
-                }
-                if(!l_db->get_init())
-                {
-                        printf("error -%s\n", l_db->get_err_msg());
-                }
-                // -----------------------------------------
-                // done
-                // -----------------------------------------
-                //NDBG_PRINT("USING LMDB\n");
-                *ao_db = l_db;
         }
-        // -------------------------------------------------
-        // kyoto
-        // -------------------------------------------------
         else
         {
-                ns_waflz::kv_db* l_db = NULL;
-                l_db = reinterpret_cast<ns_waflz::kv_db *>(new ns_waflz::kycb_db());
-                // -----------------------------------------
-                // setup disk
-                // -----------------------------------------
-                char l_db_file[] = "/tmp/waflz-XXXXXX.kyoto.db";
-                //uint32_t l_db_buckets = 0;
-                //uint32_t l_db_map = 0;
-                //int l_db_options = 0;
-                //l_db_options |= kyotocabinet::HashDB::TSMALL;
-                //l_db_options |= kyotocabinet::HashDB::TLINEAR;
-                //l_db_options |= kyotocabinet::HashDB::TCOMPRESS;
-                errno = 0;
-                int32_t l_s;
-                l_s = mkstemps(l_db_file,9);
-                if(l_s == -1)
-                {
-                        NDBG_PRINT("error(%d) performing mkstemp(%s) reason[%d]: %s\n",
-                                        l_s,
-                                        l_db_file,
-                                        errno,
-                                        strerror(errno));
-                        if(l_db) { delete l_db; l_db = NULL; }
-                        return STATUS_ERROR;
-                }
-                unlink(l_db_file);
-                // -----------------------------------------
-                // options
-                // -----------------------------------------
-                l_db->set_opt(ns_waflz::kycb_db::OPT_KYCB_DB_FILE_PATH, l_db_file, strlen(l_db_file));
-                //NDBG_PRINT("l_db_file: %s\n", l_db_file);
-                // -----------------------------------------
-                // init db
-                // -----------------------------------------
-                l_s = l_db->init();
+                l_s = create_dir(l_db_dir);
                 if(l_s != STATUS_OK)
                 {
-                        NDBG_PRINT("error performing initialize_cb: Reason: %s\n", l_db->get_err_msg());
+                        NDBG_PRINT("error creating dir - %s\n", l_db_dir.c_str());
                         if(l_db) { delete l_db; l_db = NULL; }
                         return STATUS_ERROR;
                 }
-                // -----------------------------------------
-                // done
-                // -----------------------------------------
-                //NDBG_PRINT("USING KYOTOCABINET\n");
-                *ao_db = l_db;
         }
+        if(l_s != STATUS_OK)
+        {
+                NDBG_PRINT("error creating dir for lmdb\n");
+                if(l_db) { delete l_db; l_db = NULL; }
+                return STATUS_ERROR;
+        }
+        // -----------------------------------------
+        // options
+        // -----------------------------------------
+        l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, l_db_dir.c_str(), l_db_dir.length());
+        l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, 6);
+        l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, 10485760);
+        // -----------------------------------------
+        // init db
+        // -----------------------------------------
+        l_s = l_db->init();
+        if(l_s != STATUS_OK)
+        {
+                NDBG_PRINT("error performing db init: Reason: %s\n", l_db->get_err_msg());
+                if(l_db) { delete l_db; l_db = NULL; }
+                return STATUS_ERROR;
+        }
+        // -----------------------------------------
+        // done
+        // -----------------------------------------
+        //NDBG_PRINT("USING LMDB\n");
+        *ao_db = l_db;
         return STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -853,7 +802,8 @@ public:
                 // -----------------------------------------
                 l_resp_t = ns_is2::H_RESP_NONE;
                 if(g_action_flag ||
-                   (g_config_mode == CONFIG_MODE_LIMITS))
+                   (g_config_mode == CONFIG_MODE_LIMITS) ||
+                   (g_config_mode == CONFIG_MODE_LIMIT))
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf, g_action_flag);
                 }
@@ -1024,13 +974,14 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -v, --version       display the version number and exit.\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Config Modes: -specify only one\n");
-        fprintf(a_stream, "  -i, --instance      waf instance (file or directory)\n");
         fprintf(a_stream, "  -f, --profile       waf profile\n");
         fprintf(a_stream, "  -a, --acl           access control list (acl)\n");
         fprintf(a_stream, "  -e, --rules         rules\n");
         fprintf(a_stream, "  -m, --modsecurity   modsecurity rules\n");
         fprintf(a_stream, "  -l, --limit         limit.\n");
-        fprintf(a_stream, "  -S, --scopes        scopes (file or directory)\n");
+        fprintf(a_stream, "  -b, --scopes        scopes (file or directory)\n");
+        fprintf(a_stream, "  -i, --instance      waf instance (file or directory)\n");
+        fprintf(a_stream, "  -n, --limits        limits\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
@@ -1041,7 +992,9 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -c, --challenge     json containing browser challenges\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "KV DB Configuration:\n");
+#ifdef WAFLZ_KV_DB_REDIS
         fprintf(a_stream, "  -R, --redis-host    redis host:port -used for counting backend\n");
+#endif
         fprintf(a_stream, "  -L, --lmdb          lmdb for rl counting\n");
         fprintf(a_stream, "  -I, --interprocess  lmdb across multiple process (if --lmdb)\n");
         fprintf(a_stream, "  \n");
@@ -1096,7 +1049,9 @@ int main(int argc, char** argv)
         // server settings
         std::string l_out_file;
         uint16_t l_port = 12345;
+#ifdef WAFLZ_KV_DB_REDIS
         std::string l_redis_host = "";
+#endif
         bool l_lmdb = false;
         bool l_lmdb_ip = false;
         std::string l_challenge_file;
@@ -1119,13 +1074,14 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 // config modes
                 // -----------------------------------------
-                { "instance",     1, 0, 'i' },
                 { "profile",      1, 0, 'f' },
                 { "acl",          1, 0, 'a' },
                 { "rules",        1, 0, 'e' },
                 { "modsecurity",  1, 0, 'm' },
                 { "limit",        1, 0, 'l' },
                 { "scopes",       1, 0, 'b' },
+                { "instance",     1, 0, 'i' },
+                { "limits",       1, 0, 'n' },
                 // -----------------------------------------
                 // engine config
                 // -----------------------------------------
@@ -1138,7 +1094,9 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 // kv db config
                 // -----------------------------------------
+#ifdef WAFLZ_KV_DB_REDIS
                 { "redis",        1, 0, 'R' },
+#endif
                 { "lmdb",         0, 0, 'L' },
                 { "interprocess", 0, 0, 'I' },
                 // -----------------------------------------
@@ -1173,9 +1131,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvi:f:a:e:m:l:b:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:AH:C:";
+        char l_short_arg_list[] = "hvf:a:e:m:l:b:i:n:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:AH:C:";
 #else
-        char l_short_arg_list[] = "hvi:f:a:e:m:l:b:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:A";
+        char l_short_arg_list[] = "hvf:a:e:m:l:b:i:n:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:A";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -1225,14 +1183,6 @@ int main(int argc, char** argv)
                 l_config_file = l_arg; \
 } while(0)
                 // -----------------------------------------
-                // instance
-                // -----------------------------------------
-                case 'i':
-                {
-                        _TEST_SET_CONFIG_MODE(INSTANCE);
-                        break;
-                }
-                // -----------------------------------------
                 // profile
                 // -----------------------------------------
                 case 'f':
@@ -1269,7 +1219,7 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 case 'l':
                 {
-                        _TEST_SET_CONFIG_MODE(LIMITS);
+                        _TEST_SET_CONFIG_MODE(LIMIT);
                         break;
                 }
                 // -----------------------------------------
@@ -1278,6 +1228,22 @@ int main(int argc, char** argv)
                 case 'b':
                 {
                         _TEST_SET_CONFIG_MODE(SCOPES);
+                        break;
+                }
+                // -----------------------------------------
+                // instance
+                // -----------------------------------------
+                case 'i':
+                {
+                        _TEST_SET_CONFIG_MODE(INSTANCE);
+                        break;
+                }
+                // -----------------------------------------
+                // instance
+                // -----------------------------------------
+                case 'n':
+                {
+                        _TEST_SET_CONFIG_MODE(LIMITS);
                         break;
                 }
                 // -----------------------------------------
@@ -1338,6 +1304,7 @@ int main(int argc, char** argv)
                 // kv db config
                 // *****************************************
                 // -----------------------------------------
+#ifdef WAFLZ_KV_DB_REDIS
                 // -----------------------------------------
                 // redis host
                 // -----------------------------------------
@@ -1346,6 +1313,7 @@ int main(int argc, char** argv)
                         l_redis_host = l_arg;
                         break;
                 }
+#endif
                 // -----------------------------------------
                 // lmdb
                 // -----------------------------------------
@@ -1729,10 +1697,15 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // setup db
         // -------------------------------------------------
-        if((g_config_mode == CONFIG_MODE_LIMITS) ||
+        if((g_config_mode == CONFIG_MODE_LIMIT) ||
+           (g_config_mode == CONFIG_MODE_LIMITS) ||
            (g_config_mode == CONFIG_MODE_SCOPES))
         {
-                l_s = init_kv_db(&l_kv_db, l_redis_host, l_lmdb, l_lmdb_ip);
+                l_s = init_kv_db(&l_kv_db,
+#ifdef WAFLZ_KV_DB_REDIS
+                                 l_redis_host,
+#endif
+                                 l_lmdb, l_lmdb_ip);
                 if((l_s != STATUS_OK) ||
                    (l_kv_db == NULL))
                 {
@@ -1783,20 +1756,6 @@ int main(int argc, char** argv)
                 g_sx = l_sx_rules;
                 break;
         }
-
-        // -------------------------------------------------
-        // instance
-        // -------------------------------------------------
-        case(CONFIG_MODE_INSTANCE):
-        {
-                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance(*l_engine);
-                l_sx_instance->m_lsnr = l_lsnr;
-                l_sx_instance->m_config = l_config_file;
-                l_sx_instance->m_bg_load = l_bg_load;
-                l_sx_instance->m_callbacks = &s_callbacks;
-                g_sx = l_sx_instance;
-                break;
-        }
         // -------------------------------------------------
         // modsecurity
         // -------------------------------------------------
@@ -1810,15 +1769,15 @@ int main(int argc, char** argv)
                 break;
         }
         // -------------------------------------------------
-        // modsecurity
+        // limit
         // -------------------------------------------------
-        case(CONFIG_MODE_LIMITS):
+        case(CONFIG_MODE_LIMIT):
         {
-                ns_waflz_server::sx_limits *l_sx_limits = new ns_waflz_server::sx_limits(*l_kv_db);
-                l_sx_limits->m_lsnr = l_lsnr;
-                l_sx_limits->m_config = l_config_file;
-                l_sx_limits->m_callbacks = &s_callbacks;
-                g_sx = l_sx_limits;
+                ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit(*l_kv_db);
+                l_sx_limit->m_lsnr = l_lsnr;
+                l_sx_limit->m_config = l_config_file;
+                l_sx_limit->m_callbacks = &s_callbacks;
+                g_sx = l_sx_limit;
                 break;
         }
         // -------------------------------------------------
@@ -1833,6 +1792,31 @@ int main(int argc, char** argv)
                 l_sx_scopes->m_callbacks = &s_callbacks;
                 l_sx_scopes->m_conf_dir = l_config_dir;
                 g_sx = l_sx_scopes;
+                break;
+        }
+        // -------------------------------------------------
+        // instance
+        // -------------------------------------------------
+        case(CONFIG_MODE_INSTANCE):
+        {
+                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance(*l_engine);
+                l_sx_instance->m_lsnr = l_lsnr;
+                l_sx_instance->m_config = l_config_file;
+                l_sx_instance->m_bg_load = l_bg_load;
+                l_sx_instance->m_callbacks = &s_callbacks;
+                g_sx = l_sx_instance;
+                break;
+        }
+        // -------------------------------------------------
+        // limits
+        // -------------------------------------------------
+        case(CONFIG_MODE_LIMITS):
+        {
+                ns_waflz_server::sx_limits *l_sx_limits = new ns_waflz_server::sx_limits(*l_kv_db);
+                l_sx_limits->m_lsnr = l_lsnr;
+                l_sx_limits->m_config = l_config_file;
+                l_sx_limits->m_callbacks = &s_callbacks;
+                g_sx = l_sx_limits;
                 break;
         }
         // -------------------------------------------------

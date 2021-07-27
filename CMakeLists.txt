@@ -16,16 +16,12 @@ option(BUILD_ASAN           "Build with Address Sanitizer" OFF)
 option(BUILD_UBSAN          "Build with Undefined Behavior Sanitizer" OFF)
 option(BUILD_TESTS          "Build the unit tests." ON)
 option(BUILD_APPS           "Build the apps." OFF)
+option(BUILD_REDIS          "Build support for redis" OFF)
 option(BUILD_UBUNTU         "Build for Ubuntu" OFF)
 option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
 option(BUILD_REDHAT         "Build for Red Hat" OFF)
 # ------------------------------------------------------------------------------
-# Compiler options
-# ------------------------------------------------------------------------------
-#add_definitions(-Wall -Werror -Wformat -Wformat-security)
-#add_definitions(-pedantic)
-# ------------------------------------------------------------------------------
-#Add the corrent -std flag, whatever it is
+# Add the corrent -std flag, whatever it is
 # ------------------------------------------------------------------------------
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wno-error=misleading-indentation COMPILER_SUPPORTS_MISIDENT)
@@ -33,17 +29,12 @@ CHECK_CXX_COMPILER_FLAG(-Wno-error=nonnull-compare COMPILER_SUPPORTS_NONNULL)
 CHECK_CXX_COMPILER_FLAG(-std=c++14 COMPILER_SUPPORTS_CXX14)
 CHECK_CXX_COMPILER_FLAG(-std=c++0x COMPILER_SUPPORTS_CXX0X)
 if(COMPILER_SUPPORTS_CXX14)
-  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
   if(COMPILER_SUPPORTS_MISIDENT)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=misleading-indentation")
   endif()
   if(COMPILER_SUPPORTS_NONNULL)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=nonnull-compare")
   endif()
-elseif(COMPILER_SUPPORTS_CXX0X)
-  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-  #message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++0x support. Please use a different C++ compiler.")
 endif()
 # ------------------------------------------------------------------------------
 # find protobuf package
@@ -66,6 +57,7 @@ message("    Build with Address Sanitizer:              " "BUILD_ASAN           
 message("    Build with Undefined Behavior Sanitizer:   " "BUILD_UBSAN             " ${BUILD_UBSAN})
 message("    Build unit tests:                          " "BUILD_TESTS             " ${BUILD_TESTS})
 message("    Build applications:                        " "BUILD_APPS              " ${BUILD_APPS})
+message("    Build support for redis:                   " "BUILD_REDIS             " ${BUILD_REDIS})
 message("    Build for Ubuntu (adds package help):      " "BUILD_UBUNTU            " ${BUILD_UBUNTU})
 message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
 message("    Build for Red Hat:                         " "BUILD_REDHAT            " ${BUILD_REDHAT})
@@ -73,63 +65,27 @@ message("")
 # ------------------------------------------------------------------------------
 # Fortify Options
 # ------------------------------------------------------------------------------
-if (FORTIFY)
+if(FORTIFY)
   add_definitions(-D_FORTIFY_SOURCE=2 -O1 -Wl,-z,relro,-z,now)
 endif()
 # ------------------------------------------------------------------------------
-# \brief   Find ubuntu packages based on their (optional) include and (required) library test files
-# \details
-# \param   output_var_prefix    The prefix for variables output_var_prefix{_INCLUDE_DIR,_LIBS} that are set on success
-# \param   include_test_file    The file to look for via find_path to see if it exists anywhere
-# \param   library_test_file    The file to look for and add to the LIBRARIES variable
-# \param   ubuntu_package       The package to add to CPACK package depends list
-# \param   ubuntu_build_package The package to suggest installing to proceed building properly
+# redis
 # ------------------------------------------------------------------------------
-macro(find_ubuntu_package output_var_prefix
-      include_test_file
-      library_test_file
-      ubuntu_package
-      ubuntu_build_package)
-  # handle optional prefix_path arg
-  if (${ARGC} EQUAL 6)
-          set(prefix_path "${ARGN}")
-          message(STATUS "Got prefix path: '${prefix_path}' for package: ${ubuntu_build_package}")
-          # set(list_var "${ARGN}")
-          # message(STATUS "got ARGC: ${ARGC}")
-          # foreach(loop_var IN LISTS list_var)
-          #         message(STATUS "got arg: ${loop_var}")
-          # endforeach()
+if(BUILD_REDIS)
+  add_definitions(-DWAFLZ_KV_DB_REDIS)
+endif()
+# ------------------------------------------------------------------------------
+# fail if not found
+# ------------------------------------------------------------------------------
+macro(fail_if_not_found_library a_lib)
+  find_library(${a_lib}_LIBRARY
+               NAME ${a_lib}
+               PATH_SUFFIXES ${CMAKE_LIBRARY_ARCHITECTURE})
+  if(NOT ${a_lib}_LIBRARY)
+    message(FATAL_ERROR "${a_lib} library not found")
   endif()
-  if (NOT "${include_test_file}" STREQUAL "")
-          find_path(${output_var_prefix}_INCLUDE_DIR ${include_test_file}) # HINTS ${prefix_path} NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH NO_SYSTEN_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH)
-          if (${output_var_prefix}_INCLUDE_DIR)
-                  #if(NOT "${output_var_prefix}_INCLUDE_DIR" STREQUAL "/usr/include")
-                          message(STATUS "Found ${output_var_prefix} include: ${${output_var_prefix}_INCLUDE_DIR}")
-                  #endif()
-          else()
-                  message("aaaa Failed to find ${output_var_prefix} include.  Suggested ubuntu package: ${ubuntu_build_package}")
-                  LIST(APPEND MISSING_UBUNTU_PACKAGES "'${ubuntu_build_package}'")
-                  SET(FAILED_PACKAGES 1)
-          endif()
-  endif()
-  if (NOT "${library_test_file}" STREQUAL "")
-          find_library(${output_var_prefix}_LIBS ${library_test_file} HINTS ${prefix_path} NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH)
-          if (${output_var_prefix}_LIBS)
-                  message(STATUS "Found ${output_var_prefix} lib: ${${output_var_prefix}_LIBS}")
-                  LIST(APPEND LIBRARIES ${${output_var_prefix}_LIBS})
-          else()
-                  message("Failed to find ${output_var_prefix} library.  Suggested ubuntu package: ${ubuntu_build_package}")
-                  LIST(APPEND MISSING_UBUNTU_PACKAGES "'${ubuntu_build_package}'")
-                  SET(FAILED_PACKAGES 1)
-          endif()
-  endif()
-  if (NOT "${ubuntu_package}" STREQUAL "")
-          LIST(APPEND CPACK_DEBIAN_PACKAGE_DEPENDS_LIST "${ubuntu_package}")
-  endif()
-  if (NOT "${ubuntu_build_package}" STREQUAL "")
-          LIST(APPEND CPACK_DEBIAN_PACKAGE_BUILDS_DEPENDS_LIST "${ubuntu_build_package}")
-  endif()
-endmacro(find_ubuntu_package)
+  set(LIBRARIES ${LIBRARIES} ${a_lib})
+endmacro(fail_if_not_found_library)
 # ------------------------------------------------------------------------------
 # special build case for OPENSSL
 # ------------------------------------------------------------------------------
@@ -142,13 +98,13 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
 endif()
 if(BUILD_REDHAT)
-  set(LIBRARIES ${LIBRARIES} ssl crypto pcre protobuf xml2 kyotocabinet hiredis)
+  set(LIBRARIES ${LIBRARIES} ssl crypto pcre protobuf xml2)
   add_definitions(-DWAFLZ_PCRE_INFO_FLAGS_MISSING)
 endif()
 # ------------------------------------------------------------------------------
 # Mac OS X
 # ------------------------------------------------------------------------------
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # --------------------------------------------------------
   # Mac OS X specific code
   # --------------------------------------------------------
@@ -168,23 +124,22 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   LINK_DIRECTORIES(/usr/local/opt/pcre/lib)
   LINK_DIRECTORIES(/usr/local/opt/libxml2/lib)
   # --------------------------------------------------------
-  # if rate-limiting check for kv db libs
-  # --------------------------------------------------------  
-  INCLUDE_DIRECTORIES(/usr/local/opt/kyoto-cabinet/include)
-  INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
-  LINK_DIRECTORIES(/usr/local/opt/kyoto-cabinet/lib)
-  LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
-  LIST(APPEND LIBRARIES kyotocabinet)
-  LIST(APPEND LIBRARIES hiredis)
+  # if redis
+  # --------------------------------------------------------
+  if(BUILD_REDIS)
+    INCLUDE_DIRECTORIES(/usr/local/opt/hiredis/include)
+    LINK_DIRECTORIES(/usr/local/opt/hiredis/lib)
+    LIST(APPEND LIBRARIES hiredis)
+  endif()
   # --------------------------------------------------------
   # cc flags
   # --------------------------------------------------------
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # ------------------------------------------------------------------------------
 # ASAN
 # ------------------------------------------------------------------------------
-if (BUILD_ASAN)
+if(BUILD_ASAN)
   set(DEBUG_LIBRARIES asan ${DEBUG_LIBRARIES})
   add_definitions(-g3 -fno-omit-frame-pointer -fsanitize=address)
   set(DEBUG_MODE ON)
@@ -193,7 +148,7 @@ if (BUILD_ASAN)
 # ------------------------------------------------------------------------------
 # UBSAN
 # ------------------------------------------------------------------------------
-elseif (BUILD_UBSAN)
+elseif(BUILD_UBSAN)
   set(DEBUG_LIBRARIES ubsan ${DEBUG_LIBRARIES})
   add_definitions(-g3 -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover)
   set(DEBUG_MODE ON)
@@ -205,8 +160,8 @@ endif()
 # ------------------------------------------------------------------------------
 if(BUILD_PROFILER)
   add_definitions(-DENABLE_PROFILER=1)
-  if (BUILD_UBUNTU)
-    find_ubuntu_package(LIBPROFILER google/profiler.h libprofiler.a google-perftools libgoogle-perftools-dev)
+  if(BUILD_UBUNTU)
+    fail_if_not_found_library(libprofiler.a)
     set(LIBRARIES ${LIBRARIES} unwind)
   else()
     set(LIBRARIES ${LIBRARIES} tcmalloc profiler)
@@ -215,11 +170,10 @@ endif()
 # ------------------------------------------------------------------------------
 # Build TCMALLOC
 # ------------------------------------------------------------------------------
-if (BUILD_TCMALLOC)
+if(BUILD_TCMALLOC)
   if(BUILD_UBUNTU)
-    find_ubuntu_package(LIBTCMALLOC google/tcmalloc.h libtcmalloc.a "" libgoogle-perftools-dev)
-    find_ubuntu_package(LIBUNWIND libunwind.h libunwind.a "" libunwind8-dev)
-    # yes it's wierd as shit to have to include this again...
+    fail_if_not_found_library(libtcmalloc.a)
+    fail_if_not_found_library(libunwind.a)
     LIST(APPEND LIBRARIES pthread)
   endif()
 endif()
@@ -228,38 +182,31 @@ endif()
 # ------------------------------------------------------------------------------
 if(BUILD_UBUNTU)
   if(BUILD_APPS)
-    find_ubuntu_package(LIBSSL openssl/ssl.h libssl.a libssl1.0.0 libssl-dev)
+    fail_if_not_found_library(libssl.a)
   endif()
-  find_ubuntu_package(LIBCRYPTO openssl/crypto.h libcrypto.a libssl1.0.0 libssl-dev)
-  find_ubuntu_package(LIBPCRE pcre.h libpcre.a libpcre.so libpcre3-dev)
-  find_ubuntu_package(LIBPROTOBUF google/protobuf/message.h libprotobuf.a libprotobuf libprotobuf-dev)
+  fail_if_not_found_library(libcrypto.a)
+  fail_if_not_found_library(libpcre.a)
+  fail_if_not_found_library(libprotobuf.a)
   # --------------------------------------------------------
   # if rate-limiting check for kv db libs
   # --------------------------------------------------------  
-  find_ubuntu_package(LIBHIREDIS "" libhiredis.a "" libhiredis-dev)
-  find_ubuntu_package(LIBKYOTOCABINET "" libkyotocabinet.a "" libkyotocabinet-dev)
-  # ------------------------------------------------------
-  # linking issue with lzo2
-  # liblzo2.a(lzo_crc.o): relocation R_X86_64_32 against `.rodata'
-  # apparently lib wasn't built with -fPIC??? :( in ubuntu
-  # distros
-  # ------------------------------------------------------
-  #find_ubuntu_package(LIBLZO2 "" liblzo2.so liblzo2-2 "")
-  LIST(APPEND LIBRARIES lzo2)
+  if(BUILD_REDIS)
+    fail_if_not_found_library(libhiredis.a)
+  endif()
   # --------------------------------------------------------
   # xml2 -brings in a lot...
   # --------------------------------------------------------
-  find_ubuntu_package(LIBXML2 libxml2/libxml/xmlversion.h libxml2.a libxml2 libxml2-dev)
-  find_ubuntu_package(LIBZ zlib.h libz.a zlib1g zlib1g-dev)
-  find_ubuntu_package(LIBZMA "" liblzma.a "" liblzma-dev)
-  find_ubuntu_package(LIBICU unicode/uversion.h libicuuc.a libicu libicu-dev)
-  find_ubuntu_package(LIBICUDATA unicode/uversion.h libicudata.a libicu libicu-dev)
-  find_ubuntu_package(LIBICUIL8N unicode/uversion.h libicui18n.a libicu libicu-dev)
+  fail_if_not_found_library(libxml2.a)
+  fail_if_not_found_library(libz.a)
+  fail_if_not_found_library(liblzma.a)
+  fail_if_not_found_library(libicuuc.a)
+  fail_if_not_found_library(libicudata.a)
+  fail_if_not_found_library(libicui18n.a)
 endif()
 # ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------
-if (FAILED_PACKAGES)
+if(FAILED_PACKAGES)
   LIST(REMOVE_DUPLICATES MISSING_UBUNTU_PACKAGES)
   string(REPLACE ";" " " MISSING_UBUNTU_PACKAGES_STR "${MISSING_UBUNTU_PACKAGES}")
   message(FATAL_ERROR "  Please install suggested packages:   sudo apt-get install ${MISSING_UBUNTU_PACKAGES_STR}   and try again.")
@@ -269,27 +216,27 @@ endif()
 # ------------------------------------------------------------------------------
 set(LIBRARIES ${LIBRARIES} dl)
 set(LIBRARIES ${LIBRARIES} pthread)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LIBRARIES ${LIBRARIES} rt)
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(LIBRARIES ${LIBRARIES} m)
 message(STATUS "Libraries: ${LIBRARIES}")
 # ------------------------------------------------------------------------------
 # Optional flags
 # ------------------------------------------------------------------------------
-if (DEBUG_MODE)
+if(DEBUG_MODE)
     add_definitions(-O0 -g3)
 else()
     add_definitions(-O2)
 endif()
-if (BUILD_SYMBOLS)
+if(BUILD_SYMBOLS)
     add_definitions(-g3)
 endif()
 # ------------------------------------------------------------------------------
 # Build is2
 # ------------------------------------------------------------------------------
 include(ExternalProject)
-if (BUILD_APPS)
+if(BUILD_APPS)
   ExternalProject_Add(submodule_is2
     SOURCE_DIR ${CMAKE_SOURCE_DIR}/sub/is2
     INSTALL_COMMAND ""
@@ -305,11 +252,6 @@ string(REPLACE ";" ", " CPACK_DEBIAN_PACKAGE_BUILDS_DEPENDS "${CPACK_DEBIAN_PACK
 # Version
 # ------------------------------------------------------------------------------
 EXECUTE_PROCESS(COMMAND git -C ${CMAKE_SOURCE_DIR} describe --tags OUTPUT_VARIABLE VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
-# TODO removing requirement for now
-#if(NOT ${VERSION} MATCHES ^[0-9]+.[0-9]+)
-#        message(FATAL_ERROR "Most recent tag '${VERSION}' does not match required version regex: ^[0-9]+.[0-9]+
-#Does it start with a number?")
-#endif()
 add_definitions(-DWAFLZ_VERSION="${VERSION}")
 # ------------------------------------------------------------------------------
 # Debian Package Support
@@ -329,7 +271,6 @@ else()
 endif()
 SET(CPACK_DEBIAN_PACKAGE_NAME "waflz")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Reed Morrison, Devender Singh, Revathi Sabanayagam, Raymond Mintz, Thomas Ahn")
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "liblzo2-2 (>= 2.08-1.2)")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Waflz Libraries and tools")
 SET(CPACK_PACKAGE_DESCRIPTION "Waflz Libraries and tools")
 message(STATUS "Package Configuration:")
@@ -344,10 +285,10 @@ INCLUDE(CPack)
 # ------------------------------------------------------------------------------
 add_subdirectory(proto)
 add_subdirectory(src)
-if (BUILD_APPS)
+if(BUILD_APPS)
   add_subdirectory(util)
 endif()
-if (BUILD_TESTS)
+if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()

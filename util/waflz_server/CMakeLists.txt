@@ -1,11 +1,4 @@
 # ------------------------------------------------------------------------------
-# project setup
-# ------------------------------------------------------------------------------
-project(waflz)
-cmake_minimum_required(VERSION 3.5)
-# TODO set later...
-#set(CMAKE_CXX_FLAGS "-Wall -Weffc++ -Werror -std=c++11")
-# ------------------------------------------------------------------------------
 # add install headers
 # ------------------------------------------------------------------------------
 LIST(APPEND INST_HDRS ${HDRS})
@@ -29,10 +22,11 @@ SET(SRCS
   sx_acl.cc
   sx_rules.cc
   sx_profile.cc
-  sx_instance.cc
-  sx_limits.cc
+  sx_limit.cc
   sx_scopes.cc
   sx_modsecurity.cc
+  sx_instance.cc
+  sx_limits.cc
   waflz_server.cc
 )
 # ------------------------------------------------------------------------------

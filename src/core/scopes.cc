@@ -1107,7 +1107,11 @@ int32_t scopes::process_request_plugin(void **ao_enf, size_t *ao_enf_len,
         // -------------------------------------------------
         if(l_enf)
         {
-                size_t l_enf_size = l_enf->ByteSize();
+                #if defined(__APPLE__) || defined(__darwin__)
+                        size_t l_enf_size = l_enf->ByteSizeLong();
+                #else
+                        size_t l_enf_size = l_enf->ByteSize();
+                #endif
                 void *l_enf_buffer = malloc(l_enf_size);
                 l_enf->SerializeToArray(l_enf_buffer, l_enf_size);
                 *ao_enf = l_enf_buffer;
@@ -1115,7 +1119,11 @@ int32_t scopes::process_request_plugin(void **ao_enf, size_t *ao_enf_len,
         }
         if(l_audit_event)
         {
-                size_t l_a_e_size = l_audit_event->ByteSize();
+                #if defined(__APPLE__) || defined(__darwin__)
+                        size_t l_a_e_size = l_audit_event->ByteSizeLong();
+                #else
+                        size_t l_a_e_size = l_audit_event->ByteSize();
+                #endif
                 void *l_a_e_buffer = malloc(l_a_e_size);
                 l_audit_event->SerializeToArray(l_a_e_buffer, l_a_e_size);
                 *ao_audit_event = l_a_e_buffer;
@@ -1123,7 +1131,11 @@ int32_t scopes::process_request_plugin(void **ao_enf, size_t *ao_enf_len,
         }
         if(l_prod_event)
         {
-                size_t l_p_e_size = l_prod_event->ByteSize();
+                #if defined(__APPLE__) || defined(__darwin__)
+                        size_t l_p_e_size = l_prod_event->ByteSizeLong();
+                #else
+                        size_t l_p_e_size = l_prod_event->ByteSize();
+                #endif
                 void *l_p_e_buffer = malloc(l_p_e_size);
                 l_prod_event->SerializeToArray(l_p_e_buffer, l_p_e_size);
                 *ao_prod_event = l_p_e_buffer;
@@ -2419,8 +2431,8 @@ extern "C" scopes *create_scopes(engine *a_engine)
 //! ----------------------------------------------------------------------------
 extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir)
 {
-        ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ALL);
-        ns_waflz::trc_file_open("/tmp/waflz.log");
+        //ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ALL);
+        //ns_waflz::trc_file_open("/tmp/waflz.log");
         std::string l_conf_dir(a_conf_dir);
         return a_scope->load(a_buf, a_len, l_conf_dir);
 }

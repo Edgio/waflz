@@ -12,7 +12,7 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
-#include <openssl/md5.h>
+#include <openssl/evp.h>
 #include <stdint.h>
 //! ----------------------------------------------------------------------------
 //! constants
@@ -39,14 +39,14 @@ public:
                 m_finished(false),
                 m_hash_hex()
         {
-                MD5_Init(&m_ctx);
+                EVP_DigestInit_ex(&m_ctx, EVP_md5(), nullptr);
         }
         // -------------------------------------------------
         // update
         // -------------------------------------------------
         void update(const char* a_str, unsigned int a_len)
         {
-                MD5_Update(&m_ctx, (const unsigned char*)a_str, a_len);
+                EVP_DigestUpdate(&m_ctx, (const unsigned char*)a_str, a_len);
         }
         // -------------------------------------------------
         // finish
@@ -57,7 +57,7 @@ public:
                 {
                         return;
                 }
-                MD5_Final((unsigned char *)m_hash, &m_ctx);
+                EVP_DigestFinal_ex(&m_ctx, (unsigned char *)m_hash, nullptr);
                 static const char s_hexchars[] =
                 {
                         '0', '1', '2', '3',
@@ -98,7 +98,7 @@ private:
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
-        MD5_CTX m_ctx;
+        EVP_MD_CTX m_ctx;
         bool m_finished;
         unsigned char m_hash[s_hash_len];
         char m_hash_hex[33];

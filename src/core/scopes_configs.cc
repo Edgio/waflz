@@ -1298,6 +1298,10 @@ int32_t scopes_configs::load_an_list_file(const char* a_file_path, uint32_t a_fi
         int32_t l_s;
         char *l_buf = NULL;
         uint32_t l_buf_len;
+        if(m_enable_locking)
+        {
+                pthread_mutex_lock(&m_mutex);
+        }
         l_s = read_file(a_file_path, &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -1305,15 +1309,27 @@ int32_t scopes_configs::load_an_list_file(const char* a_file_path, uint32_t a_fi
                              a_file_path,
                              ns_waflz::get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                if(m_enable_locking)
+                {
+                        pthread_mutex_unlock(&m_mutex);
+                }
                 return WAFLZ_STATUS_ERROR;
         }
         l_s = load_an_list(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                if(m_enable_locking)
+                {
+                        pthread_mutex_unlock(&m_mutex);
+                }
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
         return WAFLZ_STATUS_OK;
 }
 //! -----------------------------------------------------------------------------

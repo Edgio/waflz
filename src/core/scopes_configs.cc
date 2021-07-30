@@ -330,7 +330,7 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
         l_s = convert_hex_to_uint(l_cust_id, l_id_str.c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint");
+                WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint for %s\n", l_id_str.c_str());
                 return WAFLZ_STATUS_ERROR;
         } 
         // -------------------------------------------------

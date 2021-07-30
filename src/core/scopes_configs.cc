@@ -720,7 +720,7 @@ int32_t scopes_configs::load_limit(void* a_js)
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-               WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
+                WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
                 if(l_limit) { delete l_limit;l_limit = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }

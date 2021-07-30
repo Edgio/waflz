@@ -720,7 +720,7 @@ int32_t scopes_configs::load_limit(void* a_js)
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
+                WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
                 if(l_limit) { delete l_limit;l_limit = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -838,7 +838,7 @@ int32_t scopes_configs::load_acl(void* a_js)
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
+                WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
                 if(l_acl) { delete l_acl;l_acl = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -955,7 +955,7 @@ int32_t scopes_configs::load_rules(void* a_js)
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
+                WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
                 if(l_rules) { delete l_rules; l_rules = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }       
@@ -1073,7 +1073,7 @@ int32_t scopes_configs::load_bots(void* a_js)
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
+                WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
                 if(l_bots) { delete l_bots; l_bots = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }       
@@ -1190,7 +1190,7 @@ int32_t scopes_configs::load_profile(void* a_js)
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
+                WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
                 if(l_profile) { delete l_profile;l_profile = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
@@ -1298,10 +1298,6 @@ int32_t scopes_configs::load_an_list_file(const char* a_file_path, uint32_t a_fi
         int32_t l_s;
         char *l_buf = NULL;
         uint32_t l_buf_len;
-        if(m_enable_locking)
-        {
-                pthread_mutex_lock(&m_mutex);
-        }
         l_s = read_file(a_file_path, &l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -1309,27 +1305,15 @@ int32_t scopes_configs::load_an_list_file(const char* a_file_path, uint32_t a_fi
                              a_file_path,
                              ns_waflz::get_err_msg());
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                if(m_enable_locking)
-                {
-                        pthread_mutex_unlock(&m_mutex);
-                }
                 return WAFLZ_STATUS_ERROR;
         }
         l_s = load_an_list(l_buf, l_buf_len);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                if(m_enable_locking)
-                {
-                        pthread_mutex_unlock(&m_mutex);
-                }
                 return WAFLZ_STATUS_ERROR;
         }
         if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-        if(m_enable_locking)
-        {
-                pthread_mutex_unlock(&m_mutex);
-        }
         return WAFLZ_STATUS_OK;
 }
 //! -----------------------------------------------------------------------------
@@ -1360,6 +1344,10 @@ int32_t scopes_configs::load_an_list(const char* a_buf, uint32_t a_buf_len)
                 if(l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
+        if(m_enable_locking)
+        {
+                pthread_mutex_lock(&m_mutex);
+        }
         // -------------------------------------------------
         // clear the set and then insert new vals
         // -------------------------------------------------
@@ -1373,13 +1361,17 @@ int32_t scopes_configs::load_an_list(const char* a_buf, uint32_t a_buf_len)
                         l_s = convert_hex_to_uint(l_cust_id, l_e.GetString());
                         if(l_s != WAFLZ_STATUS_OK)
                         {
-                                WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint");
-                                return WAFLZ_STATUS_ERROR;
+                                WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint for %s", l_e.GetString());
+                                continue;
                         }
                         m_an_set.insert(l_cust_id);
                 }
         }
         if(l_js) { delete l_js; l_js = NULL;}
+        if(m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
         return WAFLZ_STATUS_OK;
 }
 }

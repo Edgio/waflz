@@ -37,7 +37,7 @@ build:
     expire_in: 1 week
   parallel:
     matrix:
-      - UBUNTU_VERSION: [18.04", "20.04"]
+      - UBUNTU_VERSION: ["18.04", "20.04"]
         TARGET: [debug, release]
 
 arty:

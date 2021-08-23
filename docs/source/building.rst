@@ -6,7 +6,7 @@ Requirements
 
 Supported OS's
 **************
-Currently waflz has only been built/tested/deployed to production on Ubuntu 14.04/16.04.
+Currently waflz has only been built/tested/deployed to production on Ubuntu 18.04/20.04.
 
 Third Party Libraries
 *********************

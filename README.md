@@ -29,7 +29,7 @@ The open source standard implementation of the [ModSecurity Rules Engine](https:
 
 ## Building
 
-### Ubuntu (16.04/18.04/20.04)
+### Ubuntu (18.04/20.04)
 
 #### Package Requirements
 

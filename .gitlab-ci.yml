@@ -12,7 +12,7 @@ build:
     - tags
     - master
   stage: build
-  image: ${IMAGE_REGISTRY}/${UBUNTU_VERSION}:latest
+  image: ubuntu:$UBUNTU_VERSION
   before_script:
     - cat /etc/lsb-release
     - apt-get update
@@ -37,7 +37,7 @@ build:
     expire_in: 1 week
   parallel:
     matrix:
-      - UBUNTU_VERSION: [18.04", "20.04"]
+      - UBUNTU_VERSION: ["18.04", "20.04"]
         TARGET: [debug, release]
 
 arty:

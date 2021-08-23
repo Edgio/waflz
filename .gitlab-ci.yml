@@ -18,20 +18,7 @@ build:
     - apt-get update
     - apt-get install -y sudo lsb-release apt-transport-https ca-certificates curl git python3 python3-pip build-essential software-properties-common cmake
     - apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev
-    - |
-        if [[ ${UBUNTU_VERSION} == "16.04" ]]; then
-            add-apt-repository -y ppa:ubuntu-toolchain-r/test
-            apt-get update
-            apt-get install -y gcc-7 g++-7
-            update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7
-            update-alternatives --auto gcc
-        fi
-    - |
-        if [[ ${UBUNTU_VERSION} == "16.04" ]]; then
-            python3 -m pip install --upgrade 'pip<21.0.0'
-        else
-            python3 -m pip install --upgrade pip
-        fi
+    - python3 -m pip install --upgrade pip
     - pip install -r requirements.txt
   script:
     - |
@@ -50,7 +37,7 @@ build:
     expire_in: 1 week
   parallel:
     matrix:
-      - UBUNTU_VERSION: ["16.04", "18.04", "20.04"]
+      - UBUNTU_VERSION: [18.04", "20.04"]
         TARGET: [debug, release]
 
 arty:

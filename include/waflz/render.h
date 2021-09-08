@@ -25,8 +25,17 @@
 //! ----------------------------------------------------------------------------
 //! prototypes
 //! ----------------------------------------------------------------------------
+#ifdef __cplusplus
 namespace ns_waflz {
 class rqst_ctx;
 int32_t render(char **ao_buf, size_t& ao_len, const char* a_buf, size_t a_len, rqst_ctx* a_ctx);
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+int32_t plugin_render(char** ao_buf, size_t *ao_len, const char *a_buf, size_t a_len, rqst_ctx *a_rqst_ctx);
+#ifdef __cplusplus
 }
+} // namespace
+#endif
 #endif

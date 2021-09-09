@@ -12,9 +12,7 @@
 //! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/def.h"
-#include "waflz/instances.h"
-#include "waflz/instance.h"
-#include "waflz/profile.h"
+#include "waflz/rqst_ctx.h"
 #include "waflz/engine.h"
 #include "jspb/jspb.h"
 #include "profile.pb.h"

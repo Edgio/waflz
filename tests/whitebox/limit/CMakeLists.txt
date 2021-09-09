@@ -7,5 +7,3 @@ include_directories(
 )
 add_waflz_wb_test(rl_op)
 add_waflz_wb_test(enforcer)
-add_waflz_wb_test(config)
-add_waflz_wb_test(integration)

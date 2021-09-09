@@ -13,7 +13,6 @@
 #include "catch/catch.hpp"
 #include "waflz/engine.h"
 #include "waflz/profile.h"
-#include "waflz/instances.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"
 #include "waflz/def.h"

@@ -34,7 +34,6 @@ def setup_waflz_server():
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
-    l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
@@ -109,7 +108,6 @@ def setup_waflz_server_action():
     l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
-    l_an_list = os.path.realpath(os.path.join(l_file_path, '../../data/an/an-scopes.json'))
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,

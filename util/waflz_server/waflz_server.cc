@@ -18,11 +18,9 @@
 #include "sx_profile.h"
 #include "sx_acl.h"
 #include "sx_rules.h"
-#include "sx_instance.h"
 #include "sx_scopes.h"
 #include "sx_modsecurity.h"
 #include "sx_limit.h"
-#include "sx_limits.h"
 // ---------------------------------------------------------
 // waflz
 // ---------------------------------------------------------
@@ -99,8 +97,6 @@ typedef enum {
         CONFIG_MODE_MODSECURITY,
         CONFIG_MODE_LIMIT,
         CONFIG_MODE_SCOPES,
-        CONFIG_MODE_INSTANCE,
-        CONFIG_MODE_LIMITS,
         CONFIG_MODE_NONE
 } config_mode_t;
 //! ----------------------------------------------------------------------------
@@ -802,7 +798,6 @@ public:
                 // -----------------------------------------
                 l_resp_t = ns_is2::H_RESP_NONE;
                 if(g_action_flag ||
-                   (g_config_mode == CONFIG_MODE_LIMITS) ||
                    (g_config_mode == CONFIG_MODE_LIMIT))
                 {
                         l_resp_t = handle_enf(l_ctx, a_session, a_rqst, *l_enf, g_action_flag);
@@ -980,8 +975,6 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -m, --modsecurity   modsecurity rules\n");
         fprintf(a_stream, "  -l, --limit         limit.\n");
         fprintf(a_stream, "  -b, --scopes        scopes (file or directory)\n");
-        fprintf(a_stream, "  -i, --instance      waf instance (file or directory)\n");
-        fprintf(a_stream, "  -n, --limits        limits\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "Engine Configuration:\n");
         fprintf(a_stream, "  -r, --ruleset-dir   waf ruleset directory\n");
@@ -1080,8 +1073,6 @@ int main(int argc, char** argv)
                 { "modsecurity",  1, 0, 'm' },
                 { "limit",        1, 0, 'l' },
                 { "scopes",       1, 0, 'b' },
-                { "instance",     1, 0, 'i' },
-                { "limits",       1, 0, 'n' },
                 // -----------------------------------------
                 // engine config
                 // -----------------------------------------
@@ -1131,9 +1122,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvf:a:e:m:l:b:i:n:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:AH:C:";
+        char l_short_arg_list[] = "hvf:a:e:m:l:b:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:AH:C:";
 #else
-        char l_short_arg_list[] = "hvf:a:e:m:l:b:i:n:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:A";
+        char l_short_arg_list[] = "hvf:a:e:m:l:b:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:A";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -1228,22 +1219,6 @@ int main(int argc, char** argv)
                 case 'b':
                 {
                         _TEST_SET_CONFIG_MODE(SCOPES);
-                        break;
-                }
-                // -----------------------------------------
-                // instance
-                // -----------------------------------------
-                case 'i':
-                {
-                        _TEST_SET_CONFIG_MODE(INSTANCE);
-                        break;
-                }
-                // -----------------------------------------
-                // instance
-                // -----------------------------------------
-                case 'n':
-                {
-                        _TEST_SET_CONFIG_MODE(LIMITS);
                         break;
                 }
                 // -----------------------------------------
@@ -1683,7 +1658,6 @@ int main(int argc, char** argv)
            (g_config_mode == CONFIG_MODE_ACL) ||
            (g_config_mode == CONFIG_MODE_RULES) ||
            (g_config_mode == CONFIG_MODE_MODSECURITY) ||
-           (g_config_mode == CONFIG_MODE_INSTANCE) ||
            (g_config_mode == CONFIG_MODE_SCOPES))
         {
                 l_s = init_engine(&l_engine, l_ruleset_dir, l_geoip_db, l_geoip_isp_db);
@@ -1698,7 +1672,6 @@ int main(int argc, char** argv)
         // setup db
         // -------------------------------------------------
         if((g_config_mode == CONFIG_MODE_LIMIT) ||
-           (g_config_mode == CONFIG_MODE_LIMITS) ||
            (g_config_mode == CONFIG_MODE_SCOPES))
         {
                 l_s = init_kv_db(&l_kv_db,
@@ -1792,31 +1765,6 @@ int main(int argc, char** argv)
                 l_sx_scopes->m_callbacks = &s_callbacks;
                 l_sx_scopes->m_conf_dir = l_config_dir;
                 g_sx = l_sx_scopes;
-                break;
-        }
-        // -------------------------------------------------
-        // instance
-        // -------------------------------------------------
-        case(CONFIG_MODE_INSTANCE):
-        {
-                ns_waflz_server::sx_instance *l_sx_instance = new ns_waflz_server::sx_instance(*l_engine);
-                l_sx_instance->m_lsnr = l_lsnr;
-                l_sx_instance->m_config = l_config_file;
-                l_sx_instance->m_bg_load = l_bg_load;
-                l_sx_instance->m_callbacks = &s_callbacks;
-                g_sx = l_sx_instance;
-                break;
-        }
-        // -------------------------------------------------
-        // limits
-        // -------------------------------------------------
-        case(CONFIG_MODE_LIMITS):
-        {
-                ns_waflz_server::sx_limits *l_sx_limits = new ns_waflz_server::sx_limits(*l_kv_db);
-                l_sx_limits->m_lsnr = l_lsnr;
-                l_sx_limits->m_config = l_config_file;
-                l_sx_limits->m_callbacks = &s_callbacks;
-                g_sx = l_sx_limits;
                 break;
         }
         // -------------------------------------------------

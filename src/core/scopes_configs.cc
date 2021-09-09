@@ -668,7 +668,7 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
 //! ----------------------------------------------------------------------------
 //! \details check if customer has scopes.
 //! \return  true: if id exists in map
-//           false: if id is missing in either map or set
+//           false: if id is missing in either map
 //! \param   a_cust_id: unsigned integer customer id.
 //! ----------------------------------------------------------------------------
 bool scopes_configs::check_id(uint64_t a_cust_id)

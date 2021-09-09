@@ -133,8 +133,6 @@ SET(SRCS
     core/acl.cc
     core/engine.cc
     core/profile.cc
-    core/instance.cc
-    core/instances.cc
     core/decode.cc
     core/rqst_ctx.cc
     core/var.cc
@@ -152,8 +150,6 @@ SET(SRCS
     # ------------------------------------------------------
     limit/rl_obj.cc
     limit/enforcer.cc
-    limit/config.cc
-    limit/configs.cc
     limit/limit.cc
 )
 if(BUILD_REDIS)
@@ -208,8 +204,6 @@ SET(HDRS
     ${CMAKE_SOURCE_DIR}/include/waflz/def.h
     ${CMAKE_SOURCE_DIR}/include/waflz/engine.h
     ${CMAKE_SOURCE_DIR}/include/waflz/geoip2_mmdb.h
-    ${CMAKE_SOURCE_DIR}/include/waflz/instance.h
-    ${CMAKE_SOURCE_DIR}/include/waflz/instances.h
     ${CMAKE_SOURCE_DIR}/include/waflz/parser.h
     ${CMAKE_SOURCE_DIR}/include/waflz/profile.h
     ${CMAKE_SOURCE_DIR}/include/waflz/render.h
@@ -229,8 +223,6 @@ SET(HDRS
     # ------------------------------------------------------
     # limit
     # ------------------------------------------------------
-    ${CMAKE_SOURCE_DIR}/include/waflz/config.h
-    ${CMAKE_SOURCE_DIR}/include/waflz/configs.h
     ${CMAKE_SOURCE_DIR}/include/waflz/enforcer.h
     ${CMAKE_SOURCE_DIR}/include/waflz/limit.h
     ${CMAKE_SOURCE_DIR}/include/waflz/rl_obj.h

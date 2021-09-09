@@ -6,7 +6,6 @@ include_directories(
   ${CMAKE_BINARY_DIR}/proto
 )
 
-add_waflz_wb_test(instances)
 add_waflz_wb_test(matched_data)
 add_waflz_wb_test(acl)
 add_waflz_wb_test(acl_accesslist)

@@ -13,7 +13,6 @@
 #include "catch/catch.hpp"
 #include "waflz/engine.h"
 #include "waflz/profile.h"
-#include "waflz/instances.h"
 #include "profile.pb.h"
 #include "support/ndebug.h"
 #include <unistd.h>

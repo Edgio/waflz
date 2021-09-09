@@ -223,7 +223,7 @@ int32_t process_waflz(void **ao_enf, size_t *ao_enf_len,
                       void **ao_audit_event, size_t *ao_audit_event_len,
                       void **ao_prod_event, size_t *ao_prod_event_len,
                       scopes *a_scope, void *a_ctx,
-                      const rqst_ctx_callbacks *a_callbacks, rqst_ctx *a_rqst_ctx);
+                      const rqst_ctx_callbacks *a_callbacks, rqst_ctx **a_rqst_ctx);
 int32_t cleanup_scopes(scopes *a_scopes);
 const char *get_waflz_error_msg(scopes *a_scopes);
 #ifdef __cplusplus

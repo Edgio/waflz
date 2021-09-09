@@ -2452,13 +2452,13 @@ extern "C" int32_t process_waflz(void **ao_enf, size_t *ao_enf_len,
                                  void **ao_audit_event, size_t *ao_audit_event_len,
                                  void **ao_prod_event, size_t *ao_prod_event_len,
                                  scopes *a_scope, void *a_ctx,
-                                 const rqst_ctx_callbacks *a_callbacks, rqst_ctx *a_rqst_ctx)
+                                 const rqst_ctx_callbacks *a_callbacks, rqst_ctx **a_rqst_ctx)
 {
         return a_scope->process_request_plugin(ao_enf, ao_enf_len,
                                 ao_audit_event, ao_audit_event_len,
                                 ao_prod_event, ao_prod_event_len,
                                 a_ctx, a_callbacks,
-                                &a_rqst_ctx);
+                                a_rqst_ctx);
 }
 //! ----------------------------------------------------------------------------
 //! \details C binding for third party lib to do a graceful cleanup of scopes object

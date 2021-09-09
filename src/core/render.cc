@@ -17,6 +17,7 @@
 #include "waflz/string_util.h"
 #include "support/ndebug.h"
 #include "support/time_util.h"
+#include "waflz/trace.h"
 #include <string.h>
 #include <time.h>
 #include <string>
@@ -516,5 +517,18 @@ int32_t render(char** ao_buf,
         *ao_buf = l_buf;
         ao_len = l_len;
         return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details C binding for third party lib to render string
+//! \return  0: success
+//! \param   a_rqst_ctx: rqst_ctx object
+//! ----------------------------------------------------------------------------
+extern "C" int32_t plugin_render(char** ao_buf,
+                                size_t* ao_len,
+                                const char *a_buf,
+                                size_t a_len,
+                                rqst_ctx *a_rqst_ctx)
+{
+        return render(ao_buf, *ao_len, a_buf, a_len, a_rqst_ctx);
 }
 }

@@ -18,6 +18,7 @@
 #include "waflz/bots.h"
 #include "waflz/engine.h"
 #include "waflz/rl_obj.h"
+#include "waflz/lm_db.h"
 #include "waflz/limit.h"
 #include "waflz/enforcer.h"
 #include "waflz/challenge.h"
@@ -2405,11 +2406,11 @@ int32_t in_scope(bool &ao_match,
 //! \return  a scopes object
 //! \param   a_engine: waflz engine object
 //! ----------------------------------------------------------------------------
-extern "C" scopes *create_scopes(engine *a_engine)
+extern "C" scopes *create_scopes(engine *a_engine,
+                                 kv_db* a_db)
 {
-        ns_waflz::kv_db* l_db = NULL;
         ns_waflz::challenge *l_c = NULL;
-        return new scopes(*a_engine, *l_db, *l_c);
+        return new scopes(*a_engine, *a_db, *l_c);
 }
 //! ----------------------------------------------------------------------------
 //! \details C binding for third party lib to load a scopes config in json frmt

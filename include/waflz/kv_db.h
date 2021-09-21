@@ -87,7 +87,6 @@ protected:
 #ifdef __cplusplus
 extern "C" {
 #endif
-//kv_db* create_kv_db(const char* a_db_path, uint32_t a_db_path_len, uint32_t a_db_num_readers, uint64_t a_db_mem_size);
 kv_db* create_kv_db(const char* a_db_path, uint32_t a_db_path_len);
 int32_t cleanup_kv_db(kv_db* a_db);
 #ifdef __cplusplus

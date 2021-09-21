@@ -660,11 +660,7 @@ extern "C" kv_db* create_kv_db(const char* a_db_path,
 {
         int32_t l_s;
         ns_waflz::kv_db* l_db =reinterpret_cast<ns_waflz::kv_db*>(new ns_waflz::lm_db());
-        uint32_t l_lmdb_num_readers = 3;
-        uint64_t l_lmdb_mem_size = 20971520;
         l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_DIR_PATH, a_db_path, a_db_path_len);
-        l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_READERS, NULL, l_lmdb_num_readers);
-        l_db->set_opt(ns_waflz::lm_db::OPT_LMDB_MMAP_SIZE, NULL, l_lmdb_mem_size);
         l_s = l_db->init();
         if(l_s != WAFLZ_STATUS_OK)
         {

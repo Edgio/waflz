@@ -23,6 +23,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include <iostream>
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! field types
@@ -38,6 +39,7 @@ typedef enum {
         FIELD_STATUS_CODE,
         FIELD_EC_TOKEN,
         FIELD_BOT_PROB,
+        FIELD_AN,
 } field_t;
 //! ----------------------------------------------------------------------------
 //! Types
@@ -58,6 +60,7 @@ typedef std::map <std::string, field_t, case_i_comp> str_field_map_t;
 //! Initialize the map statically
 //! ----------------------------------------------------------------------------
 const str_field_map_t::value_type g_str_field_map_pairs[]= {
+        str_field_map_t::value_type("AN", FIELD_AN),
         str_field_map_t::value_type("EVENT_ID", FIELD_EVENT_ID),
         str_field_map_t::value_type("EVENT-ID", FIELD_EVENT_ID),
         str_field_map_t::value_type("CLIENT_IP", FIELD_CLIENT_IP),
@@ -191,8 +194,31 @@ static int32_t rr_render(char* ao_buf,
             ++i_tp)
         {
                 const tp_field_t &l_tp = *i_tp;
+                std::cout << "l_tp.m_field: " << l_tp.m_field << std::endl;
                 switch(l_tp.m_field)
                 {
+                // -----------------------------------------
+                // FIELD_AN
+                // -----------------------------------------
+                case FIELD_AN:
+                {
+                        printf("\nFIELD_AN stuff..\n");
+                        break;
+
+                        // if(!a_ctx ||
+                        //   !a_ctx->m_req_uuid.m_data ||
+                        //   !a_ctx->m_req_uuid.m_len)
+                        // {
+                        //         break;
+                        // }
+                        // ao_len += a_ctx->m_req_uuid.m_len;
+                        // if(ao_buf)
+                        // {
+                        //         memcpy(l_buf, a_ctx->m_req_uuid.m_data, a_ctx->m_req_uuid.m_len);
+                        //         l_buf += a_ctx->m_req_uuid.m_len;
+                        // }
+                        // break;
+                }
                 // -----------------------------------------
                 // FIELD_EVENT_ID
                 // -----------------------------------------

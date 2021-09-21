@@ -203,8 +203,8 @@ static int32_t rr_render(char* ao_buf,
                 case FIELD_AN:
                 {
                         printf("\nFIELD_AN stuff..\n");
+                        a_ctx->show();
                         break;
-
                         // if(!a_ctx ||
                         //   !a_ctx->m_req_uuid.m_data ||
                         //   !a_ctx->m_req_uuid.m_len)

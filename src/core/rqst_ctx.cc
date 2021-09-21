@@ -24,6 +24,7 @@
 #include "parser/parser_json.h"
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------
@@ -219,6 +220,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
                    const rqst_ctx_callbacks *a_callbacks,
                    bool a_parse_xml,
                    bool a_parse_json):
+        m_an(),
         m_src_addr(),
         m_local_addr(),
         m_host(),
@@ -440,6 +442,27 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if(m_init_phase_1)
         {
                 return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // set AN
+        // -------------------------------------------------
+        if(m_callbacks && m_callbacks->m_get_cust_id_cb)
+        {
+                uint32_t l_cust_id;
+                int32_t l_s;
+                l_s =  m_callbacks->m_get_cust_id_cb(&l_cust_id, m_ctx);
+                std::cout << l_s << std::endl;
+                m_an.m_len = l_s;
+                // int32_t l_s;
+                // // get src address
+                // l_s = m_callbacks->m_get_rqst_src_addr_cb(&m_src_addr.m_data,
+                //                              &m_src_addr.m_len,
+                //                              m_ctx);
+                // if(l_s != 0)
+                // {
+                //         // TODO log reason???
+                //         return WAFLZ_STATUS_ERROR;
+                // }
         }
         // -------------------------------------------------
         // src addr
@@ -1403,6 +1426,7 @@ void rqst_ctx::show(void)
         NDBG_OUTPUT("+------------------------------------------------+\n");
         NDBG_OUTPUT("|            %sR E Q U E S T   C T X%s               |\n", ANSI_COLOR_FG_WHITE, ANSI_COLOR_OFF);
         NDBG_OUTPUT("+------------------------------------------------+-----------------------------+\n");
+        NDBG_OUTPUT(": %sAN%s:           %.*s\n", ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, m_an.m_len, m_an.m_data);
         NDBG_OUTPUT(": %sSRC_ADDR%s:     %.*s\n", ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, m_src_addr.m_len, m_src_addr.m_data);
         NDBG_OUTPUT(": %sPORT%s:         %d\n", ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, (int)m_port);
         NDBG_OUTPUT(": %sSCHEME%s:       %.*s\n", ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, m_scheme.m_len, m_scheme.m_data);

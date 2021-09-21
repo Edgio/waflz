@@ -1204,14 +1204,6 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 {
                         continue;
                 }
-                // -----------------------------------------
-                // process scope and mark request as analyzed
-                // for waf and rl. It doesnt matter whether
-                // a scope has rl or waf enabled, if it hits the
-                // scope, we will not double process it
-                // -----------------------------------------
-                (*ao_rqst_ctx)->m_waf_analyzed = true;
-                (*ao_rqst_ctx)->m_limit_analyzed = true;
                 l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, a_part_mk, ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {

@@ -450,7 +450,7 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         {
                 int32_t l_s;
                 // get customer id (an)
-                l_s = m_callbacks->m_get_cust_id_cb(&m_an.m_len, m_ctx);
+                l_s = m_callbacks->m_get_cust_id_cb(&m_an, m_ctx);
                 if(l_s != 0)
                 {
                         // TODO log reason???
@@ -1376,7 +1376,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
                         //WAFLZ_PERROR(m_err_msg, "performing s_get_cust_id_cb");
                 }
                 l_request_info->set_customer_id(l_cust_id);
-                std::cout << "append_rqst_info l_cust_id: " << l_cust_id << std::endl;
+                NDBG_PRINT("append_rqst_info l_cust_id: %d\n",  l_cust_id);
         }
         // -------------------------------------------------
         // GEOIP info
@@ -1422,7 +1422,7 @@ void rqst_ctx::show(void)
         NDBG_OUTPUT("+------------------------------------------------+\n");
         NDBG_OUTPUT("|            %sR E Q U E S T   C T X%s               |\n", ANSI_COLOR_FG_WHITE, ANSI_COLOR_OFF);
         NDBG_OUTPUT("+------------------------------------------------+-----------------------------+\n");
-        NDBG_OUTPUT(": %sAN%s:           %.*s\n", ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, m_an.m_len, m_an.m_data);
+        NDBG_OUTPUT(": %sAN%s:           %d\n",   ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, (int)m_an);
         NDBG_OUTPUT(": %sSRC_ADDR%s:     %.*s\n", ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, m_src_addr.m_len, m_src_addr.m_data);
         NDBG_OUTPUT(": %sPORT%s:         %d\n", ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, (int)m_port);
         NDBG_OUTPUT(": %sSCHEME%s:       %.*s\n", ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, m_scheme.m_len, m_scheme.m_data);

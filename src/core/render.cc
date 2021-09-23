@@ -194,7 +194,7 @@ static int32_t rr_render(char* ao_buf,
             ++i_tp)
         {
                 const tp_field_t &l_tp = *i_tp;
-                std::cout << "l_tp.m_field: " << l_tp.m_field << std::endl;
+                NDBG_PRINT("l_tp.m_field: %d\n", l_tp.m_field);
                 switch(l_tp.m_field)
                 {
                 // -----------------------------------------
@@ -202,29 +202,20 @@ static int32_t rr_render(char* ao_buf,
                 // -----------------------------------------
                 case FIELD_AN:
                 {
-                        printf("\nFIELD_AN stuff..\n");
-                        a_ctx->show();
-                        // break;
-                        std::cout << "a_ctx->m_an.m_len: " << a_ctx->m_an.m_len << std::endl;
-                        std::cout << "a_ctx->m_an.m_data: " << a_ctx->m_an.m_data << std::endl;
-
-                        if(!a_ctx ||
-                        //   !a_ctx->m_an.m_data ||
-                          !a_ctx->m_an.m_len)
+                        // a_ctx->show();
+                        // break;                        
+                        if(!a_ctx || !a_ctx->m_an)
                         {
-                                printf("m_an.m_data or m_an.m_len empty\n");
                                 break;
                         }
-                        else
-                        {
-                                printf("field_an ready to go\n");
-                                a_ctx->m_an.m_data = "DEADDEAD";
-                        }
-                        ao_len += a_ctx->m_an.m_len;
+                        char l_tmp[8];
+                        int l_tmp_len;
+                        l_tmp_len = snprintf(l_tmp, 8, "%u", a_ctx->m_an);
+                        ao_len += l_tmp_len;
                         if(ao_buf)
                         {
-                                memcpy(l_buf, a_ctx->m_an.m_data, a_ctx->m_an.m_len);
-                                l_buf += a_ctx->m_an.m_len;
+                                memcpy(l_buf, l_tmp, l_tmp_len);
+                                l_buf += l_tmp_len;
                         }
                         break;
                 }

@@ -224,6 +224,16 @@ int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
         return 0;
 }
 //! ----------------------------------------------------------------------------
+//! get_cust_id_cb
+//! ----------------------------------------------------------------------------
+#define _AN  "DEADDEAD"
+#define length(array) ((sizeof(array)) / (sizeof(array[0])))
+int32_t get_cust_id_cb(uint32_t *a_val, void *a_ctx)
+{
+        *a_val  = length(_AN);
+        return 0;
+}
+//! ----------------------------------------------------------------------------
 //! get_rqst_port_cb
 //! ----------------------------------------------------------------------------
 int32_t get_rqst_port_cb(uint32_t *a_val, void *a_ctx)

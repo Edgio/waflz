@@ -204,20 +204,29 @@ static int32_t rr_render(char* ao_buf,
                 {
                         printf("\nFIELD_AN stuff..\n");
                         a_ctx->show();
-                        break;
-                        // if(!a_ctx ||
-                        //   !a_ctx->m_req_uuid.m_data ||
-                        //   !a_ctx->m_req_uuid.m_len)
-                        // {
-                        //         break;
-                        // }
-                        // ao_len += a_ctx->m_req_uuid.m_len;
-                        // if(ao_buf)
-                        // {
-                        //         memcpy(l_buf, a_ctx->m_req_uuid.m_data, a_ctx->m_req_uuid.m_len);
-                        //         l_buf += a_ctx->m_req_uuid.m_len;
-                        // }
                         // break;
+                        std::cout << "a_ctx->m_an.m_len: " << a_ctx->m_an.m_len << std::endl;
+                        std::cout << "a_ctx->m_an.m_data: " << a_ctx->m_an.m_data << std::endl;
+
+                        if(!a_ctx ||
+                        //   !a_ctx->m_an.m_data ||
+                          !a_ctx->m_an.m_len)
+                        {
+                                printf("m_an.m_data or m_an.m_len empty\n");
+                                break;
+                        }
+                        else
+                        {
+                                printf("field_an ready to go\n");
+                                a_ctx->m_an.m_data = "DEADDEAD";
+                        }
+                        ao_len += a_ctx->m_an.m_len;
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, a_ctx->m_an.m_data, a_ctx->m_an.m_len);
+                                l_buf += a_ctx->m_an.m_len;
+                        }
+                        break;
                 }
                 // -----------------------------------------
                 // FIELD_EVENT_ID

@@ -448,21 +448,14 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         // -------------------------------------------------
         if(m_callbacks && m_callbacks->m_get_cust_id_cb)
         {
-                uint32_t l_cust_id;
                 int32_t l_s;
-                l_s =  m_callbacks->m_get_cust_id_cb(&l_cust_id, m_ctx);
-                std::cout << l_s << std::endl;
-                m_an.m_len = l_s;
-                // int32_t l_s;
-                // // get src address
-                // l_s = m_callbacks->m_get_rqst_src_addr_cb(&m_src_addr.m_data,
-                //                              &m_src_addr.m_len,
-                //                              m_ctx);
-                // if(l_s != 0)
-                // {
-                //         // TODO log reason???
-                //         return WAFLZ_STATUS_ERROR;
-                // }
+                // get customer id (an)
+                l_s = m_callbacks->m_get_cust_id_cb(&m_an.m_len, m_ctx);
+                if(l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
         }
         // -------------------------------------------------
         // src addr
@@ -1372,8 +1365,10 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         // -------------------------------------------------
         // Customer ID
         // -------------------------------------------------
+        printf("checking append_rqst_info for customer_id\n");
         if(m_callbacks && m_callbacks->m_get_cust_id_cb)
         {
+                printf("m_callbacks->m_get_cust_id_cb is good..\n");
                 uint32_t l_cust_id;
                 l_s =  m_callbacks->m_get_cust_id_cb(&l_cust_id, m_ctx);
                 if(l_s != 0)
@@ -1381,6 +1376,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
                         //WAFLZ_PERROR(m_err_msg, "performing s_get_cust_id_cb");
                 }
                 l_request_info->set_customer_id(l_cust_id);
+                std::cout << "append_rqst_info l_cust_id: " << l_cust_id << std::endl;
         }
         // -------------------------------------------------
         // GEOIP info

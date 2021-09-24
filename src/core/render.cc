@@ -23,7 +23,6 @@
 #include <string>
 #include <map>
 #include <list>
-#include <iostream>
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! field types

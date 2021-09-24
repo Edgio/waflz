@@ -23,6 +23,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include <iostream>
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! field types
@@ -193,7 +194,6 @@ static int32_t rr_render(char* ao_buf,
             ++i_tp)
         {
                 const tp_field_t &l_tp = *i_tp;
-                NDBG_PRINT("l_tp.m_field: %d\n", l_tp.m_field);
                 switch(l_tp.m_field)
                 {
                 // -----------------------------------------
@@ -209,7 +209,7 @@ static int32_t rr_render(char* ao_buf,
                         }
                         char l_tmp[8];
                         int l_tmp_len;
-                        l_tmp_len = snprintf(l_tmp, 8, "%u", a_ctx->m_an);
+                        l_tmp_len = snprintf(l_tmp, 8, "%04lX", (unsigned long)a_ctx->m_an);
                         ao_len += l_tmp_len;
                         if(ao_buf)
                         {

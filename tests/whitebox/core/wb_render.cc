@@ -22,7 +22,7 @@
 #define RESP_1 "HI I DONT HAVE A TEMPLATE"
 #define RESP_2 "HI {{USER_AGENT}} HOW ARE YOU???"
 #define RESP_3 "HI {{USER_AGENT}} IS YOUR TOKEN {{EC_TOKEN}}???"
-#define RESP_4 "HI YOUR AN IS {{AN}}"
+#define RESP_4 "{{AN}}"
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
@@ -135,21 +135,12 @@ TEST_CASE( "valid_render_html_test", "[load_valid_render_html]" ) {
                 const char l_resp_3[] = "HI MY_COOL_USER_AGENT IS YOUR TOKEN MY_COOL_EC_TOKEN???";
                 REQUIRE((strncmp(l_resp_3, l_buf, sizeof(l_resp_3) - 1) == 0));
                 if(l_buf) { free(l_buf); l_buf = NULL; }
-                // -----------------------------------------
-                // cleanup
-                // -----------------------------------------
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
-
 #define _AN "MY_COOL_AN"
-                char *l_an;
-                uint32_t l_an_len;
-                l_tk_len = asprintf(&l_an, "MY_COOL_AN");
-                l_ctx->m_an = l_an_len;
+                l_ctx->m_an = 108221;
+                const char l_resp_4[] = "1A6BD";
                 l_s = ns_waflz::render(&l_buf, l_len, RESP_4, strlen(RESP_4), l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                const char l_resp_4[] = "HI YOUR AN IS MY_COOL_AN";
-                REQUIRE((strncmp(l_resp_4, l_buf, sizeof(l_resp_4) - 1) == 0));
-                if(l_buf) { free(l_buf); l_buf = NULL; }
+                REQUIRE((strncmp(l_resp_4, l_buf, sizeof(l_resp_4) - 1)) == 0);
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------

@@ -228,7 +228,6 @@ int32_t get_rqst_scheme_cb(const char **a_data, uint32_t *a_len, void *a_ctx)
 //! ----------------------------------------------------------------------------
 int32_t get_cust_id_cb(uint32_t *a_val, void *a_ctx)
 {
-        NDBG_PRINT("Staring cb.cc ns_waflz_server::get_cust_id_cb\n");
         *a_val  = 108221;
         return 0;
 }

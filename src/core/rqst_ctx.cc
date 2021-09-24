@@ -1364,10 +1364,8 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         // -------------------------------------------------
         // Customer ID
         // -------------------------------------------------
-        printf("checking append_rqst_info for customer_id\n");
         if(m_callbacks && m_callbacks->m_get_cust_id_cb)
         {
-                printf("m_callbacks->m_get_cust_id_cb is good..\n");
                 uint32_t l_cust_id;
                 l_s =  m_callbacks->m_get_cust_id_cb(&l_cust_id, m_ctx);
                 if(l_s != 0)
@@ -1375,7 +1373,6 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
                         //WAFLZ_PERROR(m_err_msg, "performing s_get_cust_id_cb");
                 }
                 l_request_info->set_customer_id(l_cust_id);
-                NDBG_PRINT("append_rqst_info l_cust_id: %d\n",  l_cust_id);
         }
         // -------------------------------------------------
         // GEOIP info

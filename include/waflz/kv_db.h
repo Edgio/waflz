@@ -12,14 +12,21 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+#ifdef __cplusplus
 #include "waflz/def.h"
 #include <stdint.h>
 // for std::priority_queue
 #include <queue>
+#endif
 //! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
+#ifndef __cplusplus
+typedef struct kv_db_t kv_db;
+#endif
+#ifdef __cplusplus
 namespace ns_waflz {
+
 // key ttl
 typedef struct kv_ttl {
         uint64_t m_ttl_ms;
@@ -76,5 +83,14 @@ protected:
         bool m_init;
         char m_err_msg[WAFLZ_ERR_LEN];
 };
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+kv_db* create_kv_db(const char* a_db_path, uint32_t a_db_path_len);
+int32_t cleanup_kv_db(kv_db* a_db);
+#ifdef __cplusplus
+}
 }
 #endif
+#endif // header

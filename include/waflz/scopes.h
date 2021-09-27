@@ -30,6 +30,7 @@
 #include "waflz/rqst_ctx.h"
 typedef struct engine_t engine;
 typedef struct scopes_t scopes;
+typedef struct kv_db_t kv_db;
 typedef struct rqst_ctx_t rqst_ctx;
 #endif
 //! ----------------------------------------------------------------------------
@@ -216,7 +217,7 @@ int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg);
 #ifdef __cplusplus
 extern "C" {
 #endif
-scopes *create_scopes(engine *a_engine);
+scopes *create_scopes(engine *a_engine, kv_db* a_db);
 int32_t load_config(scopes *a_scope, const char *a_buf,
                     uint32_t a_len, const char *a_conf_dir);
 int32_t process_waflz(void **ao_enf, size_t *ao_enf_len,

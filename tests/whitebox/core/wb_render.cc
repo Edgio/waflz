@@ -144,7 +144,7 @@ TEST_CASE( "valid_render_html_test", "[load_valid_render_html]" ) {
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                if(l_ctx) { delete l_ctx; l_ctx = NULL; }                
+                if(l_ctx) { delete l_ctx; l_ctx = NULL; }
         }
 #if 0
         SECTION("Verify render html") {

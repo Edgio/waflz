@@ -23,7 +23,6 @@
 #include <string>
 #include <map>
 #include <list>
-#include <iostream>
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! field types
@@ -201,8 +200,6 @@ static int32_t rr_render(char* ao_buf,
                 // -----------------------------------------
                 case FIELD_AN:
                 {
-                        // a_ctx->show();
-                        // break;                        
                         if(!a_ctx || !a_ctx->m_an)
                         {
                                 break;

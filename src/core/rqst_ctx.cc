@@ -448,11 +448,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if(m_callbacks && m_callbacks->m_get_cust_id_cb)
         {
                 int32_t l_s;
-                // get customer id (an)
                 l_s = m_callbacks->m_get_cust_id_cb(&m_an, m_ctx);
                 if(l_s != 0)
                 {
-                        // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
                 }
         }

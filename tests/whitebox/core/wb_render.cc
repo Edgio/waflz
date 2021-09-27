@@ -135,7 +135,9 @@ TEST_CASE( "valid_render_html_test", "[load_valid_render_html]" ) {
                 const char l_resp_3[] = "HI MY_COOL_USER_AGENT IS YOUR TOKEN MY_COOL_EC_TOKEN???";
                 REQUIRE((strncmp(l_resp_3, l_buf, sizeof(l_resp_3) - 1) == 0));
                 if(l_buf) { free(l_buf); l_buf = NULL; }
-#define _AN "MY_COOL_AN"
+                // -----------------------------------------
+                // cust_id/an
+                // -----------------------------------------
                 l_ctx->m_an = 108221;
                 const char l_resp_4[] = "1A6BD";
                 l_s = ns_waflz::render(&l_buf, l_len, RESP_4, strlen(RESP_4), l_ctx);

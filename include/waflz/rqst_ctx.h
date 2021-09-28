@@ -132,6 +132,7 @@ public:
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
+        uint32_t m_an;
         data_t m_src_addr;
         data_t m_local_addr;
         data_t m_host;

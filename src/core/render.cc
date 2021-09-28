@@ -38,6 +38,7 @@ typedef enum {
         FIELD_STATUS_CODE,
         FIELD_EC_TOKEN,
         FIELD_BOT_PROB,
+        FIELD_AN,
 } field_t;
 //! ----------------------------------------------------------------------------
 //! Types
@@ -58,6 +59,7 @@ typedef std::map <std::string, field_t, case_i_comp> str_field_map_t;
 //! Initialize the map statically
 //! ----------------------------------------------------------------------------
 const str_field_map_t::value_type g_str_field_map_pairs[]= {
+        str_field_map_t::value_type("AN", FIELD_AN),
         str_field_map_t::value_type("EVENT_ID", FIELD_EVENT_ID),
         str_field_map_t::value_type("EVENT-ID", FIELD_EVENT_ID),
         str_field_map_t::value_type("CLIENT_IP", FIELD_CLIENT_IP),
@@ -193,6 +195,26 @@ static int32_t rr_render(char* ao_buf,
                 const tp_field_t &l_tp = *i_tp;
                 switch(l_tp.m_field)
                 {
+                // -----------------------------------------
+                // FIELD_AN
+                // -----------------------------------------
+                case FIELD_AN:
+                {
+                        if(!a_ctx || !a_ctx->m_an)
+                        {
+                                break;
+                        }
+                        char l_tmp[8];
+                        int l_tmp_len;
+                        l_tmp_len = snprintf(l_tmp, 8, "%04lX", (unsigned long)a_ctx->m_an);
+                        ao_len += l_tmp_len;
+                        if(ao_buf)
+                        {
+                                memcpy(l_buf, l_tmp, l_tmp_len);
+                                l_buf += l_tmp_len;
+                        }
+                        break;
+                }
                 // -----------------------------------------
                 // FIELD_EVENT_ID
                 // -----------------------------------------

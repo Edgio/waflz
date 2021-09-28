@@ -1511,7 +1511,7 @@ int main(int argc, char** argv)
                 NULL, //get_rqst_bytes_out_cb,
                 NULL, //get_rqst_bytes_in_cb,
                 ns_waflz_server::get_rqst_uuid_cb, //get_rqst_req_id_cb,
-                NULL //get_cust_id_cb
+                ns_waflz_server::get_cust_id_cb, //get_cust_id_cb
         };
 #ifdef ENABLE_PROFILER
         // -------------------------------------------------

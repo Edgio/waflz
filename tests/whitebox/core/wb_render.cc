@@ -22,6 +22,7 @@
 #define RESP_1 "HI I DONT HAVE A TEMPLATE"
 #define RESP_2 "HI {{USER_AGENT}} HOW ARE YOU???"
 #define RESP_3 "HI {{USER_AGENT}} IS YOUR TOKEN {{EC_TOKEN}}???"
+#define RESP_4 "{{AN}}"
 //! ----------------------------------------------------------------------------
 //! config
 //! ----------------------------------------------------------------------------
@@ -135,11 +136,18 @@ TEST_CASE( "valid_render_html_test", "[load_valid_render_html]" ) {
                 REQUIRE((strncmp(l_resp_3, l_buf, sizeof(l_resp_3) - 1) == 0));
                 if(l_buf) { free(l_buf); l_buf = NULL; }
                 // -----------------------------------------
+                // cust_id/an
+                // -----------------------------------------
+                l_ctx->m_an = 108221;
+                const char l_resp_4[] = "1A6BD";
+                l_s = ns_waflz::render(&l_buf, l_len, RESP_4, strlen(RESP_4), l_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((strncmp(l_resp_4, l_buf, sizeof(l_resp_4) - 1)) == 0);
+                // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
                 if(l_ctx) { delete l_ctx; l_ctx = NULL; }
         }
-        // TODO FIX!!!
 #if 0
         SECTION("Verify render html") {
                 std::string l_input(SAMPLE_HTML);

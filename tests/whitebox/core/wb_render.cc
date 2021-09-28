@@ -143,6 +143,7 @@ TEST_CASE( "valid_render_html_test", "[load_valid_render_html]" ) {
                 l_s = ns_waflz::render(&l_buf, l_len, RESP_4, strlen(RESP_4), l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((strncmp(l_resp_4, l_buf, sizeof(l_resp_4) - 1)) == 0);
+                if(l_buf) { free(l_buf); l_buf = NULL; }
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------

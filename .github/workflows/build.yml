@@ -45,7 +45,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run debug build script
-      if: matrix.build == 'debug'
+      if: matrix.build == 'debug' && matrix.os != 'macos-latest'
       run: |
         ./build.sh -a
 

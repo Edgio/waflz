@@ -43,6 +43,9 @@
 #ifndef WAFLZ_ERR_LEN
   #define WAFLZ_ERR_LEN 4096
 #endif
+#ifndef WAFLZ_ERR_REASON_LEN
+  #define WAFLZ_ERR_REASON_LEN 2048
+#endif
 
 #ifndef CONFIG_DATE_FORMAT
   #if defined(__APPLE__) || defined(__darwin__)
@@ -57,12 +60,6 @@
 #ifndef WAFLZ_PERROR
 #define WAFLZ_PERROR(_str, ...) do { \
   snprintf(_str, WAFLZ_ERR_LEN, __VA_ARGS__); \
-} while(0)
-#endif
-#ifndef WAFLZ_AERROR
-#define WAFLZ_AERROR(_str, ...) do { \
-  int _len = strlen(_str); \
-  snprintf(_str + _len, WAFLZ_ERR_LEN - _len - 1, __VA_ARGS__); \
 } while(0)
 #endif
 //! ----------------------------------------------------------------------------

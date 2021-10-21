@@ -10,13 +10,14 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+#include "waflz/def.h"
 #include "waflz/bots.h"
-#include "support/ndebug.h"
 #include "waflz/engine.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/challenge.h"
 #include "waflz/waf.h"
 #include "event.pb.h"
+#include "support/ndebug.h"
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------
@@ -62,9 +63,9 @@ int32_t bots::load_file(const char *a_buf, uint32_t a_buf_len)
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        // -----------------------------------------
+        // -------------------------------------------------
         // make waf obj
-        // -----------------------------------------
+        // -------------------------------------------------
         if(m_waf) { delete m_waf; m_waf = NULL; }
         m_waf = new waf(m_engine);
         std::string l_p;
@@ -73,24 +74,25 @@ int32_t bots::load_file(const char *a_buf, uint32_t a_buf_len)
         l_s = m_waf->init(config_parser::JSON, l_p, true, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_AERROR(m_err_msg, "error loading conf file-reason: %s",
+                WAFLZ_PERROR(m_err_msg, "error loading conf file-reason: %.*s",
+                             WAFLZ_ERR_REASON_LEN,
                              m_waf->get_err_msg());
                 if(m_waf) { delete m_waf; m_waf = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-        // -----------------------------------------
+        // -------------------------------------------------
         // set version...
-        // -----------------------------------------
+        // -------------------------------------------------
         m_waf->set_owasp_ruleset_version(300);
-        // -----------------------------------------
+        // -------------------------------------------------
         // get properties from m_waf
-        // -----------------------------------------
+        // -------------------------------------------------
         m_id = m_waf->get_id();
         m_cust_id = m_waf->get_cust_id();
         m_name = m_waf->get_name();
-        // -----------------------------------------
+        // -------------------------------------------------
         // done...
-        // -----------------------------------------
+        // -------------------------------------------------
         m_init = true;
         return WAFLZ_STATUS_OK;
 }
@@ -102,32 +104,33 @@ int32_t bots::load_file(const char *a_buf, uint32_t a_buf_len)
 int32_t bots::load(void* a_js)
 {
         m_init = false;
-        // -----------------------------------------
+        // -------------------------------------------------
         // make waf obj
-        // -----------------------------------------
+        // -------------------------------------------------
         if(m_waf) { delete m_waf; m_waf = NULL; }
         m_waf = new waf(m_engine);
         int32_t l_s;
         l_s = m_waf->init(a_js, true, true);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_AERROR(m_err_msg, "error loading conf file-reason: %s",
+                WAFLZ_PERROR(m_err_msg, "error loading conf file-reason: %.*s",
+                             WAFLZ_ERR_REASON_LEN,
                              m_waf->get_err_msg());
                 if(m_waf) { delete m_waf; m_waf = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-        // -----------------------------------------
+        // -------------------------------------------------
         // set version...
-        // -----------------------------------------
+        // -------------------------------------------------
         m_waf->set_owasp_ruleset_version(300);
-        // -----------------------------------------
+        // -------------------------------------------------
         // get properties from m_waf
-        // -----------------------------------------
+        // -------------------------------------------------
         m_id = m_waf->get_id();
         m_cust_id = m_waf->get_cust_id();
-        // -----------------------------------------
+        // -------------------------------------------------
         // done...
-        // -----------------------------------------
+        // -------------------------------------------------
         m_init = true;
         return WAFLZ_STATUS_OK;     
 }
@@ -196,15 +199,17 @@ int32_t bots::process(waflz_pb::event **ao_event,
         if(l_event)
         {
                 // -----------------------------------------
-                // We log all request parameters for bot events
+                // log all request parameters for bot events
                 // -----------------------------------------
                 l_rqst_ctx->m_log_request = true;
                 // -----------------------------------------
                 // check subevent intercept status to decide
                 // which action to take
-                // We only need to check first subevent at index 0
-                // all subevents/rules need to have same intercept status
-                // This is enforced from rule policy
+                // only need to check first subevent at
+                // index 0
+                // all subevents/rules required to have same
+                // intercept status
+                // enforced from rule policy
                 // -----------------------------------------
                 switch(l_event->sub_event(0).rule_intercept_status())
                 {
@@ -224,18 +229,21 @@ int32_t bots::process(waflz_pb::event **ao_event,
                 }
                 case HTTP_STATUS_AUTHENTICATION_REQUIRED:
                 {
-                        // There is only browser challenge for now
-                        // can have more in future...
+                        // ---------------------------------
+                        // only browser challenge for now
+                        // can extend to more
                         // Check for enforcement type
-                        // if its browser challenge, verify challenge
-                        // -----------------------------------------
+                        // if browser challenge,
+                        // verify challenge
+                        // ---------------------------------
                         const waflz_pb::enforcement *l_enf = *a_scope_enf;
                         bool l_pass = false;
                         if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
                         {
-                                // -----------------------------------------
-                                // check cookie -verify browser challenge
-                                // -----------------------------------------
+                                // -------------------------
+                                // check cookie
+                                // verify browser challenge
+                                // -------------------------
                                 // default to valid for 10 min
                                 uint32_t l_valid_for_s = 600;
                                 if(l_enf->has_valid_for_sec())

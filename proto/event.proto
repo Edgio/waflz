@@ -108,10 +108,6 @@ message event {
         // request specific entries
         // -------------------------------------------------
         optional var_t matched_var = 50;
-        // #################################################
-        // DEPRECATED
-        // #################################################
-        optional var_t matched_data = 51;
         optional uint32 total_anomaly_score = 52;
         optional uint32 total_sql_injection_score = 53;
         optional uint32 total_xss_score = 54;
@@ -138,34 +134,48 @@ message event {
         // entity id and name
         // -------------------------------------------------
         // waf instance specific
+        // -------------------------------------------------
         optional string waf_instance_id = 200;
         optional string waf_instance_name = 201;
+        // -------------------------------------------------
         // waf profile specific
+        // -------------------------------------------------
         optional string waf_profile_id = 220;
         optional string waf_profile_name = 221;
+        // -------------------------------------------------
         // Using enums defined in enforcement.proto
+        // -------------------------------------------------
         optional uint32 waf_profile_action = 222;
         optional bytes waf_profile_type = 223;
+        // -------------------------------------------------
         // scopes config sepcific
+        // -------------------------------------------------
         optional string scope_config_id = 224;
         optional string scope_config_name = 225;
+        // -------------------------------------------------
         // acl config specific
+        // -------------------------------------------------
         optional string acl_config_id = 226;
         optional string acl_config_name = 227;
+        // -------------------------------------------------
         // rules config specific
+        // -------------------------------------------------
         optional string rules_config_id = 228;
         optional string rules_config_name = 229;
-        //bots config specific
+        // -------------------------------------------------
+        // bots config specific
+        // -------------------------------------------------
         optional string bots_config_id = 230;
         optional string bots_config_name = 231;
         optional string account_type = 232;
         // -------------------------------------------------
-        // !!!DEPRECATED!!!
+        // change/rev info about config
         // -------------------------------------------------
-        optional waflz_pb.enforcement prod_profile_enforcements = 240;
-        optional string response_header_name = 241;
-        optional string ruleset_id = 242;
-        optional string ruleset_version = 243;
+        optional string config_last_modified = 250;
+        // -------------------------------------------------
+        // time taken by waf
+        // -------------------------------------------------
+        optional uint64 waf_process_time_msec = 260;
 }
 //: ----------------------------------------------------------------------------
 //: Bot event

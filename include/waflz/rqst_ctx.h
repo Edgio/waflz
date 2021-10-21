@@ -192,7 +192,6 @@ public:
         bool m_init_phase_1;
         bool m_init_phase_2;
         bool m_intercepted;
-        bool m_wl;
         bool m_wl_audit;
         bool m_wl_prod;
         uint32_t m_skip;

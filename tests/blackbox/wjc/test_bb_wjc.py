@@ -38,10 +38,10 @@ def test_bb_wjc_bad_regex(setup_wjc):
     l_profile_path = os.path.realpath(os.path.join(g_file_path, 'test_bb_wjc_bad_regex.waf.prof.json'))
     l_sp = subprocess.Popen([g_wjc_path, '-p', l_profile_path, '-r', g_ruleset_path], stderr=subprocess.PIPE)
     l_sp_stderr = l_sp.communicate()[1]
-    # print(l_sp_stderr)
-    # print('return code: %d'%(l_sp.returncode))
+    #print(l_sp_stderr)
+    #print('return code: %d'%(l_sp.returncode))
     assert l_sp.returncode != 0
-    assert l_sp_stderr == b'compiling url blacklist\n'
+    assert l_sp_stderr == b'init failed for regex: \'**dogs[]\' in general_settings ignore list. Reason: nothing to repeat -offset: 0\n'
 # ------------------------------------------------------------------------------
 # test output with bad regex
 # ------------------------------------------------------------------------------

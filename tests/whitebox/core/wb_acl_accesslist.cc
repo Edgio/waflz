@@ -12,67 +12,32 @@
 //! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "waflz/engine.h"
-#include "waflz/profile.h"
+#include "waflz/acl.h"
 #include "waflz/rqst_ctx.h"
 #include "waflz/geoip2_mmdb.h"
 #include "waflz/def.h"
-#include "profile.pb.h"
+#include "acl.pb.h"
 #include "event.pb.h"
 #include "support/ndebug.h"
 #include <unistd.h>
 //! ----------------------------------------------------------------------------
 //! TODO
 //! ----------------------------------------------------------------------------
-static waflz_pb::profile *init_std_profile_pb(void)
+static waflz_pb::acl *init_std_acl_pb(void)
 {
         // -----------------------------------------
         // setup...
         // -----------------------------------------
-        waflz_pb::profile *l_pb = NULL;
-        l_pb = new waflz_pb::profile();
+        waflz_pb::acl *l_pb = NULL;
+        l_pb = new waflz_pb::acl();
         l_pb->set_id("my_id");
         l_pb->set_name("my_name");
-        l_pb->set_ruleset_id("OWASP-CRS-2.2.9");
-        l_pb->set_ruleset_version("2017-08-01");
         // -----------------------------------------
-        // general settings -required fields
+        // request properties
         // -----------------------------------------
-        ::waflz_pb::profile_general_settings_t* l_gx = NULL;
-        l_gx = l_pb->mutable_general_settings();
-        l_gx->set_process_request_body(true);
-        l_gx->set_xml_parser(true);
-        l_gx->set_process_response_body(false);
-        l_gx->set_validate_utf8_encoding(true);
-        l_gx->set_max_num_args(3);
-        l_gx->set_arg_name_length(100);
-        l_gx->set_arg_length(400);
-        l_gx->set_total_arg_length(64000);
-        l_gx->set_max_file_size(1048576);
-        l_gx->set_combined_file_sizes(1048576);
-        l_gx->add_allowed_http_methods("GET");
-        l_gx->add_allowed_request_content_types("html");
-        // -----------------------------------------
-        // add policies
-        // -----------------------------------------
-        l_pb->add_policies("modsecurity_crs_21_protocol_anomalies.conf");
-        l_pb->add_policies("modsecurity_crs_49_inbound_blocking.conf");
-        // -----------------------------------------
-        // anomaly settings -required fields
-        // -----------------------------------------
-        l_gx->set_anomaly_threshold(1);
-        // -----------------------------------------
-        // access settings -required fields
-        // -----------------------------------------
-        ::waflz_pb::acl* l_ax = NULL;
-        l_ax = l_pb->mutable_access_settings();
-        ::waflz_pb::acl_lists_t* l_ax_ip = l_ax->mutable_ip();
-        UNUSED(l_ax_ip);
-        ::waflz_pb::acl_lists_t* l_ax_cntry = l_ax->mutable_country();
-        UNUSED(l_ax_cntry);
-        ::waflz_pb::acl_lists_t* l_ax_url = l_ax->mutable_url();
-        UNUSED(l_ax_url);
-        ::waflz_pb::acl_lists_t* l_ax_refr = l_ax->mutable_referer();
-        UNUSED(l_ax_refr);
+        l_pb->set_max_file_size(1048576);
+        l_pb->add_allowed_http_methods("GET");
+        l_pb->add_allowed_request_content_types("html");
         return l_pb;
 }
 //! ----------------------------------------------------------------------------
@@ -247,7 +212,7 @@ static int32_t get_rqst_header_w_idx_cb(const char **ao_key,
         return 0;
 }
 //! ----------------------------------------------------------------------------
-//! profile acl tests
+//! acl acl tests
 //! ----------------------------------------------------------------------------
 TEST_CASE( "acl accesslist test", "[acl accesslist]" )
 {
@@ -259,9 +224,6 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         {
                 //fprintf(stdout, "Current working dir: %s\n", cwd);
         }
-        std::string l_rule_dir = l_cwd;
-        l_rule_dir += "/../../../../tests/data/waf/ruleset/";
-        //l_rule_dir += "/../tests/data/waf/ruleset/";
         // -------------------------------------------------
         // geoip
         // -------------------------------------------------
@@ -274,7 +236,6 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         // -------------------------------------------------
         ns_waflz::engine *l_engine = new ns_waflz::engine();
         l_engine->set_geoip2_dbs(l_geoip2_city_file, l_geoip2_asn_file);
-        l_engine->set_ruleset_dir(l_rule_dir);
         int32_t l_s;
         l_s = l_engine->init();
         REQUIRE((l_s == WAFLZ_STATUS_OK));
@@ -305,22 +266,22 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 NULL, //get_rqst_uuid_cb,
                 NULL //get_cust_id_cb
         };
+        bool l_wl = false;
         //--------------------------------------------------
         // accesslist ip+
         // -------------------------------------------------
         SECTION("acl accesslist ip+ tests") {
                 // -----------------------------------------
-                // setup profile
+                // setup acl
                 // -----------------------------------------
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-                waflz_pb::profile *l_pb = init_std_profile_pb();
-                waflz_pb::acl* l_acl = l_pb->mutable_access_settings();
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
                 // *****************************************
                 // -----------------------------------------
                 // ip settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_ipl = l_acl->mutable_ip();
+                ::waflz_pb::acl_lists_t* l_ax_ipl = l_pb->mutable_ip();
                 l_ax_ipl->add_accesslist("212.43.2.0/24");
                 l_ax_ipl->add_accesslist("243.49.2.7");
                 // *****************************************
@@ -328,7 +289,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // country settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_ctyl = l_acl->mutable_country();
+                ::waflz_pb::acl_lists_t* l_ax_ctyl = l_pb->mutable_country();
                 l_ax_ctyl->add_accesslist("JP");
                 l_ax_ctyl->add_accesslist("KW");
                 // *****************************************
@@ -336,7 +297,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // asn settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_asn_t* l_ax_asn = l_acl->mutable_asn();
+                ::waflz_pb::acl_lists_asn_t* l_ax_asn = l_pb->mutable_asn();
                 l_ax_asn->add_accesslist(26496);
                 l_ax_asn->add_accesslist(42961);
                 // *****************************************
@@ -344,7 +305,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // url settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_url = l_acl->mutable_url();
+                ::waflz_pb::acl_lists_t* l_ax_url = l_pb->mutable_url();
                 l_ax_url->add_accesslist("/login-confirm/index.html");
                 l_ax_url->add_accesslist("\\/banana\\/m.*\\.html");
                 // *****************************************
@@ -352,7 +313,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // user-agent settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_ua = l_acl->mutable_user_agent();
+                ::waflz_pb::acl_lists_t* l_ax_ua = l_pb->mutable_user_agent();
                 l_ax_ua->add_accesslist("cats are really cool dude");
                 l_ax_ua->add_accesslist("curl\\/.*");
                 // *****************************************
@@ -360,7 +321,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // referer settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_refr = l_acl->mutable_referer();
+                ::waflz_pb::acl_lists_t* l_ax_refr = l_pb->mutable_referer();
                 l_ax_refr->add_accesslist("bad reefer");
                 l_ax_refr->add_accesslist("really\\/bad\\/.*");
                 // *****************************************
@@ -368,14 +329,14 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // cookie settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_cookie = l_acl->mutable_cookie();
+                ::waflz_pb::acl_lists_t* l_ax_cookie = l_pb->mutable_cookie();
                 l_ax_cookie->add_accesslist("bad_[0-9]_key");
                 l_ax_cookie->add_accesslist("wonky_key");
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load(l_pb);
-                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                l_s = l_acl->load(l_pb);
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_acl->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 void *l_ctx = NULL;
@@ -399,7 +360,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "243.49.2.6";
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
@@ -413,7 +374,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 s_ip = "243.49.2.7";
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -424,7 +385,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "212.43.2.5";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -435,7 +396,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "212.43.3.5";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -451,7 +412,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                if(l_acl) { delete l_acl; l_acl = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
         //--------------------------------------------------
@@ -459,23 +420,22 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         // -------------------------------------------------
         SECTION("acl accesslist country tests") {
                 // -----------------------------------------
-                // setup profile
+                // setup acl
                 // -----------------------------------------
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-                waflz_pb::profile *l_pb = init_std_profile_pb();
-                waflz_pb::acl* l_acl = l_pb->mutable_access_settings();
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
                 // *****************************************
                 // -----------------------------------------
                 // country settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_ctyl = l_acl->mutable_country();
+                ::waflz_pb::acl_lists_t* l_ax_ctyl = l_pb->mutable_country();
                 l_ax_ctyl->add_accesslist("JP");
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load(l_pb);
-                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                l_s = l_acl->load(l_pb);
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_acl->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 void *l_ctx = NULL;
@@ -487,7 +447,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "59.106.218.87";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -498,7 +458,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "212.43.3.5";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -510,7 +470,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                if(l_acl) { delete l_acl; l_acl = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
         //--------------------------------------------------
@@ -518,23 +478,22 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         // -------------------------------------------------
         SECTION("acl accesslist asn tests") {
                 // -----------------------------------------
-                // setup profile
+                // setup acl
                 // -----------------------------------------
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-                waflz_pb::profile *l_pb = init_std_profile_pb();
-                waflz_pb::acl* l_acl = l_pb->mutable_access_settings();
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
                 // *****************************************
                 // -----------------------------------------
                 // asn settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_asn_t* l_ax_asn = l_acl->mutable_asn();
+                ::waflz_pb::acl_lists_asn_t* l_ax_asn = l_pb->mutable_asn();
                 l_ax_asn->add_accesslist(9370);
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load(l_pb);
-                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                l_s = l_acl->load(l_pb);
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_acl->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 void *l_ctx = NULL;
@@ -546,7 +505,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "59.106.218.87";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -557,7 +516,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "212.43.3.5";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -569,7 +528,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                if(l_acl) { delete l_acl; l_acl = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
         //--------------------------------------------------
@@ -577,24 +536,23 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         // -------------------------------------------------
         SECTION("acl accesslist url tests") {
                 // -----------------------------------------
-                // setup profile
+                // setup acl
                 // -----------------------------------------
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-                waflz_pb::profile *l_pb = init_std_profile_pb();
-                waflz_pb::acl* l_acl = l_pb->mutable_access_settings();
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
                 // *****************************************
                 // -----------------------------------------
                 // url settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_url = l_acl->mutable_url();
+                ::waflz_pb::acl_lists_t* l_ax_url = l_pb->mutable_url();
                 l_ax_url->add_accesslist("/login-confirm/index.html");
                 l_ax_url->add_accesslist("\\/banana\\/t.*\\.html");
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load(l_pb);
-                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                l_s = l_acl->load(l_pb);
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_acl->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 void *l_ctx = NULL;
@@ -606,7 +564,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_uri = "/login-confirm/index.html";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -617,7 +575,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_uri = "/login-confirm/admin.php";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -632,7 +590,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_uri = "/banana/test.html";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -643,7 +601,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_uri = "/banana/xest.html";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -655,7 +613,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                if(l_acl) { delete l_acl; l_acl = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
         //--------------------------------------------------
@@ -663,24 +621,23 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         // -------------------------------------------------
         SECTION("acl accesslist user-agent tests") {
                 // -----------------------------------------
-                // setup profile
+                // setup acl
                 // -----------------------------------------
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-                waflz_pb::profile *l_pb = init_std_profile_pb();
-                waflz_pb::acl* l_acl = l_pb->mutable_access_settings();
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
                 // *****************************************
                 // -----------------------------------------
                 // user-agent settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_ua = l_acl->mutable_user_agent();
+                ::waflz_pb::acl_lists_t* l_ax_ua = l_pb->mutable_user_agent();
                 l_ax_ua->add_accesslist("cats are really cool dude");
                 l_ax_ua->add_accesslist("curl\\/.*");
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load(l_pb);
-                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                l_s = l_acl->load(l_pb);
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_acl->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 void *l_ctx = NULL;
@@ -692,7 +649,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_header_user_agent = "cats are really cool dude";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -703,7 +660,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_header_user_agent = "dogs are really cool dude";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -718,7 +675,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_header_user_agent = "curl/test";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -729,7 +686,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_header_user_agent = "hurl/test";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -741,7 +698,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                if(l_acl) { delete l_acl; l_acl = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
         //--------------------------------------------------
@@ -749,24 +706,23 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         // -------------------------------------------------
         SECTION("acl accesslist referer tests") {
                 // -----------------------------------------
-                // setup profile
+                // setup acl
                 // -----------------------------------------
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-                waflz_pb::profile *l_pb = init_std_profile_pb();
-                waflz_pb::acl* l_acl = l_pb->mutable_access_settings();
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
                 // *****************************************
                 // -----------------------------------------
                 // referer settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_refr = l_acl->mutable_referer();
+                ::waflz_pb::acl_lists_t* l_ax_refr = l_pb->mutable_referer();
                 l_ax_refr->add_accesslist("bad reefer");
                 l_ax_refr->add_accesslist("really\\/bad\\/.*");
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load(l_pb);
-                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                l_s = l_acl->load(l_pb);
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_acl->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 void *l_ctx = NULL;
@@ -778,7 +734,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_header_referer = "bad reefer";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -789,7 +745,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_header_referer = "rad beefer";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -801,7 +757,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                if(l_acl) { delete l_acl; l_acl = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
         //--------------------------------------------------
@@ -809,24 +765,23 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         // -------------------------------------------------
         SECTION("acl accesslist cookie tests") {
                 // -----------------------------------------
-                // setup profile
+                // setup acl
                 // -----------------------------------------
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-                waflz_pb::profile *l_pb = init_std_profile_pb();
-                waflz_pb::acl* l_acl = l_pb->mutable_access_settings();
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
                 // *****************************************
                 // -----------------------------------------
                 // cookie settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_cookie = l_acl->mutable_cookie();
+                ::waflz_pb::acl_lists_t* l_ax_cookie = l_pb->mutable_cookie();
                 l_ax_cookie->add_accesslist("bad_[0-9]_key");
                 l_ax_cookie->add_accesslist("wonky_key");
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load(l_pb);
-                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                l_s = l_acl->load(l_pb);
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_acl->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 void *l_ctx = NULL;
@@ -838,7 +793,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_header_cookie = "bad_4_key";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -849,7 +804,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_header_cookie = "bad_x_key";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -861,7 +816,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                if(l_acl) { delete l_acl; l_acl = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
         //--------------------------------------------------
@@ -869,17 +824,16 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
         // -------------------------------------------------
         SECTION("acl accesslist interaction tests") {
                 // -----------------------------------------
-                // setup profile
+                // setup acl
                 // -----------------------------------------
-                ns_waflz::profile *l_profile = new ns_waflz::profile(*l_engine);
-                waflz_pb::profile *l_pb = init_std_profile_pb();
-                waflz_pb::acl* l_acl = l_pb->mutable_access_settings();
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
                 // *****************************************
                 // -----------------------------------------
                 // ip settings
                 // -----------------------------------------
                 // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_ipl = l_acl->mutable_ip();
+                ::waflz_pb::acl_lists_t* l_ax_ipl = l_pb->mutable_ip();
                 l_ax_ipl->add_whitelist("20.43.2.5");
                 l_ax_ipl->add_whitelist("212.43.2.5");
                 l_ax_ipl->add_accesslist("123.43.2.4");
@@ -889,8 +843,8 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
-                l_s = l_profile->load(l_pb);
-                //NDBG_PRINT("error[%d]: %s\n", l_s, l_profile->get_err_msg());
+                l_s = l_acl->load(l_pb);
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_acl->get_err_msg());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 if(l_pb) { delete l_pb; l_pb = NULL;}
                 void *l_ctx = NULL;
@@ -902,7 +856,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "20.43.2.5";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -913,7 +867,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "212.43.2.20";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -924,7 +878,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "123.43.2.4";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -935,7 +889,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "100.43.3.5";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -950,7 +904,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "212.43.2.5";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
@@ -961,7 +915,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 s_ip = "212.43.2.10";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
-                l_s = l_profile->process(&l_event, l_ctx, ns_waflz::PART_MK_ACL, &l_rqst_ctx);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event != NULL));
@@ -973,7 +927,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                if(l_acl) { delete l_acl; l_acl = NULL; }
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
         // -------------------------------------------------

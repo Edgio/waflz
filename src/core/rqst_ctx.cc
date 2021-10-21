@@ -273,7 +273,6 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_init_phase_1(false),
         m_init_phase_2(false),
         m_intercepted(false),
-        m_wl(false),
         m_wl_audit(false),
         m_wl_prod(false),
         m_skip(0),
@@ -423,7 +422,6 @@ int32_t rqst_ctx::reset_phase_1()
         m_cookie_mutated.clear();
         m_init_phase_1 = false;
         m_intercepted = false;
-        m_wl = false;
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------

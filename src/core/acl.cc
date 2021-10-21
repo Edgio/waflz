@@ -1738,10 +1738,6 @@ done:
         {
                 l_event->set_acl_config_id(m_id);
                 l_event->set_acl_config_name(m_name);
-                if(!m_resp_header_name.empty())
-                {
-                        l_event->set_response_header_name(m_resp_header_name);
-                }
         }
         *ao_event = l_event;
         // -------------------------------------------------

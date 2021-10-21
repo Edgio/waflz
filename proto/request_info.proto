@@ -55,11 +55,6 @@ message request_info {
         optional bytes query_string = 14;
         optional common_header_t common_header = 15;
         optional uint64 customer_id = 16;
-        //: ------------------------------------------------
-        //: ************* D E P R E C A T E D **************
-        //: ------------------------------------------------
-        optional uint32 request_id = 17;
-        //: ------------------------------------------------
         optional uint64 bytes_in = 18;
         optional timespec_t total_conn_time = 19;
         optional bytes req_uuid = 20;

@@ -215,6 +215,7 @@ SET(HDRS
     ${CMAKE_SOURCE_DIR}/include/waflz/trace.h
     ${CMAKE_SOURCE_DIR}/include/waflz/waf.h
     ${CMAKE_SOURCE_DIR}/include/waflz/waflz.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/string_util.h
     # ------------------------------------------------------
     # db
     # ------------------------------------------------------
@@ -237,6 +238,10 @@ SET(HDRS
     ${CMAKE_BINARY_DIR}/proto/request_info.pb.h
     ${CMAKE_BINARY_DIR}/proto/rule.pb.h
     ${CMAKE_BINARY_DIR}/proto/scope.pb.h
+    # ------------------------------------------------------
+    # support
+    # ------------------------------------------------------
+    ${CMAKE_SOURCE_DIR}/src/support/file_util.h
 )
 if(BUILD_REDIS)
   list(APPEND HDRS

@@ -2357,13 +2357,6 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         {
                 l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
         }
-        // -------------------------------------------------
-        // check for no log
-        // -------------------------------------------------
-        if(m_no_log_matched)
-        {
-                return WAFLZ_STATUS_OK;
-        }
 #define CAP_LEN(_len) (_len > 1024 ? 1024: _len)
         waflz_pb::event::var_t* l_m_var = NULL;
         // -------------------------------------------------
@@ -2371,7 +2364,11 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // -------------------------------------------------
         l_m_var = l_sub_event->mutable_matched_var();
         l_m_var->set_name(a_ctx.m_cx_matched_var_name);
-        if(l_action.sanitisematched())
+        // -------------------------------------------------
+        // check for no log or sanitized action
+        // -------------------------------------------------
+        if(l_action.sanitisematched() ||
+           m_no_log_matched)
         {
                 l_m_var->set_value("**SANITIZED**");
         }

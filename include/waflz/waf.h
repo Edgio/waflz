@@ -107,6 +107,7 @@ public:
         void set_paranoia_level(uint32_t a_paranoia_level) { m_paranoia_level = a_paranoia_level; }
         void set_parse_xml( const bool &a_parse_xml) { m_parse_xml = a_parse_xml; }
         void set_parse_json( const bool &a_parse_json) { m_parse_json = a_parse_json; }
+        void set_no_log_matched( const bool &a_no_log_matched) { m_no_log_matched = a_no_log_matched; }
         uint32_t get_owasp_ruleset_version(void) { return m_owasp_ruleset_version; }
         uint32_t get_paranoia_level(void) { return m_paranoia_level; }
         bool get_parse_xml(void) { return m_parse_xml; }

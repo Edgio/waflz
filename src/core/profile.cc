@@ -316,6 +316,13 @@ int32_t profile::init(void)
                 m_waf->set_parse_xml(m_pb->general_settings().xml_parser());
         }
         // -------------------------------------------------
+        // Don't log matched data
+        // -------------------------------------------------
+        if(m_pb->general_settings().has_no_log_matched())
+        {
+                m_waf->set_no_log_matched(m_pb->general_settings().no_log_matched());
+        }
+        // -------------------------------------------------
         // init
         // -------------------------------------------------
         l_s = m_waf->init(*this);
@@ -572,6 +579,10 @@ int32_t profile::process(waflz_pb::event **ao_event,
                 l_event->set_rule_intercept_status(403);
                 l_event->set_waf_profile_id(m_pb->id());
                 l_event->set_waf_profile_name(m_pb->name());
+                if(m_pb->has_last_modified_date())
+                {
+                        l_event->set_config_last_modified(m_pb->last_modified_date());
+                }
                 *ao_event = l_event;
         }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }

@@ -527,6 +527,10 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
                                        rqst_ctx* a_ctx,
                                        uint64_t a_cust_id)
 {
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_OK;
+        }
         waflz_pb::alert* l_at = new waflz_pb::alert();
         // -------------------------------------------------
         // Get the matched limit
@@ -545,20 +549,20 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
                 }
         }
         // -------------------------------------------------
-        // Get the matched limit
+        // Get the matched limit and timestamp of config
         // -------------------------------------------------
         if(a_ctx->m_limit)
         {
                 waflz_pb::limit *l_ev_limit = l_at->mutable_limit();
                 l_ev_limit->CopyFrom(*(a_ctx->m_limit));
+                if(a_ctx->m_limit->has_last_modified_date())
+                {
+                        l_at->set_config_last_modified(a_ctx->m_limit->last_modified_date());
+                }
         }
         // -------------------------------------------------
         // Get request specific info
         // -------------------------------------------------
-        if(!a_ctx)
-        {
-                return WAFLZ_STATUS_OK;
-        }
         waflz_pb::request_info *l_request_info = l_at->mutable_req_info();
         // -------------------------------------------------
         // Epoch time

@@ -76,7 +76,6 @@ profile::profile(engine &a_engine):
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
-        m_acl(NULL),
         m_waf(NULL),
         m_id(),
         m_cust_id(),
@@ -90,7 +89,6 @@ profile::profile(engine &a_engine):
         m_il_cookie()
 {
         m_pb = new waflz_pb::profile();
-        m_acl = new acl(a_engine);
 }
 //! ----------------------------------------------------------------------------
 //! \details dtor
@@ -100,7 +98,6 @@ profile::profile(engine &a_engine):
 profile::~profile()
 {
         if(m_pb) { delete m_pb; m_pb = NULL; }
-        if(m_acl) { delete m_acl; m_acl = NULL; }
         if(m_waf) { delete m_waf; m_waf = NULL; }
         clear_ignore_list(m_il_query);
         clear_ignore_list(m_il_header);
@@ -143,15 +140,6 @@ int32_t profile::load(const char *a_buf, uint32_t a_buf_len)
                 delete m_pb;
                 m_pb = NULL;
         }
-        // -------------------------------------------------
-        // new acl obj
-        // -------------------------------------------------
-        if(m_acl)
-        {
-                delete m_acl;
-                m_acl = NULL;
-        }
-        m_acl = new acl(m_engine);
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------

@@ -11,6 +11,7 @@ import sys
 import json
 import time
 import requests
+import base64
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -118,3 +119,63 @@ def test_bb_profile_01_xml_parser(setup_waflz_server):
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
     assert l_r_json['status'] == 'ok'
+# ------------------------------------------------------------------------------
+# test_bb_profile_02_no_log_matched_data
+# ------------------------------------------------------------------------------
+def test_bb_profile_02_no_log_matched_data(setup_waflz_server):
+    l_uri = G_TEST_HOST + '/?a=%27select%20*%20from%20testing%27'
+    l_headers = {'Host': 'myhost.com'}
+    l_r = requests.get(url=l_uri,
+                        headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    l_matched_var_name = 'ARGS:a'
+    l_matched_var_value = '\'select * from testing\''
+    assert l_matched_var_name == base64.b64decode(l_r_json['matched_var']['name']).decode("utf-8")
+    assert l_matched_var_value == base64.b64decode(l_r_json['matched_var']['value']).decode("utf-8")
+    assert l_matched_var_name == base64.b64decode(l_r_json['sub_event'][0]['matched_var']['name']).decode("utf-8")
+    assert l_matched_var_value == base64.b64decode(l_r_json['sub_event'][0]['matched_var']['value']).decode("utf-8")
+    #-------------------------------------------------------
+    # create config
+    # ------------------------------------------------------
+    l_conf = {}
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_conf_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_profile.waf.prof.json'))
+    try:
+        with open(l_conf_path) as l_f:
+            l_conf = json.load(l_f)
+    except Exception as l_e:
+        print('error opening config file: %s.  Reason: %s error: %s, doc: %s' % (
+            l_conf_path, type(l_e), l_e, l_e.__doc__))
+        assert False
+    #-------------------------------------------------------
+    # Update profile to not log matched data value
+    # ------------------------------------------------------
+    l_conf['general_settings']['no_log_matched'] = True
+    # ------------------------------------------------------
+    # post conf
+    # ------------------------------------------------------
+    l_url = '%supdate_profile'%(G_TEST_HOST)
+    # ------------------------------------------------------
+    # urlopen (POST)
+    # ------------------------------------------------------
+    l_headers = {'Content-Type': 'application/json'}
+    l_r = requests.post(l_url,
+                        headers=l_headers,
+                        data=json.dumps(l_conf))
+    assert l_r.status_code == 200
+    # ------------------------------------------------------
+    # test again verify that matched data value is scrubbed
+    # ------------------------------------------------------
+    l_headers = {'Host': 'myhost.com'}
+    l_r = requests.get(url=l_uri,
+                        headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert l_matched_var_name == base64.b64decode(l_r_json['matched_var']['name']).decode("utf-8")
+    assert '**SANITIZED**' == base64.b64decode(l_r_json['matched_var']['value']).decode("utf-8")
+    assert l_matched_var_name == base64.b64decode(l_r_json['sub_event'][0]['matched_var']['name']).decode("utf-8")
+    assert '**SANITIZED**' == base64.b64decode(l_r_json['sub_event'][0]['matched_var']['value']).decode("utf-8")
+    assert '2019-04-18T19:48:25.142172Z' == l_r_json['config_last_modified']

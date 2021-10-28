@@ -29,7 +29,7 @@ def run_command(command):
 # ------------------------------------------------------------------------------
 # fixture
 # ------------------------------------------------------------------------------
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def setup_waflz_server():
     # ------------------------------------------------------
     # setup
@@ -60,7 +60,31 @@ def setup_waflz_server():
     # tear down
     # ------------------------------------------------------
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
-    time.sleep(0.5)
+# ------------------------------------------------------------------------------
+# fixture
+# ------------------------------------------------------------------------------
+@pytest.fixture()
+def setup_waflz_server_acl():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
+    l_cwd = os.getcwd()
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_acl_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_file_ext.acl.json'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
+                                  '-a', l_acl_path])
+    print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
+                                  '-a', l_acl_path])))
+    time.sleep(1)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_waflz_server_acl
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
 # ------------------------------------------------------------------------------
 # test_bb_modsecurity_ec_access_settings_ignore_args
 # ------------------------------------------------------------------------------
@@ -199,7 +223,7 @@ def test_bb_acl_08_bypass_cookie_in_ignore_cookie_list_regex(setup_waflz_server)
 # ------------------------------------------------------------------------------
 # test_bb_acl_09_block_disallowed_http_method
 # ------------------------------------------------------------------------------
-def test_bb_acl_09_block_disallowed_http_method(setup_waflz_server):
+def test_bb_acl_09_block_disallowed_http_method(setup_waflz_server_acl):
     l_uri = G_TEST_HOST
     l_headers = {'host' : 'myhost.com'
                 }
@@ -208,6 +232,7 @@ def test_bb_acl_09_block_disallowed_http_method(setup_waflz_server):
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
     assert 'Method is not allowed by policy' in l_r_json['rule_msg']
+    assert '2020-11-06T22:55:19.519528Z' in l_r_json['config_last_modified']
 # ------------------------------------------------------------------------------
 # test_bb_acl_10_bypass_empty_allowed_settings
 # ------------------------------------------------------------------------------
@@ -268,32 +293,6 @@ def test_bb_acl_11_geoip2_lookup_softfail(setup_waflz_server):
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
 # ------------------------------------------------------------------------------
-# fixture
-# ------------------------------------------------------------------------------
-@pytest.fixture(scope='module')
-def setup_waflz_server_acl():
-    # ------------------------------------------------------
-    # setup
-    # ------------------------------------------------------
-    l_cwd = os.getcwd()
-    l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_acl_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_file_ext.acl.json'))
-    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
-    l_subproc = subprocess.Popen([l_waflz_server_path,
-                                  '-a', l_acl_path])
-    print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
-                                  '-a', l_acl_path])))
-    time.sleep(1)
-    # ------------------------------------------------------
-    # yield...
-    # ------------------------------------------------------
-    yield setup_waflz_server_acl
-    # ------------------------------------------------------
-    # tear down
-    # ------------------------------------------------------
-    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
-    time.sleep(0.5)
-# ------------------------------------------------------------------------------
 # test_bb_acl_09_block_disallowed_http_method
 # ------------------------------------------------------------------------------
 def test_bb_acl_12_acl_config(setup_waflz_server_acl):
@@ -303,4 +302,23 @@ def test_bb_acl_12_acl_config(setup_waflz_server_acl):
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
     assert 'File extension is not allowed by policy' in l_r_json['rule_msg']
+# ------------------------------------------------------------------------------
+# test_bb_acl_13_acl_file_size
+# ------------------------------------------------------------------------------
+def test_bb_profile_02_file_sizes(setup_waflz_server_acl):
+    l_uri = G_TEST_HOST + 'doathing.cgi'
+    l_body = 'A' * 1025
+    # ------------------------------------------------------
+    # verify alert for size limit
+    # ------------------------------------------------------
+    l_headers = {'Host': 'myhost.com',
+                 'Content-Type': 'text/html'}
+    l_r = requests.post(url=l_uri,
+                        headers=l_headers,
+                        data=l_body)
+    assert l_r.status_code == 200
 
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert l_r_json['sub_event'][0]['rule_id'] == 80006
+    assert 'Uploaded file size too large' in l_r_json['rule_msg']

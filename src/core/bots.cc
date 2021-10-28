@@ -17,6 +17,7 @@
 #include "waflz/challenge.h"
 #include "waflz/waf.h"
 #include "event.pb.h"
+#include "rule.pb.h"
 #include "support/ndebug.h"
 //! ----------------------------------------------------------------------------
 //! constants
@@ -277,6 +278,10 @@ int32_t bots::process(waflz_pb::event **ao_event,
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_event->set_rule_intercept_status(l_event->sub_event(0).rule_intercept_status());
+                if(get_pb()->has_last_modified_date())
+                {
+                        l_event->set_config_last_modified(get_pb()->last_modified_date());
+                }
                 *ao_event = l_event;
         }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }

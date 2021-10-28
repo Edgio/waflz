@@ -128,7 +128,10 @@
       "POST"
     ],
     "arg_name_length": 1024,
-    "response_mime_types": []
+    "response_mime_types": [],
+    "ignore_header": ["(?i)(benign-header)", "super-whatever-header", "^D"],
+    "ignore_cookie": ["(?i)(sketchy_origin)", "(?i)(yousocrazy)", "^[0-9_].*$"],
+    "ignore_query_args": ["ignore", "this", "crap"]
   },
   "created_date": "5/28/2016 1:39:46 PM",
   "id": "4291",

@@ -1742,6 +1742,7 @@ done:
                 {
                         l_event->set_response_header_name(m_resp_header_name);
                 }
+                l_event->set_config_last_modified(m_pb->last_modified_date());
         }
         *ao_event = l_event;
         // -------------------------------------------------

@@ -106,6 +106,7 @@
       ".xsx"
     ],
     "disallowed_headers": [],
+    "ignore_header": ["**dogs[]"],
     "json_parser": true,
     "max_file_size": 6291456,
     "max_num_args": 512,

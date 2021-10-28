@@ -76,7 +76,6 @@ profile::profile(engine &a_engine):
         m_pb(NULL),
         m_err_msg(),
         m_engine(a_engine),
-        m_acl(NULL),
         m_waf(NULL),
         m_id(),
         m_cust_id(),
@@ -90,7 +89,6 @@ profile::profile(engine &a_engine):
         m_il_cookie()
 {
         m_pb = new waflz_pb::profile();
-        m_acl = new acl(a_engine);
 }
 //! ----------------------------------------------------------------------------
 //! \details dtor
@@ -100,7 +98,6 @@ profile::profile(engine &a_engine):
 profile::~profile()
 {
         if(m_pb) { delete m_pb; m_pb = NULL; }
-        if(m_acl) { delete m_acl; m_acl = NULL; }
         if(m_waf) { delete m_waf; m_waf = NULL; }
         clear_ignore_list(m_il_query);
         clear_ignore_list(m_il_header);
@@ -143,15 +140,6 @@ int32_t profile::load(const char *a_buf, uint32_t a_buf_len)
                 delete m_pb;
                 m_pb = NULL;
         }
-        // -------------------------------------------------
-        // new acl obj
-        // -------------------------------------------------
-        if(m_acl)
-        {
-                delete m_acl;
-                m_acl = NULL;
-        }
-        m_acl = new acl(m_engine);
         // -------------------------------------------------
         // load from json
         // -------------------------------------------------
@@ -255,7 +243,7 @@ int32_t profile::regex_list_add(const std::string &a_regex,
                 l_regex->get_err_info(&l_err_ptr, l_err_off);
                 delete l_regex;
                 l_regex = NULL;
-                WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in access_settings ignore list. Reason: %s -offset: %d",
+                WAFLZ_PERROR(m_err_msg, "init failed for regex: '%s' in general_settings ignore list. Reason: %s -offset: %d",
                             a_regex.c_str(),
                             l_err_ptr,
                             l_err_off);
@@ -316,6 +304,13 @@ int32_t profile::init(void)
                 m_waf->set_parse_xml(m_pb->general_settings().xml_parser());
         }
         // -------------------------------------------------
+        // Don't log matched data
+        // -------------------------------------------------
+        if(m_pb->general_settings().has_no_log_matched())
+        {
+                m_waf->set_no_log_matched(m_pb->general_settings().no_log_matched());
+        }
+        // -------------------------------------------------
         // init
         // -------------------------------------------------
         l_s = m_waf->init(*this);
@@ -372,113 +367,7 @@ int32_t profile::init(void)
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-        // -------------------------------------------------
-        // *************************************************
-        //                     A C L
-        // *************************************************
-        // -------------------------------------------------
-        if(!m_pb->has_access_settings())
-        {
-                return WAFLZ_STATUS_OK;
-        }
-        const ::waflz_pb::acl& l_as = m_pb->access_settings();
-        // -------------------------------------------------
-        // ignore query args
-        // -------------------------------------------------
-        if(m_il_query.empty())
-        {
-                for(int32_t i_q = 0;
-                    i_q < l_as.ignore_query_args_size();
-                    ++i_q)
-                {
-                        std::string l_query_arg = l_as.ignore_query_args(i_q);
-                        l_s = regex_list_add(l_query_arg, m_il_query);
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-        }
-        // -------------------------------------------------
-        // ignore headers
-        // -------------------------------------------------
-        if(m_il_header.empty())
-        {
-                for(int32_t i_h = 0;
-                    i_h < l_as.ignore_header_size();
-                    ++i_h)
-                {
-                        std::string l_header = l_as.ignore_header(i_h);
-                        l_s = regex_list_add(l_header, m_il_header);
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-        }
-        // -------------------------------------------------
-        // ignore cookies
-        // -------------------------------------------------
-        if(m_il_cookie.empty())
-        {
-                for(int32_t i_c = 0;
-                    i_c < l_as.ignore_cookie_size();
-                    ++i_c)
-                {
-                        std::string l_cookie = l_as.ignore_cookie(i_c);
-                        l_s = regex_list_add(l_cookie, m_il_cookie);
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-        }
-        // -------------------------------------------------
-        // compile
-        // -------------------------------------------------
-        ::waflz_pb::acl *l_acl_pb = new ::waflz_pb::acl();
-        l_acl_pb->CopyFrom(l_as);
-        // -------------------------------------------------
-        // *************************************************
-        //              general settings
-        // *************************************************
-        // -------------------------------------------------
-#define _SET_ACL(_field) \
-        for(int32_t i_t = 0; i_t < l_gs._field##_size(); ++i_t) { \
-        l_acl_pb->add_##_field(l_gs._field(i_t)); }
-        if(l_gs.allowed_http_methods_size())
-        {
-                _SET_ACL(allowed_http_methods);
-        }
-        if(l_gs.allowed_http_versions_size())
-        {
-                _SET_ACL(allowed_http_versions);
-        }
-        if(l_gs.allowed_request_content_types_size())
-        {
-                _SET_ACL(allowed_request_content_types);
-        }
-        if(l_gs.disallowed_extensions_size())
-        {
-                _SET_ACL(disallowed_extensions);
-        }
-        if(l_gs.disallowed_headers_size())
-        {
-                _SET_ACL(disallowed_headers);
-        }
-        if(l_gs.has_max_file_size())
-        {
-                l_acl_pb->set_max_file_size(l_gs.max_file_size());
-        }
-        l_s = m_acl->load(l_acl_pb);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());
-                if(l_acl_pb) { delete l_acl_pb; l_acl_pb = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
         m_init = true;
-        if(l_acl_pb) { delete l_acl_pb; l_acl_pb = NULL; }
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -641,33 +530,6 @@ int32_t profile::process(waflz_pb::event **ao_event,
         }
         waflz_pb::event *l_event = NULL;
         // -------------------------------------------------
-        // acl
-        // -------------------------------------------------
-        if(a_part_mk & PART_MK_ACL)
-        {
-                bool l_whitelist = false;
-                l_s = m_acl->process(&l_event, l_whitelist, a_ctx, &l_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "%s", m_acl->get_err_msg());
-                        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -------------------------------------------------
-                // if in whitelist -bail out of modsec processing
-                // -------------------------------------------------
-                if(l_whitelist)
-                {
-                        if(l_rqst_ctx) { l_rqst_ctx->m_wl = true;}
-                        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                        return WAFLZ_STATUS_OK;
-                }
-                else if(l_event)
-                {
-                        goto done;
-                }
-        }
-        // -------------------------------------------------
         // optionally set xml capture xxe
         // TODO remove or move this elsewhere later
         // -------------------------------------------------
@@ -690,9 +552,8 @@ int32_t profile::process(waflz_pb::event **ao_event,
                         return WAFLZ_STATUS_ERROR;
                 }
         }
-done:
         // -------------------------------------------------
-        // done...
+        // We got an event
         // -------------------------------------------------
         if(l_event)
         {
@@ -709,6 +570,10 @@ done:
                 if(!m_resp_header_name.empty())
                 {
                         l_event->set_response_header_name(m_resp_header_name);
+                }
+                if(m_pb->has_last_modified_date())
+                {
+                        l_event->set_config_last_modified(m_pb->last_modified_date());
                 }
                 *ao_event = l_event;
         }

@@ -46,6 +46,7 @@ message profile {
                 optional bool process_response_body = 505;
                 optional bool json_parser = 506;
                 optional bool xml_capture_xxe = 520;
+                optional bool no_log_matched = 530;
                 // -----------------------------------------
                 // scoring
                 // -----------------------------------------
@@ -107,39 +108,4 @@ message profile {
         repeated disabled_rule_t disabled_rules = 212;
         repeated rule_target_update_t rule_target_updates = 213;
         repeated string policies = 214;
-}
-//: ----------------------------------------------------------------------------
-//: instance
-//: ----------------------------------------------------------------------------
-message instance {
-        // -------------------------------------------------
-        // properties
-        // -------------------------------------------------
-        optional string id = 1;
-        optional string name = 2;
-        optional string type = 3;
-        optional string customer_id = 4;
-        optional string enabled_date = 5;
-        optional uint64 deleted_on = 6;
-        optional string last_modified_date = 7;
-        // -------------------------------------------------
-        // production
-        // -------------------------------------------------
-        optional profile prod_profile = 100;
-        optional string prod_profile_action = 101;
-        repeated waflz_pb.enforcement prod_profile_enforcements = 102;
-        optional string prod_profile_id = 110;
-        optional string prod_profile_name = 111;
-        optional string prod_profile_ruleset_id = 112;
-        optional string prod_profile_ruleset_version = 113;
-        // -------------------------------------------------
-        // audit
-        // -------------------------------------------------
-        optional profile audit_profile = 200;
-        optional string audit_profile_action = 201;
-        repeated waflz_pb.enforcement audit_profile_enforcements = 202;
-        optional string audit_profile_id = 210;
-        optional string audit_profile_name = 211;
-        optional string audit_profile_ruleset_id = 212;
-        optional string audit_profile_ruleset_version = 213;
 }

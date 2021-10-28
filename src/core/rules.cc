@@ -16,6 +16,7 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/waf.h"
 #include "event.pb.h"
+#include "rule.pb.h"
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------
@@ -201,6 +202,10 @@ int32_t rules::process(waflz_pb::event **ao_event,
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_event->set_rule_intercept_status(403);
+                if(get_pb()->has_last_modified_date())
+                {
+                        l_event->set_config_last_modified(get_pb()->last_modified_date());
+                }
                 *ao_event = l_event;
         }
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }

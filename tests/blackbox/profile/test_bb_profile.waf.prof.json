@@ -134,5 +134,6 @@
   "created_date": "5/28/2016 1:39:46 PM",
   "id": "4291",
   "ruleset_id": "OWASP-CRS-2.2.9",
-  "ruleset_version": "2017-08-01"
+  "ruleset_version": "2017-08-01",
+  "last_modified_date": "2019-04-18T19:48:25.142172Z"
 }

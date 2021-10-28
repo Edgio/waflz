@@ -139,6 +139,7 @@ def test_challenge_events(setup_waflz_server):
     assert 'prod_profile' in l_r_json
     assert l_r_json['prod_profile']['challenge_status'] == "CHAL_STATUS_NO_TOKEN"
     assert l_r_json['prod_profile']['token_duration_sec'] == 3
+    assert l_r_json['prod_profile']['config_last_modified'] == "2019-04-18T19:48:25.142172Z"
     # ------------------------------------------------------
     # send random corrupted token
     # ------------------------------------------------------

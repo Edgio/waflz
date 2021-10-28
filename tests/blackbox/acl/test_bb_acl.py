@@ -232,6 +232,7 @@ def test_bb_acl_09_block_disallowed_http_method(setup_waflz_server_acl):
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
     assert 'Method is not allowed by policy' in l_r_json['rule_msg']
+    assert '2020-11-06T22:55:19.519528Z' in l_r_json['config_last_modified']
 # ------------------------------------------------------------------------------
 # test_bb_acl_10_bypass_empty_allowed_settings
 # ------------------------------------------------------------------------------

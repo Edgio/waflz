@@ -220,3 +220,4 @@ def test_bb_rule_ua(setup_waflz_server_rules):
     # print(json.dumps(l_r_json,indent=4))
     assert l_r_json['rule_intercept_status'] == 403
     assert 'Request User-Agent is bananas' in l_r_json['rule_msg']
+    assert '2020-10-06T18:18:09.329793Z' in l_r_json['config_last_modified']

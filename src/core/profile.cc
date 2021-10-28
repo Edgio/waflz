@@ -579,6 +579,10 @@ int32_t profile::process(waflz_pb::event **ao_event,
                 l_event->set_rule_intercept_status(403);
                 l_event->set_waf_profile_id(m_pb->id());
                 l_event->set_waf_profile_name(m_pb->name());
+                if(!m_resp_header_name.empty())
+                {
+                        l_event->set_response_header_name(m_resp_header_name);
+                }
                 if(m_pb->has_last_modified_date())
                 {
                         l_event->set_config_last_modified(m_pb->last_modified_date());

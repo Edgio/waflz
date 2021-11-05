@@ -1,5 +1,5 @@
 //! ----------------------------------------------------------------------------
-//! Copyright Verizon.
+//! Copyright Edgecast Inc.
 //!
 //! \file:    TODO
 //! \details: TODO
@@ -41,7 +41,7 @@
 void print_version(FILE* a_stream, int a_exit_code)
 {
         fprintf(a_stream, "waflz_dump Parse and display Modsecurity Rule file/directory.\n");
-        fprintf(a_stream, "Copyright (C) Verizon.\n");
+        fprintf(a_stream, "Copyright (C) Edgecast Inc.\n");
         fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(a_exit_code);
 }

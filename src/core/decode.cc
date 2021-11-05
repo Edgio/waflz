@@ -1,5 +1,5 @@
 //! ----------------------------------------------------------------------------
-//! Copyright Verizon.
+//! Copyright Edgecast Inc.
 //!
 //! \file:    TODO
 //! \details: uri encode and decode

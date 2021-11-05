@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Verizon.  All Rights Reserved.
+ * Copyright (C) 2018 Edgecast Inc.  All Rights Reserved.
  * All Rights Reserved
  *
  * \file:    ngx_http_waflz_module.c

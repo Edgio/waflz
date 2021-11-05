@@ -44,7 +44,7 @@ namespace ns_waflz {
  *   The character "=" signifies a special processing function used for
  *   padding within the printable encoding procedure.
  *
- *   VERIZON_SPECIFIC_NOTE:   This verison has been modified to perform the
+ *   EDGECAST_SPECIFIC_NOTE:  This verison has been modified to perform the
  *                            first part of url-safe encoding as per RFC4648
  *                            We do not include padding in our output.
  *

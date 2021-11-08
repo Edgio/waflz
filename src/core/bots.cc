@@ -16,6 +16,7 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/challenge.h"
 #include "waflz/waf.h"
+#include "action.pb.h"
 #include "event.pb.h"
 #include "rule.pb.h"
 #include "support/ndebug.h"

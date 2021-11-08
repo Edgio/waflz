@@ -25,6 +25,7 @@
 #include "jspb/jspb.h"
 #include "support/file_util.h"
 #include "event.pb.h"
+#include "action.pb.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>

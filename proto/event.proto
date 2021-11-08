@@ -1,6 +1,5 @@
 syntax = "proto2";
 package waflz_pb;
-import "action.proto";
 import "request_info.proto";
 //: ----------------------------------------------------------------------------
 //: event

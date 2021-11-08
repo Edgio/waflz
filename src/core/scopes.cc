@@ -2027,6 +2027,10 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         {
                 l_limit->set_name("__na__");
         }
+        if(a_limit.has_last_modified_date())
+        {
+                l_limit->set_last_modified_date(a_limit.last_modified_date());
+        }
         l_limit->set_disabled(false);
         // -------------------------------------------------
         // copy "the limit"

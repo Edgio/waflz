@@ -865,15 +865,6 @@ done:
                 l_sevent->set_rule_id(80003);
                 l_sevent->set_rule_msg("Accesslist deny");
                 l_sevent->add_rule_tag("ACCESSLIST");
-                // TODO...
-#if 0
-                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                l_rule_target->set_name("ACCESSLIST");
-                l_rule_target->set_value("accesslist");
-                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                l_var->set_name("REQUEST_HEADERS:Cookie");
-                l_var->set_value(l_buf, l_buf_len);
-#endif
                 *ao_event = l_event;
         }
         return WAFLZ_STATUS_OK;

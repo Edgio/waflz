@@ -661,6 +661,7 @@ int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         {
                 return WAFLZ_STATUS_ERROR;
         }
+        bool l_has = false;
         *ao_event = NULL;
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
@@ -673,8 +674,12 @@ int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         // ip or src_addr used for: ip, country, asn
         l_buf = a_ctx.m_src_addr.m_data;
         l_buf_len = a_ctx.m_src_addr.m_len;
-        if(m_ip_accesslist &&
-           l_buf &&
+        if(!m_ip_accesslist)
+        {
+                goto country_check;
+        }
+        l_has = true;
+        if(l_buf &&
            l_buf_len)
         {
                 bool l_match = false;
@@ -686,37 +691,19 @@ int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 }
                 if(l_match)
                 {
-                        goto country_check;
+                        return WAFLZ_STATUS_OK;
                 }
-                // -----------------------------------------
-                // top level event
-                // -----------------------------------------
-                waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist IP match");
-                // -----------------------------------------
-                // subevent
-                // -----------------------------------------
-                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                l_sevent->set_rule_id(80008);
-                l_sevent->set_rule_msg("Accesslist IP deny");
-                l_sevent->set_rule_op_name("ipMatch");
-                l_sevent->set_rule_op_param("ip_accesslist");
-                l_sevent->add_rule_tag("ACCESSLIST/IP");
-                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                l_rule_target->set_name("TX");
-                l_rule_target->set_param("REAL_IP");
-                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                l_var->set_name("TX:real_ip");
-                l_var->set_value(l_buf, l_buf_len);
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
         }
 country_check:
         // -------------------------------------------------
         // country
         // -------------------------------------------------
-        if(m_country_accesslist.size() &&
-           l_buf &&
+        if(!m_country_accesslist.size())
+        {
+                goto asn_check;
+        }
+        l_has = true;
+        if(l_buf &&
            l_buf_len &&
            a_ctx.m_geo_cn2.m_data &&
            a_ctx.m_geo_cn2.m_len)
@@ -730,37 +717,19 @@ country_check:
                 }
                 if(l_match)
                 {
-                        goto asn_check;
+                        return WAFLZ_STATUS_OK;
                 }
-                // -----------------------------------------
-                // top level event
-                // -----------------------------------------
-                waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist Country deny");
-                // -----------------------------------------
-                // subevent
-                // -----------------------------------------
-                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                l_sevent->set_rule_id(80004);
-                l_sevent->set_rule_msg("Accesslist Country deny");
-                l_sevent->set_rule_op_name("geoLookup");
-                l_sevent->set_rule_op_param("");
-                l_sevent->add_rule_tag("ACCESSLIST/COUNTRY");
-                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                l_rule_target->set_name("TX");
-                l_rule_target->set_param("REAL_IP");
-                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                l_var->set_name("GEO:COUNTRY_CODE");
-                l_var->set_value(l_cn_str);
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
         }
 asn_check:
         // -------------------------------------------------
         // ASN
         // -------------------------------------------------
-        if(m_asn_accesslist.size() &&
-           a_ctx.m_src_asn)
+        if(!m_asn_accesslist.size())
+        {
+                goto url_check;
+        }
+        l_has = true;
+        if(a_ctx.m_src_asn)
         {
                 bool l_match = false;
                 if(m_asn_accesslist.find(a_ctx.m_src_asn) != m_asn_accesslist.end())
@@ -769,32 +738,8 @@ asn_check:
                 }
                 if(l_match)
                 {
-                        goto url_check;
+                        return WAFLZ_STATUS_OK;
                 }
-                // -----------------------------------------
-                // top level event
-                // -----------------------------------------
-                waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist ASN deny");
-                // -----------------------------------------
-                // subevent
-                // -----------------------------------------
-                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                l_sevent->set_rule_id(80001);
-                l_sevent->set_rule_msg("Accesslist ASN deny");
-                l_sevent->set_rule_op_name("asnLookup");
-                l_sevent->set_rule_op_param("");
-                l_sevent->add_rule_tag("ACCESSLIST/ASN");
-                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                l_rule_target->set_name("TX");
-                l_rule_target->set_param("REAL_IP");
-                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                l_var->set_name("GEO:ASN");
-                char l_asn_str[16];
-                snprintf(l_asn_str, 16, "AS%u", a_ctx.m_src_asn);
-                l_var->set_value(l_asn_str);
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
         }
 url_check:
         // -------------------------------------------------
@@ -804,11 +749,11 @@ url_check:
         {
                 goto user_agent_check;
         }
+        l_has = true;
         // set buf to uri
         l_buf = a_ctx.m_uri.m_data;
         l_buf_len = a_ctx.m_uri.m_len;
-        if(m_url_rx_accesslist &&
-           l_buf &&
+        if(l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
@@ -820,29 +765,8 @@ url_check:
                 }
                 if(l_match)
                 {
-                        goto user_agent_check;
+                        return WAFLZ_STATUS_OK;
                 }
-                // -----------------------------------------
-                // top level event
-                // -----------------------------------------
-                waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist URL deny");
-                // -----------------------------------------
-                // subevent
-                // -----------------------------------------
-                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                l_sevent->set_rule_id(80011);
-                l_sevent->set_rule_msg("Accesslist URL deny");
-                l_sevent->set_rule_op_name("rx");
-                l_sevent->set_rule_op_param("");
-                l_sevent->add_rule_tag("ACCESSLIST/URL");
-                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                l_rule_target->set_name("REQUEST_URI_RAW");
-                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                l_var->set_name("REQUEST_URI_RAW");
-                l_var->set_value(l_buf, l_buf_len);
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
         }
 user_agent_check:
         // -------------------------------------------------
@@ -852,10 +776,10 @@ user_agent_check:
         {
                 goto referer_check;
         }
+        l_has = true;
         // get header from header map.
         _GET_HEADER("User-Agent", l_buf);
-        if(m_ua_rx_accesslist &&
-           l_buf &&
+        if(l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
@@ -868,30 +792,8 @@ user_agent_check:
                 }
                 if(l_match)
                 {
-                        goto referer_check;
+                        return WAFLZ_STATUS_OK;
                 }
-                // -----------------------------------------
-                // top level event
-                // -----------------------------------------
-                waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist User-Agent deny");
-                // -----------------------------------------
-                // subevent
-                // -----------------------------------------
-                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                l_sevent->set_rule_id(80012);
-                l_sevent->set_rule_msg("Accesslist User-Agent deny");
-                l_sevent->set_rule_op_name("rx");
-                l_sevent->set_rule_op_param(m_ua_rx_accesslist->get_regex_string());
-                l_sevent->add_rule_tag("ACCESSLIST/USER-AGENT");
-                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                l_rule_target->set_name("REQUEST_HEADERS");
-                l_rule_target->set_param("User-Agent");
-                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                l_var->set_name("REQUEST_HEADERS:User-Agent");
-                l_var->set_value(l_buf, l_buf_len);
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
         }
 referer_check:
         // -------------------------------------------------
@@ -901,9 +803,9 @@ referer_check:
         {
                 goto cookie_check;
         }
+        l_has = true;
         _GET_HEADER("Referer", l_buf);
-        if(m_referer_rx_accesslist &&
-           l_buf &&
+        if(l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
@@ -916,30 +818,8 @@ referer_check:
                 }
                 if(l_match)
                 {
-                        goto cookie_check;
+                        return WAFLZ_STATUS_OK;
                 }
-                // -----------------------------------------
-                // top level event
-                // -----------------------------------------
-                waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist Referer deny");
-                // -----------------------------------------
-                // subevent
-                // -----------------------------------------
-                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                l_sevent->set_rule_id(80010);
-                l_sevent->set_rule_msg("Accesslist Referer deny");
-                l_sevent->set_rule_op_name("rx");
-                l_sevent->set_rule_op_param(m_referer_rx_accesslist->get_regex_string());
-                l_sevent->add_rule_tag("ACCESSLIST/REFERER");
-                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                l_rule_target->set_name("REQUEST_HEADERS");
-                l_rule_target->set_value("Referer");
-                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                l_var->set_name("REQUEST_HEADERS:Referer");
-                l_var->set_value(l_buf, l_buf_len);
-                *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
         }
 cookie_check:
         // -------------------------------------------------
@@ -947,11 +827,11 @@ cookie_check:
         // -------------------------------------------------
         if(!m_cookie_rx_accesslist)
         {
-                return WAFLZ_STATUS_OK;
+                goto done;
         }
+        l_has = true;
         _GET_HEADER("Cookie", l_buf);
-        if(m_cookie_rx_accesslist &&
-           l_buf &&
+        if(l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
@@ -964,32 +844,29 @@ cookie_check:
                 }
                 if(l_match)
                 {
-                        goto done;
+                        return WAFLZ_STATUS_OK;
                 }
+        }
+done:
+        // -------------------------------------------------
+        // if had an access list but no match...
+        // -------------------------------------------------
+        if(l_has)
+        {
                 // -----------------------------------------
                 // top level event
                 // -----------------------------------------
                 waflz_pb::event *l_event = new ::waflz_pb::event();
-                l_event->set_rule_msg("Accesslist Cookie deny");
+                l_event->set_rule_msg("Accesslist deny");
                 // -----------------------------------------
                 // subevent
                 // -----------------------------------------
                 ::waflz_pb::event *l_sevent = l_event->add_sub_event();
                 l_sevent->set_rule_id(80003);
-                l_sevent->set_rule_msg("Accesslist Cookie deny");
-                l_sevent->set_rule_op_name("rx");
-                l_sevent->set_rule_op_param(m_cookie_rx_accesslist->get_regex_string());
-                l_sevent->add_rule_tag("ACCESSLIST/Cookie");
-                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                l_rule_target->set_name("REQUEST_HEADERS");
-                l_rule_target->set_value("Cookie");
-                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                l_var->set_name("REQUEST_HEADERS:Cookie");
-                l_var->set_value(l_buf, l_buf_len);
+                l_sevent->set_rule_msg("Accesslist deny");
+                l_sevent->add_rule_tag("ACCESSLIST");
                 *ao_event = l_event;
-                return WAFLZ_STATUS_OK;
         }
-done:
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------

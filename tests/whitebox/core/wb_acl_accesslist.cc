@@ -284,54 +284,6 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 ::waflz_pb::acl_lists_t* l_ax_ipl = l_pb->mutable_ip();
                 l_ax_ipl->add_accesslist("212.43.2.0/24");
                 l_ax_ipl->add_accesslist("243.49.2.7");
-                // *****************************************
-                // -----------------------------------------
-                // country settings
-                // -----------------------------------------
-                // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_ctyl = l_pb->mutable_country();
-                l_ax_ctyl->add_accesslist("JP");
-                l_ax_ctyl->add_accesslist("KW");
-                // *****************************************
-                // -----------------------------------------
-                // asn settings
-                // -----------------------------------------
-                // *****************************************
-                ::waflz_pb::acl_lists_asn_t* l_ax_asn = l_pb->mutable_asn();
-                l_ax_asn->add_accesslist(26496);
-                l_ax_asn->add_accesslist(42961);
-                // *****************************************
-                // -----------------------------------------
-                // url settings
-                // -----------------------------------------
-                // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_url = l_pb->mutable_url();
-                l_ax_url->add_accesslist("/login-confirm/index.html");
-                l_ax_url->add_accesslist("\\/banana\\/m.*\\.html");
-                // *****************************************
-                // -----------------------------------------
-                // user-agent settings
-                // -----------------------------------------
-                // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_ua = l_pb->mutable_user_agent();
-                l_ax_ua->add_accesslist("cats are really cool dude");
-                l_ax_ua->add_accesslist("curl\\/.*");
-                // *****************************************
-                // -----------------------------------------
-                // referer settings
-                // -----------------------------------------
-                // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_refr = l_pb->mutable_referer();
-                l_ax_refr->add_accesslist("bad reefer");
-                l_ax_refr->add_accesslist("really\\/bad\\/.*");
-                // *****************************************
-                // -----------------------------------------
-                // cookie settings
-                // -----------------------------------------
-                // *****************************************
-                ::waflz_pb::acl_lists_t* l_ax_cookie = l_pb->mutable_cookie();
-                l_ax_cookie->add_accesslist("bad_[0-9]_key");
-                l_ax_cookie->add_accesslist("wonky_key");
                 // -----------------------------------------
                 // load
                 // -----------------------------------------
@@ -342,14 +294,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 void *l_ctx = NULL;
                 waflz_pb::event *l_event = NULL;
                 ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
-                // -----------------------------------------
-                // setup
-                // -----------------------------------------
-                s_path = "/login-confirm/index.html";
-                s_uri = "/login-confirm/index.html";
-                s_header_user_agent = "cats are really cool dude";
-                s_header_cookie = "wonky_key";
-                s_header_referer = "bad reefer";
+
                 // *****************************************
                 // -----------------------------------------
                 //             I P   T E S T
@@ -365,7 +310,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist IP deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
                 //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
@@ -402,7 +347,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist IP deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -442,9 +387,10 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 waflz_pb::event *l_event = NULL;
                 ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
                 // -----------------------------------------
+                // set an ip from Country code JP.
                 // validate accesslist pass
                 // -----------------------------------------
-                s_ip = "59.106.218.87";
+                s_ip = "202.32.115.5";
                 l_event = NULL;
                 l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
                 l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
@@ -453,6 +399,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
+                // set ip that doesn't belong to JP
                 // validate accesslist block
                 // -----------------------------------------
                 s_ip = "212.43.3.5";
@@ -464,7 +411,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist Country deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -522,7 +469,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist ASN deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -581,7 +528,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist URL deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -607,7 +554,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist URL deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -666,7 +613,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist User-Agent deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -692,7 +639,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist User-Agent deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -751,7 +698,7 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist Referer deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -810,7 +757,167 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist Cookie deny"));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_acl) { delete l_acl; l_acl = NULL; }
+                if(l_pb) { delete l_pb; l_pb = NULL; }
+        }
+        //--------------------------------------------------
+        // accesslist OR tests. Accesslists configured
+        // in more than one category. Test if any one match 
+        // wins
+        // -------------------------------------------------
+        SECTION("acl accesslist OR test") {
+                // -----------------------------------------
+                // setup acl
+                // -----------------------------------------
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
+                // *****************************************
+                // -----------------------------------------
+                // ip settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::acl_lists_t* l_ax_ipl = l_pb->mutable_ip();
+                l_ax_ipl->add_accesslist("212.43.2.0/24");
+                l_ax_ipl->add_accesslist("243.49.2.7");
+                // *****************************************
+                // -----------------------------------------
+                // country settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::acl_lists_t* l_ax_ctyl = l_pb->mutable_country();
+                l_ax_ctyl->add_accesslist("JP");
+                l_ax_ctyl->add_accesslist("KW");
+                // *****************************************
+                // -----------------------------------------
+                // asn settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::acl_lists_asn_t* l_ax_asn = l_pb->mutable_asn();
+                l_ax_asn->add_accesslist(26496);
+                l_ax_asn->add_accesslist(42961);
+                // *****************************************
+                // -----------------------------------------
+                // url settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::acl_lists_t* l_ax_url = l_pb->mutable_url();
+                l_ax_url->add_accesslist("/login-confirm/index.html");
+                l_ax_url->add_accesslist("\\/banana\\/m.*\\.html");
+                // *****************************************
+                // -----------------------------------------
+                // user-agent settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::acl_lists_t* l_ax_ua = l_pb->mutable_user_agent();
+                l_ax_ua->add_accesslist("cats are really cool dude");
+                l_ax_ua->add_accesslist("curl\\/.*");
+                // *****************************************
+                // -----------------------------------------
+                // referer settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::acl_lists_t* l_ax_refr = l_pb->mutable_referer();
+                l_ax_refr->add_accesslist("bad reefer");
+                l_ax_refr->add_accesslist("really\\/bad\\/.*");
+                // *****************************************
+                // -----------------------------------------
+                // cookie settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::acl_lists_t* l_ax_cookie = l_pb->mutable_cookie();
+                l_ax_cookie->add_accesslist("bad_[0-9]_key");
+                l_ax_cookie->add_accesslist("wonky_key");
+                // -----------------------------------------
+                // load
+                // -----------------------------------------
+                l_s = l_acl->load(l_pb);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                if(l_pb) { delete l_pb; l_pb = NULL;}
+                void *l_ctx = NULL;
+                waflz_pb::event *l_event = NULL;
+                ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
+                // -----------------------------------------
+                // set up matching ip but different url
+                // in rqst ctx. validate accesslist
+                // pass if there is any one match
+                // ------------------------------------------
+                s_ip = "243.49.2.7";
+                s_uri = "/cats/index.html";
+                l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // non matching url and ip but matching cookie.
+                // validate accesslist
+                // pass if there is any one match
+                // ------------------------------------------
+                s_ip = "2.2.2.2";
+                s_uri = "/cats/index.html";
+                s_header_cookie = "wonky_key";
+                l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // non matching matching url, ip, cookie.
+                // matching referer.
+                // validate accesslist pass.
+                // ------------------------------------------
+                s_ip = "2.2.2.2";
+                s_uri = "/cats/index.html";
+                s_header_cookie = "random_key";
+                s_header_referer = "bad reefer";
+                l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // non matching matching url, ip, cookie, referer.
+                // matching user-agent.
+                //validate accesslist pass.
+                // ------------------------------------------
+                s_ip = "2.2.2.2";
+                s_uri = "/cats/index.html";
+                s_header_cookie = "random_key";
+                s_header_referer = "good reefer";
+                s_header_user_agent = "cats are really cool dude";
+                l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // non matching matching IP, url, cookie, referer,
+                // UA. validate accesslist deny and an event
+                // ------------------------------------------
+                s_ip = "2.2.2.2";
+                s_uri = "/cats/index.html";
+                s_header_cookie = "random_key";
+                s_header_referer = "good reefer";
+                s_header_user_agent = "Dogs";
+                l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------
@@ -895,7 +1002,6 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 REQUIRE((l_event != NULL));
                 REQUIRE((l_event->sub_event_size() >= 1));
                 REQUIRE((l_event->sub_event(0).has_rule_msg()));
-                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist IP deny"));
                 if(l_event) { delete l_event; l_event = NULL; }
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // -----------------------------------------

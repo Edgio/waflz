@@ -91,7 +91,7 @@ def test_bb_acl_accesslists_01_interactions(setup_waflz_server):
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    assert 'Accesslist User-Agent deny' in l_r_json['rule_msg']
+    assert 'Accesslist deny' in l_r_json['rule_msg']
     # ------------------------------------------------------
     # blacklist block
     # ------------------------------------------------------
@@ -104,3 +104,4 @@ def test_bb_acl_accesslists_01_interactions(setup_waflz_server):
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
     assert 'Blacklist User-Agent match' in l_r_json['rule_msg']
+

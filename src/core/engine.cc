@@ -471,7 +471,8 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 l_s = create_nms_from_file(&l_nms, l_f_path);
                                 if(l_s != WAFLZ_STATUS_OK)
                                 {
-                                        WAFLZ_PERROR(m_err_msg, "Failed to create nms from file %s", l_rule->operator_().value().c_str());
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create nms from file %s %s", 
+							l_rule->operator_().value().c_str(), strerror(errno));
                                         return WAFLZ_STATUS_ERROR;
                                 }
                                 ao_cx_cfg.m_nms_list.push_back(l_nms);
@@ -488,7 +489,8 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 l_s = create_ac_from_str(&l_ac, l_rule->operator_().value());
                                 if(l_s != WAFLZ_STATUS_OK)
                                 {
-                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from string %s", l_rule->operator_().value().c_str());
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from string %s %s", 
+							l_rule->operator_().value().c_str(), strerror(errno));
                                         return WAFLZ_STATUS_ERROR;
                                 }
                                 ao_cx_cfg.m_ac_list.push_back(l_ac);
@@ -508,7 +510,8 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                                 l_s = create_ac_from_file(&l_ac, l_f_path);
                                 if(l_s != WAFLZ_STATUS_OK)
                                 {
-                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from file %s", l_rule->operator_().value().c_str());
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from file %s %s", 
+							l_rule->operator_().value().c_str(), strerror(errno));
                                         return WAFLZ_STATUS_ERROR;
                                 }
                                 ao_cx_cfg.m_ac_list.push_back(l_ac);

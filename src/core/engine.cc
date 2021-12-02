@@ -204,7 +204,7 @@ int32_t engine::init()
         l_s = m_geoip2_mmdb->init(m_geoip2_db, m_geoip2_isp_db);
         if(l_s != WAFLZ_STATUS_OK)
         {
-                 WAFLZ_PERROR(m_err_msg,"error intialiting");
+                 WAFLZ_PERROR(m_err_msg,"error intializing");
                  return WAFLZ_STATUS_OK;
         }
         return WAFLZ_STATUS_OK;

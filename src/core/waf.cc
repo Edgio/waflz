@@ -750,7 +750,6 @@ int32_t waf::init(config_parser::format_t a_format,
         l_s = compile();
         if(l_s != WAFLZ_STATUS_OK)
         {
-                WAFLZ_PERROR(m_err_msg, "compilation failed");
                 return WAFLZ_STATUS_ERROR;
         }
         m_is_initd = true;

@@ -6,6 +6,8 @@ RUN apt-get update && \
 
 COPY . /opt/waflz
 
+RUN find /opt/waflz -name "CMakeCache.txt" -exec rm {} \;
+
 RUN cd /opt/waflz && \
      pip3 install -r requirements.txt && \
      ./build.sh

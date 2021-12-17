@@ -54,56 +54,6 @@
           "response_body_base64": "ZGRvcyBlbmZvcmNlbWVudCBmcm9tIGxpbWl0IGNvbmZpZwo="
        }
     }]
-  },
-  {
-    "id": "S8Msly7D",
-    "name": "limit 3rd scope",
-    "host": {
-      "is_negated": false,
-      "type": "EM",
-      "value": "limitzgeo.com"
-    },
-    "path": {
-      "is_negated": false,
-      "type": "GLOB",
-      "value": "*"
-    },
-    "limits":[{
-       "id":"D5JapqwI",
-       "action":{
-          "id":"mFwhkjoX",
-          "name":"ddos-action",
-          "status": 403,
-          "duration_sec": 2,
-          "enf_type": "CUSTOM_RESPONSE",
-          "response_body_base64": "Z2VvIGRkb3MgZW5mb3JjZW1lbnQK"
-       }
-    }]
-  },
-  {
-    "id": "fbKAXYYX",
-    "name": "limit 4th scope",
-    "host": {
-      "is_negated": false,
-      "type": "EM",
-      "value": "limitzasn.com"
-    },
-    "path": {
-      "is_negated": false,
-      "type": "GLOB",
-      "value": "*"
-    },
-    "limits":[{
-       "id":"fbKAXYYX",
-       "action":{
-          "id":"mFwhkjoX",
-          "name":"ddos-action",
-          "status": 403,
-          "duration_sec": 2,
-          "enf_type": "CUSTOM_RESPONSE",
-          "response_body_base64": "YXNuIGRkb3MgZW5mb3JjZW1lbnQK"
-       }
-    }]
   }
 ]
 }

@@ -706,24 +706,6 @@ int32_t rl_obj::extract(const char **ao_data,
                 break;
         }
         // -------------------------------------------------
-        // GEO
-        // -------------------------------------------------
-        case waflz_pb::condition_target_t::GEO:
-        {
-                _SET_W_CTX(m_geo_cn2);
-                std::string l_cn(*ao_data, ao_data_len);
-                break;
-        }
-        // -------------------------------------------------
-        // ASN
-        // -------------------------------------------------
-        case waflz_pb::condition_target_t::REMOTE_ASN:
-        {
-                _SET_W_CTX(m_src_asn_str);
-                std::string l_asn(*ao_data, ao_data_len);
-                break;
-        }
-        // -------------------------------------------------
         // TODO
         // -------------------------------------------------
         default:

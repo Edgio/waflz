@@ -184,10 +184,7 @@ static int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
 sx_limit::sx_limit(ns_waflz::kv_db &a_db):
         m_limit(NULL),
         m_db(a_db),
-        m_enfx(NULL),
-        m_geoip2_mmdb(NULL),
-        m_geoip2_db(),
-        m_geoip2_isp_db()
+        m_enfx(NULL)
 {
         m_enfx = new ns_waflz::enforcer(false);
         m_enf = new waflz_pb::enforcement();
@@ -203,7 +200,6 @@ sx_limit::~sx_limit(void)
         if(m_limit) { delete m_limit; m_limit = NULL; }
         if(m_enfx) { delete m_enfx; m_enfx = NULL; }
         if(m_enf) { delete m_enf; m_enf = NULL; }
-        if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL; }
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -227,17 +223,6 @@ int32_t sx_limit::init(void)
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // set geo ip db's
-        // -------------------------------------------------
-        m_geoip2_mmdb = new ns_waflz::geoip2_mmdb();
-        l_s = m_geoip2_mmdb->init(m_geoip2_db, m_geoip2_isp_db);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("Error intializing geo ip db's");
-                if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL;}
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------------
         // load config
         // -------------------------------------------------
         m_limit = new ns_waflz::limit(m_db);
@@ -246,7 +231,6 @@ int32_t sx_limit::init(void)
         {
                 NDBG_PRINT("error performing load: Reason: %s\n", m_limit->get_err_msg());
                 if(m_limit) { delete m_limit; m_limit = NULL;}
-                if(m_geoip2_mmdb) { delete m_geoip2_mmdb; m_geoip2_mmdb = NULL;}
                 if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return STATUS_ERROR;
         }
@@ -276,7 +260,8 @@ ns_is2::h_resp_t sx_limit::handle_rqst(waflz_pb::enforcement **ao_enf,
         // init rqst processing
         // -------------------------------------------------
         l_ctx = new ns_waflz::rqst_ctx((void *)&a_session, 0, m_callbacks, false, false);
-        l_s = l_ctx->init_phase_1(*m_geoip2_mmdb);
+        ns_waflz::geoip2_mmdb l_geoip2_mmdb;
+        l_s = l_ctx->init_phase_1(l_geoip2_mmdb);
         if(l_s != STATUS_OK)
         {
                 NDBG_PRINT("error performing init_phase_1.\n");

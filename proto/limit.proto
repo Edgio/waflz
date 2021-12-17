@@ -17,8 +17,6 @@ message condition {
                         QUERY_STRING = 6;
                         ARGS_GET = 7;
                         FILE_EXT = 8;
-                        GEO = 9;
-                        REMOTE_ASN = 10;
                 }
                 optional type_t type = 1;
                 optional string value = 2;

@@ -17,8 +17,7 @@ add_test(blackbox_wjc             ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMA
 add_test(blackbox_challenge       ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/challenge/test_bb_challenge.py)
 add_test(blackbox_scopes          ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/scopes/test_bb_scopes.py)
 add_test(blackbox_scopes_updates  ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/scopes/test_bb_scopes_updates.py)
-add_test(blackbox_limit_lmdb      ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/limit/test_bb_limit_lmdb.py)
-add_test(blackbox_limit           ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/limit/test_bb_limit.py)
+add_test(blackbox_limit_lmdb      ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/limit/test_bb_limit_lmdb.py)     
 # ------------------------------------------------------------------------------
 # tests
 # ------------------------------------------------------------------------------

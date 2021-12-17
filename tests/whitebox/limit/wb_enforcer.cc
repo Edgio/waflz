@@ -251,51 +251,6 @@
 "  ]"\
 "}"
 //! ----------------------------------------------------------------------------
-//! GEO CONFIG
-//! ----------------------------------------------------------------------------
-#define GEO_CONFIG \
-"{"\
-"  \"version\": 2,"\
-"  \"id\": \"181fdc47-d78b-4344-9c43-6cea2d92d3b5AAFD\","\
-"  \"name\": \"CAS POST TEST COORDINATOR CONF-c3b05b0a-ae93-4aa6-b804-72d31137ac3f\","\
-"  \"type\": \"ENFORCER\","\
-"  \"customer_id\": \"DEADDEAD\","\
-"  \"enabled_date\": \"02/19/2016\","\
-"  \"limits\": ["\
-"    {"\
-"      \"id\": \"640b3c22-4b68-4b9c-b644-ada917411769AAFD\","\
-"      \"disabled\": false,"\
-"      \"start_epoch_msec\": 1582764317918,"\
-"      \"condition_groups\": ["\
-"        {"\
-"          \"conditions\": ["\
-"            {"\
-"              \"target\": {"\
-"                \"type\": \"GEO\""\
-"              },"\
-"              \"op\": {"\
-"                \"type\": \"STREQ\","\
-"                \"value\": \"US\","\
-"                \"is_negated\": false"\
-"              }"\
-"            }"\
-"          ]"\
-"        }"\
-"      ],"\
-"      \"action\": {"\
-"        \"id\": \"caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD\","\
-"        \"name\": \"COOL ACTION NAME\","\
-"        \"type\": \"redirect-302\","\
-"        \"percentage\": 75,"\
-"        \"duration_sec\": 2,"\
-"        \"url\": \"https://www.google.com\","\
-"        \"enf_type\": \"REDIRECT_302\""\
-"      }"\
-"    }"\
-"  ]"\
-"}"
-
-//! ----------------------------------------------------------------------------
 //! enforcer
 //! ----------------------------------------------------------------------------
 TEST_CASE( "enforcer test", "[enforcer]" ) {
@@ -531,30 +486,5 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 REQUIRE((l_enfx == NULL));
         }
         // TODO negated
-        // -------------------------------------------------
-        // verify GEO match
-        // -------------------------------------------------
-        SECTION("verify GEO match") {
-                int32_t l_s;
-                ns_waflz::enforcer l_e;
-                l_s = l_e.load(GEO_CONFIG, sizeof(GEO_CONFIG));
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                const waflz_pb::enforcement* l_enfx = NULL;
-                ns_waflz::rqst_ctx l_ctx(NULL, 0, NULL);
-                l_e.update_start_time();
-                // verify match
-                l_ctx.m_geo_cn2.m_data = "US";
-                l_ctx.m_geo_cn2.m_len = strlen("US");
-                l_s = l_e.process(&l_enfx, &l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_enfx != NULL));
-                REQUIRE((l_enfx->id() == "caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD"));
-                // verify no match
-                l_ctx.m_geo_cn2.m_data = "NA";
-                l_ctx.m_geo_cn2.m_len = strlen("NA");
-                l_s = l_e.process(&l_enfx, &l_ctx);
-                REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((l_enfx == NULL));
-        }
 }
 

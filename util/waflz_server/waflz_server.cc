@@ -1749,8 +1749,6 @@ int main(int argc, char** argv)
                 ns_waflz_server::sx_limit *l_sx_limit = new ns_waflz_server::sx_limit(*l_kv_db);
                 l_sx_limit->m_lsnr = l_lsnr;
                 l_sx_limit->m_config = l_config_file;
-                l_sx_limit->m_geoip2_db = l_geoip_db;
-                l_sx_limit->m_geoip2_isp_db = l_geoip_isp_db;
                 l_sx_limit->m_callbacks = &s_callbacks;
                 g_sx = l_sx_limit;
                 break;

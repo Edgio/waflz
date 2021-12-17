@@ -25,6 +25,7 @@ class limit;
 class enforcement;
 class enforcer;
 class kv_db;
+class geoip2_mmdb;
 }
 namespace ns_waflz_server {
 //: ----------------------------------------------------------------------------
@@ -48,6 +49,9 @@ public:
         // -------------------------------------------------
         ns_waflz::limit* m_limit;
         ns_waflz::kv_db& m_db;
+        ns_waflz::geoip2_mmdb* m_geoip2_mmdb;
+        std::string m_geoip2_db;
+        std::string m_geoip2_isp_db;
 private:
         // -------------------------------------------------
         // enforcements

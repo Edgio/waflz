@@ -204,5 +204,3 @@ def test_asn_and_geo_cg(setup_waflz_server_limit):
         assert l_r.status_code == 200
 
 
-
-

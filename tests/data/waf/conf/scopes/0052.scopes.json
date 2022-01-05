@@ -93,6 +93,26 @@
       "status": 403,
       "enf_type": "CUSTOM_RESPONSE"
     }
+  },
+  {
+    "id": "KlTjhs",
+    "name": "scope for testing bodies",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "bodytest.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "/test.html"
+    },
+    "rules_prod_id": "svUweMIX",
+    "rules_prod_action": {
+      "id": "ekkame",
+      "name": "ACTION",
+      "enf_type": "BLOCK_REQUEST"
+    }
   }
 ]
 }

@@ -604,3 +604,55 @@ def test_chained_custom_rules_in_scopes(setup_waflz_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'response from chained custom rules\n'
+# ------------------------------------------------------------------------------
+# custom rules test json body parsing
+# ------------------------------------------------------------------------------
+def test_custom_rules_body_parsing_in_scopes(setup_waflz_server_action):
+    # ------------------------------------------------------
+    # create request
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'bodytest.com',
+                 'user-agent': 'monkey',
+                 'Content-Type': 'application/json',
+                 'waf-scopes-id': '0052'}
+    l_body = {
+        'email' : 'ps.switch.delivery@gmail.com',
+        'origin' : 'mobile',
+        'password' : 'ps654321'
+    }
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=json.dumps(l_body))
+    assert l_r.status_code == 403
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    l_event = l_r_json['prod_profile']
+    #-------------------------------------------------------
+    # check we have an event
+    # ------------------------------------------------------
+    assert l_event['rule_intercept_status'] == 403
+    assert l_event['rule_msg'] == 'testing request bodies in custom rules'
+    assert l_event['sub_event'][0]['rule_op_param'] == 'ps654321'
+    #-------------------------------------------------------
+    # test an xml
+    # ------------------------------------------------------
+    l_body = """<?xml version="1.0" encoding="UTF-8"?>
+    <body>
+        <email>ps.switch.delivery@gmail.com</email>
+        <origin>mobile</origin>
+        <password>ps654321</password>
+    </body>
+    """
+    l_headers = {'host': 'bodytest.com',
+                 'user-agent': 'monkey',
+                 'Content-Type': 'text/xml',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=l_body)
+    assert l_r.status_code == 403
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert l_event['rule_msg'] == 'testing request bodies in custom rules'
+    assert l_event['sub_event'][0]['rule_op_param'] == 'ps654321'

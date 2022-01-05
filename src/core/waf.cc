@@ -2510,8 +2510,11 @@ int32_t waf::process(waflz_pb::event **ao_event,
         {
                 l_ctx->set_body_max_len(m_pb->request_body_in_memory_limit());
         }
-        l_ctx->set_parse_xml(m_parse_xml);
-        l_ctx->set_parse_json(m_parse_json);
+        if(!a_custom_rules)
+        {
+                l_ctx->set_parse_xml(m_parse_xml);
+                l_ctx->set_parse_json(m_parse_json);
+        }
         // -------------------------------------------------
         // *************************************************
         //                   P H A S E  1

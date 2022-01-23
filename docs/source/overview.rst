@@ -34,7 +34,7 @@ We thought one of the biggest candidates for improvement in developing our own e
 
 Server Shims
 ************
-Another interesting detail is how to write a library that plugs into HTTP server applications like nginx, apache, or "Sailfish" (the VDMS HTTP server application).  The library shouldn't expose its internal complexity, but for a WAF quite a bit of request context information has to be passed between the HTTP server and the library.  To write a plugin for waflz, server specific callbacks are defined along with the "request context pointer", to extract various parts of the HTTP request and provide them back to the waflz library.
+Another interesting detail is how to write a library that plugs into HTTP server applications like nginx, apache, or "Sailfish" (the Edgecast HTTP server application).  The library shouldn't expose its internal complexity, but for a WAF quite a bit of request context information has to be passed between the HTTP server and the library.  To write a plugin for waflz, server specific callbacks are defined along with the "request context pointer", to extract various parts of the HTTP request and provide them back to the waflz library.
 
 An example using the `is2 <https://github.com/EdgeCast/is2>`_ embedded http server library:
 

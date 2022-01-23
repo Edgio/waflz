@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Format Conversions with waflz_dump &#8212; Waflz 0.0.0 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -32,12 +33,12 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="format-conversions-with-waflz-dump">
+  <section id="format-conversions-with-waflz-dump">
 <h1>Format Conversions with waflz_dump<a class="headerlink" href="#format-conversions-with-waflz-dump" title="Permalink to this headline">¶</a></h1>
-<p><a class="reference external" href="https://github.com/EdgeCast/waflz">waflz</a> can interoperate with ModSecurity rules in 3 format: json, protocol buffers (binary), and ModSecurity rules format.  <a class="reference external" href="https://github.com/EdgeCast/waflz/tree/master/util/waflz_dump">waflz_dump</a> is a utility to convert between the 3 formats.  waflz_dump is more than a curiosity, however.  It has practical uses at VDMS for exposing ruleset information via API’s, as ModSecurity Rule format is not conducive to HTTP API usage.</p>
-<div class="section" id="a-little-conversion-example-shellshock">
+<p><a class="reference external" href="https://github.com/EdgeCast/waflz">waflz</a> can interoperate with ModSecurity rules in 3 format: json, protocol buffers (binary), and ModSecurity rules format.  <a class="reference external" href="https://github.com/EdgeCast/waflz/tree/master/util/waflz_dump">waflz_dump</a> is a utility to convert between the 3 formats.  waflz_dump is more than a curiosity, however.  It has practical uses at Edgecast for exposing ruleset information via API’s, as ModSecurity Rule format is not conducive to HTTP API usage.</p>
+<section id="a-little-conversion-example-shellshock">
 <h2>A Little Conversion Example (<a class="reference external" href="https://en.wikipedia.org/wiki/Shellshock_(software_bug)">ShellShock</a>)<a class="headerlink" href="#a-little-conversion-example-shellshock" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="a-modsecurity-rule-file">
+<section id="a-modsecurity-rule-file">
 <h3>A ModSecurity Rule file<a class="headerlink" href="#a-modsecurity-rule-file" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>&gt;cat modsecurity_shellshock_1.conf
 
@@ -51,8 +52,8 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
 <span class="s2">        tag:&#39;CVE-2014-6271&#39;,block&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="convert-to-json">
+</section>
+<section id="convert-to-json">
 <h3>Convert to json<a class="headerlink" href="#convert-to-json" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.conf --input_modsec --json <span class="p">|</span> jq <span class="s1">&#39;.&#39;</span>
 
@@ -136,8 +137,8 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
 <span class="o">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="convert-to-protocol-buffers">
+</section>
+<section id="convert-to-protocol-buffers">
 <h3>Convert to protocol buffers<a class="headerlink" href="#convert-to-protocol-buffers" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>&gt;waflz_dump --input<span class="o">=</span>./modsecurity_shellshock_1.conf --input_modsec --pbuf <span class="p">|</span> xxd
 
@@ -158,8 +159,8 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
 000000e0: <span class="m">0100</span>                                     ..
 </pre></div>
 </div>
-</div>
-<div class="section" id="converting-to-json-and-back-to-modsecurity">
+</section>
+<section id="converting-to-json-and-back-to-modsecurity">
 <h3>Converting to json and back to ModSecurity<a class="headerlink" href="#converting-to-json-and-back-to-modsecurity" title="Permalink to this headline">¶</a></h3>
 <p><em>note the action ordering in the rule becomes slightly mangled albeit still correct</em></p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># modsecurity rules file</span>
@@ -183,9 +184,9 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
 SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</span>REQUEST_BODY<span class="p">|</span>REQUEST_HEADERS_NAMES <span class="s2">&quot;@contains () {&quot;</span> <span class="s2">&quot;phase:2,block,rev:&#39;1&#39;,ver:&#39;EC/1.0.0&#39;,maturity:&#39;1&#39;,accuracy:&#39;8&#39;,t:none,t:urlDecodeUni,t:utf8tounicode,id:431000,msg:&#39;Bash shellshock attack detected&#39;,tag:&#39;CVE-2014-6271&#39;&quot;</span>
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -204,7 +205,7 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dedication.html">Dedication</a></li>
@@ -233,7 +234,7 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -255,7 +256,7 @@ SecRule REQUEST_HEADERS<span class="p">|</span>REQUEST_LINE<span class="p">|</sp
       &copy;2020, Reed Morrison, Devender Singh.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

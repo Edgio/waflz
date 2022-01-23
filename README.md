@@ -10,9 +10,7 @@
 ## Table of Contents
 
 - [Background](#background)
-- [Building](#building)
-- [Running Tests](#running-tests)
-- [Source Code Layout](#source-code-layout)
+- [Install](#install)
 - [Usage](#usage)
 - [Contribute](#contribute)
 - [License](#license)
@@ -21,64 +19,66 @@
 An implementation of a WAF engine in c/c++ supporting processing a subset of ModSecurity rules functionalties, configurable with either json or ModSecurity rules.  waflz is optimized to support running many WAF profiles side by side, by using [faster](https://github.com/edgecast/waflz/blob/master/src/op/nms.h "IP tree")/[smaller](https://github.com/edgecast/waflz/blob/master/src/op/ac.h "Aho–Corasick") internal data types and sharing common ruleset data between the profiles -ie if multiple WAF profiles refer to the same ruleset(s), the ruleset(s) are loaded only once for all and shared in memory.
 
 ### Rationale
-The VDMS global edge platform is a multitenant CDN supporting our hundreds of thousands individual customer configurations from any given location.  The VDMS WAF supports running OWASP Core Rulesets as well as some third-party rulesets.  The performance and resource allocation of any given customer configuration has the potential of impacting others -ie eventually all configurations live in memory on a physical server in a "Point of Presence" (POP) in a datacenter.  It was important then to the VDMS CDN the WAF be as high performant, memory constrained, and deterministic as possible.
+The Edgecast global edge platform is a multitenant CDN supporting our hundreds of thousands individual customer configurations from any given location.  The Edgecast WAF supports running OWASP Core Rulesets as well as some third-party rulesets.  The performance and resource allocation of any given customer configuration has the potential of impacting others -ie eventually all configurations live in memory on a physical server in a "Point of Presence" (POP) in a datacenter.  It was important then to the Edgecast CDN the WAF be as high performant, memory constrained, and deterministic as possible.
 
 ### Capabilities
 The open source standard implementation of the [ModSecurity Rules Engine](https://github.com/SpiderLabs/ModSecurity "ModSecurity") -while excellent, and extremely flexible for individuals' use-cases, could be problematic in a CDN, where performance is the product.  Several ModSecurity capabilities eg [SecRemoteRules](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecRemoteRules "SecRemoteRules") and [inspectFile](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#inspectFile "inspectFile"), were intentionally ommitted, due to potential performance impacts in a multitenant environment.  A list of currently supported variables, operators and transforms are listed in the [capabilities section of the docs](https://edgecast.github.io/waflz/capabilities "waflz capabilities")
 
 
-## Building
+## Install
 
-### Ubuntu (18.04/20.04)
+### Building
 
-#### Package Requirements
+#### Ubuntu (18.04/20.04)
+
+##### Package Requirements
 
 ```sh
 $ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev python3-pip
 ```
 
-#### Python Package Requirements
+##### Python Package Requirements
 ```sh
 $ pip3 install -r requirements.txt
 ```
 
-#### Build
+##### Build
 This script will build, run tests, and create packages
 
 ```sh
 $ ./build.sh
 ```
 
-#### Install (optional)
+##### Install (optional)
 ```sh
 cd ./build
 sudo make install
 ```
 
-### OS X
+#### OS X
 
-#### Package Requirements (with Homebrew)
+##### Package Requirements (with Homebrew)
 ```sh
 $ brew install cmake openssl protobuf libxml2 pcre dpkg
 ```
 
-#### Python Package Requirements
+##### Python Package Requirements
 ```sh
 $ pip3 install -r requirements.txt
 ```
 
-#### Build
+##### Build
 ```sh
 $ ./build.sh
 ```
 
-## Running Tests
+### Running Tests
 ```sh
 $ cd ./build
 $ make test
 ```
 
-## Source Code Layout
+### Source Code Layout
 The waflz root directory contains this README, the build.sh script which automates building/testing/packaging, and other files related to CI/CD.
 
 Inside the root are the following important directories:

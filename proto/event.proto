@@ -132,6 +132,11 @@ message event {
         // -------------------------------------------------
         // entity id and name
         // -------------------------------------------------
+        // Deprecated: placeholder to fix rtld compilation
+        // compilation errors
+        // -------------------------------------------------
+        optional string waf_instance_name = 201;
+        // -------------------------------------------------
         // waf profile specific
         // -------------------------------------------------
         optional string waf_profile_id = 220;

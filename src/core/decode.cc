@@ -1667,7 +1667,7 @@ int32_t validate_utf8(bool &ao_valid,
                 return WAFLZ_STATUS_ERROR;
         }
         ao_valid = true;
-        uint32_t l_left = a_len;
+        uint32_t l_left [[maybe_unused]] = a_len;
         // -------------------------------------------------
         // for each char...
         // -------------------------------------------------

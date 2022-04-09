@@ -36,15 +36,16 @@ message acl {
         optional lists_t cookie = 105;
         optional lists_t user_agent = 106;
         optional lists_asn_t asn = 107;
+        optional lists_t sd_iso = 108;
         // -------------------------------------------------
         // request properties
         // -------------------------------------------------
-        repeated string allowed_http_methods = 108;
-        repeated string allowed_http_versions = 109;
-        repeated string allowed_request_content_types = 110;
-        repeated string disallowed_extensions = 111;
-        repeated string disallowed_headers = 112;
-        optional uint64 max_file_size = 113;
+        repeated string allowed_http_methods = 109;
+        repeated string allowed_http_versions = 110;
+        repeated string allowed_request_content_types = 111;
+        repeated string disallowed_extensions = 112;
+        repeated string disallowed_headers = 113;
+        optional uint64 max_file_size = 114;
         // -------------------------------------------------
         // response
         // -------------------------------------------------

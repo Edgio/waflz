@@ -16,6 +16,11 @@
 		"accesslist": [],
 		"blacklist": []
 	},
+	"sd_iso": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": ["43"]
+	},
 	"user_agent": {
 		"whitelist": [],
 		"accesslist": [],

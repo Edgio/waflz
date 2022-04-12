@@ -358,6 +358,19 @@ int32_t acl::init()
                 _COMPILE_COUNTRY_LIST(blacklist);
         }
         // -------------------------------------------------
+        // Subdivision
+        // -------------------------------------------------
+        if(m_pb->has_sd_iso())
+        {
+#define _COMPILE_SD_ISO_LIST(_type) do { \
+        for(int32_t i_ip = 0; i_ip < m_pb->sd_iso()._type##_size(); ++i_ip) { \
+                m_sd_iso_##_type.insert(m_pb->sd_iso()._type(i_ip)); \
+        } } while(0)
+                _COMPILE_SD_ISO_LIST(whitelist);
+                _COMPILE_SD_ISO_LIST(accesslist);
+                _COMPILE_SD_ISO_LIST(blacklist);
+        }
+        // -------------------------------------------------
         // ASN
         // -------------------------------------------------
         if(m_pb->has_asn())
@@ -949,7 +962,7 @@ country_check:
                 }
                 if(!l_match)
                 {
-                        goto asn_check;
+                        goto sd_iso_check;
                 }
                 // -----------------------------------------
                 // top level event
@@ -971,6 +984,46 @@ country_check:
                 ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
                 l_var->set_name("GEO:COUNTRY_CODE");
                 l_var->set_value(l_cn_str);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
+sd_iso_check:
+        // -------------------------------------------------
+        // ASN
+        // -------------------------------------------------
+        if(m_sd_iso_blacklist.size() && true)
+        {
+                bool l_match = false;
+                if(m_sd_iso_blacklist.find("43") != m_sd_iso_blacklist.end())
+                {
+                        l_match = true;
+                }
+                if(!l_match)
+                {
+                        goto asn_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Blacklist Subdivision match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80001);
+                l_sevent->set_rule_msg("Blacklist Subdivision match");
+                l_sevent->set_rule_op_name("asnLookup");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("BLACKLIST/Subdivision");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("TX");
+                l_rule_target->set_param("REAL_IP");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("GEO:Subdivision");
+                //char l_asn_str[16];
+                //snprintf(l_asn_str, 16, "AS%u", a_ctx.m_src_asn);
+                //l_var->set_value(l_asn_str);
                 *ao_event = l_event;
                 return WAFLZ_STATUS_OK;
         }

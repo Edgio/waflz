@@ -113,6 +113,10 @@ private:
         asn_set_t m_asn_whitelist;
         asn_set_t m_asn_accesslist;
         asn_set_t m_asn_blacklist;
+        // SD_ISO
+        stri_set_t m_sd_iso_whitelist;
+        stri_set_t m_sd_iso_accesslist;
+        stri_set_t m_sd_iso_blacklist;
         // url
         regex *m_url_rx_whitelist;
         regex *m_url_rx_accesslist;

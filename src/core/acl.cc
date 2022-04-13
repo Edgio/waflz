@@ -993,8 +993,10 @@ sd_iso_check:
         // -------------------------------------------------
         if(m_sd_iso_blacklist.size() && true)
         {
+                std::string l_sd_str;
+                l_sd_str.assign(a_ctx.m_src_sd_iso.m_data, a_ctx.m_src_sd_iso.m_len);
                 bool l_match = false;
-                if(m_sd_iso_blacklist.find("43") != m_sd_iso_blacklist.end())
+                if(m_sd_iso_blacklist.find(l_sd_str) != m_sd_iso_blacklist.end())
                 {
                         l_match = true;
                 }

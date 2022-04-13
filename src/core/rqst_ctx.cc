@@ -488,6 +488,27 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                 }
         }
         // -------------------------------------------------
+        // subdivision iso code
+        // -------------------------------------------------
+        if(m_src_addr.m_data &&
+           m_src_addr.m_len)
+        {
+                int32_t l_s;
+                m_src_sd_iso.m_data = NULL;
+                m_src_sd_iso.m_len = 0;
+                l_s = a_geoip2_mmdb.get_sd_iso(&m_src_sd_iso.m_data,
+                                                m_src_sd_iso.m_len,
+                                                m_src_addr.m_data,
+                                                m_src_addr.m_len);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
+                        //            a_geoip2_mmdb.get_err_msg());
+                        // TODO log reason???
+                        // fail is fine...
+                }
+        }
+        // -------------------------------------------------
         // asn
         // -------------------------------------------------
         if(m_src_addr.m_data &&

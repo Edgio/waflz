@@ -43,6 +43,8 @@ public:
         // -------------------------------------------------
         int32_t get_country(const char **ao_buf, uint32_t &ao_buf_len,
                             const char *a_ip, uint32_t a_ip_len);
+        int32_t get_sd_iso(const char **ao_buf, uint32_t &ao_buf_len,
+                            const char *a_ip, uint32_t a_ip_len);
         int32_t get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_len);
         int32_t get_country_city_name(const char **ao_cn_name, uint32_t &ao_cn_name_len,
                                       const char **ao_city_name, uint32_t &ao_city_name_len,

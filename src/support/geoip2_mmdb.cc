@@ -222,6 +222,105 @@ int32_t geoip2_mmdb::get_country(const char **ao_buf,
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
+int32_t geoip2_mmdb::get_sd_iso(const char **ao_buf,
+                                 uint32_t &ao_buf_len,
+                                 const char *a_ip,
+                                 uint32_t a_ip_len)
+{
+        if(!ao_buf)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_buf == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_buf = NULL;
+        ao_buf_len = 0;
+        if(!m_init)
+        {
+                WAFLZ_PERROR(m_err_msg, "not initialized");
+                return WAFLZ_STATUS_OK;
+        }
+        if(!m_city_mmdb)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+
+        ::MMDB_lookup_result_s l_ls;
+        int32_t l_gai_err = 0;
+        int32_t l_mmdb_err = MMDB_SUCCESS;
+        // -----------------------------------------
+        // lookup result...
+        // -----------------------------------------
+        l_ls = MMDB_lookup_string(m_city_mmdb, a_ip, &l_gai_err, &l_mmdb_err);
+        if(l_gai_err != 0)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "MMDB_lookup_string[%.*s]: reason: %s.",
+                             a_ip_len,
+                             a_ip,
+                             gai_strerror(l_gai_err));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_mmdb_err != MMDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "libmaxminddb: %s",
+                             MMDB_strerror(l_mmdb_err));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_ls.found_entry)
+        {
+                WAFLZ_PERROR(m_err_msg, "not found");
+                return WAFLZ_STATUS_OK;
+        }
+        // -----------------------------------------
+        // get result...
+        // traverse record to get excat value for
+        // key
+        // -----------------------------------------
+        MMDB_entry_data_s l_e_dat;
+        int32_t l_s;
+        l_s = MMDB_get_value(&l_ls.entry,
+                             &l_e_dat,
+                             "subdivisions","0",
+                             "iso_code",
+                             NULL);
+        if(l_s != MMDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "looking up the entry data: reason: %s",
+                             MMDB_strerror(l_s));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_e_dat.has_data)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "data missing");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // extract
+        // -------------------------------------------------
+        switch(l_e_dat.type) {
+        case MMDB_DATA_TYPE_UTF8_STRING:
+        {
+                *ao_buf = l_e_dat.utf8_string;
+                ao_buf_len = l_e_dat.data_size;
+                break;
+        }
+        default:
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "wrong data type");
+                return WAFLZ_STATUS_ERROR;
+        }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t geoip2_mmdb::get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_len)
 {
         ao_asn = 0;

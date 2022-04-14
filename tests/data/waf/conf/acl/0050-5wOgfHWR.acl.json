@@ -34,7 +34,7 @@
 	"country": {
 		"whitelist": [],
 		"accesslist": [],
-		"blacklist": ["US"]
+		"blacklist": []
 	},
     "allowed_http_methods": [
       "GET",

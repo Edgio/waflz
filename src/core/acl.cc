@@ -997,7 +997,7 @@ country_check:
         }
 sd_iso_check:
         // -------------------------------------------------
-        // ASN
+        // subdivision
         // -------------------------------------------------
         if(m_sd_iso_blacklist.size() && l_buf &&
            l_buf_len &&
@@ -1024,9 +1024,9 @@ sd_iso_check:
                 // subevent
                 // -----------------------------------------
                 ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                l_sevent->set_rule_id(80001);
+                l_sevent->set_rule_id(80014);
                 l_sevent->set_rule_msg("Blacklist Subdivision match");
-                l_sevent->set_rule_op_name("asnLookup");
+                l_sevent->set_rule_op_name("sd_iso_Lookup");
                 l_sevent->set_rule_op_param("");
                 l_sevent->add_rule_tag("BLACKLIST/Subdivision");
                 ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();

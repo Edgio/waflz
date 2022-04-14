@@ -21,7 +21,7 @@
 	"sd_iso": {
 		"whitelist": [],
 		"accesslist": [],
-		"blacklist": ["43"]
+		"blacklist": []
 	},
 	"user_agent": {
 		"whitelist": [],
@@ -36,7 +36,7 @@
 	"country": {
 		"whitelist": [],
 		"accesslist": [],
-		"blacklist": []
+		"blacklist": ["VI"]
 	},
     "allowed_http_methods": [
       "GET",

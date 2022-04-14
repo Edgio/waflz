@@ -565,6 +565,20 @@ country_check:
                 }
         }
         // -------------------------------------------------
+        // subdivision iso
+        // -------------------------------------------------
+        if(m_sd_iso_whitelist.size() && l_buf &&
+           l_buf_len && a_ctx.m_src_sd_iso.m_data && a_ctx.m_src_sd_iso.m_len)
+        {
+                std::string l_sd_str;
+                l_sd_str.assign(a_ctx.m_src_sd_iso.m_data, a_ctx.m_src_sd_iso.m_len);
+                if(m_sd_iso_whitelist.find(l_sd_str) != m_sd_iso_whitelist.end())
+                {
+                        ao_match = true;
+                        return WAFLZ_STATUS_OK;
+                }
+        }
+        // -------------------------------------------------
         // asn
         // -------------------------------------------------
         if(m_asn_whitelist.size() &&
@@ -684,7 +698,7 @@ int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         // -------------------------------------------------
         // ip
         // -------------------------------------------------
-        // ip or src_addr used for: ip, country, asn
+        // ip or src_addr used for: ip, subdivision, country, asn
         l_buf = a_ctx.m_src_addr.m_data;
         l_buf_len = a_ctx.m_src_addr.m_len;
         if(!m_ip_accesslist)
@@ -713,7 +727,7 @@ country_check:
         // -------------------------------------------------
         if(!m_country_accesslist.size())
         {
-                goto asn_check;
+                goto sd_iso_check;
         }
         l_has = true;
         if(l_buf &&
@@ -723,12 +737,26 @@ country_check:
         {
                 std::string l_cn_str;
                 l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
-                bool l_match = false;
                 if(m_country_accesslist.find(l_cn_str) != m_country_accesslist.end())
                 {
-                        l_match = true;
+                        return WAFLZ_STATUS_OK;
                 }
-                if(l_match)
+        }
+sd_iso_check:
+        // -------------------------------------------------
+        // country
+        // -------------------------------------------------
+        if(!m_sd_iso_accesslist.size())
+        {
+                goto asn_check;
+        }
+        l_has = true;
+        if(l_buf &&
+           l_buf_len &&a_ctx.m_src_sd_iso.m_data && a_ctx.m_src_sd_iso.m_data)
+        {
+                std::string l_sd_str;
+                l_sd_str.assign(a_ctx.m_src_sd_iso.m_data, a_ctx.m_src_sd_iso.m_len);
+                if(m_sd_iso_accesslist.find(l_sd_str) != m_sd_iso_accesslist.end())
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -744,12 +772,7 @@ asn_check:
         l_has = true;
         if(a_ctx.m_src_asn)
         {
-                bool l_match = false;
                 if(m_asn_accesslist.find(a_ctx.m_src_asn) != m_asn_accesslist.end())
-                {
-                        l_match = true;
-                }
-                if(l_match)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -770,13 +793,8 @@ url_check:
            l_buf_len)
         {
                 int32_t l_s;
-                bool l_match = false;
                 l_s = m_url_rx_accesslist->compare(l_buf, l_buf_len);
                 if(l_s >= 0)
-                {
-                        l_match = true;
-                }
-                if(l_match)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -796,14 +814,9 @@ user_agent_check:
            l_buf_len)
         {
                 int32_t l_s;
-                bool l_match = false;
                 std::string l_rx_capture;
                 l_s = m_ua_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
                 if(l_s >= 0)
-                {
-                        l_match = true;
-                }
-                if(l_match)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -822,14 +835,9 @@ referer_check:
            l_buf_len)
         {
                 int32_t l_s;
-                bool l_match = false;
                 std::string l_rx_capture;
                 l_s = m_referer_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
                 if(l_s >= 0)
-                {
-                        l_match = true;
-                }
-                if(l_match)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -973,7 +981,7 @@ country_check:
                 // subevent
                 // -----------------------------------------
                 ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                l_sevent->set_rule_id(80004);
+                l_sevent->set_rule_id(80013);
                 l_sevent->set_rule_msg("Blacklist Country match");
                 l_sevent->set_rule_op_name("geoLookup");
                 l_sevent->set_rule_op_param("");
@@ -991,7 +999,10 @@ sd_iso_check:
         // -------------------------------------------------
         // ASN
         // -------------------------------------------------
-        if(m_sd_iso_blacklist.size() && true)
+        if(m_sd_iso_blacklist.size() && l_buf &&
+           l_buf_len &&
+           a_ctx.m_src_sd_iso.m_data &&
+           a_ctx.m_src_sd_iso.m_len)
         {
                 std::string l_sd_str;
                 l_sd_str.assign(a_ctx.m_src_sd_iso.m_data, a_ctx.m_src_sd_iso.m_len);

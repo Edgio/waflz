@@ -135,9 +135,10 @@ acl::~acl(void)
         if(m_pb) { delete m_pb; m_pb = NULL; }
 }
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Create new acl protobuf, update protobuf from JSON, call init (see init)
+//! \return  waflz status code
+//! \param   a_buf: JSON file char
+//!      a_buf_len: JSON file len
 //! ----------------------------------------------------------------------------
 int32_t acl::load(const char *a_buf, uint32_t a_buf_len)
 {
@@ -288,9 +289,9 @@ static int32_t compile_regex_list(regex **ao_regex,
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Update ACL fields from ACL protobuf
+//! \return  aflz status
+//! \param   
 //! ----------------------------------------------------------------------------
 int32_t acl::init()
 {
@@ -320,6 +321,10 @@ int32_t acl::init()
         //     "blacklist": ["8.8.8.8"]
         // },
         // -------------------------------------------------
+        // ------------------------------------------------------------
+        // Compile whitelists, blacklists and accesslists using macro, 
+        // loading values from protobuf (m_pb) into acl 
+        // ------------------------------------------------------------
         if(m_pb->has_ip())
         {
 #define _COMPILE_IP_LIST(_type) do { \
@@ -593,10 +598,6 @@ country_check:
         // -------------------------------------------------
         // get url
         // -------------------------------------------------
-        if(!m_url_rx_whitelist)
-        {
-                goto user_agent_check;
-        }
         if(m_url_rx_whitelist &&
            a_ctx.m_uri.m_data &&
            a_ctx.m_uri.m_len)
@@ -610,7 +611,6 @@ country_check:
                         return WAFLZ_STATUS_OK;
                 }
         }
-user_agent_check:
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
@@ -678,9 +678,11 @@ cookie_check:
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Checks request context variables against ACL access lists. If 
+//!          accesslist exists and a_ctx doesn't satisfy, create ao_event
+//! \return  WAFLZ status code
+//! \param   ao_event: Accesslist deny if it occurs
+//!             a_ctx: Request context to be checked
 //! ----------------------------------------------------------------------------
 int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
@@ -743,9 +745,9 @@ country_check:
                 }
         }
 sd_iso_check:
-        // -------------------------------------------------
-        // country
-        // -------------------------------------------------
+        // ------------------------------------------------------------
+        // subdivision
+        // ------------------------------------------------------------
         if(!m_sd_iso_accesslist.size())
         {
                 goto asn_check;
@@ -756,6 +758,9 @@ sd_iso_check:
         {
                 std::string l_sd_str;
                 l_sd_str.assign(a_ctx.m_src_sd_iso.m_data, a_ctx.m_src_sd_iso.m_len);
+                // ------------------------------------------------------------
+                // check accesslist
+                // ------------------------------------------------------------
                 if(m_sd_iso_accesslist.find(l_sd_str) != m_sd_iso_accesslist.end())
                 {
                         return WAFLZ_STATUS_OK;
@@ -870,7 +875,8 @@ cookie_check:
         }
 done:
         // -------------------------------------------------
-        // if had an access list but no match...
+        // if had an access list (l_has) but no match, create 
+        // accesslist deny event
         // -------------------------------------------------
         if(l_has)
         {
@@ -891,9 +897,10 @@ done:
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Check vals in request context against lists in acl
+//! \return  WAFLZ status code
+//! \param   ao_event: Blacklist event if it occurs
+//!          a_ctx: request context from which request values are pulled
 //! ----------------------------------------------------------------------------
 int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
@@ -907,10 +914,10 @@ int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         data_t l_d;
         const data_map_t &l_hm = a_ctx.m_header_map;
         int32_t l_s;
-        // -------------------------------------------------
-        // ip
-        // -------------------------------------------------
-        // ip or src_addr used for: ip, country, asn
+        // ------------------------------------------------------------
+        // ip or src_addr used for: ip, subdivision, 
+        // country, asn
+        // ------------------------------------------------------------
         l_buf = a_ctx.m_src_addr.m_data;
         l_buf_len = a_ctx.m_src_addr.m_len;
         if(m_ip_blacklist &&
@@ -952,9 +959,9 @@ int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 return WAFLZ_STATUS_OK;
         }
 country_check:
-        // -------------------------------------------------
+        // -----------------------------------------------------------
         // country
-        // -------------------------------------------------
+        // ------------------------------------------------------------
         if(m_country_blacklist.size() &&
            l_buf &&
            l_buf_len &&
@@ -999,19 +1006,25 @@ sd_iso_check:
         // -------------------------------------------------
         // subdivision
         // -------------------------------------------------
+        //std::cout<<a_ctx.m_src_sd_iso.m_len<<"\n";
         if(m_sd_iso_blacklist.size() && l_buf &&
            l_buf_len &&
-           a_ctx.m_src_sd_iso.m_data &&
-           a_ctx.m_src_sd_iso.m_len)
+           a_ctx.m_src_sd1_iso.m_data &&
+           a_ctx.m_src_sd1_iso.m_len)
         {
-                std::string l_sd_str;
-                l_sd_str.assign(a_ctx.m_src_sd_iso.m_data, a_ctx.m_src_sd_iso.m_len);
-                bool l_match = false;
-                if(m_sd_iso_blacklist.find(l_sd_str) != m_sd_iso_blacklist.end())
+                std::string l_sd1_str;
+                l_sd1_str.assign(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                if(a_ctx.m_src_sd2_iso.m_data &&
+                   a_ctx.m_src_sd2_iso.m_len)
                 {
-                        l_match = true;
+                        std::string l_sd2_str;
+                        l_sd2_str.assign(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
+                        if(m_sd_iso_blacklist.find(l_sd2_str) == m_sd_iso_blacklist.end())
+                        {
+                                goto asn_check;
+                        } 
                 }
-                if(!l_match)
+                if(m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
                 {
                         goto asn_check;
                 }

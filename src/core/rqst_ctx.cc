@@ -489,19 +489,21 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         }
         // -------------------------------------------------
         // subdivision iso code
+        // subdiv iso = m_geo_cn2 + "-" + get_sd_iso
         // -------------------------------------------------
         if(m_src_addr.m_data &&
            m_src_addr.m_len)
         {
                 int32_t l_s;
-                m_src_sd_iso.m_data = NULL;
-                m_src_sd_iso.m_len = 0;
-                l_s = a_geoip2_mmdb.get_sd_iso(&m_src_sd_iso.m_data,
-                                                m_src_sd_iso.m_len,
+                l_s = a_geoip2_mmdb.get_sd_isos(&m_src_sd1_iso.m_data,
+                                                m_src_sd1_iso.m_len,
+                                                &m_src_sd2_iso.m_data,
+                                                m_src_sd2_iso.m_len,
                                                 m_src_addr.m_data,
                                                 m_src_addr.m_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
+                        std::cout<<a_geoip2_mmdb.get_err_msg();
                         //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
                         //            a_geoip2_mmdb.get_err_msg());
                         // TODO log reason???
@@ -511,6 +513,7 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         // -------------------------------------------------
         // asn
         // -------------------------------------------------
+        //std::cout<<"\n testing asn\n";
         if(m_src_addr.m_data &&
            m_src_addr.m_len)
         {

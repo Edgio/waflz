@@ -401,9 +401,6 @@ int32_t geoip2_mmdb::get_sd_isos(const char **ao_sd1_buf, uint32_t &ao_sd1_buf_l
                              "0",
                              "iso_code",
                              NULL);
-        //MMDB_entry_data_list_s* entry = new MMDB_entry_data_list_s;
-        //MMDB_get_entry_data_list(&l_ls.entry,&entry);
-        //MMDB_dump_entry_data_list(stdout,entry, 0);
         if(l_s_1 != MMDB_SUCCESS)
         {
                 WAFLZ_PERROR(m_err_msg,

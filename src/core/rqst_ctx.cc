@@ -503,7 +503,6 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                                                 m_src_addr.m_len);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
-                        std::cout<<a_geoip2_mmdb.get_err_msg();
                         //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
                         //            a_geoip2_mmdb.get_err_msg());
                         // TODO log reason???

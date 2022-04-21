@@ -573,14 +573,29 @@ country_check:
         // subdivision iso
         // -------------------------------------------------
         if(m_sd_iso_whitelist.size() && l_buf &&
-           l_buf_len && a_ctx.m_src_sd_iso.m_data && a_ctx.m_src_sd_iso.m_len)
+           l_buf_len && a_ctx.m_src_sd1_iso.m_data && a_ctx.m_src_sd1_iso.m_len)
         {
-                std::string l_sd_str;
-                l_sd_str.assign(a_ctx.m_src_sd_iso.m_data, a_ctx.m_src_sd_iso.m_len);
-                if(m_sd_iso_whitelist.find(l_sd_str) != m_sd_iso_whitelist.end())
+                std::string l_sd1_str;
+                l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_sd1_str+="-";
+                l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                if(m_sd_iso_whitelist.find(l_sd1_str) != m_sd_iso_whitelist.end())
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
+                }
+                if(a_ctx.m_src_sd2_iso.m_data &&
+                   a_ctx.m_src_sd2_iso.m_len)
+                {
+                        std::string l_sd2_str;
+                        l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                        l_sd2_str+="-";
+                        l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
+                        if(m_sd_iso_whitelist.find(l_sd2_str) != m_sd_iso_whitelist.end())
+                        {
+                                ao_match = true;
+                                return WAFLZ_STATUS_OK;
+                        } 
                 }
         }
         // -------------------------------------------------
@@ -754,17 +769,31 @@ sd_iso_check:
         }
         l_has = true;
         if(l_buf &&
-           l_buf_len &&a_ctx.m_src_sd_iso.m_data && a_ctx.m_src_sd_iso.m_data)
+           l_buf_len &&a_ctx.m_src_sd1_iso.m_data && a_ctx.m_src_sd1_iso.m_data)
         {
-                std::string l_sd_str;
-                l_sd_str.assign(a_ctx.m_src_sd_iso.m_data, a_ctx.m_src_sd_iso.m_len);
-                // ------------------------------------------------------------
-                // check accesslist
-                // ------------------------------------------------------------
-                if(m_sd_iso_accesslist.find(l_sd_str) != m_sd_iso_accesslist.end())
+                std::string l_sd1_str;
+                l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_sd1_str+="-";
+                l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                if(m_sd_iso_accesslist.find(l_sd1_str) != m_sd_iso_accesslist.end())
                 {
                         return WAFLZ_STATUS_OK;
                 }
+                if(a_ctx.m_src_sd2_iso.m_data &&
+                   a_ctx.m_src_sd2_iso.m_len)
+                {
+                        std::string l_sd2_str;
+                        l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                        l_sd2_str+="-";
+                        l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
+                        if(m_sd_iso_accesslist.find(l_sd2_str) != m_sd_iso_accesslist.end())
+                        {
+                                return WAFLZ_STATUS_OK;
+                        } 
+                }
+                // ------------------------------------------------------------
+                // check accesslist
+                // ------------------------------------------------------------
         }
 asn_check:
         // -------------------------------------------------
@@ -1013,12 +1042,16 @@ sd_iso_check:
            a_ctx.m_src_sd1_iso.m_len)
         {
                 std::string l_sd1_str;
-                l_sd1_str.assign(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_sd1_str+="-";
+                l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
                 if(a_ctx.m_src_sd2_iso.m_data &&
                    a_ctx.m_src_sd2_iso.m_len)
                 {
                         std::string l_sd2_str;
-                        l_sd2_str.assign(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
+                        l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                        l_sd2_str+="-";
+                        l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
                         if(m_sd_iso_blacklist.find(l_sd2_str) == m_sd_iso_blacklist.end())
                         {
                                 goto asn_check;

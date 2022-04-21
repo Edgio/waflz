@@ -212,7 +212,7 @@ public:
         // TODO use uint32???
         mutable_data_t m_src_asn_str;
         data_t m_geo_cn2;
-        data_t m_src_sd_iso;
+        //data_t m_src_sd_iso;
         data_t m_src_sd1_iso;
         data_t m_src_sd2_iso;
         //mutable_data_list_t m_src_isos;

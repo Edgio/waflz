@@ -1667,7 +1667,6 @@ int32_t validate_utf8(bool &ao_valid,
                 return WAFLZ_STATUS_ERROR;
         }
         ao_valid = true;
-        uint32_t l_left [[maybe_unused]] = a_len;
         // -------------------------------------------------
         // for each char...
         // -------------------------------------------------
@@ -1709,7 +1708,6 @@ int32_t validate_utf8(bool &ao_valid,
                         // no validation
                         // ---------------------------------
                         i_c += 1;
-                        l_left -= 1;
                         continue;
                 }
                 // -----------------------------------------
@@ -1818,7 +1816,6 @@ int32_t validate_utf8(bool &ao_valid,
                 // incr...
                 // -----------------------------------------
                 i_c += l_uni_len;
-                l_left -= l_uni_len;
         }
         return WAFLZ_STATUS_OK;
 }

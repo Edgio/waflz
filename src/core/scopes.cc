@@ -44,7 +44,7 @@
 //! macros
 //! ----------------------------------------------------------------------------
 #define VERIFY_HAS(_pb, _field) do { \
-        if(!_pb.has_##_field()) { \
+        if (!_pb.has_##_field()) { \
                 WAFLZ_PERROR(m_err_msg, "missing %s field", #_field); \
                 return WAFLZ_STATUS_ERROR; \
         } \
@@ -53,7 +53,7 @@
     l_d.m_data = _header; \
     l_d.m_len = sizeof(_header); \
     data_map_t::const_iterator i_h = a_ctx->m_header_map.find(l_d); \
-    if(i_h != a_ctx->m_header_map.end()) \
+    if (i_h != a_ctx->m_header_map.end()) \
     { \
             l_v.m_data = i_h->second.m_data; \
             l_v.m_len = i_h->second.m_len; \
@@ -73,15 +73,15 @@ int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg)
         // -------------------------------------------------
         // convert type string to enf_type
         // -------------------------------------------------
-        if(!ao_axn.has_enf_type() &&
+        if (!ao_axn.has_enf_type() &&
             ao_axn.has_type())
         {
                 const std::string &l_type = ao_axn.type();
 #define _ELIF_TYPE(_str, _type) else \
-if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
+if (strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
         ao_axn.set_enf_type(waflz_pb::enforcement_type_t_##_type); \
 }
-            if(0) {}
+            if (0) {}
             _ELIF_TYPE("REDIRECT_302", REDIRECT_302)
             _ELIF_TYPE("REDIRECT-302", REDIRECT_302)
             _ELIF_TYPE("REDIRECT_JS", REDIRECT_JS)
@@ -122,7 +122,7 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
         // -------------------------------------------------
         // convert b64 encoded resp
         // -------------------------------------------------
-        if(!ao_axn.has_response_body() &&
+        if (!ao_axn.has_response_body() &&
                         ao_axn.has_response_body_base64() &&
            !ao_axn.response_body_base64().empty())
         {
@@ -131,7 +131,7 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
                 size_t l_body_len = 0;
                 int32_t l_s;
                 l_s = b64_decode(&l_body, l_body_len, l_b64.c_str(), l_b64.length());
-                if(!l_body ||
+                if (!l_body ||
                    !l_body_len ||
                    (l_s != WAFLZ_STATUS_OK))
                 {
@@ -139,7 +139,7 @@ if(strncasecmp(l_type.c_str(), _str, sizeof(_str)) == 0) { \
                         return WAFLZ_STATUS_ERROR;
                 }
                 ao_axn.mutable_response_body()->assign(l_body, l_body_len);
-                if(l_body) { free(l_body); l_body = NULL; }
+                if (l_body) { free(l_body); l_body = NULL; }
         }
         return WAFLZ_STATUS_OK;
 }
@@ -154,7 +154,7 @@ static const char *get_date_short_str(void)
         static char s_date_str[128];
         time_t l_time = time(NULL);
         struct tm* l_tm = localtime(&l_time);
-        if(0 == strftime(s_date_str, sizeof(s_date_str), "%m/%d/%Y", l_tm))
+        if (0 == strftime(s_date_str, sizeof(s_date_str), "%m/%d/%Y", l_tm))
         {
                 return "1/1/1970";
         }
@@ -172,7 +172,7 @@ static int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
                                   uint16_t a_key,
                                   rqst_ctx *a_ctx)
 {
-        if(!a_ctx)
+        if (!a_ctx)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -197,7 +197,7 @@ static int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
         // -------------------------------------------------
         case waflz_pb::limit_key_t_USER_AGENT:
         {
-                if(!a_ctx)
+                if (!a_ctx)
                 {
                         break;
                 }
@@ -218,14 +218,14 @@ static int32_t add_limit_with_key(waflz_pb::limit &ao_limit,
         }
         }
         // if no data -no limit
-        if(!l_data ||
+        if (!l_data ||
            (l_len == 0))
         {
                 return WAFLZ_STATUS_OK;
         }
         // Add limit for any data
         waflz_pb::condition *l_c = NULL;
-        if(ao_limit.condition_groups_size() > 0)
+        if (ao_limit.condition_groups_size() > 0)
         {
                 l_c = ao_limit.mutable_condition_groups(0)->add_conditions();
         }
@@ -309,14 +309,14 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
 //! ----------------------------------------------------------------------------
 scopes::~scopes()
 {
-        if(m_pb) { delete m_pb; m_pb = NULL; }
-        if(m_enfx) { delete m_enfx; m_enfx = NULL; }
+        if (m_pb) { delete m_pb; m_pb = NULL; }
+        if (m_enfx) { delete m_enfx; m_enfx = NULL; }
         // -------------------------------------------------
         // clear parts...
         // -------------------------------------------------
 #define _DEL_MAP(_t, _m) do { \
         for(_t::iterator i = _m.begin(); i != _m.end(); ++i) { \
-                if(i->second) { delete i->second; i->second = NULL; } \
+                if (i->second) { delete i->second; i->second = NULL; } \
         } \
 } while(0)
         _DEL_MAP(id_acl_map_t, m_id_acl_map);
@@ -331,7 +331,7 @@ scopes::~scopes()
             i_p != m_regex_list.end();
             ++i_p)
         {
-                if(*i_p) { delete *i_p; *i_p = NULL;}
+                if (*i_p) { delete *i_p; *i_p = NULL;}
         }
         // -------------------------------------------------
         // destruct str_ptr_set_list
@@ -340,13 +340,13 @@ scopes::~scopes()
             i_n != m_data_set_list.end();
             ++i_n)
         {
-                if(*i_n) { delete *i_n; *i_n = NULL;}
+                if (*i_n) { delete *i_n; *i_n = NULL;}
         }
         for(data_case_i_set_list_t::iterator i_n = m_data_case_i_set_list.begin();
             i_n != m_data_case_i_set_list.end();
             ++i_n)
         {
-                if(*i_n) { delete *i_n; *i_n = NULL;}
+                if (*i_n) { delete *i_n; *i_n = NULL;}
         }
 }
 //! ----------------------------------------------------------------------------
@@ -359,7 +359,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
         // -------------------------------------------------
         // check if exist...
         // -------------------------------------------------
-        if(!ao_op.has_type())
+        if (!ao_op.has_type())
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -373,7 +373,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
         // -------------------------------------------------
         case ::waflz_pb::op_t_type_t_RX:
         {
-                if(!ao_op.has_value())
+                if (!ao_op.has_value())
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -381,7 +381,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
                 regex* l_rx = new regex();
                 int32_t l_s;
                 l_s = l_rx->init(l_val.c_str(), l_val.length());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "failed to compile regex: '%s'.", l_val.c_str());
                         delete l_rx;
@@ -397,7 +397,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
         // -------------------------------------------------
         case ::waflz_pb::op_t_type_t_EM:
         {
-                if(!ao_op.has_value() &&
+                if (!ao_op.has_value() &&
                    !ao_op.values_size())
                 {
                         return WAFLZ_STATUS_ERROR;
@@ -405,17 +405,17 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
                 // -----------------------------------------
                 // case insensitive
                 // -----------------------------------------
-                if(ao_op.is_case_insensitive())
+                if (ao_op.is_case_insensitive())
                 {
                         data_case_i_set_t *l_ds = new data_case_i_set_t();
                         // ---------------------------------
                         // prefer values to value
                         // ---------------------------------
-                        if(ao_op.values_size())
+                        if (ao_op.values_size())
                         {
                                 for(int32_t i_v = 0; i_v < ao_op.values_size(); ++i_v)
                                 {
-                                        if(ao_op.values(i_v).empty())
+                                        if (ao_op.values(i_v).empty())
                                         {
                                                 continue;
                                         }
@@ -425,7 +425,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
                                         l_ds->insert(l_d);
                                 }
                         }
-                        else if(!ao_op.value().empty())
+                        else if (!ao_op.value().empty())
                         {
                                 data_t l_d;
                                 l_d.m_data = ao_op.value().c_str();
@@ -444,11 +444,11 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
                         // ---------------------------------
                         // prefer values to value
                         // ---------------------------------
-                        if(ao_op.values_size())
+                        if (ao_op.values_size())
                         {
                                 for(int32_t i_v = 0; i_v < ao_op.values_size(); ++i_v)
                                 {
-                                        if(ao_op.values(i_v).empty())
+                                        if (ao_op.values(i_v).empty())
                                         {
                                                 continue;
                                         }
@@ -458,7 +458,7 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
                                         l_ds->insert(l_d);
                                 }
                         }
-                        else if(!ao_op.value().empty())
+                        else if (!ao_op.value().empty())
                         {
                                 data_t l_d;
                                 l_d.m_data = ao_op.value().c_str();
@@ -487,26 +487,26 @@ int32_t scopes::compile_op(::waflz_pb::op_t& ao_op)
 //! ----------------------------------------------------------------------------
 int32_t scopes::compile(const std::string& a_conf_dir_path)
 {
-        if(m_init)
+        if (m_init)
         {
                 return WAFLZ_STATUS_OK;
         }
-        if(!m_pb)
+        if (!m_pb)
         {
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!m_pb->has_id())
+        if (!m_pb->has_id())
         {
                 WAFLZ_PERROR(m_err_msg, "missing id field");
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!m_pb->has_customer_id())
+        if (!m_pb->has_customer_id())
         {
                 WAFLZ_PERROR(m_err_msg, "missing customer id field");
                 return WAFLZ_STATUS_ERROR;
         }
-        if(m_pb->has_account_type())
+        if (m_pb->has_account_type())
         {
                 m_account_type = m_pb->account_type();
         }
@@ -520,24 +520,24 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-                if(l_sc.has_host())
+                if (l_sc.has_host())
                 {
                         l_s = compile_op(*(l_sc.mutable_host()));
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
-                if(l_sc.has_path())
+                if (l_sc.has_path())
                 {
                         l_s = compile_op(*(l_sc.mutable_path()));
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
                 l_s = load_parts(l_sc, a_conf_dir_path);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -551,7 +551,7 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
 //! ----------------------------------------------------------------------------
 int32_t scopes::load(const char *a_buf, uint32_t a_buf_len, const std::string& a_conf_dir_path)
 {
-        if(a_buf_len > _SCOPES_MAX_SIZE)
+        if (a_buf_len > _SCOPES_MAX_SIZE)
         {
                 WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
                              a_buf_len,
@@ -565,7 +565,7 @@ int32_t scopes::load(const char *a_buf, uint32_t a_buf_len, const std::string& a
         int32_t l_s;
         l_s = update_from_json(*m_pb, a_buf, a_buf_len);
         //TRC_DEBUG("whole config %s", m_pb->DebugString().c_str());
-        if(l_s != JSPB_OK)
+        if (l_s != JSPB_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
@@ -574,7 +574,7 @@ int32_t scopes::load(const char *a_buf, uint32_t a_buf_len, const std::string& a
         // compile and load parts
         // -------------------------------------------------
         l_s = compile(a_conf_dir_path);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -595,7 +595,7 @@ int32_t scopes::load(void *a_js, const std::string& a_conf_dir_path)
         const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
         int32_t l_s;
         l_s = update_from_json(*m_pb, l_js);
-        if(l_s != JSPB_OK)
+        if (l_s != JSPB_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
@@ -604,7 +604,7 @@ int32_t scopes::load(void *a_js, const std::string& a_conf_dir_path)
         // compile and load parts
         // -------------------------------------------------
         l_s = compile(a_conf_dir_path);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -622,13 +622,13 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
         // -------------------------------------------------
         // acl audit
         // -------------------------------------------------
-        if(a_scope.has_acl_audit_id())
+        if (a_scope.has_acl_audit_id())
         {
                 // -----------------------------------------
                 // check exist
                 // -----------------------------------------
                 id_acl_map_t::iterator i_acl = m_id_acl_map.find(a_scope.acl_audit_id());
-                if(i_acl != m_id_acl_map.end())
+                if (i_acl != m_id_acl_map.end())
                 {
                         a_scope.set__acl_audit__reserved((uint64_t)i_acl->second);
                         goto acl_audit_action;
@@ -643,22 +643,22 @@ int32_t scopes::load_parts(waflz_pb::scope& a_scope,
                 uint32_t l_buf_len;
                 int32_t l_s;
                 l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_s = l_acl->load(l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_acl->get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                         // TODO cleanup...
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 // -----------------------------------------
                 // add to map
                 // -----------------------------------------
@@ -669,12 +669,12 @@ acl_audit_action:
         // -------------------------------------------------
         // acl audit action
         // -------------------------------------------------
-        if(a_scope.has_acl_audit_action())
+        if (a_scope.has_acl_audit_action())
         {
                 waflz_pb::enforcement *l_a = a_scope.mutable_acl_audit_action();
                 int32_t l_s;
                 l_s = compile_action(*l_a, m_err_msg);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -682,13 +682,13 @@ acl_audit_action:
         // -------------------------------------------------
         // acl audit
         // -------------------------------------------------
-        if(a_scope.has_acl_prod_id())
+        if (a_scope.has_acl_prod_id())
         {
                 // -----------------------------------------
                 // check exist
                 // -----------------------------------------
                 id_acl_map_t::iterator i_acl = m_id_acl_map.find(a_scope.acl_prod_id());
-                if(i_acl != m_id_acl_map.end())
+                if (i_acl != m_id_acl_map.end())
                 {
                         a_scope.set__acl_prod__reserved((uint64_t)i_acl->second);
                         goto acl_prod_action;
@@ -703,22 +703,22 @@ acl_audit_action:
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
                 l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        if(l_acl) { delete l_acl; l_acl = NULL;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        if (l_acl) { delete l_acl; l_acl = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_s = l_acl->load(l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_acl->get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        if(l_acl) { delete l_acl; l_acl = NULL;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        if (l_acl) { delete l_acl; l_acl = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 // -----------------------------------------
                 // add to map
                 // -----------------------------------------
@@ -729,12 +729,12 @@ acl_prod_action:
         // -------------------------------------------------
         // acl prod action
         // -------------------------------------------------
-        if(a_scope.has_acl_prod_action())
+        if (a_scope.has_acl_prod_action())
         {
                 waflz_pb::enforcement *l_a = a_scope.mutable_acl_prod_action();
                 int32_t l_s;
                 l_s = compile_action(*l_a, m_err_msg);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -742,13 +742,13 @@ acl_prod_action:
         // -------------------------------------------------
         // bots prod
         // -------------------------------------------------
-        if(a_scope.has_bots_prod_id())
+        if (a_scope.has_bots_prod_id())
         {
                 // -----------------------------------------
                 // check exist
                 // -----------------------------------------
                 id_bots_map_t::iterator i_bots = m_id_bots_map.find(a_scope.bots_prod_id());
-                if(i_bots != m_id_bots_map.end())
+                if (i_bots != m_id_bots_map.end())
                 {
                         a_scope.set__bots_prod__reserved((uint64_t)i_bots->second);
                         goto bots_prod_action;
@@ -761,12 +761,12 @@ acl_prod_action:
                 bots* l_bots = new bots(m_engine, m_challenge);
                 int32_t l_s;
                 l_s = l_bots->load_file(l_path.c_str(), l_path.length());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading bots (prod) conf file: %s. reason: %s\n",
                                    l_path.c_str(),
                                    l_bots->get_err_msg());
-                        if(l_bots) { delete l_bots; l_bots = NULL;}
+                        if (l_bots) { delete l_bots; l_bots = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
@@ -779,12 +779,12 @@ bots_prod_action:
         // -------------------------------------------------
         //  bots prod action
         // -------------------------------------------------
-        if(a_scope.has_bots_prod_action())
+        if (a_scope.has_bots_prod_action())
         {
                 waflz_pb::enforcement *l_a = a_scope.mutable_bots_prod_action();
                 int32_t l_s;
                 l_s = compile_action(*l_a, m_err_msg);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }       
@@ -792,13 +792,13 @@ bots_prod_action:
         // -------------------------------------------------
         // rules audit
         // -------------------------------------------------
-        if(a_scope.has_rules_audit_id())
+        if (a_scope.has_rules_audit_id())
         {
                 // -----------------------------------------
                 // check exist
                 // -----------------------------------------
                 id_rules_map_t::iterator i_rules = m_id_rules_map.find(a_scope.rules_audit_id());
-                if(i_rules != m_id_rules_map.end())
+                if (i_rules != m_id_rules_map.end())
                 {
                         a_scope.set__rules_audit__reserved((uint64_t)i_rules->second);
                         goto rules_audit_action;
@@ -811,14 +811,14 @@ bots_prod_action:
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
                 l_s = l_rules->load_file(l_path.c_str(), l_path.length());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading rules (audit) conf file: %s. reason: %s\n",
                                    l_path.c_str(),
                                    "__na__");
                                    // TODO -get reason...
                                    //l_wafl->get_err_msg());
-                        if(l_rules) { delete l_rules; l_rules = NULL;}
+                        if (l_rules) { delete l_rules; l_rules = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
@@ -831,12 +831,12 @@ rules_audit_action:
         // -------------------------------------------------
         // rules audit action
         // -------------------------------------------------
-        if(a_scope.has_rules_audit_action())
+        if (a_scope.has_rules_audit_action())
         {
                 waflz_pb::enforcement *l_a = a_scope.mutable_rules_audit_action();
                 int32_t l_s;
                 l_s = compile_action(*l_a, m_err_msg);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -844,13 +844,13 @@ rules_audit_action:
         // -------------------------------------------------
         // rules prod
         // -------------------------------------------------
-        if(a_scope.has_rules_prod_id())
+        if (a_scope.has_rules_prod_id())
         {
                 // -----------------------------------------
                 // check exist
                 // -----------------------------------------
                 id_rules_map_t::iterator i_rules = m_id_rules_map.find(a_scope.rules_prod_id());
-                if(i_rules != m_id_rules_map.end())
+                if (i_rules != m_id_rules_map.end())
                 {
                         a_scope.set__rules_prod__reserved((uint64_t)i_rules->second);
                         goto rules_prod_action;
@@ -863,14 +863,14 @@ rules_audit_action:
                 rules *l_rules = new rules(m_engine);
                 int32_t l_s;
                 l_s = l_rules->load_file(l_path.c_str(), l_path.length());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         NDBG_PRINT("error loading rules (prod) conf file: %s. reason: %s\n",
                                    l_path.c_str(),
                                    "__na__");
                                    // TODO -get reason...
                                    //l_wafl->get_err_msg());
-                        if(l_rules) { delete l_rules; l_rules = NULL;}
+                        if (l_rules) { delete l_rules; l_rules = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
@@ -883,12 +883,12 @@ rules_prod_action:
         // -------------------------------------------------
         // rules prod action
         // -------------------------------------------------
-        if(a_scope.has_rules_prod_action())
+        if (a_scope.has_rules_prod_action())
         {
                 waflz_pb::enforcement *l_a = a_scope.mutable_rules_prod_action();
                 int32_t l_s;
                 l_s = compile_action(*l_a, m_err_msg);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -896,13 +896,13 @@ rules_prod_action:
         // -------------------------------------------------
         // profile audit
         // -------------------------------------------------
-        if(a_scope.has_profile_audit_id())
+        if (a_scope.has_profile_audit_id())
         {
                 // -----------------------------------------
                 // check exist
                 // -----------------------------------------
                 id_profile_map_t::iterator i_profile = m_id_profile_map.find(a_scope.profile_audit_id());
-                if(i_profile != m_id_profile_map.end())
+                if (i_profile != m_id_profile_map.end())
                 {
                         a_scope.set__profile_audit__reserved((uint64_t)i_profile->second);
                         goto profile_audit_action;
@@ -917,22 +917,22 @@ rules_prod_action:
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
                 l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        if(l_profile) { delete l_profile; l_profile = NULL;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        if (l_profile) { delete l_profile; l_profile = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_s = l_profile->load(l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                       if(l_profile) { delete l_profile; l_profile = NULL;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                       if (l_profile) { delete l_profile; l_profile = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 // -----------------------------------------
                 // add to map
                 // -----------------------------------------
@@ -943,12 +943,12 @@ profile_audit_action:
         // -------------------------------------------------
         // acl audit action
         // -------------------------------------------------
-        if(a_scope.has_profile_audit_action())
+        if (a_scope.has_profile_audit_action())
         {
                 waflz_pb::enforcement *l_a = a_scope.mutable_profile_audit_action();
                 int32_t l_s;
                 l_s = compile_action(*l_a, m_err_msg);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -956,13 +956,13 @@ profile_audit_action:
         // -------------------------------------------------
         // profile prod
         // -------------------------------------------------
-        if(a_scope.has_profile_prod_id())
+        if (a_scope.has_profile_prod_id())
         {
                 // -----------------------------------------
                 // check exist
                 // -----------------------------------------
                 id_profile_map_t::iterator i_profile = m_id_profile_map.find(a_scope.profile_prod_id());
-                if(i_profile != m_id_profile_map.end())
+                if (i_profile != m_id_profile_map.end())
                 {
                         a_scope.set__profile_prod__reserved((uint64_t)i_profile->second);
                         goto profile_prod_action;
@@ -977,22 +977,22 @@ profile_audit_action:
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
                 l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        if(l_profile) { delete l_profile; l_profile = NULL;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        if (l_profile) { delete l_profile; l_profile = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_s = l_profile->load(l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_profile->get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        if(l_profile) { delete l_profile; l_profile = NULL;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        if (l_profile) { delete l_profile; l_profile = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 // -----------------------------------------
                 // add to map
                 // -----------------------------------------
@@ -1003,12 +1003,12 @@ profile_prod_action:
         // -------------------------------------------------
         // acl audit action
         // -------------------------------------------------
-        if(a_scope.has_profile_prod_action())
+        if (a_scope.has_profile_prod_action())
         {
                 waflz_pb::enforcement *l_a = a_scope.mutable_profile_prod_action();
                 int32_t l_s;
                 l_s = compile_action(*l_a, m_err_msg);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -1018,7 +1018,7 @@ profile_prod_action:
         // -------------------------------------------------
         for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
         {
-                if(!a_scope.limits(i_l).has_id())
+                if (!a_scope.limits(i_l).has_id())
                 {
                         continue;
                 }
@@ -1027,7 +1027,7 @@ profile_prod_action:
                 // check exist...
                 // -----------------------------------------
                 id_limit_map_t::iterator i_limit = m_id_limit_map.find(l_id);
-                if(i_limit != m_id_limit_map.end())
+                if (i_limit != m_id_limit_map.end())
                 {
                         a_scope.mutable_limits(i_l)->set__reserved_1((uint64_t)i_limit->second);
                         goto limit_action;
@@ -1043,22 +1043,22 @@ profile_prod_action:
                 char *l_buf = NULL;
                 uint32_t l_buf_len;
                 l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        if(l_limit) { delete l_limit; l_limit = NULL;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        if (l_limit) { delete l_limit; l_limit = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_s = l_limit->load(l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", l_limit->get_err_msg());
-                        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
-                        if(l_limit) { delete l_limit; l_limit = NULL;}
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        if (l_limit) { delete l_limit; l_limit = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 // -----------------------------------------
                 // add to map
                 // -----------------------------------------
@@ -1069,12 +1069,12 @@ limit_action:
                 // -----------------------------------------
                 // limit action
                 // -----------------------------------------
-                if(a_scope.limits(i_l).has_action())
+                if (a_scope.limits(i_l).has_action())
                 {
                         waflz_pb::enforcement *l_a = a_scope.mutable_limits(i_l)->mutable_action();
                         int32_t l_s;
                         l_s = compile_action(*l_a, m_err_msg);
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
@@ -1109,32 +1109,44 @@ int32_t scopes::process_request_plugin(void **ao_enf,
                       PART_MK_ALL,
                       a_cb,
                       ao_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // Serialize all proto msgs
         // -------------------------------------------------
-        if(l_enf)
+        if (l_enf)
         {
+#if GOOGLE_PROTOBUF_VERSION < 3006001
+                size_t l_enf_size = l_enf->ByteSize();
+#else
                 size_t l_enf_size = l_enf->ByteSizeLong();
+#endif
                 void *l_enf_buffer = malloc(l_enf_size);
                 l_enf->SerializeToArray(l_enf_buffer, l_enf_size);
                 *ao_enf = l_enf_buffer;
                 *ao_enf_len = l_enf_size;
         }
-        if(l_audit_event)
+        if (l_audit_event)
         {
+#if GOOGLE_PROTOBUF_VERSION < 3006001
+                size_t l_event_len = l_audit_event->ByteSize();
+#else
                 size_t l_event_len = l_audit_event->ByteSizeLong();
+#endif
                 void *l_event = malloc(l_event_len);
                 l_audit_event->SerializeToArray(l_event, l_event_len);
                 *ao_audit_event = l_event;
                 *ao_audit_event_len = l_event_len;
         }
-        if(l_prod_event)
+        if (l_prod_event)
         {
+#if GOOGLE_PROTOBUF_VERSION < 3006001
+                size_t l_event_len = l_prod_event->ByteSize();
+#else
                 size_t l_event_len = l_prod_event->ByteSizeLong();
+#endif
                 void *l_event = malloc(l_event_len);
                 l_prod_event->SerializeToArray(l_event, l_event_len);
                 *ao_prod_event = l_event;
@@ -1155,7 +1167,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         const rqst_ctx_callbacks *a_cb,
                         rqst_ctx **ao_rqst_ctx)
 {
-        if(!m_pb)
+        if (!m_pb)
         {
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");
                 return WAFLZ_STATUS_ERROR;
@@ -1167,7 +1179,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         // TODO -fix args!!!
         //l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
         l_ctx = new rqst_ctx(a_ctx, DEFAULT_BODY_SIZE_MAX, a_cb);
-        if(ao_rqst_ctx)
+        if (ao_rqst_ctx)
         {
                 *ao_rqst_ctx = l_ctx;
         }
@@ -1176,10 +1188,10 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         int32_t l_s;
         l_s = l_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), NULL, NULL, NULL);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
-                if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+                if (!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -1190,16 +1202,16 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 const ::waflz_pb::scope& l_sc = m_pb->scopes(i_s);
                 bool l_m;
                 l_s = in_scope(l_m, l_sc, l_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO -log error???
-                        if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+                        if (!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
                 // no match continue to next check...
                 // -----------------------------------------
-                if(!l_m)
+                if (!l_m)
                 {
                         continue;
                 }
@@ -1209,23 +1221,23 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                               l_sc, a_ctx,
                               a_part_mk,
                               ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO -log error???
-                        if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+                        if (!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
                 // Log scope id and name
                 // that generated an event
                 // -----------------------------------------
-                if(*ao_audit_event)
+                if (*ao_audit_event)
                 {
                         (*ao_audit_event)->set_scope_config_id(l_sc.id());
                         (*ao_audit_event)->set_scope_config_name(l_sc.name());
                         (*ao_audit_event)->set_account_type(m_account_type);
                 }
-                if(*ao_prod_event)
+                if (*ao_prod_event)
                 {
                         (*ao_prod_event)->set_scope_config_id(l_sc.id());
                         (*ao_prod_event)->set_scope_config_name(l_sc.name());
@@ -1239,7 +1251,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+        if (!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -1249,14 +1261,14 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
 //! ----------------------------------------------------------------------------
 bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
 {
-        if(a_loaded_date == NULL ||
+        if (a_loaded_date == NULL ||
            a_new_date == NULL)
         {
                 return false;
         }
         uint64_t l_loaded_epoch = get_epoch_seconds(a_loaded_date, CONFIG_DATE_FORMAT);
         uint64_t l_new_epoch = get_epoch_seconds(a_new_date, CONFIG_DATE_FORMAT);
-        if(l_loaded_epoch >= l_new_epoch)
+        if (l_loaded_epoch >= l_new_epoch)
         {
                 return false;
         }
@@ -1269,7 +1281,7 @@ bool scopes::compare_dates(const char* a_loaded_date, const char* a_new_date)
 //! ----------------------------------------------------------------------------
 int32_t scopes::load_limit(ns_waflz::limit* a_limit)
 {
-        if(!a_limit)
+        if (!a_limit)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -1278,9 +1290,9 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
         // check id in map
         // -------------------------------------------------
         id_limit_map_t::iterator i_t = m_id_limit_map.find(l_id);
-        if(i_t == m_id_limit_map.end())
+        if (i_t == m_id_limit_map.end())
         {
-                if(a_limit) { delete a_limit; a_limit = NULL; }
+                if (a_limit) { delete a_limit; a_limit = NULL; }
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -1288,19 +1300,19 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
         // -------------------------------------------------
         const waflz_pb::limit* l_old_pb = i_t->second->get_pb();
         const waflz_pb::limit* l_new_pb = a_limit->get_pb();
-        if((l_old_pb != NULL) &&
+        if ((l_old_pb != NULL) &&
            (l_new_pb != NULL) &&
            (l_old_pb->has_last_modified_date()) &&
            (l_new_pb->has_last_modified_date()))
         {
-                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                if (!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        if(a_limit) { delete a_limit; a_limit = NULL; }
+                        if (a_limit) { delete a_limit; a_limit = NULL; }
                         return WAFLZ_STATUS_OK;
                 }
         }
-        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        if (i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_limit;
         // -------------------------------------------------
         // update scope's reserved fields
@@ -1311,7 +1323,7 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
                 for(int i_l = 0; i_l < l_sc.limits_size(); ++i_l)
                 {       
                         ::waflz_pb::scope_limit_config* l_slc = l_sc.mutable_limits(i_l);
-                        if(l_slc->id() == l_id)
+                        if (l_slc->id() == l_id)
                         {
                                 l_slc->set__reserved_1((uint64_t)a_limit);
                                 break;
@@ -1327,7 +1339,7 @@ int32_t scopes::load_limit(ns_waflz::limit* a_limit)
 //! ----------------------------------------------------------------------------
 int32_t scopes::load_acl(ns_waflz::acl* a_acl)
 {
-        if(!a_acl)
+        if (!a_acl)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -1336,9 +1348,9 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
         // check id in map
         // -------------------------------------------------
         id_acl_map_t::iterator i_t = m_id_acl_map.find(l_id);
-        if(i_t == m_id_acl_map.end())
+        if (i_t == m_id_acl_map.end())
         {
-                if(a_acl) { delete a_acl; a_acl = NULL; }
+                if (a_acl) { delete a_acl; a_acl = NULL; }
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -1346,19 +1358,19 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
         // -------------------------------------------------
         const waflz_pb::acl* l_old_pb = i_t->second->get_pb();
         const waflz_pb::acl* l_new_pb = a_acl->get_pb();
-        if((l_old_pb != NULL) &&
+        if ((l_old_pb != NULL) &&
            (l_new_pb != NULL) &&
            (l_old_pb->has_last_modified_date()) &&
            (l_new_pb->has_last_modified_date()))
         {
-                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                if (!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        if(a_acl) { delete a_acl; a_acl = NULL; }
+                        if (a_acl) { delete a_acl; a_acl = NULL; }
                         return WAFLZ_STATUS_OK;
                 }
         }
-        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        if (i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_acl;
         // -------------------------------------------------
         // update scope's reserved fields
@@ -1366,12 +1378,12 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-                if(l_sc.has_acl_audit_id() &&
+                if (l_sc.has_acl_audit_id() &&
                    l_sc.acl_audit_id() == l_id)
                 {
                         l_sc.set__acl_audit__reserved((uint64_t)a_acl);
                 }
-                if(l_sc.has_acl_prod_id() &&
+                if (l_sc.has_acl_prod_id() &&
                    l_sc.acl_prod_id() == l_id)
                 {
                         l_sc.set__acl_prod__reserved((uint64_t)a_acl);
@@ -1386,7 +1398,7 @@ int32_t scopes::load_acl(ns_waflz::acl* a_acl)
 //! ----------------------------------------------------------------------------
 int32_t scopes::load_rules(ns_waflz::rules* a_rules)
 {
-        if(!a_rules)
+        if (!a_rules)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -1395,9 +1407,9 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
         // check id in map
         // -------------------------------------------------
         id_rules_map_t::iterator i_t = m_id_rules_map.find(l_id);
-        if(i_t == m_id_rules_map.end())
+        if (i_t == m_id_rules_map.end())
         {
-                if(a_rules) {delete a_rules; a_rules = NULL;}
+                if (a_rules) {delete a_rules; a_rules = NULL;}
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -1405,19 +1417,19 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
         // -------------------------------------------------
         const waflz_pb::sec_config_t* l_old_pb = i_t->second->get_pb();
         const waflz_pb::sec_config_t* l_new_pb = a_rules->get_pb();
-        if((l_old_pb != NULL) &&
+        if ((l_old_pb != NULL) &&
            (l_new_pb != NULL) &&
            (l_old_pb->has_last_modified_date()) &&
            (l_new_pb->has_last_modified_date()))
         {
-                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                if (!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        if(a_rules) { delete a_rules; a_rules = NULL; }
+                        if (a_rules) { delete a_rules; a_rules = NULL; }
                         return WAFLZ_STATUS_OK;
                 }
         }
-        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        if (i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_rules;
         // -------------------------------------------------
         // update scope's reserved fields
@@ -1425,12 +1437,12 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-                if(l_sc.has_rules_audit_id() &&
+                if (l_sc.has_rules_audit_id() &&
                    l_sc.rules_audit_id() == l_id)
                 {
                         l_sc.set__rules_audit__reserved((uint64_t)a_rules);
                 }
-                if(l_sc.has_rules_prod_id() &&
+                if (l_sc.has_rules_prod_id() &&
                    l_sc.rules_prod_id() == l_id)
                 {
                         l_sc.set__rules_prod__reserved((uint64_t)a_rules);
@@ -1445,7 +1457,7 @@ int32_t scopes::load_rules(ns_waflz::rules* a_rules)
 //! ----------------------------------------------------------------------------
 int32_t scopes::load_bots(ns_waflz::bots* a_bots)
 {
-        if(!a_bots)
+        if (!a_bots)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -1454,9 +1466,9 @@ int32_t scopes::load_bots(ns_waflz::bots* a_bots)
         // check id in map
         // -------------------------------------------------
         id_bots_map_t::iterator i_t = m_id_bots_map.find(l_id);
-        if(i_t == m_id_bots_map.end())
+        if (i_t == m_id_bots_map.end())
         {
-                if(a_bots) { delete a_bots; a_bots = NULL; }
+                if (a_bots) { delete a_bots; a_bots = NULL; }
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -1464,19 +1476,19 @@ int32_t scopes::load_bots(ns_waflz::bots* a_bots)
         // -------------------------------------------------
         const waflz_pb::sec_config_t* l_old_pb = i_t->second->get_pb();
         const waflz_pb::sec_config_t* l_new_pb = a_bots->get_pb();
-        if((l_old_pb != NULL) &&
+        if ((l_old_pb != NULL) &&
            (l_new_pb != NULL) &&
            (l_old_pb->has_last_modified_date()) &&
            (l_new_pb->has_last_modified_date()))
         {
-                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                if (!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        if(a_bots) { delete a_bots; a_bots = NULL; }
+                        if (a_bots) { delete a_bots; a_bots = NULL; }
                         return WAFLZ_STATUS_OK;
                 }
         }
-        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        if (i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_bots;
         // -------------------------------------------------
         // update scope's reserved fields
@@ -1484,7 +1496,7 @@ int32_t scopes::load_bots(ns_waflz::bots* a_bots)
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
-                if(l_sc.has_bots_prod_id() &&
+                if (l_sc.has_bots_prod_id() &&
                    l_sc.bots_prod_id() == l_id)
                 {
                         l_sc.set__bots_prod__reserved((uint64_t)a_bots);
@@ -1499,7 +1511,7 @@ int32_t scopes::load_bots(ns_waflz::bots* a_bots)
 //! ----------------------------------------------------------------------------
 int32_t scopes::load_profile(ns_waflz::profile* a_profile)
 {
-        if(!a_profile)
+        if (!a_profile)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -1508,9 +1520,9 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
         // check id in map
         // -------------------------------------------------
         id_profile_map_t::iterator i_t = m_id_profile_map.find(l_id);
-        if(i_t == m_id_profile_map.end())
+        if (i_t == m_id_profile_map.end())
         {
-                if(a_profile) { delete a_profile; a_profile = NULL; }
+                if (a_profile) { delete a_profile; a_profile = NULL; }
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
@@ -1518,19 +1530,19 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
         // -------------------------------------------------
         const waflz_pb::profile* l_old_pb = i_t->second->get_pb();
         const waflz_pb::profile* l_new_pb = a_profile->get_pb();
-        if((l_old_pb != NULL) &&
+        if ((l_old_pb != NULL) &&
            (l_new_pb != NULL) &&
            (l_old_pb->has_last_modified_date()) &&
            (l_new_pb->has_last_modified_date()))
         {
-                if(!compare_dates(l_old_pb->last_modified_date().c_str(),
+                if (!compare_dates(l_old_pb->last_modified_date().c_str(),
                                   l_new_pb->last_modified_date().c_str()))
                 {
-                        if(a_profile) { delete a_profile; a_profile = NULL; }
+                        if (a_profile) { delete a_profile; a_profile = NULL; }
                         return WAFLZ_STATUS_OK;
                 }
         }
-        if(i_t->second) { delete i_t->second; i_t->second = NULL;}
+        if (i_t->second) { delete i_t->second; i_t->second = NULL;}
         i_t->second = a_profile;
         // -------------------------------------------------
         // update scope's reserved fields
@@ -1539,12 +1551,12 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
         {
                 ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
 
-                if(l_sc.has_profile_audit_id() &&
+                if (l_sc.has_profile_audit_id() &&
                     l_sc.profile_audit_id() == l_id)
                 {
                         l_sc.set__profile_audit__reserved((uint64_t)a_profile);
                 }       
-                if(l_sc.has_profile_prod_id() &&
+                if (l_sc.has_profile_prod_id() &&
                     l_sc.profile_prod_id() == l_id)
                 {
                         l_sc.set__profile_prod__reserved((uint64_t)a_profile);
@@ -1568,7 +1580,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         // -------------------------------------------------
         // sanity checking
         // -------------------------------------------------
-        if(!ao_enf ||
+        if (!ao_enf ||
            !ao_audit_event ||
            !ao_prod_event)
         {
@@ -1589,7 +1601,7 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-        if((a_part_mk & PART_MK_ACL) &&
+        if ((a_part_mk & PART_MK_ACL) &&
            a_scope.has__acl_audit__reserved())
         {
                 acl *l_acl = (acl *)a_scope._acl_audit__reserved();
@@ -1597,28 +1609,28 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
                 bool l_wl = false;
                 int32_t l_s;
                 l_s = l_acl->process(&l_event, l_wl, a_ctx, ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if (l_event) { delete l_event; l_event = NULL; }
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(l_wl)
+                if (l_wl)
                 {
                         goto prod;
                 }
-                if(!l_event)
+                if (!l_event)
                 {
                         goto audit_rules;
                 }
                 l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event, m_engine.get_geoip2_mmdb());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
                 l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
-                if(a_scope.has_acl_audit_action() &&
+                if (a_scope.has_acl_audit_action() &&
                    a_scope.acl_audit_action().has_enf_type())
                 {
                          l_event->set_waf_profile_action(a_scope.acl_audit_action().enf_type());
@@ -1630,27 +1642,27 @@ int32_t scopes::process(const waflz_pb::enforcement** ao_enf,
         // rules
         // -------------------------------------------------
 audit_rules:
-        if((a_part_mk & PART_MK_RULES) &&
+        if ((a_part_mk & PART_MK_RULES) &&
            a_scope.has__rules_audit__reserved())
         {
                 rules *l_rules = (rules *)a_scope._rules_audit__reserved();
                 waflz_pb::event *l_event = NULL;
                 int32_t l_s;
                 l_s = l_rules->process(&l_event, a_ctx, ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if (l_event) { delete l_event; l_event = NULL; }
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(!l_event)
+                if (!l_event)
                 {
                         goto audit_profile;
                 }
                 l_event->set_rules_config_id(l_rules->get_id());
                 l_event->set_rules_config_name(l_rules->get_name());
                 l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
-                if(a_scope.has_rules_audit_action() &&
+                if (a_scope.has_rules_audit_action() &&
                    a_scope.rules_audit_action().has_enf_type())
                 {
                          l_event->set_waf_profile_action(a_scope.rules_audit_action().enf_type());
@@ -1662,7 +1674,7 @@ audit_rules:
         // profile
         // -------------------------------------------------
 audit_profile:
-        if((a_part_mk & PART_MK_WAF) &&
+        if ((a_part_mk & PART_MK_WAF) &&
            a_scope.has__profile_audit__reserved())
         {
                 int32_t l_s;
@@ -1670,7 +1682,7 @@ audit_profile:
                 // reset phase 1 to handle ignore...
                 // -----------------------------------------
                 l_s = (*ao_rqst_ctx)->reset_phase_1();
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
@@ -1681,18 +1693,18 @@ audit_profile:
                 profile *l_profile = (profile *)a_scope._profile_audit__reserved();
                 waflz_pb::event *l_event = NULL;
                 l_s = l_profile->process(&l_event, a_ctx, PART_MK_WAF, ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if (l_event) { delete l_event; l_event = NULL; }
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(!l_event)
+                if (!l_event)
                 {
                         goto prod;
                 }
                 l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
-                if(a_scope.has_profile_audit_action() &&
+                if (a_scope.has_profile_audit_action() &&
                    a_scope.profile_audit_action().has_enf_type())
                 {
                          l_event->set_waf_profile_action(a_scope.profile_audit_action().enf_type());
@@ -1709,7 +1721,7 @@ prod:
         // -------------------------------------------------
         // acl
         // -------------------------------------------------
-        if((a_part_mk & PART_MK_ACL) &&
+        if ((a_part_mk & PART_MK_ACL) &&
            a_scope.has__acl_prod__reserved())
         {
                 acl *l_acl = (acl *)a_scope._acl_prod__reserved();
@@ -1717,31 +1729,31 @@ prod:
                 bool l_wl = false;
                 int32_t l_s;
                 l_s = l_acl->process(&l_event, l_wl, a_ctx, ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if (l_event) { delete l_event; l_event = NULL; }
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(l_wl)
+                if (l_wl)
                 {
                         goto done;
                 }
-                if(!l_event)
+                if (!l_event)
                 {
                         goto enforcements;
                 }
                 l_s = (*ao_rqst_ctx)->append_rqst_info(*l_event, m_engine.get_geoip2_mmdb());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::append_rqst_info for acl");
                         return WAFLZ_STATUS_ERROR;
                 }
                 *ao_prod_event = l_event;
-                if(a_scope.has_acl_prod_action())
+                if (a_scope.has_acl_prod_action())
                 {
                         *ao_enf = &(a_scope.acl_prod_action());
-                        if((*ao_enf)->has_status())
+                        if ((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
                         }
@@ -1752,23 +1764,23 @@ prod:
         // enforcements
         // -------------------------------------------------
 enforcements:
-        if(!m_enfx)
+        if (!m_enfx)
         {
                 goto limits;
         }
-        if(a_part_mk & PART_MK_LIMITS)
+        if (a_part_mk & PART_MK_LIMITS)
         {
                 int32_t l_s;
                 l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing enforcer process");
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(*ao_enf)
+                if (*ao_enf)
                 {
                         //TODO: handle browser challenge validation
-                        if((*ao_enf)->has_status())
+                        if ((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
                         }
@@ -1779,13 +1791,13 @@ limits:
         // -------------------------------------------------
         // limits
         // -------------------------------------------------
-        if(a_part_mk & PART_MK_LIMITS)
+        if (a_part_mk & PART_MK_LIMITS)
         {
                 for(int i_l = 0; i_l < a_scope.limits_size(); ++i_l)
                 {
                         int32_t l_s;
                         const ::waflz_pb::scope_limit_config& l_slc = a_scope.limits(i_l);
-                        if(!l_slc.has__reserved_1())
+                        if (!l_slc.has__reserved_1())
                         {
                                 continue;
                         }
@@ -1793,16 +1805,16 @@ limits:
                         bool l_exceeds = false;
                         const waflz_pb::condition_group *l_cg = NULL;
                         l_s = l_limit->process(l_exceeds, &l_cg, a_scope.id(), *ao_rqst_ctx);
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "performing limit process.");
                                 return WAFLZ_STATUS_ERROR;
                         }
-                        if(!l_exceeds)
+                        if (!l_exceeds)
                         {
                                 continue;
                         }
-                        if(!l_slc.has_action())
+                        if (!l_slc.has_action())
                         {
                                 continue;
                         }
@@ -1821,7 +1833,7 @@ limits:
                                                l_axn,
                                                a_scope,
                                                *ao_rqst_ctx);
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "performing add_exceed_limit");
                                 return WAFLZ_STATUS_ERROR;
@@ -1833,26 +1845,26 @@ limits:
                         //NDBG_OUTPUT("l_enfx: %s\n", l_enfcr->ShortDebugString().c_str());
                         l_s = m_enfx->merge(*l_cfg);
                         // TODO -return enforcer...
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
                                 WAFLZ_PERROR(m_err_msg, "%s", m_enfx->get_err_msg());
                                 return WAFLZ_STATUS_ERROR;
                         }
-                        if(l_cfg) { delete l_cfg; l_cfg = NULL; }
+                        if (l_cfg) { delete l_cfg; l_cfg = NULL; }
                         // ---------------------------------
                         // process enforcer
                         // ---------------------------------
                         l_s = m_enfx->process(ao_enf, *ao_rqst_ctx);
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
                         // ---------------------------------
                         // enforced???
                         // ---------------------------------
-                        if(*ao_enf)
+                        if (*ao_enf)
                         {
-                                if((*ao_enf)->has_status())
+                                if ((*ao_enf)->has_status())
                                 {
                                         (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
                                 }
@@ -1863,7 +1875,7 @@ limits:
         // -------------------------------------------------
         // bots
         // -------------------------------------------------
-        if((a_part_mk & PART_MK_BOTS) &&
+        if ((a_part_mk & PART_MK_BOTS) &&
            a_scope.has__bots_prod__reserved())
         {
                 // -----------------------------------------
@@ -1875,28 +1887,28 @@ limits:
                 const waflz_pb::enforcement *l_scope_enf = &(a_scope.bots_prod_action());
                 int32_t l_s;
                 l_s = l_bots->process(&l_event, a_ctx, &l_repdb_enf, &l_scope_enf, ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if (l_event) { delete l_event; l_event = NULL; }
                         WAFLZ_PERROR(m_err_msg, "%s", l_bots->get_err_msg());
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(!l_event)
+                if (!l_event)
                 {
                         goto prod_rules;
                 }
                 l_event->set_bots_config_id(l_bots->get_id());
                 l_event->set_bots_config_name(l_bots->get_name());
                 *ao_prod_event = l_event;
-                if(l_repdb_enf)
+                if (l_repdb_enf)
                 {
                         *ao_enf = l_repdb_enf;
                 }
-                else if(a_scope.has_bots_prod_action() &&
+                else if (a_scope.has_bots_prod_action() &&
                         !(*ao_rqst_ctx)->m_bot_repdb_enf)
                 {
                         *ao_enf = l_scope_enf;
-                        if((*ao_enf)->has_status())
+                        if ((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
                         }
@@ -1907,7 +1919,7 @@ prod_rules:
         // -------------------------------------------------
         // rules
         // -------------------------------------------------
-        if((a_part_mk & PART_MK_RULES) &&
+        if ((a_part_mk & PART_MK_RULES) &&
            a_scope.has__rules_prod__reserved())
         {
                 // -----------------------------------------
@@ -1917,23 +1929,23 @@ prod_rules:
                 waflz_pb::event *l_event = NULL;
                 int32_t l_s;
                 l_s = l_rules->process(&l_event, a_ctx, ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if (l_event) { delete l_event; l_event = NULL; }
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(!l_event)
+                if (!l_event)
                 {
                         goto prod_profile;
                 }
                 l_event->set_rules_config_id(l_rules->get_id());
                 l_event->set_rules_config_name(l_rules->get_name());
                 *ao_prod_event = l_event;
-                if(a_scope.has_rules_prod_action())
+                if (a_scope.has_rules_prod_action())
                 {
                         *ao_enf = &(a_scope.rules_prod_action());;
-                        if((*ao_enf)->has_status())
+                        if ((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
                         }
@@ -1944,7 +1956,7 @@ prod_rules:
         // profile
         // -------------------------------------------------
 prod_profile:
-        if((a_part_mk & PART_MK_WAF) &&
+        if ((a_part_mk & PART_MK_WAF) &&
            a_scope.has__profile_prod__reserved())
         {
                 // -----------------------------------------
@@ -1952,7 +1964,7 @@ prod_profile:
                 // -----------------------------------------
                 int32_t l_s;
                 l_s = (*ao_rqst_ctx)->reset_phase_1();
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
@@ -1963,21 +1975,21 @@ prod_profile:
                 profile *l_profile = (profile *)a_scope._profile_prod__reserved();
                 waflz_pb::event *l_event = NULL;
                 l_s = l_profile->process(&l_event, a_ctx, PART_MK_WAF, ao_rqst_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_event) { delete l_event; l_event = NULL; }
+                        if (l_event) { delete l_event; l_event = NULL; }
                         // TODO reason???
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(!l_event)
+                if (!l_event)
                 {
                         goto done;
                 }
                 *ao_prod_event = l_event;
-                if(a_scope.has_profile_prod_action())
+                if (a_scope.has_profile_prod_action())
                 {
                         *ao_enf = &(a_scope.profile_prod_action());
-                        if((*ao_enf)->has_status())
+                        if ((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();
                         }
@@ -2002,7 +2014,7 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
                                  const waflz_pb::scope& a_scope,
                                  rqst_ctx *a_ctx)
 {
-        if(!ao_cfg)
+        if (!ao_cfg)
         {
                 WAFLZ_PERROR(m_err_msg, "enforcer ptr NULL.");
                 return WAFLZ_STATUS_ERROR;
@@ -2022,7 +2034,7 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         waflz_pb::limit* l_limit = l_cfg->add_limits();
         l_limit->set_id(a_limit.id());
         l_limit->set_customer_id(m_cust_id);
-        if(a_limit.has_name())
+        if (a_limit.has_name())
         {
             l_limit->set_name(a_limit.name());
         }
@@ -2030,7 +2042,7 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         {
                 l_limit->set_name("__na__");
         }
-        if(a_limit.has_last_modified_date())
+        if (a_limit.has_last_modified_date())
         {
                 l_limit->set_last_modified_date(a_limit.last_modified_date());
         }
@@ -2038,25 +2050,25 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         // -------------------------------------------------
         // copy "the limit"
         // -------------------------------------------------
-        if(a_condition_group)
+        if (a_condition_group)
         {
                 waflz_pb::condition_group *l_cg = l_limit->add_condition_groups();
                 l_cg->CopyFrom(*a_condition_group);
         }
         waflz_pb::scope* l_sc = l_limit->mutable_scope();
-        if(a_scope.has_host())
+        if (a_scope.has_host())
         {
                 l_sc->mutable_host()->CopyFrom(a_scope.host());
         }
-        if(a_scope.has_path())
+        if (a_scope.has_path())
         {
                 l_sc->mutable_path()->CopyFrom(a_scope.path());
         }
-        if(a_scope.has_id())
+        if (a_scope.has_id())
         {
                 l_sc->set_id(a_scope.id());
         }
-        if(a_scope.has_name())
+        if (a_scope.has_name())
         {
                 l_sc->set_name(a_scope.name());
         }
@@ -2069,7 +2081,7 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
                 l_s = add_limit_with_key(*l_limit,
                                          a_limit.keys(i_k),
                                          a_ctx);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO cleanup
                         return WAFLZ_STATUS_ERROR;
@@ -2093,7 +2105,7 @@ int32_t scopes::add_exceed_limit(waflz_pb::config **ao_cfg,
         // -------------------------------------------------
         // duration calculation
         // -------------------------------------------------
-        if(l_e->has_duration_sec())
+        if (l_e->has_duration_sec())
         {
                 l_e_duration_s = l_e->duration_sec();
         }
@@ -2128,7 +2140,7 @@ int32_t rl_run_op(bool &ao_matched,
         // assume operator is STREQ
         ao_matched = false;
         waflz_pb::op_t_type_t l_op_type = waflz_pb::op_t_type_t_STREQ;
-        if(a_op.has_type())
+        if (a_op.has_type())
         {
                 // operator type actually provided
                 l_op_type = a_op.type();
@@ -2143,12 +2155,12 @@ int32_t rl_run_op(bool &ao_matched,
                 // -----------------------------------------
                 // get regex
                 // -----------------------------------------
-                if(!a_op.has__reserved_1())
+                if (!a_op.has__reserved_1())
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
                 regex *l_rx = (regex *)(a_op._reserved_1());
-                if(!l_rx)
+                if (!l_rx)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -2158,7 +2170,7 @@ int32_t rl_run_op(bool &ao_matched,
                 int l_s;
                 l_s = l_rx->compare(a_data, a_len);
                 // if failed to match
-                if(l_s < 0)
+                if (l_s < 0)
                 {
                         break;
                 }
@@ -2172,12 +2184,12 @@ int32_t rl_run_op(bool &ao_matched,
         {
                 const std::string &l_op_match = a_op.value();
                 uint32_t l_len = l_op_match.length();
-                if(l_len != a_len)
+                if (l_len != a_len)
                 {
                         break;
                 }
                 int l_cmp = 0;
-                if(a_case_insensitive)
+                if (a_case_insensitive)
                 {
                         l_cmp = strncasecmp(l_op_match.c_str(), a_data, l_len);
                 }
@@ -2185,7 +2197,7 @@ int32_t rl_run_op(bool &ao_matched,
                 {
                         l_cmp = strncmp(l_op_match.c_str(), a_data, l_len);
                 }
-                if(l_cmp == 0)
+                if (l_cmp == 0)
                 {
                         // matched
                         ao_matched = true;
@@ -2199,14 +2211,14 @@ int32_t rl_run_op(bool &ao_matched,
         case waflz_pb::op_t_type_t_GLOB:
         {
                 int l_flags = FNM_NOESCAPE;
-                if(a_case_insensitive)
+                if (a_case_insensitive)
                 {
                         l_flags |= FNM_CASEFOLD;
                 }
                 int l_cmp;
                 const std::string &l_op_match = a_op.value();
                 l_cmp = fnmatch(l_op_match.c_str(), a_data, l_flags);
-                if(l_cmp == 0)
+                if (l_cmp == 0)
                 {
                         // matched
                         ao_matched = true;
@@ -2221,12 +2233,12 @@ int32_t rl_run_op(bool &ao_matched,
                 // -----------------------------------------
                 // get regex
                 // -----------------------------------------
-                if(!a_op.has__reserved_1())
+                if (!a_op.has__reserved_1())
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
                 nms *l_nms = (nms *)(a_op._reserved_1());
-                if(!l_nms)
+                if (!l_nms)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
@@ -2236,7 +2248,7 @@ int32_t rl_run_op(bool &ao_matched,
                 int32_t l_s;
                 l_s = l_nms->contains(ao_matched, a_data, a_len);
                 // if failed to match
-                if(l_s < 0)
+                if (l_s < 0)
                 {
                         break;
                 }
@@ -2250,17 +2262,17 @@ int32_t rl_run_op(bool &ao_matched,
                 // -----------------------------------------
                 // get str set
                 // -----------------------------------------
-                if(!a_op.has__reserved_1())
+                if (!a_op.has__reserved_1())
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
                 // case insensitive
                 // -----------------------------------------
-                if(a_op.is_case_insensitive())
+                if (a_op.is_case_insensitive())
                 {
                         data_case_i_set_t *l_ds = (data_case_i_set_t *)(a_op._reserved_1());
-                        if(!l_ds)
+                        if (!l_ds)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
@@ -2271,7 +2283,7 @@ int32_t rl_run_op(bool &ao_matched,
                         l_d.m_data = a_data;
                         l_d.m_len = a_len;
                         data_case_i_set_t::const_iterator i_d = l_ds->find(l_d);
-                        if((i_d != l_ds->end()) &&
+                        if ((i_d != l_ds->end()) &&
                            (i_d->m_len == l_d.m_len))
                         {
                                 ao_matched = true;
@@ -2283,7 +2295,7 @@ int32_t rl_run_op(bool &ao_matched,
                 else
                 {
                        data_set_t *l_ds = (data_set_t *)(a_op._reserved_1());
-                        if(!l_ds)
+                        if (!l_ds)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
@@ -2294,7 +2306,7 @@ int32_t rl_run_op(bool &ao_matched,
                         l_d.m_data = a_data;
                         l_d.m_len = a_len;
                         data_set_t::const_iterator i_d = l_ds->find(l_d);
-                        if((i_d != l_ds->end()) &&
+                        if ((i_d != l_ds->end()) &&
                            (i_d->m_len == l_d.m_len))
                         {
                                 ao_matched = true;
@@ -2311,7 +2323,7 @@ int32_t rl_run_op(bool &ao_matched,
                 return WAFLZ_STATUS_OK;
         }
         }
-        if(a_op.is_negated())
+        if (a_op.is_negated())
         {
                 // negate value
                 ao_matched = !ao_matched;
@@ -2333,20 +2345,20 @@ int32_t in_scope(bool &ao_match,
                  rqst_ctx *a_ctx)
 {
         ao_match = false;
-        if(!a_ctx)
+        if (!a_ctx)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // host
         // -------------------------------------------------
-        if(a_scope.has_host() &&
+        if (a_scope.has_host() &&
            a_scope.host().has_type() &&
            (a_scope.host().has_value() ||
             a_scope.host().values_size()))
         {
                 const data_t &l_d = a_ctx->m_host;
-                if(!l_d.m_data ||
+                if (!l_d.m_data ||
                    !l_d.m_len)
                 {
                         return WAFLZ_STATUS_OK;
@@ -2358,11 +2370,11 @@ int32_t in_scope(bool &ao_match,
                                 l_d.m_data,
                                 l_d.m_len,
                                 true);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(!l_matched)
+                if (!l_matched)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -2370,20 +2382,20 @@ int32_t in_scope(bool &ao_match,
         // -------------------------------------------------
         // path
         // -------------------------------------------------
-        if(a_scope.has_path() &&
+        if (a_scope.has_path() &&
            a_scope.path().has_type() &&
            (a_scope.path().has_value() ||
             a_scope.path().values_size()))
         {
                 data_t l_d = a_ctx->m_uri;
-                if(!l_d.m_data ||
+                if (!l_d.m_data ||
                    !l_d.m_len)
                 {
                         return WAFLZ_STATUS_OK;
                 }
                 // use length w/o q string
                 // use length w/o q string
-                if(a_ctx->m_uri_path_len)
+                if (a_ctx->m_uri_path_len)
                 {
                         l_d.m_len = a_ctx->m_uri_path_len;
                 }
@@ -2394,11 +2406,11 @@ int32_t in_scope(bool &ao_match,
                                 l_d.m_data,
                                 l_d.m_len,
                                 true);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
-                if(!l_matched)
+                if (!l_matched)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -2482,7 +2494,7 @@ extern "C" int32_t process_waflz(void **ao_enf,
 //! ----------------------------------------------------------------------------
 extern "C" int32_t cleanup_scopes(scopes *a_scopes)
 {
-        if(a_scopes)
+        if (a_scopes)
         {
                 delete a_scopes;
                 a_scopes = NULL;

@@ -1088,17 +1088,27 @@ limit_action:
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes::process_request_plugin(void **ao_enf, size_t *ao_enf_len,
-                                       void **ao_audit_event, size_t *ao_audit_event_len,
-                                       void **ao_prod_event, size_t *ao_prod_event_len,
-                                       void *a_ctx, const rqst_ctx_callbacks *a_callbacks,
+int32_t scopes::process_request_plugin(void **ao_enf,
+                                       size_t *ao_enf_len,
+                                       void **ao_audit_event,
+                                       size_t *ao_audit_event_len,
+                                       void **ao_prod_event,
+                                       size_t *ao_prod_event_len,
+                                       void *a_ctx,
+                                       const rqst_ctx_callbacks *a_cb,
                                        rqst_ctx **ao_rqst_ctx)
 {
         waflz_pb::event *l_audit_event = NULL;
         waflz_pb::event *l_prod_event = NULL;
         const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
-        l_s = process(&l_enf, &l_audit_event, &l_prod_event, a_ctx, PART_MK_ALL, a_callbacks, ao_rqst_ctx);
+        l_s = process(&l_enf,
+                      &l_audit_event,
+                      &l_prod_event,
+                      a_ctx,
+                      PART_MK_ALL,
+                      a_cb,
+                      ao_rqst_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
@@ -1108,11 +1118,7 @@ int32_t scopes::process_request_plugin(void **ao_enf, size_t *ao_enf_len,
         // -------------------------------------------------
         if(l_enf)
         {
-                #if defined(__APPLE__) || defined(__darwin__)
-                        size_t l_enf_size = l_enf->ByteSizeLong();
-                #else
-                        size_t l_enf_size = l_enf->ByteSize();
-                #endif
+                size_t l_enf_size = l_enf->ByteSizeLong();
                 void *l_enf_buffer = malloc(l_enf_size);
                 l_enf->SerializeToArray(l_enf_buffer, l_enf_size);
                 *ao_enf = l_enf_buffer;
@@ -1120,27 +1126,19 @@ int32_t scopes::process_request_plugin(void **ao_enf, size_t *ao_enf_len,
         }
         if(l_audit_event)
         {
-                #if defined(__APPLE__) || defined(__darwin__)
-                        size_t l_a_e_size = l_audit_event->ByteSizeLong();
-                #else
-                        size_t l_a_e_size = l_audit_event->ByteSize();
-                #endif
-                void *l_a_e_buffer = malloc(l_a_e_size);
-                l_audit_event->SerializeToArray(l_a_e_buffer, l_a_e_size);
-                *ao_audit_event = l_a_e_buffer;
-                *ao_audit_event_len = l_a_e_size;
+                size_t l_event_len = l_audit_event->ByteSizeLong();
+                void *l_event = malloc(l_event_len);
+                l_audit_event->SerializeToArray(l_event, l_event_len);
+                *ao_audit_event = l_event;
+                *ao_audit_event_len = l_event_len;
         }
         if(l_prod_event)
         {
-                #if defined(__APPLE__) || defined(__darwin__)
-                        size_t l_p_e_size = l_prod_event->ByteSizeLong();
-                #else
-                        size_t l_p_e_size = l_prod_event->ByteSize();
-                #endif
-                void *l_p_e_buffer = malloc(l_p_e_size);
-                l_prod_event->SerializeToArray(l_p_e_buffer, l_p_e_size);
-                *ao_prod_event = l_p_e_buffer;
-                *ao_prod_event_len = l_p_e_size;
+                size_t l_event_len = l_prod_event->ByteSizeLong();
+                void *l_event = malloc(l_event_len);
+                l_prod_event->SerializeToArray(l_event, l_event_len);
+                *ao_prod_event = l_event;
+                *ao_prod_event_len = l_event_len;
         }
         return l_s;
 }
@@ -1154,7 +1152,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
                         part_mk_t a_part_mk,
-                        const rqst_ctx_callbacks *a_callbacks,
+                        const rqst_ctx_callbacks *a_cb,
                         rqst_ctx **ao_rqst_ctx)
 {
         if(!m_pb)
@@ -1168,7 +1166,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         rqst_ctx *l_ctx = NULL;
         // TODO -fix args!!!
         //l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
-        l_ctx = new rqst_ctx(a_ctx, DEFAULT_BODY_SIZE_MAX, a_callbacks);
+        l_ctx = new rqst_ctx(a_ctx, DEFAULT_BODY_SIZE_MAX, a_cb);
         if(ao_rqst_ctx)
         {
                 *ao_rqst_ctx = l_ctx;
@@ -1205,7 +1203,12 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                 {
                         continue;
                 }
-                l_s = process(ao_enf, ao_audit_event, ao_prod_event, l_sc, a_ctx, a_part_mk, ao_rqst_ctx);
+                l_s = process(ao_enf,
+                              ao_audit_event,
+                              ao_prod_event,
+                              l_sc, a_ctx,
+                              a_part_mk,
+                              ao_rqst_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO -log error???
@@ -2152,7 +2155,6 @@ int32_t rl_run_op(bool &ao_matched,
                 // -----------------------------------------
                 // match?
                 // -----------------------------------------
-                //TRC_ALL("RX[%p]: %s == %.*s\n", l_rx, l_rx->get_regex_string().c_str(), (int)a_len, a_data);
                 int l_s;
                 l_s = l_rx->compare(a_data, a_len);
                 // if failed to match
@@ -2189,7 +2191,6 @@ int32_t rl_run_op(bool &ao_matched,
                         ao_matched = true;
                         break;
                 }
-                //TRACE("Got data: '%.*s' and match '%s'", SUBBUF_FORMAT(a_data), l_op_match.c_str());
                 break;
         }
         // -------------------------------------------------
@@ -2426,10 +2427,11 @@ extern "C" scopes *create_scopes(engine *a_engine,
 //! \param   a_conf_dir: the location of acl, waf, rules config
 //!          which are part of a scope config
 //! ----------------------------------------------------------------------------
-extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_len, const char *a_conf_dir)
+extern "C" int32_t load_config(scopes *a_scope,
+                               const char *a_buf,
+                               uint32_t a_len,
+                               const char *a_conf_dir)
 {
-        //ns_waflz::trc_level_set(ns_waflz::WFLZ_TRC_LEVEL_ALL);
-        //ns_waflz::trc_file_open("/tmp/waflz.log");
         std::string l_conf_dir(a_conf_dir);
         return a_scope->load(a_buf, a_len, l_conf_dir);
 }
@@ -2445,20 +2447,36 @@ extern "C" int32_t load_config(scopes *a_scope, const char *a_buf, uint32_t a_le
 //!          the peices of a http request from the given ao_ctx
 //! \param   ao_event: event details, if there was an action taken by waflz
 //! ----------------------------------------------------------------------------
-extern "C" int32_t process_waflz(void **ao_enf, size_t *ao_enf_len,
-                                 void **ao_audit_event, size_t *ao_audit_event_len,
-                                 void **ao_prod_event, size_t *ao_prod_event_len,
-                                 scopes *a_scope, void *a_ctx,
-                                 const rqst_ctx_callbacks *a_callbacks, rqst_ctx **a_rqst_ctx)
+extern "C" int32_t process_waflz(void **ao_enf,
+                                 size_t *ao_enf_len,
+                                 void **ao_audit_event,
+                                 size_t *ao_audit_event_len,
+                                 void **ao_prod_event,
+                                 size_t *ao_prod_event_len,
+                                 scopes *a_scope,
+                                 void *a_ctx,
+                                 const rqst_ctx_callbacks *a_cb,
+                                 rqst_ctx **a_rqst_ctx)
 {
-        return a_scope->process_request_plugin(ao_enf, ao_enf_len,
-                                ao_audit_event, ao_audit_event_len,
-                                ao_prod_event, ao_prod_event_len,
-                                a_ctx, a_callbacks,
-                                a_rqst_ctx);
+        if (!a_scope)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        int32_t l_s;
+        l_s = a_scope->process_request_plugin(ao_enf,
+                                              ao_enf_len,
+                                              ao_audit_event,
+                                              ao_audit_event_len,
+                                              ao_prod_event,
+                                              ao_prod_event_len,
+                                              a_ctx,
+                                              a_cb,
+                                              a_rqst_ctx);
+        return l_s;
 }
 //! ----------------------------------------------------------------------------
-//! \details C binding for third party lib to do a graceful cleanup of scopes object
+//! \details C binding for third party lib to do a graceful cleanup of scopes
+//!          object
 //! \return  0: success
 //! \param   a_scope: scopes object
 //! ----------------------------------------------------------------------------
@@ -2471,6 +2489,11 @@ extern "C" int32_t cleanup_scopes(scopes *a_scopes)
         }
         return WAFLZ_STATUS_OK;
 }
+//! ----------------------------------------------------------------------------
+//! \details get error message string
+//! \return  char* err message string
+//! \param   a_scope: scopes object
+//! ----------------------------------------------------------------------------
 extern "C" const char *get_waflz_error_msg(scopes *a_scopes)
 {
         if (a_scopes)

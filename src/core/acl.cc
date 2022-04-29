@@ -576,7 +576,9 @@ country_check:
         // subdivision iso
         // -------------------------------------------------
         if(m_sd_iso_whitelist.size() && l_buf &&
-           l_buf_len && a_ctx.m_src_sd1_iso.m_data && a_ctx.m_src_sd1_iso.m_len)
+           l_buf_len && a_ctx.m_src_sd1_iso.m_data && a_ctx.m_src_sd1_iso.m_len &&
+           a_ctx.m_geo_cn2.m_data &&
+           a_ctx.m_geo_cn2.m_len)
         {
                 std::string l_sd1_str;
                 l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
@@ -772,7 +774,9 @@ sd_iso_check:
         }
         l_has = true;
         if(l_buf &&
-           l_buf_len &&a_ctx.m_src_sd1_iso.m_data && a_ctx.m_src_sd1_iso.m_data)
+           l_buf_len &&a_ctx.m_src_sd1_iso.m_data && a_ctx.m_src_sd1_iso.m_data &&
+           a_ctx.m_geo_cn2.m_data &&
+           a_ctx.m_geo_cn2.m_len)
         {
                 std::string l_sd1_str;
                 l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
@@ -1038,11 +1042,12 @@ sd_iso_check:
         // -------------------------------------------------
         // subdivision
         // -------------------------------------------------
-        //std::cout<<a_ctx.m_src_sd_iso.m_len<<"\n";
         if(m_sd_iso_blacklist.size() && l_buf &&
            l_buf_len &&
            a_ctx.m_src_sd1_iso.m_data &&
-           a_ctx.m_src_sd1_iso.m_len)
+           a_ctx.m_src_sd1_iso.m_len &&
+           a_ctx.m_geo_cn2.m_data &&
+           a_ctx.m_geo_cn2.m_len)
         {
                 std::string l_sd1_str;
                 l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);

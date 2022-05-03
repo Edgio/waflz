@@ -20,6 +20,10 @@
       "blacklist": [],
       "whitelist": []
     },
+    "sd_iso": {
+      "blacklist": [],
+      "whitelist": []
+    },
     "ignore_header": ["(?i)(benign-header)", "super-whatever-header", "^D"],
     "ignore_cookie": ["(?i)(sketchy_origin)", "(?i)(yousocrazy)", "^[0-9_].*$"],
     "ignore_query_args": ["ignore", "this", "crap"]

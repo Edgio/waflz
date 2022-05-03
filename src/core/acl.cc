@@ -1060,12 +1060,13 @@ sd_iso_check:
                         l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
                         l_sd2_str+="-";
                         l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
-                        if(m_sd_iso_blacklist.find(l_sd2_str) == m_sd_iso_blacklist.end())
+                        if(m_sd_iso_blacklist.find(l_sd2_str) == m_sd_iso_blacklist.end() && 
+                                m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
                         {
                                 goto asn_check;
                         } 
                 }
-                if(m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
+                else if(m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
                 {
                         goto asn_check;
                 }

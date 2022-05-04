@@ -19,14 +19,19 @@
   ],
   "country": {
     "blacklist": [],
-    "whitelist": []
+    "whitelist": ["KR"]
+  },
+  "sd_iso": {
+    "blacklist": ["GB-LAN"],
+    "accesslist": ["AU-NSW","GB-EDH","GB-ENG"],
+    "whitelist": ["RU-MOW"]
   },
   "customer_id": "DEADDEAD",
   "disallowed_extensions": [],
   "disallowed_headers": [],
   "id": "q5Zb1axh",
   "ip": {
-    "blacklist": [],
+    "blacklist": ["129.94.231.205"],
     "whitelist": []
   },
   "last_modified_by": "test",

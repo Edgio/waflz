@@ -247,6 +247,7 @@ endif()
 include(ExternalProject)
 if(BUILD_APPS)
   ExternalProject_Add(submodule_is2
+    CMAKE_ARGS -DBUILD_TLS=ON
     SOURCE_DIR ${CMAKE_SOURCE_DIR}/sub/is2
     INSTALL_COMMAND ""
   )

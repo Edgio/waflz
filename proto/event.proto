@@ -167,6 +167,7 @@ message event {
         optional string bots_config_id = 230;
         optional string bots_config_name = 231;
         optional string account_type = 232;
+        optional string partner_id = 233;
         optional string response_header_name = 241;
         optional string ruleset_id = 242;
         optional string ruleset_version = 243;

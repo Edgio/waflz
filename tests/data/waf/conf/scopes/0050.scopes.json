@@ -1,6 +1,7 @@
 {
   "customer_id": "0050",
   "account_type": "P",
+  "partner_id": "this_is_the_partner_id",
   "id": "xDre6J1c",
   "last_modified_date": "2019-04-18T19:48:25.142172Z",
   "last_modified_by": "Mr. Monkeez",

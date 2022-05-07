@@ -90,7 +90,6 @@ waf::waf(engine &a_engine):
         m_cust_id("__na__"),
         m_name("__na__"),
         m_ruleset_dir(),
-        m_owasp_ruleset_version(0),
         m_paranoia_level(1),
         m_no_log_matched(false),
         m_parse_xml(false),
@@ -902,6 +901,7 @@ int32_t waf::set_defaults(bool a_custom_rules)
         // paranoia config
         // -------------------------------------------------
         set_var_tx(l_conf_pb, "900000", "paranoia_level", "1");
+        set_var_tx(l_conf_pb, "900101", "blocking_paranoia_level", "1");
         // -------------------------------------------------
         // anomaly settings
         // -------------------------------------------------
@@ -985,18 +985,22 @@ int32_t waf::init(profile &a_profile)
         // -------------------------------------------------
         // paranoia config
         // -------------------------------------------------
-        if(m_owasp_ruleset_version >= 300)
-        {
-        //default
         uint32_t l_paranoia_level = 1;
         if(l_gs.has_paranoia_level() &&
            (l_gs.paranoia_level() > 0))
         {
                 l_paranoia_level = l_gs.paranoia_level();
         }
+        // -------------------------------------------------
+        // crs < 4
+        // -------------------------------------------------
         set_var_tx(l_conf_pb, "900000", "paranoia_level", to_string(l_paranoia_level));
         set_var_tx(l_conf_pb, "900100", "executing_paranoia_level", to_string(l_paranoia_level));
-        }
+        // -------------------------------------------------
+        // crs > 4
+        // -------------------------------------------------
+        set_var_tx(l_conf_pb, "900101", "blocking_paranoia_level", to_string(l_paranoia_level));
+        set_var_tx(l_conf_pb, "900102", "detection_paranoia_level", to_string(l_paranoia_level));
         // -------------------------------------------------
         // anomaly settings
         // -------------------------------------------------
@@ -1020,14 +1024,8 @@ int32_t waf::init(profile &a_profile)
         std::string l_anomaly_threshold = "5";
         // Use top level threshold setting
         l_anomaly_threshold = to_string(l_gs.anomaly_threshold());
-        if(m_owasp_ruleset_version >= 300)
-        {
-                set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", l_anomaly_threshold);
-        }
-        else
-        {
-                set_var_tx(l_conf_pb, "900012", "inbound_anomaly_score_level", l_anomaly_threshold);
-        }
+        set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", l_anomaly_threshold);
+
         // -------------------------------------------------
         // general settings
         // -------------------------------------------------
@@ -2061,16 +2059,20 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // e.g setvar:'tx.anomaly_score_pl1=+%{tx.notice_anomaly_score}
         // Or is a chained rule
         // -------------------------------------------------
-        if(get_owasp_ruleset_version() >= 300 &&
-           (l_action.setvar_size() > 0 ||
-            a_rule.chained_rule_size() > 0))
+        if(l_action.setvar_size() > 0 ||
+            a_rule.chained_rule_size() > 0)
         {
                 uint32_t l_cur_anomaly = 0;
                 uint32_t i_pl = 1;
                 do
                 {
                         std::string l_ex_anomaly = "anomaly_score_pl" + to_string(i_pl);
+                        std::string l_iex_anomaly = "inbound_anomaly_score_pl" + to_string(i_pl);
                         i_t = a_ctx.m_cx_tx_map.find(l_ex_anomaly);
+                        if(i_t == a_ctx.m_cx_tx_map.end())
+                        {
+                                i_t = a_ctx.m_cx_tx_map.find(l_iex_anomaly);
+                        }
                         if(i_t == a_ctx.m_cx_tx_map.end())
                         {
                                 ++i_pl;
@@ -2152,14 +2154,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // get field values...
         // -------------------------------------------------
         int32_t l_threshold = -1;
-        if(get_owasp_ruleset_version() >= 300)
-        {
         _GET_TX_FIELD("inbound_anomaly_score_threshold", l_threshold);
-        }
-        else
-        {
-        _GET_TX_FIELD("inbound_anomaly_score_level", l_threshold);
-        }
         //NDBG_PRINT("%sl_anomaly_score%s: %d\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, l_anomaly_score);
         //NDBG_PRINT("%sl_threshold%s:     %d\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, l_threshold);
         // -------------------------------------------------

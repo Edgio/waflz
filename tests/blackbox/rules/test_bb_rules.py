@@ -64,7 +64,7 @@ def test_bb_without_rule_target_update_fail(setup_waflz_server):
     assert len(l_r_json) > 0
     # print json.dumps(l_r_json,indent=4)
     assert l_r_json['rule_intercept_status'] == 403
-    assert 'UTF8 Encoding Abuse Attack Attempt' in l_r_json['rule_msg']
+    assert 'UTF8 Encoding Abuse Attack Attempt' in l_r_json['sub_event'][0]['rule_msg']
     l_conf = {}
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_conf_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_rules.waf.prof.json'))
@@ -81,7 +81,7 @@ def test_bb_without_rule_target_update_fail(setup_waflz_server):
     l_conf['rule_target_updates'] = [
         {
             'replace_target': '',
-            'rule_id': '950801',
+            'rule_id': '920250',
             'is_regex': False,
             'is_negated': True,
             'target_match': 'origin',
@@ -118,16 +118,16 @@ def test_bb_rule_target_update_xml_var(setup_waflz_server):
     l_uri = G_TEST_HOST
     l_headers = {'host': 'myhost.com',
                  'Content-Type': 'text/xml'}
-    l_body = '<abc>{46AC4322-C776-4EC6-9D8A-D54607A8A0BB}</abc>'
+    l_body = '<abc>s-guide-for-e2-refrigeration-bx-hvac-cx-convenience-store-controllers-en-5375988.pdf</abc>'
     l_r = requests.post(l_uri,
                         headers=l_headers,
                         data=l_body)
     assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    # print(json.dumps(l_r_json,indent=4))
+    #print(json.dumps(l_r_json,indent=4))
     assert l_r_json['rule_intercept_status'] == 403
-    assert 'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded' in l_r_json['rule_msg']
+    assert 'Restricted SQL Character Anomaly Detection (args): # of special characters exceeded (12)' in l_r_json['sub_event'][0]['rule_msg']
     assert l_r_json['matched_var']['name'] == 'WE1MOi8q'
     l_conf = {}
     l_file_path = os.path.dirname(os.path.abspath(__file__))
@@ -145,7 +145,7 @@ def test_bb_rule_target_update_xml_var(setup_waflz_server):
     l_conf['rule_target_updates'] = [
         {
             'replace_target': '',
-            'rule_id': '981173',
+            'rule_id': '942430',
             'is_regex': False,
             'is_negated': True,
             'target_match': '/*',
@@ -168,7 +168,7 @@ def test_bb_rule_target_update_xml_var(setup_waflz_server):
     # ------------------------------------------------------
     l_headers = {'host': 'myhost.com',
                  'Content-Type' : 'text/xml'}
-    l_body = '<abc>{46AC4322-C776-4EC6-9D8A-D54607A8A0BB}</abc>'
+    l_body = '<abc>s-guide-for-e2-refrigeration-bx-hvac-cx-convenience-store-controllers-en-5375988.pdf</abc>'
     l_r = requests.post(l_uri,
                         headers=l_headers,
                         data=l_body)

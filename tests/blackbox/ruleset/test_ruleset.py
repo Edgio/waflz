@@ -219,16 +219,6 @@ def check_vectors(a_file):
     for i_v in l_vectors['vectors']:
         check_rqst(G_TEST_HOST, '4291', i_v)
 # ------------------------------------------------------------------------------
-# owasp 2.2.9 anomaly
-# ------------------------------------------------------------------------------
-def test_OWASP_2_2_9_anomaly(setup_waflz_server):
-    check_vectors('OWASP_2_2_9.anomaly.vectors.json')
-# ------------------------------------------------------------------------------
-# owasp 2.2.9 anomaly low inbound score
-# ------------------------------------------------------------------------------
-def test_OWASP_2_2_9_anomaly_low(setup_waflz_server):
-    check_vectors('OWASP_2_2_9.anomaly_low.vectors.json')
-# ------------------------------------------------------------------------------
 # owasp 3.0.2 anomaly
 # ------------------------------------------------------------------------------
 def test_OWASP_3_2_anomaly(setup_waflz_server):
@@ -238,4 +228,14 @@ def test_OWASP_3_2_anomaly(setup_waflz_server):
 # ------------------------------------------------------------------------------
 def test_OWASP_3_2_anomaly_low(setup_waflz_server):
    check_vectors('OWASP_3_2.anomaly_low.vectors.json')
+# ------------------------------------------------------------------------------
+# owasp 4.0.0 anomaly
+# ------------------------------------------------------------------------------
+def test_OWASP_4_0_anomaly(setup_waflz_server):
+    check_vectors('OWASP_4_0.anomaly.vectors.json')
+# ------------------------------------------------------------------------------
+# owasp 4.0.0 anomaly low inbound score
+# ------------------------------------------------------------------------------
+def test_test_OWASP_4_0_anomaly_low(setup_waflz_server):
+    check_vectors('OWASP_4_0.anomaly_low.vectors.json')
 

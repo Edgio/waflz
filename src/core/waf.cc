@@ -999,8 +999,7 @@ int32_t waf::init(profile &a_profile)
         // -------------------------------------------------
         // crs > 4
         // -------------------------------------------------
-        set_var_tx(l_conf_pb, "900101", "blocking_paranoia_level", to_string(l_paranoia_level));
-        set_var_tx(l_conf_pb, "900102", "detection_paranoia_level", to_string(l_paranoia_level));
+        set_var_tx(l_conf_pb, "900101", "detection_paranoia_level", to_string(l_paranoia_level));
         // -------------------------------------------------
         // anomaly settings
         // -------------------------------------------------
@@ -2045,10 +2044,11 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // handle paranoia...
         // Based on paranoia level different rules set
         // different scores. The CRS uses the following vars
-        // tx.anomaly_score_pl1
-        // tx.anomaly_score_pl2
-        // tx.anomaly_score_pl3
-        // tx.anomaly_score_pl4
+        // crs < v4             or crs >= v4
+        // tx.anomaly_score_pl1 or inbound_anomaly_score_pl1
+        // tx.anomaly_score_pl2 or inbound_anomaly_score_pl2
+        // tx.anomaly_score_pl3 or inbound_anomaly_score_pl3
+        // tx.anomaly_score_pl4 or inbound_anomaly_score_pl4
         // -------------------------------------------------
         // Here we emulate the blocking evaluation config
         // 1. Check current paranoia level

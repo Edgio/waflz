@@ -290,6 +290,7 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_id(),
         m_cust_id(),
         m_account_type("__na__"),
+        m_partner_id("__na__"),
         m_name(),
         m_id_acl_map(),
         m_id_rules_map(),
@@ -509,6 +510,10 @@ int32_t scopes::compile(const std::string& a_conf_dir_path)
         if (m_pb->has_account_type())
         {
                 m_account_type = m_pb->account_type();
+        }
+        if (m_pb->has_partner_id())
+        {
+                m_partner_id = m_pb->partner_id();
         }
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
@@ -1236,12 +1241,14 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
                         (*ao_audit_event)->set_scope_config_id(l_sc.id());
                         (*ao_audit_event)->set_scope_config_name(l_sc.name());
                         (*ao_audit_event)->set_account_type(m_account_type);
+                        (*ao_audit_event)->set_partner_id(m_partner_id);
                 }
                 if (*ao_prod_event)
                 {
                         (*ao_prod_event)->set_scope_config_id(l_sc.id());
                         (*ao_prod_event)->set_scope_config_name(l_sc.name());
                         (*ao_prod_event)->set_account_type(m_account_type);
+                        (*ao_prod_event)->set_partner_id(m_partner_id);
                 }
                 // -----------------------------------------
                 // break out on first scope match

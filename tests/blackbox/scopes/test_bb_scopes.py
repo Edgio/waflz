@@ -166,6 +166,8 @@ def test_scopes_dir_for_an_0050(setup_waflz_server):
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
     assert 'account_type' in l_r_json['prod_profile']
     assert l_r_json['prod_profile']['account_type'] == 'P'
+    assert 'partner_id' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['partner_id'] == 'this_is_the_partner_id'
 # ------------------------------------------------------------------------------
 # an 0051
 # ------------------------------------------------------------------------------
@@ -286,6 +288,10 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['audit_profile']['account_type'] == 'P'
     assert 'account_type' in l_r_json['prod_profile']
     assert l_r_json['prod_profile']['account_type'] == 'P'
+    assert 'partner_id' in l_r_json['audit_profile']
+    assert l_r_json['audit_profile']['partner_id'] == 'this_is_the_partner_id'
+    assert 'partner_id' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['partner_id'] == 'this_is_the_partner_id'
     # ------------------------------------------------------
     # test audit acl only
     # ------------------------------------------------------
@@ -301,6 +307,8 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['prod_profile'] == None
     assert 'account_type' in l_r_json['audit_profile']
     assert l_r_json['audit_profile']['account_type'] == 'P'
+    assert 'partner_id' in l_r_json['audit_profile']
+    assert l_r_json['audit_profile']['partner_id'] == 'this_is_the_partner_id'
     # ------------------------------------------------------
     # test prod acl only
     # ------------------------------------------------------
@@ -316,6 +324,8 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Blacklist URL match'
     assert 'account_type' in l_r_json['prod_profile']
     assert l_r_json['prod_profile']['account_type'] == 'P'
+    assert 'partner_id' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['partner_id'] == 'this_is_the_partner_id'
     # ------------------------------------------------------
     # test audit and prod profile
     # ------------------------------------------------------
@@ -338,6 +348,10 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['audit_profile']['account_type'] == 'P'
     assert 'account_type' in l_r_json['prod_profile']
     assert l_r_json['prod_profile']['account_type'] == 'P'
+    assert 'partner_id' in l_r_json['audit_profile']
+    assert l_r_json['audit_profile']['partner_id'] == 'this_is_the_partner_id'
+    assert 'partner_id' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['partner_id'] == 'this_is_the_partner_id'
     # ------------------------------------------------------
     # test prod rule
     # ------------------------------------------------------
@@ -355,6 +369,8 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['prod_profile']['sub_event'][0]['rule_msg'] == 'Request User-Agent is monkeez'
     assert 'account_type' in l_r_json['prod_profile']
     assert l_r_json['prod_profile']['account_type'] == 'P'
+    assert 'partner_id' in l_r_json['prod_profile']
+    assert l_r_json['prod_profile']['partner_id'] == 'this_is_the_partner_id'
     # ------------------------------------------------------
     # test audit rule
     # ------------------------------------------------------
@@ -372,6 +388,8 @@ def test_audit_and_prod_for_scope(setup_waflz_server_single):
     assert l_r_json['prod_profile'] == None
     assert 'account_type' in l_r_json['audit_profile']
     assert l_r_json['audit_profile']['account_type'] == 'P'
+    assert 'partner_id' in l_r_json['audit_profile']
+    assert l_r_json['audit_profile']['partner_id'] == 'this_is_the_partner_id'
 # ------------------------------------------------------------------------------
 # test acl, rules and profile alert ordering for an 0050
 # ------------------------------------------------------------------------------

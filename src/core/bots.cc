@@ -83,10 +83,6 @@ int32_t bots::load_file(const char *a_buf, uint32_t a_buf_len)
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // set version...
-        // -------------------------------------------------
-        m_waf->set_owasp_ruleset_version(300);
-        // -------------------------------------------------
         // get properties from m_waf
         // -------------------------------------------------
         m_id = m_waf->get_id();
@@ -121,10 +117,6 @@ int32_t bots::load(void* a_js)
                 if(m_waf) { delete m_waf; m_waf = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // set version...
-        // -------------------------------------------------
-        m_waf->set_owasp_ruleset_version(300);
         // -------------------------------------------------
         // get properties from m_waf
         // -------------------------------------------------

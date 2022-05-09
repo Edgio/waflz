@@ -82,7 +82,6 @@ profile::profile(engine &a_engine):
         m_name(),
         m_resp_header_name(),
         m_action(waflz_pb::enforcement_type_t_NOP),
-        m_owasp_ruleset_version(229),
         m_paranoia_level(1),
         m_il_query(),
         m_il_header(),
@@ -287,7 +286,6 @@ int32_t profile::init(void)
         // -------------------------------------------------
         m_waf->set_id(m_id);
         m_waf->set_name(m_name);
-        m_waf->set_owasp_ruleset_version(m_owasp_ruleset_version);
         m_waf->set_paranoia_level(m_paranoia_level);
         // -------------------------------------------------
         // json parser
@@ -397,25 +395,13 @@ int32_t profile::validate(void)
         // -------------------------------------------------
         VERIFY_HAS(l_pb, id);
         VERIFY_HAS(l_pb, name);
+        m_id = m_pb->id();
+        m_name = m_pb->name();
         // -------------------------------------------------
         // ruleset info
         // -------------------------------------------------
         VERIFY_HAS(l_pb, ruleset_id);
         VERIFY_HAS(l_pb, ruleset_version);
-        // -------------------------------------------------
-        // OWASP version detection hack
-        // -used for anomaly variable naming
-        // OWASP-CRS 3.0.0 + or ECRS
-        // TODO not robust!!!
-        // -------------------------------------------------
-        if(l_pb.has_ruleset_id() &&
-           ((l_pb.ruleset_id() == "ECRS")||
-            (l_pb.ruleset_id().find("OWASP-CRS-3.") != std::string::npos)))
-        {
-                m_owasp_ruleset_version = 300;
-        }
-        m_id = m_pb->id();
-        m_name = m_pb->name();
         //TODO: Throw waflz error once customer_id
         // field is added to all profiles
         if(m_pb->has_customer_id())

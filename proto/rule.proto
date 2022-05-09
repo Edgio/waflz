@@ -51,6 +51,8 @@ message variable_t {
                 GEO = 202;
                 REQUEST_URI_RAW = 203;
                 DURATION = 204;
+                SD1_ISO=205;
+                SD2_ISO=206;
                 UNIQUE_ID = 300;
                 // -----------------------------------------
                 // extensions...

@@ -36,6 +36,7 @@ message acl {
         optional lists_t cookie = 105;
         optional lists_t user_agent = 106;
         optional lists_asn_t asn = 107;
+        optional lists_t sd_iso = 114;
         // -------------------------------------------------
         // request properties
         // -------------------------------------------------

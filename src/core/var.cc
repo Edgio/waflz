@@ -1481,6 +1481,34 @@ GET_VAR(GEO)
         }
         return WAFLZ_STATUS_OK;
 }
+//! ----------------------------------------------------------------------------
+//! \details: SD_ISO_1
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+GET_VAR(SD1_ISO)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        _ADD_VAR(a_ctx->m_src_sd1_iso);
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: SD_ISO_2
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+GET_VAR(SD2_ISO)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        _ADD_VAR(a_ctx->m_src_sd2_iso);
+        return WAFLZ_STATUS_OK;
+}
 
 //! ----------------------------------------------------------------------------
 //! macros
@@ -1556,6 +1584,8 @@ void init_var_cb_vector(void)
         INIT_GET_VAR(REMOTE_ADDR);
         INIT_GET_VAR(REMOTE_ASN);
         INIT_GET_VAR(GEO);
+        INIT_GET_VAR(SD1_ISO);
+        INIT_GET_VAR(SD2_ISO);
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO

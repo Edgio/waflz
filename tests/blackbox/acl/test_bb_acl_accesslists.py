@@ -38,10 +38,12 @@ def setup_waflz_server():
     l_file_path = os.path.dirname(os.path.abspath(__file__))
     l_acl_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_acl_settings.acl.json'))
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_geoip2city_path = os.path.abspath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
+    l_geo_asn_path = os.path.abspath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
-                                  '-a', l_acl_path])
+                                  '-a', l_acl_path, '-g', l_geoip2city_path, '-s', l_geo_asn_path])
     print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
-                                  '-a', l_acl_path])))
+                                  '-a', l_acl_path, '-g', l_geoip2city_path, '-s', l_geo_asn_path])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
@@ -104,4 +106,92 @@ def test_bb_acl_accesslists_01_interactions(setup_waflz_server):
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
     assert 'Blacklist User-Agent match' in l_r_json['rule_msg']
+    # ------------------------------------------------------
+    # accesslist allow
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'host': 'myhost.com',
+                 'x-waflz-ip': '129.78.46.6',
+                 'User-Agent': 'monkeys are cool'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
+    # ------------------------------------------------------
+    # accesslist deny
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'host': 'myhost.com',
+                 'x-waflz-ip': '115.146.80.0'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert 'Accesslist deny' in l_r_json['rule_msg']
+    # ------------------------------------------------------
+    # Whitelist allow KR IP Address with blacklist UA 
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'x-waflz-ip': '147.46.0.0',
+                 'host': 'myhost.com',
+                 'User-Agent': 'cats are cool'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
+    # ------------------------------------------------------
+    # Whitelist allow RU-MOW IP Address with blacklist UA 
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'x-waflz-ip': '188.44.49.115',
+                 'host': 'myhost.com',
+                 'User-Agent': 'cats are cool'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
+    # ------------------------------------------------------
+    # IP Blacklist block AU-NSW IP
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'x-waflz-ip': '129.94.231.205',
+                 'host': 'myhost.com'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert 'Blacklist IP match' in l_r_json['rule_msg']
+    # ------------------------------------------------------
+    # Accesslist Allow GB-EDH IP
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'x-waflz-ip': '84.19.242.119',
+                 'host': 'myhost.com'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'status' in l_r_json
+    assert l_r_json['status'] == 'ok'
+    # ------------------------------------------------------
+    # Subdivision Blacklist Block GB-ENG/LAN IP
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST
+    l_headers = {'x-waflz-ip': '188.31.121.90',
+                 'host': 'myhost.com'
+                }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert 'Blacklist Subdivision match' in l_r_json['rule_msg']
+
 

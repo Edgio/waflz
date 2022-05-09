@@ -119,9 +119,12 @@ done:
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Access maxmind db using mmdb file, pass in IP addr, get country iso code from entry, input string in first two params
+//! \return  WAFLZ status code
+//! \param   ao_buf: char of country iso code string
+//!          ao_buf_len: str length
+//!          a_ip: ip address char
+//!          a_ip_len: ip length
 //! ----------------------------------------------------------------------------
 int32_t geoip2_mmdb::get_country(const char **ao_buf,
                                  uint32_t &ao_buf_len,
@@ -217,10 +220,134 @@ int32_t geoip2_mmdb::get_country(const char **ao_buf,
         }
         return WAFLZ_STATUS_OK;
 }
+int32_t geoip2_mmdb::get_sd_isos(const char **ao_sd1_buf, uint32_t &ao_sd1_buf_len,
+                            const char **ao_sd2_buf, uint32_t &ao_sd2_buf_len,
+                            const char *a_ip, uint32_t a_ip_len)  //
+{
+        if(!ao_sd1_buf)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_sd1_buf == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!ao_sd2_buf)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_sd2_buf == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_sd1_buf = NULL;
+        ao_sd1_buf_len = 0;
+        *ao_sd2_buf = NULL;
+        ao_sd2_buf_len = 0;
+        if(!m_init)
+        {
+                WAFLZ_PERROR(m_err_msg, "not initialized");
+                return WAFLZ_STATUS_OK;
+        }
+        if(!m_city_mmdb)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+
+        ::MMDB_lookup_result_s l_ls;
+        int32_t l_gai_err = 0;
+        int32_t l_mmdb_err = MMDB_SUCCESS;
+        // -----------------------------------------
+        // lookup result...
+        // -----------------------------------------
+        l_ls = MMDB_lookup_string(m_city_mmdb, a_ip, &l_gai_err, &l_mmdb_err);
+        if(l_gai_err != 0)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "MMDB_lookup_string[%.*s]: reason: %s.",
+                             a_ip_len,
+                             a_ip,
+                             gai_strerror(l_gai_err));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(l_mmdb_err != MMDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "libmaxminddb: %s",
+                             MMDB_strerror(l_mmdb_err));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_ls.found_entry)
+        {
+                WAFLZ_PERROR(m_err_msg, "not found");
+                return WAFLZ_STATUS_OK;
+        }
+        // -----------------------------------------
+        // get result...
+        // traverse record to get excat value for
+        // key
+        // -----------------------------------------
+        MMDB_entry_data_s l_e_dat_1;
+        int32_t l_s_1;
+        // -------------------------------------------------
+        // access MMDB entry JSON
+        // -------------------------------------------------
+        l_s_1 = MMDB_get_value(&l_ls.entry,
+                             &l_e_dat_1,
+                             "subdivisions", 
+                             "0",
+                             "iso_code",
+                             NULL);
+        //MMDB_entry_data_list_s* entry = new MMDB_entry_data_list_s;
+        //MMDB_get_entry_data_list(&l_ls.entry,&entry);
+        //MMDB_dump_entry_data_list(stdout,entry, 0);
+        if(l_s_1 != MMDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "looking up the entry data: reason: %s",
+                             MMDB_strerror(l_s_1));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_e_dat_1.has_data)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "data missing");
+                return WAFLZ_STATUS_ERROR;
+        }
+        MMDB_entry_data_s l_e_dat_2;
+        int32_t l_s_2;
+        l_s_2 = MMDB_get_value(&l_ls.entry,
+                             &l_e_dat_2,
+                             "subdivisions", 
+                             "1",
+                             "iso_code",
+                             NULL);
+        // -------------------------------------------------
+        // extract. if SD1 has data populate only SD1. if 
+        // both, then populate both. Nested switch case checks 
+        // types
+        // -------------------------------------------------
+        switch(l_e_dat_1.type) {
+        case MMDB_DATA_TYPE_UTF8_STRING:
+        {
+                *ao_sd1_buf = l_e_dat_1.utf8_string;
+                ao_sd1_buf_len = l_e_dat_1.data_size;
+                if(l_s_2 == MMDB_SUCCESS && l_e_dat_2.has_data && l_e_dat_2.type==MMDB_DATA_TYPE_UTF8_STRING )
+                {
+                        *ao_sd2_buf = l_e_dat_2.utf8_string;
+                        ao_sd2_buf_len = l_e_dat_2.data_size;
+                }
+                return WAFLZ_STATUS_OK;
+        }
+        default:
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "wrong data type");
+                return WAFLZ_STATUS_ERROR;
+        }
+        }
+        return WAFLZ_STATUS_OK;
+}
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Access maxmind db using mmdb file, pass in IP addr, get ASN from entry, input string in first two params
+//! \return  WAFLZ status code
+//! \param   ao_asn: asn to be input
+//!          a_ip: ip address char
+//!          a_ip_len: ip length
 //! ----------------------------------------------------------------------------
 int32_t geoip2_mmdb::get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_len)
 {

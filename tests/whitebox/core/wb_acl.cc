@@ -208,6 +208,8 @@ TEST_CASE( "acl test", "[acl]" )
 {
         // -------------------------------------------------
         // get ruleset dir
+        // IPs used: BR-SP, US-KY, CN-34, JP, IT-52/AR, IN-MP,
+        // US-AZ, US-CA, KW, JP-27, US-TX, FR, KR, CN-34
         // -------------------------------------------------
         char l_cwd[1024];
         if(getcwd(l_cwd, sizeof(l_cwd)) != NULL)
@@ -256,6 +258,14 @@ TEST_CASE( "acl test", "[acl]" )
                 ::waflz_pb::acl_lists_t* l_ax_ctyl = l_pb->mutable_country();
                 l_ax_ctyl->add_blacklist("CN");
                 l_ax_ctyl->add_whitelist("JP");
+                // *****************************************
+                // -----------------------------------------
+                // subdivision settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::acl_lists_t* l_ax_sd_iso_l = l_pb->mutable_sd_iso();
+                l_ax_sd_iso_l->add_blacklist("IT-AR");
+                l_ax_sd_iso_l->add_whitelist("IN-MP");
                 // *****************************************
                 // -----------------------------------------
                 // asn settings
@@ -429,10 +439,6 @@ TEST_CASE( "acl test", "[acl]" )
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                // -----------------------------------------
-                // revert
-                // -----------------------------------------
-                s_ip = "172.217.4.142";
                 // *****************************************
                 // -----------------------------------------
                 //         C O U N T R Y   T E S T
@@ -461,10 +467,34 @@ TEST_CASE( "acl test", "[acl]" )
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_event == NULL));
                 if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                 // *****************************************
                 // -----------------------------------------
-                // revert
+                //         S U B D I V I S I O N   T E S T
                 // -----------------------------------------
-                s_ip = "172.217.4.142";
+                // *****************************************
+                // -----------------------------------------
+                // validate blacklist
+                // -----------------------------------------
+                s_ip = "80.88.90.86";
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->DebugString().c_str());
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Blacklist Subdivision match"));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                if(l_event) { delete l_event; l_event = NULL; }
+                // -----------------------------------------
+                // validate whitelist
+                // -----------------------------------------
+                s_ip = "27.7.255.255";
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 // *****************************************
                 // -----------------------------------------
                 //             A S N   T E S T

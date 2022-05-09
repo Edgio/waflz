@@ -36,7 +36,7 @@
         l_d.m_data = _header; \
         l_d.m_len = sizeof(_header) - 1; \
         data_map_t::const_iterator i_h = l_hm.find(l_d); \
-        if(i_h != l_hm.end()) \
+        if (i_h != l_hm.end()) \
         { \
                 _val = i_h->second.m_data; \
                 _val##_len = i_h->second.m_len; \
@@ -88,6 +88,9 @@ acl::acl(engine& a_engine):
         m_asn_whitelist(),
         m_asn_accesslist(),
         m_asn_blacklist(),
+        m_sd_iso_whitelist(),
+        m_sd_iso_accesslist(),
+        m_sd_iso_blacklist(),
         m_url_rx_whitelist(NULL),
         m_url_rx_accesslist(NULL),
         m_url_rx_blacklist(NULL),
@@ -115,7 +118,7 @@ acl::acl(engine& a_engine):
 //! ----------------------------------------------------------------------------
 acl::~acl(void)
 {
-#define _DELETE_OBJ(_obj) if(_obj) { delete _obj; _obj = NULL; }
+#define _DELETE_OBJ(_obj) if (_obj) { delete _obj; _obj = NULL; }
 
         _DELETE_OBJ(m_ip_whitelist);
         _DELETE_OBJ(m_ip_accesslist);
@@ -132,20 +135,21 @@ acl::~acl(void)
         _DELETE_OBJ(m_cookie_rx_whitelist);
         _DELETE_OBJ(m_cookie_rx_accesslist);
         _DELETE_OBJ(m_cookie_rx_blacklist);
-        if(m_pb) { delete m_pb; m_pb = NULL; }
+        if (m_pb) { delete m_pb; m_pb = NULL; }
 }
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Create new acl protobuf, update protobuf from JSON, call init (see init)
+//! \return  waflz status code
+//! \param   a_buf: JSON file char
+//!      a_buf_len: JSON file len
 //! ----------------------------------------------------------------------------
 int32_t acl::load(const char *a_buf, uint32_t a_buf_len)
 {
-        if(!a_buf)
+        if (!a_buf)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        if(a_buf_len > _CONFIG_ACL_MAX_SIZE)
+        if (a_buf_len > _CONFIG_ACL_MAX_SIZE)
         {
                 WAFLZ_PERROR(m_err_msg, "config file size(%u) > max size(%u)",
                              a_buf_len,
@@ -153,7 +157,7 @@ int32_t acl::load(const char *a_buf, uint32_t a_buf_len)
                 return WAFLZ_STATUS_ERROR;
         }
         m_init = false;
-        if(m_pb)
+        if (m_pb)
         {
                 delete m_pb;
                 m_pb = NULL;
@@ -165,7 +169,7 @@ int32_t acl::load(const char *a_buf, uint32_t a_buf_len)
         int32_t l_s;
         l_s = update_from_json(*m_pb, a_buf, a_buf_len);
         //NDBG_PRINT("whole config %s", m_pb->DebugString().c_str());
-        if(l_s != JSPB_OK)
+        if (l_s != JSPB_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
@@ -174,7 +178,7 @@ int32_t acl::load(const char *a_buf, uint32_t a_buf_len)
         // init
         // -------------------------------------------------
         l_s = init();
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -187,7 +191,7 @@ int32_t acl::load(const char *a_buf, uint32_t a_buf_len)
 //! ----------------------------------------------------------------------------
 int32_t acl::load(const waflz_pb::acl* a_pb)
 {
-        if(!a_pb)
+        if (!a_pb)
         {
                 WAFLZ_PERROR(m_err_msg, "a_pb == NULL");
                 return WAFLZ_STATUS_ERROR;
@@ -201,7 +205,7 @@ int32_t acl::load(const waflz_pb::acl* a_pb)
         // -------------------------------------------------
         int32_t l_s;
         l_s = init();
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -216,20 +220,20 @@ int32_t acl::load(void* a_js)
 {
         const rapidjson::Document &l_js = *((rapidjson::Document *)a_js);
         int32_t l_s;
-        if(m_pb)
+        if (m_pb)
         {
                 delete m_pb;
                 m_pb = NULL;
         }
         m_pb = new waflz_pb::acl();
         l_s = update_from_json(*m_pb, l_js);
-        if(l_s != JSPB_OK)
+        if (l_s != JSPB_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "parsing json. Reason: %s", get_jspb_err_msg());
                 return WAFLZ_STATUS_ERROR;
         }
         l_s = init();
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -245,12 +249,12 @@ static int32_t compile_regex_list(regex **ao_regex,
                                   const ::google::protobuf::RepeatedPtrField< ::std::string>& a_list,
                                   uint32_t a_list_len)
 {
-        if(!ao_regex)
+        if (!ao_regex)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_regex = NULL;
-        if(!a_list_len)
+        if (!a_list_len)
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -264,7 +268,7 @@ static int32_t compile_regex_list(regex **ao_regex,
             ++i_s, ++i_idx)
         {
                 l_rx += *i_s;
-                if((i_idx+1) < a_list_len)
+                if ((i_idx+1) < a_list_len)
                 {
                         l_rx += "|";
                 }
@@ -273,11 +277,11 @@ static int32_t compile_regex_list(regex **ao_regex,
         regex *l_pcre = new regex();
         int32_t l_s;
         l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -more info
                 //WAFLZ_PERROR(m_err_msg, "compiling url whitelist");
-                if(l_pcre)
+                if (l_pcre)
                 {
                         delete l_pcre;
                         l_pcre = NULL;
@@ -288,13 +292,13 @@ static int32_t compile_regex_list(regex **ao_regex,
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Update ACL fields from ACL protobuf
+//! \return  waflz status
+//! \param   
 //! ----------------------------------------------------------------------------
 int32_t acl::init()
 {
-        if(m_init)
+        if (m_init)
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -307,7 +311,7 @@ int32_t acl::init()
         // -------------------------------------------------
         // resp header names
         // -------------------------------------------------
-        if(m_pb->has_response_header_name())
+        if (m_pb->has_response_header_name())
         {
                 m_resp_header_name = m_pb->response_header_name();
         }
@@ -320,16 +324,20 @@ int32_t acl::init()
         //     "blacklist": ["8.8.8.8"]
         // },
         // -------------------------------------------------
-        if(m_pb->has_ip())
+        // ------------------------------------------------------------
+        // Compile whitelists, blacklists and accesslists using macro, 
+        // loading values from protobuf (m_pb) into acl 
+        // ------------------------------------------------------------
+        if (m_pb->has_ip())
         {
 #define _COMPILE_IP_LIST(_type) do { \
-        if(m_pb->ip()._type##_size()) { \
-                if(m_ip_##_type) { delete m_ip_##_type; m_ip_##_type = NULL; } \
+        if (m_pb->ip()._type##_size()) { \
+                if (m_ip_##_type) { delete m_ip_##_type; m_ip_##_type = NULL; } \
                 m_ip_##_type = new nms(); \
                 for(int32_t i_ip = 0; i_ip < m_pb->ip()._type##_size(); ++i_ip) { \
                         const std::string &l_str = m_pb->ip()._type(i_ip); \
                         int32_t l_s = m_ip_##_type->add(l_str.c_str(), l_str.length()); \
-                        if(l_s != WAFLZ_STATUS_OK) { \
+                        if (l_s != WAFLZ_STATUS_OK) { \
                                 WAFLZ_PERROR(m_err_msg, "adding ip '%s'", l_str.c_str()); \
                                 return WAFLZ_STATUS_ERROR; \
                         } \
@@ -347,7 +355,7 @@ int32_t acl::init()
         //             "blacklist": ["RU", "CN"]
         //         },
         // -------------------------------------------------
-        if(m_pb->has_country())
+        if (m_pb->has_country())
         {
 #define _COMPILE_COUNTRY_LIST(_type) do { \
         for(int32_t i_ip = 0; i_ip < m_pb->country()._type##_size(); ++i_ip) { \
@@ -358,9 +366,22 @@ int32_t acl::init()
                 _COMPILE_COUNTRY_LIST(blacklist);
         }
         // -------------------------------------------------
+        // Subdivision
+        // -------------------------------------------------
+        if (m_pb->has_sd_iso())
+        {
+#define _COMPILE_SD_ISO_LIST(_type) do { \
+        for(int32_t i_ip = 0; i_ip < m_pb->sd_iso()._type##_size(); ++i_ip) { \
+                m_sd_iso_##_type.insert(m_pb->sd_iso()._type(i_ip)); \
+        } } while(0)
+                _COMPILE_SD_ISO_LIST(whitelist);
+                _COMPILE_SD_ISO_LIST(accesslist);
+                _COMPILE_SD_ISO_LIST(blacklist);
+        }
+        // -------------------------------------------------
         // ASN
         // -------------------------------------------------
-        if(m_pb->has_asn())
+        if (m_pb->has_asn())
         {
 #define _COMPILE_ASN_LIST(_type) do { \
         for(int32_t i_ip = 0; i_ip < m_pb->asn()._type##_size(); ++i_ip) { \
@@ -373,15 +394,15 @@ int32_t acl::init()
         // -------------------------------------------------
         // url
         // -------------------------------------------------
-        if(m_pb->has_url())
+        if (m_pb->has_url())
         {
 #define _COMPILE_URL_LIST(_type) do { \
-        if(m_pb->url()._type##_size()) { \
+        if (m_pb->url()._type##_size()) { \
                 int32_t l_s; \
                 l_s = compile_regex_list(&m_url_rx_##_type, \
                                          m_pb->url()._type(), \
                                          m_pb->url()._type##_size()); \
-                if(l_s != WAFLZ_STATUS_OK) { \
+                if (l_s != WAFLZ_STATUS_OK) { \
                         WAFLZ_PERROR(m_err_msg, "compiling url %s", #_type); \
                         return WAFLZ_STATUS_ERROR; \
         } } } while(0)
@@ -392,15 +413,15 @@ int32_t acl::init()
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        if(m_pb->has_user_agent())
+        if (m_pb->has_user_agent())
         {
 #define _COMPILE_USER_AGENT_LIST(_type) do { \
-        if(m_pb->user_agent()._type##_size()) { \
+        if (m_pb->user_agent()._type##_size()) { \
                 int32_t l_s; \
                 l_s = compile_regex_list(&m_ua_rx_##_type, \
                                          m_pb->user_agent()._type(), \
                                          m_pb->user_agent()._type##_size()); \
-                if(l_s != WAFLZ_STATUS_OK) { \
+                if (l_s != WAFLZ_STATUS_OK) { \
                         WAFLZ_PERROR(m_err_msg, "compiling user-agent %s", #_type); \
                         return WAFLZ_STATUS_ERROR; \
         } } } while(0)
@@ -411,15 +432,15 @@ int32_t acl::init()
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
-        if(m_pb->has_referer())
+        if (m_pb->has_referer())
         {
 #define _COMPILE_REFERER_LIST(_type) do { \
-        if(m_pb->referer()._type##_size()) { \
+        if (m_pb->referer()._type##_size()) { \
                 int32_t l_s; \
                 l_s = compile_regex_list(&m_referer_rx_##_type, \
                                          m_pb->referer()._type(), \
                                          m_pb->referer()._type##_size()); \
-                if(l_s != WAFLZ_STATUS_OK) { \
+                if (l_s != WAFLZ_STATUS_OK) { \
                         WAFLZ_PERROR(m_err_msg, "compiling referer %s", #_type); \
                         return WAFLZ_STATUS_ERROR; \
         } } } while(0)
@@ -430,15 +451,15 @@ int32_t acl::init()
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
-        if(m_pb->has_cookie())
+        if (m_pb->has_cookie())
         {
 #define _COMPILE_COOKIE_LIST(_type) do { \
-        if(m_pb->cookie()._type##_size()) { \
+        if (m_pb->cookie()._type##_size()) { \
                 int32_t l_s; \
                 l_s = compile_regex_list(&m_cookie_rx_##_type, \
                                          m_pb->cookie()._type(), \
                                          m_pb->cookie()._type##_size()); \
-                if(l_s != WAFLZ_STATUS_OK) { \
+                if (l_s != WAFLZ_STATUS_OK) { \
                         WAFLZ_PERROR(m_err_msg, "compiling cookie %s", #_type); \
                         return WAFLZ_STATUS_ERROR; \
         } } } while(0)
@@ -449,7 +470,7 @@ int32_t acl::init()
         // -------------------------------------------------
         // allowed_http_methods
         // -------------------------------------------------
-        if(m_pb->allowed_http_methods_size())
+        if (m_pb->allowed_http_methods_size())
         {
                 for(int32_t i_t = 0; i_t < m_pb->allowed_http_methods_size(); ++i_t)
                 {
@@ -459,7 +480,7 @@ int32_t acl::init()
         // -------------------------------------------------
         // allowed_http_versions
         // -------------------------------------------------
-        if(m_pb->allowed_http_versions_size())
+        if (m_pb->allowed_http_versions_size())
         {
                 for(int32_t i_t = 0; i_t < m_pb->allowed_http_versions_size(); ++i_t)
                 {
@@ -469,7 +490,7 @@ int32_t acl::init()
         // -------------------------------------------------
         // allowed_request_content
         // -------------------------------------------------
-        if(m_pb->allowed_request_content_types_size())
+        if (m_pb->allowed_request_content_types_size())
         {
                 for(int32_t i_t = 0; i_t < m_pb->allowed_request_content_types_size(); ++i_t)
                 {
@@ -479,7 +500,7 @@ int32_t acl::init()
         // -------------------------------------------------
         // allowed_request_content
         // -------------------------------------------------
-        if(m_pb->disallowed_extensions_size())
+        if (m_pb->disallowed_extensions_size())
         {
                 for(int32_t i_t = 0; i_t < m_pb->disallowed_extensions_size(); ++i_t)
                 {
@@ -489,7 +510,7 @@ int32_t acl::init()
         // -------------------------------------------------
         // disallowed_headers
         // -------------------------------------------------
-        if(m_pb->disallowed_headers_size())
+        if (m_pb->disallowed_headers_size())
         {
                 for(int32_t i_t = 0; i_t < m_pb->disallowed_headers_size(); ++i_t)
                 {
@@ -517,18 +538,18 @@ int32_t acl::process_whitelist(bool &ao_match, rqst_ctx &a_ctx)
         // -------------------------------------------------
         l_buf = a_ctx.m_src_addr.m_data;
         l_buf_len = a_ctx.m_src_addr.m_len;
-        if(m_ip_whitelist &&
+        if (m_ip_whitelist &&
            l_buf &&
            l_buf_len)
         {
                 l_s = m_ip_whitelist->contains(ao_match, l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log reason???
                         goto country_check;
                 }
                 // if in whitelist -bail out of modsec processing
-                if(ao_match)
+                if (ao_match)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -537,7 +558,7 @@ country_check:
         // -------------------------------------------------
         // country
         // -------------------------------------------------
-        if(m_country_whitelist.size() &&
+        if (m_country_whitelist.size() &&
            l_buf &&
            l_buf_len &&
            a_ctx.m_geo_cn2.m_data &&
@@ -545,19 +566,53 @@ country_check:
         {
                 std::string l_cn_str;
                 l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
-                if(m_country_whitelist.find(l_cn_str) != m_country_whitelist.end())
+                if (m_country_whitelist.find(l_cn_str) != m_country_whitelist.end())
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
                 }
         }
         // -------------------------------------------------
+        // subdivision iso
+        // -------------------------------------------------
+        if (m_sd_iso_whitelist.size() && 
+                l_buf &&
+                l_buf_len && 
+                a_ctx.m_src_sd1_iso.m_data && 
+                a_ctx.m_src_sd1_iso.m_len &&
+                a_ctx.m_geo_cn2.m_data &&
+                a_ctx.m_geo_cn2.m_len)
+        {
+                std::string l_sd1_str;
+                l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_sd1_str += "-";
+                l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                if (m_sd_iso_whitelist.find(l_sd1_str) != m_sd_iso_whitelist.end())
+                {
+                        ao_match = true;
+                        return WAFLZ_STATUS_OK;
+                }
+                if (a_ctx.m_src_sd2_iso.m_data &&
+                   a_ctx.m_src_sd2_iso.m_len)
+                {
+                        std::string l_sd2_str;
+                        l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                        l_sd2_str += "-";
+                        l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
+                        if (m_sd_iso_whitelist.find(l_sd2_str) != m_sd_iso_whitelist.end())
+                        {
+                                ao_match = true;
+                                return WAFLZ_STATUS_OK;
+                        } 
+                }
+        }
+        // -------------------------------------------------
         // asn
         // -------------------------------------------------
-        if(m_asn_whitelist.size() &&
+        if (m_asn_whitelist.size() &&
            a_ctx.m_src_asn)
         {
-                if(m_asn_whitelist.find(a_ctx.m_src_asn) != m_asn_whitelist.end())
+                if (m_asn_whitelist.find(a_ctx.m_src_asn) != m_asn_whitelist.end())
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
@@ -566,40 +621,35 @@ country_check:
         // -------------------------------------------------
         // get url
         // -------------------------------------------------
-        if(!m_url_rx_whitelist)
-        {
-                goto user_agent_check;
-        }
-        if(m_url_rx_whitelist &&
+        if (m_url_rx_whitelist &&
            a_ctx.m_uri.m_data &&
            a_ctx.m_uri.m_len)
         {
                 int32_t l_s;
                 l_s = m_url_rx_whitelist->compare(a_ctx.m_uri.m_data, a_ctx.m_uri.m_len);
                 // if failed to match
-                if(l_s >= 0)
+                if (l_s >= 0)
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
                 }
         }
-user_agent_check:
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        if(!m_ua_rx_whitelist)
+        if (!m_ua_rx_whitelist)
         {
                 goto referer_check;
         }
         _GET_HEADER("User-Agent", l_buf);
-        if(m_ua_rx_whitelist &&
+        if (m_ua_rx_whitelist &&
            l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
                 l_s = m_ua_rx_whitelist->compare(l_buf, l_buf_len);
                 // if failed to match
-                if(l_s >= 0)
+                if (l_s >= 0)
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
@@ -609,19 +659,19 @@ referer_check:
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
-        if(!m_referer_rx_whitelist)
+        if (!m_referer_rx_whitelist)
         {
                 goto cookie_check;
         }
         _GET_HEADER("Referer", l_buf);
-        if(m_referer_rx_whitelist &&
+        if (m_referer_rx_whitelist &&
            l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
                 l_s = m_referer_rx_whitelist->compare(l_buf, l_buf_len);
                 // if failed to match
-                if(l_s >= 0)
+                if (l_s >= 0)
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
@@ -631,18 +681,18 @@ cookie_check:
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
-        if(!m_cookie_rx_whitelist)
+        if (!m_cookie_rx_whitelist)
         {
                 return WAFLZ_STATUS_OK;
         }
         _GET_HEADER("Cookie", l_buf);
-        if(m_cookie_rx_whitelist &&
+        if (m_cookie_rx_whitelist &&
            l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
                 l_s =  m_cookie_rx_whitelist->compare(l_buf, l_buf_len);
-                if(l_s >= 0)
+                if (l_s >= 0)
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
@@ -651,13 +701,15 @@ cookie_check:
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Checks request context variables against ACL access lists. If 
+//!          accesslist exists and a_ctx doesn't satisfy, create ao_event
+//! \return  WAFLZ status code
+//! \param   ao_event: Accesslist deny if it occurs
+//!             a_ctx: Request context to be checked
 //! ----------------------------------------------------------------------------
 int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
-        if(!ao_event)
+        if (!ao_event)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -671,25 +723,25 @@ int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         // -------------------------------------------------
         // ip
         // -------------------------------------------------
-        // ip or src_addr used for: ip, country, asn
+        // ip or src_addr used for: ip, subdivision, country, asn
         l_buf = a_ctx.m_src_addr.m_data;
         l_buf_len = a_ctx.m_src_addr.m_len;
-        if(!m_ip_accesslist)
+        if (!m_ip_accesslist)
         {
                 goto country_check;
         }
         l_has = true;
-        if(l_buf &&
+        if (l_buf &&
            l_buf_len)
         {
                 bool l_match = false;
                 l_s = m_ip_accesslist->contains(l_match, l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???
                         goto country_check;
                 }
-                if(l_match)
+                if (l_match)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -698,45 +750,74 @@ country_check:
         // -------------------------------------------------
         // country
         // -------------------------------------------------
-        if(!m_country_accesslist.size())
+        if (!m_country_accesslist.size())
         {
-                goto asn_check;
+                goto sd_iso_check;
         }
         l_has = true;
-        if(l_buf &&
+        if (l_buf &&
            l_buf_len &&
            a_ctx.m_geo_cn2.m_data &&
            a_ctx.m_geo_cn2.m_len)
         {
                 std::string l_cn_str;
                 l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
-                bool l_match = false;
-                if(m_country_accesslist.find(l_cn_str) != m_country_accesslist.end())
-                {
-                        l_match = true;
-                }
-                if(l_match)
+                if (m_country_accesslist.find(l_cn_str) != m_country_accesslist.end())
                 {
                         return WAFLZ_STATUS_OK;
                 }
+        }
+sd_iso_check:
+        // ------------------------------------------------------------
+        // subdivision
+        // ------------------------------------------------------------
+        if (!m_sd_iso_accesslist.size())
+        {
+                goto asn_check;
+        }
+        l_has = true;
+        if (l_buf &&
+           l_buf_len &&a_ctx.m_src_sd1_iso.m_data && 
+           a_ctx.m_src_sd1_iso.m_data &&
+           a_ctx.m_geo_cn2.m_data &&
+           a_ctx.m_geo_cn2.m_len)
+        {
+                std::string l_sd1_str;
+                l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_sd1_str += "-";
+                l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                if (m_sd_iso_accesslist.find(l_sd1_str) != m_sd_iso_accesslist.end())
+                {
+                        return WAFLZ_STATUS_OK;
+                }
+                if (a_ctx.m_src_sd2_iso.m_data &&
+                   a_ctx.m_src_sd2_iso.m_len)
+                {
+                        std::string l_sd2_str;
+                        l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                        l_sd2_str += "-";
+                        l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
+                        if (m_sd_iso_accesslist.find(l_sd2_str) != m_sd_iso_accesslist.end())
+                        {
+                                return WAFLZ_STATUS_OK;
+                        } 
+                }
+                // ------------------------------------------------------------
+                // check accesslist
+                // ------------------------------------------------------------
         }
 asn_check:
         // -------------------------------------------------
         // ASN
         // -------------------------------------------------
-        if(!m_asn_accesslist.size())
+        if (!m_asn_accesslist.size())
         {
                 goto url_check;
         }
         l_has = true;
-        if(a_ctx.m_src_asn)
+        if (a_ctx.m_src_asn)
         {
-                bool l_match = false;
-                if(m_asn_accesslist.find(a_ctx.m_src_asn) != m_asn_accesslist.end())
-                {
-                        l_match = true;
-                }
-                if(l_match)
+                if (m_asn_accesslist.find(a_ctx.m_src_asn) != m_asn_accesslist.end())
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -745,7 +826,7 @@ url_check:
         // -------------------------------------------------
         // url
         // -------------------------------------------------
-        if(!m_url_rx_accesslist)
+        if (!m_url_rx_accesslist)
         {
                 goto user_agent_check;
         }
@@ -753,17 +834,12 @@ url_check:
         // set buf to uri
         l_buf = a_ctx.m_uri.m_data;
         l_buf_len = a_ctx.m_uri.m_len;
-        if(l_buf &&
+        if (l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
-                bool l_match = false;
                 l_s = m_url_rx_accesslist->compare(l_buf, l_buf_len);
-                if(l_s >= 0)
-                {
-                        l_match = true;
-                }
-                if(l_match)
+                if (l_s >= 0)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -772,25 +848,20 @@ user_agent_check:
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        if(!m_ua_rx_accesslist)
+        if (!m_ua_rx_accesslist)
         {
                 goto referer_check;
         }
         l_has = true;
         // get header from header map.
         _GET_HEADER("User-Agent", l_buf);
-        if(l_buf &&
+        if (l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
-                bool l_match = false;
                 std::string l_rx_capture;
                 l_s = m_ua_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
-                if(l_s >= 0)
-                {
-                        l_match = true;
-                }
-                if(l_match)
+                if (l_s >= 0)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -799,24 +870,19 @@ referer_check:
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
-        if(!m_referer_rx_accesslist)
+        if (!m_referer_rx_accesslist)
         {
                 goto cookie_check;
         }
         l_has = true;
         _GET_HEADER("Referer", l_buf);
-        if(l_buf &&
+        if (l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
-                bool l_match = false;
                 std::string l_rx_capture;
                 l_s = m_referer_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
-                if(l_s >= 0)
-                {
-                        l_match = true;
-                }
-                if(l_match)
+                if (l_s >= 0)
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -825,33 +891,34 @@ cookie_check:
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
-        if(!m_cookie_rx_accesslist)
+        if (!m_cookie_rx_accesslist)
         {
                 goto done;
         }
         l_has = true;
         _GET_HEADER("Cookie", l_buf);
-        if(l_buf &&
+        if (l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
                 bool l_match = false;
                 std::string l_rx_capture;
                 l_s = m_cookie_rx_accesslist->compare(l_buf, l_buf_len, &l_rx_capture);
-                if(l_s >= 0)
+                if (l_s >= 0)
                 {
                         l_match = true;
                 }
-                if(l_match)
+                if (l_match)
                 {
                         return WAFLZ_STATUS_OK;
                 }
         }
 done:
         // -------------------------------------------------
-        // if had an access list but no match...
+        // if had an access list (l_has) but no match, create 
+        // accesslist deny event
         // -------------------------------------------------
-        if(l_has)
+        if (l_has)
         {
                 // -----------------------------------------
                 // top level event
@@ -870,13 +937,14 @@ done:
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! \details TODO
-//! \return  TODO
-//! \param   TODO
+//! \details Check vals in request context against lists in acl
+//! \return  WAFLZ status code
+//! \param   ao_event: Blacklist event if it occurs
+//!          a_ctx: request context from which request values are pulled
 //! ----------------------------------------------------------------------------
 int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
-        if(!ao_event)
+        if (!ao_event)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -886,24 +954,24 @@ int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         data_t l_d;
         const data_map_t &l_hm = a_ctx.m_header_map;
         int32_t l_s;
-        // -------------------------------------------------
-        // ip
-        // -------------------------------------------------
-        // ip or src_addr used for: ip, country, asn
+        // ------------------------------------------------------------
+        // ip or src_addr used for: ip, subdivision, 
+        // country, asn
+        // ------------------------------------------------------------
         l_buf = a_ctx.m_src_addr.m_data;
         l_buf_len = a_ctx.m_src_addr.m_len;
-        if(m_ip_blacklist &&
+        if (m_ip_blacklist &&
            l_buf &&
            l_buf_len)
         {
                 bool l_match = false;
                 l_s = m_ip_blacklist->contains(l_match, l_buf, l_buf_len);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason???
                         goto country_check;
                 }
-                if(!l_match)
+                if (!l_match)
                 {
                         goto country_check;
                 }
@@ -931,10 +999,10 @@ int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 return WAFLZ_STATUS_OK;
         }
 country_check:
-        // -------------------------------------------------
+        // -----------------------------------------------------------
         // country
-        // -------------------------------------------------
-        if(m_country_blacklist.size() &&
+        // ------------------------------------------------------------
+        if (m_country_blacklist.size() &&
            l_buf &&
            l_buf_len &&
            a_ctx.m_geo_cn2.m_data &&
@@ -943,13 +1011,13 @@ country_check:
                 std::string l_cn_str;
                 l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
                 bool l_match = false;
-                if(m_country_blacklist.find(l_cn_str) != m_country_blacklist.end())
+                if (m_country_blacklist.find(l_cn_str) != m_country_blacklist.end())
                 {
                         l_match = true;
                 }
-                if(!l_match)
+                if (!l_match)
                 {
-                        goto asn_check;
+                        goto sd_iso_check;
                 }
                 // -----------------------------------------
                 // top level event
@@ -974,19 +1042,77 @@ country_check:
                 *ao_event = l_event;
                 return WAFLZ_STATUS_OK;
         }
+sd_iso_check:
+        // -------------------------------------------------
+        // subdivision
+        // -------------------------------------------------
+        if (m_sd_iso_blacklist.size() && 
+                l_buf &&
+                l_buf_len &&
+                a_ctx.m_src_sd1_iso.m_data &&
+                a_ctx.m_src_sd1_iso.m_len &&
+                a_ctx.m_geo_cn2.m_data &&
+                a_ctx.m_geo_cn2.m_len)
+        {
+                std::string l_sd1_str;
+                l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_sd1_str += "-";
+                l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                if (a_ctx.m_src_sd2_iso.m_data &&
+                   a_ctx.m_src_sd2_iso.m_len)
+                {
+                        std::string l_sd2_str;
+                        l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                        l_sd2_str += "-";
+                        l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
+                        if (m_sd_iso_blacklist.find(l_sd2_str) == m_sd_iso_blacklist.end() && 
+                                m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
+                        {
+                                goto asn_check;
+                        } 
+                }
+                else if (m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
+                {
+                        goto asn_check;
+                }
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Blacklist Subdivision match");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80013);
+                l_sevent->set_rule_msg("Blacklist Subdivision match");
+                l_sevent->set_rule_op_name("sd_iso_Lookup");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("BLACKLIST/Subdivision");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("TX");
+                l_rule_target->set_param("REAL_IP");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("GEO:Subdivision");
+                //char l_asn_str[16];
+                //snprintf(l_asn_str, 16, "AS%u", a_ctx.m_src_asn);
+                //l_var->set_value(l_asn_str);
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
 asn_check:
         // -------------------------------------------------
         // ASN
         // -------------------------------------------------
-        if(m_asn_blacklist.size() &&
+        if (m_asn_blacklist.size() &&
            a_ctx.m_src_asn)
         {
                 bool l_match = false;
-                if(m_asn_blacklist.find(a_ctx.m_src_asn) != m_asn_blacklist.end())
+                if (m_asn_blacklist.find(a_ctx.m_src_asn) != m_asn_blacklist.end())
                 {
                         l_match = true;
                 }
-                if(!l_match)
+                if (!l_match)
                 {
                         goto url_check;
                 }
@@ -1019,25 +1145,25 @@ url_check:
         // -------------------------------------------------
         // url
         // -------------------------------------------------
-        if(!m_url_rx_blacklist)
+        if (!m_url_rx_blacklist)
         {
                 goto user_agent_check;
         }
         // set buf to uri
         l_buf = a_ctx.m_uri.m_data;
         l_buf_len = a_ctx.m_uri.m_len;
-        if(m_url_rx_blacklist &&
+        if (m_url_rx_blacklist &&
            l_buf &&
            l_buf_len)
         {
                 int32_t l_s;
                 bool l_match = false;
                 l_s = m_url_rx_blacklist->compare(l_buf, l_buf_len);
-                if(l_s >= 0)
+                if (l_s >= 0)
                 {
                         l_match = true;
                 }
-                if(!l_match)
+                if (!l_match)
                 {
                         goto user_agent_check;
                 }
@@ -1067,13 +1193,13 @@ user_agent_check:
         // -------------------------------------------------
         // user-agent
         // -------------------------------------------------
-        if(!m_ua_rx_blacklist)
+        if (!m_ua_rx_blacklist)
         {
                 goto referer_check;
         }
         // get header from header map.
         _GET_HEADER("User-Agent", l_buf);
-        if(m_ua_rx_blacklist &&
+        if (m_ua_rx_blacklist &&
            l_buf &&
            l_buf_len)
         {
@@ -1081,11 +1207,11 @@ user_agent_check:
                 bool l_match = false;
                 std::string l_rx_capture;
                 l_s = m_ua_rx_blacklist->compare(l_buf, l_buf_len, &l_rx_capture);
-                if(l_s >= 0)
+                if (l_s >= 0)
                 {
                         l_match = true;
                 }
-                if(!l_match)
+                if (!l_match)
                 {
                         goto referer_check;
                 }
@@ -1116,12 +1242,12 @@ referer_check:
         // -------------------------------------------------
         // referer
         // -------------------------------------------------
-        if(!m_referer_rx_blacklist)
+        if (!m_referer_rx_blacklist)
         {
                 goto cookie_check;
         }
         _GET_HEADER("Referer", l_buf);
-        if(m_referer_rx_blacklist &&
+        if (m_referer_rx_blacklist &&
            l_buf &&
            l_buf_len)
         {
@@ -1129,11 +1255,11 @@ referer_check:
                 bool l_match = false;
                 std::string l_rx_capture;
                 l_s = m_referer_rx_blacklist->compare(l_buf, l_buf_len, &l_rx_capture);
-                if(l_s >= 0)
+                if (l_s >= 0)
                 {
                         l_match = true;
                 }
-                if(!l_match)
+                if (!l_match)
                 {
                         goto cookie_check;
                 }
@@ -1164,12 +1290,12 @@ cookie_check:
         // -------------------------------------------------
         // cookie
         // -------------------------------------------------
-        if(!m_cookie_rx_blacklist)
+        if (!m_cookie_rx_blacklist)
         {
                 return WAFLZ_STATUS_OK;
         }
         _GET_HEADER("Cookie", l_buf);
-        if(m_cookie_rx_blacklist &&
+        if (m_cookie_rx_blacklist &&
            l_buf &&
            l_buf_len)
         {
@@ -1177,11 +1303,11 @@ cookie_check:
                 bool l_match = false;
                 std::string l_rx_capture;
                 l_s = m_cookie_rx_blacklist->compare(l_buf, l_buf_len, &l_rx_capture);
-                if(l_s >= 0)
+                if (l_s >= 0)
                 {
                         l_match = true;
                 }
-                if(!l_match)
+                if (!l_match)
                 {
                         goto done;
                 }
@@ -1218,7 +1344,7 @@ done:
 //! ----------------------------------------------------------------------------
 int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
 {
-        if(!ao_event)
+        if (!ao_event)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -1226,7 +1352,7 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         // -------------------------------------------------
         // file size check
         // -------------------------------------------------
-        if(m_pb->has_max_file_size())
+        if (m_pb->has_max_file_size())
         {
                 // -----------------------------------------
                 // get length from content-length header
@@ -1237,26 +1363,26 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 data_t l_d;
                 const data_map_t &l_hm = a_ctx.m_header_map;
                 _GET_HEADER("Content-Length", l_buf);
-                if(!l_buf ||
+                if (!l_buf ||
                    !l_buf_len)
                 {
                         goto method_check;
                 }
                 l_cl = strntoul(l_buf, l_buf_len, NULL, 10);
-                if(l_cl == ULONG_MAX)
+                if (l_cl == ULONG_MAX)
                 {
                         goto method_check;
                 }
-                if(l_cl <= 0)
+                if (l_cl <= 0)
                 {
                         goto method_check;
                 }
-                if(!m_pb->has_max_file_size())
+                if (!m_pb->has_max_file_size())
                 {
                         // no max file size specified
                         goto method_check;
                 }
-                if(l_cl < m_pb->max_file_size())
+                if (l_cl < m_pb->max_file_size())
                 {
                         // file size within limits
                         goto method_check;
@@ -1288,16 +1414,16 @@ method_check:
         // -------------------------------------------------
         // http methods
         // -------------------------------------------------
-        if(!m_allowed_http_methods.size())
+        if (!m_allowed_http_methods.size())
         {
                 goto content_type_check;
         }
-        if(a_ctx.m_method.m_data &&
+        if (a_ctx.m_method.m_data &&
            a_ctx.m_method.m_len)
         {
                 // Look for method in allowed m set
                 std::string l_method(a_ctx.m_method.m_data, a_ctx.m_method.m_len);
-                if(m_allowed_http_methods.find(l_method) != m_allowed_http_methods.end())
+                if (m_allowed_http_methods.find(l_method) != m_allowed_http_methods.end())
                 {
                         // Found the method in allowed list
                         goto content_type_check;
@@ -1330,18 +1456,18 @@ content_type_check:
         // -------------------------------------------------
         // Request Content Type
         // -------------------------------------------------
-        if(!m_allowed_request_content_types.size())
+        if (!m_allowed_request_content_types.size())
         {
                 goto file_ext_check;
         }
         // -------------------------------------------------
         // skip inspection for idempotent methods
         // -------------------------------------------------
-        if(a_ctx.m_method.m_data &&
+        if (a_ctx.m_method.m_data &&
            a_ctx.m_method.m_len)
         {
                 std::string l_method(a_ctx.m_method.m_data, a_ctx.m_method.m_len);
-                if(g_ignore_ct_set.find(l_method) != g_ignore_ct_set.end())
+                if (g_ignore_ct_set.find(l_method) != g_ignore_ct_set.end())
                 {
                         goto file_ext_check;
                 }
@@ -1358,7 +1484,7 @@ content_type_check:
                 // if any content type matches allowed skip
                 // rest of list -pass thru
                 // -----------------------------------------
-                if(m_allowed_request_content_types.find(l_cont_type) != m_allowed_request_content_types.end())
+                if (m_allowed_request_content_types.find(l_cont_type) != m_allowed_request_content_types.end())
                 {
                            goto file_ext_check;
                 }
@@ -1389,17 +1515,17 @@ file_ext_check:
         // -------------------------------------------------
         // disallowed extensions
         // -------------------------------------------------
-        if(!m_disallowed_extensions.size())
+        if (!m_disallowed_extensions.size())
         {
                 goto header_check;
         }
-        if(m_disallowed_extensions.size() &&
+        if (m_disallowed_extensions.size() &&
            a_ctx.m_file_ext.m_data &&
            a_ctx.m_file_ext.m_len)
         {
                 std::string l_file_ext(a_ctx.m_file_ext.m_data, a_ctx.m_file_ext.m_len);
                 // unlike previous checks, extension shouldnt be in list, hence ==
-                if(m_disallowed_extensions.find(l_file_ext) == m_disallowed_extensions.end())
+                if (m_disallowed_extensions.find(l_file_ext) == m_disallowed_extensions.end())
                 {
                         // extension not found in disallowed list
                         goto header_check;
@@ -1431,7 +1557,7 @@ header_check:
         // -------------------------------------------------
         // disallowed headers
         // -------------------------------------------------
-        if(!m_disallowed_headers.size() ||
+        if (!m_disallowed_headers.size() ||
            !a_ctx.m_header_list.size())
         {
                 return WAFLZ_STATUS_OK;
@@ -1441,7 +1567,7 @@ header_check:
             ++i_h)
         {
                 // similar to previous check, ==
-                if(m_disallowed_headers.find(i_h->m_key) == m_disallowed_headers.end())
+                if (m_disallowed_headers.find(i_h->m_key) == m_disallowed_headers.end())
                 {
                         continue;
                 }
@@ -1473,16 +1599,16 @@ version_check:
         // -------------------------------------------------
         // allowed_http_versions
         // -------------------------------------------------
-        if(m_allowed_http_versions.size() &&
+        if (m_allowed_http_versions.size() &&
            l_buf &&
            l_buf_len)
         {
                 bool l_match = false;
-                if(m_allowed_http_versions.find(l_buf) != m_allowed_http_versions.end())
+                if (m_allowed_http_versions.find(l_buf) != m_allowed_http_versions.end())
                 {
                         l_match = true;
                 }
-                if(!l_match)
+                if (!l_match)
                 {
                         goto done;
                 }
@@ -1523,7 +1649,7 @@ int32_t acl::process(waflz_pb::event **ao_event,
                      void *a_ctx,
                      rqst_ctx **ao_rqst_ctx)
 {
-        if(!ao_event)
+        if (!ao_event)
         {
                 WAFLZ_PERROR(m_err_msg, "ao_event == NULL");
                 return WAFLZ_STATUS_ERROR;
@@ -1535,12 +1661,12 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // create new if null
         // -------------------------------------------------
         rqst_ctx *l_rqst_ctx = NULL;
-        if(ao_rqst_ctx &&
+        if (ao_rqst_ctx &&
            *ao_rqst_ctx)
         {
                 l_rqst_ctx = *ao_rqst_ctx;
         }
-        if(!l_rqst_ctx)
+        if (!l_rqst_ctx)
         {
                 WAFLZ_PERROR(m_err_msg, "ao_rqst_ctx == NULL");
                 return WAFLZ_STATUS_ERROR;
@@ -1549,10 +1675,10 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // run phase 1 init
         // -------------------------------------------------
         l_s = l_rqst_ctx->init_phase_1(m_engine.get_geoip2_mmdb(), NULL, NULL, NULL);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "performing rqst_ctx::init_phase_1");
-                if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                if (!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
@@ -1560,12 +1686,12 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // -------------------------------------------------
         ao_whitelist = false;
         l_s = process_whitelist(l_match, *l_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         // if whitelist match, we outtie
-        if(l_match)
+        if (l_match)
         {
                 ao_whitelist = true;
                 return WAFLZ_STATUS_OK;
@@ -1575,11 +1701,11 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // accesslist...
         // -------------------------------------------------
         l_s = process_accesslist(&l_event, *l_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        if(l_event)
+        if (l_event)
         {
                 goto done;
         }
@@ -1587,11 +1713,11 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // blacklist...
         // -------------------------------------------------
         l_s = process_blacklist(&l_event, *l_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        if(l_event)
+        if (l_event)
         {
                 goto done;
         }
@@ -1599,11 +1725,11 @@ int32_t acl::process(waflz_pb::event **ao_event,
         // settings...
         // -------------------------------------------------
         l_s = process_settings(&l_event, *l_rqst_ctx);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        if(l_event)
+        if (l_event)
         {
                 goto done;
         }
@@ -1611,11 +1737,11 @@ done:
         // -------------------------------------------------
         // Set config properties
         // -------------------------------------------------
-        if(l_event)
+        if (l_event)
         {
                 l_event->set_acl_config_id(m_id);
                 l_event->set_acl_config_name(m_name);
-                if(!m_resp_header_name.empty())
+                if (!m_resp_header_name.empty())
                 {
                         l_event->set_response_header_name(m_resp_header_name);
                 }
@@ -1625,7 +1751,7 @@ done:
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+        if (!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
 }

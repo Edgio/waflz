@@ -421,6 +421,96 @@ TEST_CASE( "acl accesslist test", "[acl accesslist]" )
                 if(l_pb) { delete l_pb; l_pb = NULL; }
         }
         //--------------------------------------------------
+        // accesslist subdivision(s)
+        // -------------------------------------------------
+        SECTION("acl accesslist subdivision tests") {
+                // -----------------------------------------
+                // setup acl
+                // -----------------------------------------
+                ns_waflz::acl *l_acl = new ns_waflz::acl(*l_engine);
+                waflz_pb::acl *l_pb = init_std_acl_pb();
+                // *****************************************
+                // -----------------------------------------
+                // subdivision settings
+                // -----------------------------------------
+                // *****************************************
+                ::waflz_pb::acl_lists_t* l_ax_sd_iso_l = l_pb->mutable_sd_iso();
+                l_ax_sd_iso_l->add_accesslist("GB-LAN");
+                // -----------------------------------------
+                // load
+                // -----------------------------------------
+                l_s = l_acl->load(l_pb);
+                //NDBG_PRINT("error[%d]: %s\n", l_s, l_acl->get_err_msg());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                if(l_pb) { delete l_pb; l_pb = NULL;}
+                void *l_ctx = NULL;
+                waflz_pb::event *l_event = NULL;
+                ns_waflz::rqst_ctx *l_rqst_ctx = NULL;
+                // -----------------------------------------
+                // set an ip from GB with iso subdivisions 
+                // ENG and LAN
+                // validate accesslist pass
+                // -----------------------------------------
+                s_ip = "188.31.121.90";
+                l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // set ip in GB-ENG, not in LAN 
+                // -----------------------------------------
+                s_ip = "161.76.134.64";
+                l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // set ip in GB-SCT and GB-EDH, not in LAN 
+                // -----------------------------------------
+                s_ip = "84.19.242.119";
+                l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // Set up IP in other country
+                // -----------------------------------------
+                s_ip = "141.20.0.9";
+                l_event = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                //if(l_event) NDBG_PRINT("event: %s\n", l_event->ShortDebugString().c_str());
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Accesslist deny"));
+                if(l_event) { delete l_event; l_event = NULL; }
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                // -----------------------------------------
+                // cleanup
+                // -----------------------------------------
+                if(l_acl) { delete l_acl; l_acl = NULL; }
+                if(l_pb) { delete l_pb; l_pb = NULL; }
+        }
+        //--------------------------------------------------
         // accesslist asn
         // -------------------------------------------------
         SECTION("acl accesslist asn tests") {

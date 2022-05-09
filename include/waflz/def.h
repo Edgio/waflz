@@ -118,7 +118,6 @@ typedef enum tx_applied
 } tx_applied_t;
 
 typedef std::list <data_t> data_list_t;
-typedef std::list <mutable_data_t> mutable_data_list_t;
 struct data_case_i_comp
 {
         bool operator()(const data_t& lhs, const data_t& rhs) const

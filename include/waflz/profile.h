@@ -108,7 +108,6 @@ private:
         std::string m_name;
         std::string m_resp_header_name;
         uint16_t m_action;
-        uint32_t m_owasp_ruleset_version;
         uint32_t m_paranoia_level;
         pcre_list_t m_il_query;
         pcre_list_t m_il_header;

@@ -11,17 +11,8 @@
 //! includes
 //! ----------------------------------------------------------------------------
 #include "event.pb.h"
-#include "waflz/def.h"
 #include "waflz/resp_ctx.h"
-#include "waflz/geoip2_mmdb.h"
 #include "waflz/string_util.h"
-#include "core/decode.h"
-#include "op/regex.h"
-#include "support/ndebug.h"
-#include "support/time_util.h"
-#include "parser/parser_url_encoded.h"
-#include "parser/parser_xml.h"
-#include "parser/parser_json.h"
 #include <stdlib.h>
 #include <string.h>
 //! ----------------------------------------------------------------------------

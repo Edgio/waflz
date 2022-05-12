@@ -54,8 +54,8 @@ resp_ctx::resp_ctx(void *a_ctx,
         m_body_len_max(a_body_len_max),
         m_body_data(NULL),
         m_body_len(0),
+        m_resp_status(0),
         m_body_parser(),
-
         // -------------------------------------------------
         // *************************************************
         // xml optimization

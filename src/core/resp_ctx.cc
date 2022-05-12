@@ -32,12 +32,11 @@
 //! macros
 //! ----------------------------------------------------------------------------
 
-
+namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! static
 //! ----------------------------------------------------------------------------
-uint32_t resp_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
-get_data_cb_t resp_ctx::s_get_bot_ch_prob = NULL;
+uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
 
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -75,4 +74,5 @@ resp_ctx::resp_ctx(void *a_ctx,
 resp_ctx::~resp_ctx()
 {
 
+}
 }

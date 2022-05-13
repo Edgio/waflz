@@ -145,6 +145,7 @@ SET(SRCS
     core/rules.cc
     core/bots.cc
     core/challenge.cc
+    core/resp_ctx.cc
     # ------------------------------------------------------
     # limit
     # ------------------------------------------------------
@@ -216,6 +217,7 @@ SET(HDRS
     ${CMAKE_SOURCE_DIR}/include/waflz/waf.h
     ${CMAKE_SOURCE_DIR}/include/waflz/waflz.h
     ${CMAKE_SOURCE_DIR}/include/waflz/string_util.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/resp_ctx.h
     # ------------------------------------------------------
     # db
     # ------------------------------------------------------

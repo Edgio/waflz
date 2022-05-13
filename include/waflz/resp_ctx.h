@@ -16,7 +16,7 @@
 #ifdef __cplusplus
 #include <waflz/arg.h>
 #include <waflz/parser.h>
-#include <waflz/profile.h>
+//#include <waflz/profile.h>
 #include <list>
 #include <map>
 #include <strings.h>

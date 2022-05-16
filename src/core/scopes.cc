@@ -1273,9 +1273,90 @@ int32_t process_response(const waflz_pb::enforcement **ao_enf,
                         void *a_ctx,
                         part_mk_t a_part_mk,
                         const resp_ctx_callbacks *a_callbacks,
-                        resp_ctx **ao_rqst_ctx)
+                        resp_ctx **ao_resp_ctx)
 {
+        if (!m_pb)
+        {
+                WAFLZ_PERROR(m_err_msg, "pb == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // create resp_ctx
+        // -------------------------------------------------
+        resp_ctx *l_ctx = NULL;
+        // TODO -fix args!!!
+        //l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
+        l_ctx = new resp_ctx(a_ctx, DEFAULT_BODY_SIZE_MAX, a_cb);
+        if (ao_resp_ctx)
+        {
+                *ao_resp_ctx = l_ctx;
+        }
+        // -------------------------------------------------
+        // run phase 3 init - TODO
+        // -------------------------------------------------
         
+
+        // -------------------------------------------------
+        // for each scope...
+        // -------------------------------------------------
+        /*for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                const ::waflz_pb::scope& l_sc = m_pb->scopes(i_s);
+                bool l_m;
+                l_s = in_scope(l_m, l_sc, l_ctx);
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO -log error???
+                        if (!ao_resp_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // no match continue to next check...
+                // -----------------------------------------
+                if (!l_m)
+                {
+                        continue;
+                }
+                l_s = process(ao_enf,
+                              ao_audit_event,
+                              ao_prod_event,
+                              l_sc, a_ctx,
+                              a_part_mk,
+                              ao_resp_ctx);
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO -log error???
+                        if (!ao_resp_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // Log scope id and name
+                // that generated an event
+                // -----------------------------------------
+                if (*ao_audit_event)
+                {
+                        (*ao_audit_event)->set_scope_config_id(l_sc.id());
+                        (*ao_audit_event)->set_scope_config_name(l_sc.name());
+                        (*ao_audit_event)->set_account_type(m_account_type);
+                        (*ao_audit_event)->set_partner_id(m_partner_id);
+                }
+                if (*ao_prod_event)
+                {
+                        (*ao_prod_event)->set_scope_config_id(l_sc.id());
+                        (*ao_prod_event)->set_scope_config_name(l_sc.name());
+                        (*ao_prod_event)->set_account_type(m_account_type);
+                        (*ao_prod_event)->set_partner_id(m_partner_id);
+                }
+                // -----------------------------------------
+                // break out on first scope match
+                // -----------------------------------------
+                break;
+        }*/
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if (!ao_resp_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+        return WAFLZ_STATUS_OK;
 }
 
 

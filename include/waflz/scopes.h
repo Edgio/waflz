@@ -146,7 +146,7 @@ public:
                         void *a_ctx,
                         part_mk_t a_part_mk,
                         const resp_ctx_callbacks *a_callbacks,
-                        resp_ctx **ao_rqst_ctx);
+                        resp_ctx **ao_resp_ctx);
 private:
         // -------------------------------------------------
         // private methods

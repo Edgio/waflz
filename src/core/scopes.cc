@@ -1272,7 +1272,7 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
                         part_mk_t a_part_mk,
-                        const resp_ctx_callbacks *a_callbacks,
+                        const resp_ctx_callbacks *a_cb,
                         resp_ctx **ao_resp_ctx)
 {
         if (!m_pb)

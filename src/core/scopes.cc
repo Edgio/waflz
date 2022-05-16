@@ -1261,6 +1261,24 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
         if (!ao_rqst_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
+
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+int32_t process_response(const waflz_pb::enforcement **ao_enf,
+                        waflz_pb::event **ao_audit_event,
+                        waflz_pb::event **ao_prod_event,
+                        void *a_ctx,
+                        part_mk_t a_part_mk,
+                        const resp_ctx_callbacks *a_callbacks,
+                        resp_ctx **ao_rqst_ctx)
+{
+        
+}
+
+
 //! ----------------------------------------------------------------------------
 //! \details if a_loaded_date is >= a_new_Date
 //! \return  False

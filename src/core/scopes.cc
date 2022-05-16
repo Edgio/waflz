@@ -1267,7 +1267,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t process_response(const waflz_pb::enforcement **ao_enf,
+int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,

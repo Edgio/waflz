@@ -1275,6 +1275,7 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
                         const resp_ctx_callbacks *a_cb,
                         resp_ctx **ao_resp_ctx)
 {
+        WAFLZ_PERROR(m_err_msg, "inside process_response_func");
         if (!m_pb)
         {
                 WAFLZ_PERROR(m_err_msg, "pb == NULL");

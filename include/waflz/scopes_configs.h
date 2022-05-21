@@ -76,8 +76,8 @@ public:
                         void *a_ctx,
                         uint64_t a_id,
                         part_mk_t a_part_mk,
-                        const rqst_ctx_callbacks *a_callbacks,
-                        rqst_ctx **ao_rqst_ctx);
+                        const resp_ctx_callbacks *a_callbacks,
+                        resp_ctx **ao_resp_ctx);
         bool check_id(uint64_t a_cust_id);
         const char *get_err_msg(void) { return m_err_msg; }
         int32_t generate_alert(waflz_pb::alert** ao_alert, rqst_ctx* a_ctx, uint64_t a_cust_id);

@@ -470,8 +470,8 @@ int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
                                 void *a_ctx,
                                 uint64_t a_id,
                                 part_mk_t a_part_mk,
-                                const rqst_ctx_callbacks *a_callbacks,
-                                rqst_ctx **ao_rqst_ctx)
+                                const resp_ctx_callbacks *a_callbacks,
+                                resp_ctx **ao_resp_ctx)
 {
         if(m_enable_locking)
         {
@@ -495,7 +495,7 @@ int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
-        l_s = l_scopes->process_response(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_rqst_ctx);
+        l_s = l_scopes->process_response(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_resp_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)
@@ -518,7 +518,7 @@ int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
                 // per bot config which will be taken care by
                 // destructor
                 // -----------------------------------------
-                if((*ao_rqst_ctx)->m_bot_repdb_enf)
+                if((*ao_resp_ctx)->m_bot_repdb_enf)
                 {
                         if(l_enf) { delete l_enf; l_enf = NULL; }
                 }

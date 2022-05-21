@@ -16,6 +16,7 @@
 #include "waflz/limit.h"
 #include "waflz/challenge.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/resp_ctx.h"
 #include <pthread.h>
 #include <string>
 #include <set>

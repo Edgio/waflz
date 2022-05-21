@@ -518,10 +518,10 @@ int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
                 // per bot config which will be taken care by
                 // destructor
                 // -----------------------------------------
-                if((*ao_resp_ctx)->m_bot_repdb_enf)
-                {
-                        if(l_enf) { delete l_enf; l_enf = NULL; }
-                }
+                //if((*ao_resp_ctx)->m_bot_repdb_enf)
+                //{
+                        //if(l_enf) { delete l_enf; l_enf = NULL; }
+                //}
         }
         if(m_enable_locking)
         {

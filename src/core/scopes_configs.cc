@@ -473,6 +473,7 @@ int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
                                 const resp_ctx_callbacks *a_callbacks,
                                 resp_ctx **ao_resp_ctx)
 {
+        NDBG_PRINT("inside process_response_func");
         if(m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);

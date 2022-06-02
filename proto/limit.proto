@@ -123,6 +123,8 @@ message alert {
         optional string geoip_country_code2 = 5;
         optional string geoip_country_name = 6;
         optional string geoip_city_name = 7;
+        optional string geoip_latitude = 8;
+        optional string geoip_longitude = 9;
         // -------------------------------------------------
         // change/rev info about config
         // -------------------------------------------------

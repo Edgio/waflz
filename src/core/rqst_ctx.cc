@@ -1414,11 +1414,11 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         // name and country names are for logging only, we
         // do that separately here.
         // -------------------------------------------------
-        a_geoip2_mmdb.get_country_city_name(&l_cn_name.m_data, l_cn_name.m_len,
-                                            &l_city_name.m_data, l_city_name.m_len,
-                                            &l_lat.m_data, l_lat.m_len,
-                                            &l_longt.m_data, l_longt.m_len,
-                                            m_src_addr.m_data, m_src_addr.m_len);
+        a_geoip2_mmdb.get_geoip_data(&l_cn_name.m_data, l_cn_name.m_len,
+                                    &l_city_name.m_data, l_city_name.m_len,
+                                    &l_lat.m_data, l_lat.m_len,
+                                    &l_longt.m_data, l_longt.m_len,
+                                    m_src_addr.m_data, m_src_addr.m_len);
         if (l_cn_name.m_data &&
            l_cn_name.m_len > 0)
         {
@@ -1433,6 +1433,16 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
            m_geo_cn2.m_len > 0)
         {
                 ao_event.set_geoip_country_code2(m_geo_cn2.m_data, m_geo_cn2.m_len);
+        }
+        if (l_lat.m_data &&
+           l_lat.m_len > 0)
+        {
+                ao_event.set_geoip_latitude(l_lat.m_data, l_lat.m_len);
+        }
+        if (l_longt.m_data &&
+           l_longt.m_len > 0)
+        {
+                ao_event.set_geoip_longitude(l_longt.m_data, l_longt.m_len);
         }
         if(m_src_sd1_iso.m_data &&
            m_src_sd1_iso.m_len > 0)

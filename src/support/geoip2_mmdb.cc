@@ -440,9 +440,11 @@ int32_t geoip2_mmdb::get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_l
 //!          ao_city_name: city name
 //!          ao_city_name_len: length of city name string
 //! ----------------------------------------------------------------------------
-int32_t geoip2_mmdb::get_country_city_name(const char **ao_cn_name, uint32_t &ao_cn_name_len,
-                                           const char **ao_city_name, uint32_t &ao_city_name_len,
-                                           const char *a_ip, uint32_t a_ip_len)
+int32_t geoip2_mmdb::get_geoip_data(const char **ao_cn_name, uint32_t &ao_cn_name_len,
+                                   const char **ao_city_name, uint32_t &ao_city_name_len,
+                                   const char **ao_lat, uint32_t &ao_lat_len,
+                                   const char **ao_longt, uint32_t &ao_longt_len,
+                                   const char *a_ip, uint32_t a_ip_len)
 {
         if(!ao_cn_name ||
            !ao_city_name)
@@ -570,6 +572,7 @@ int32_t geoip2_mmdb::get_country_city_name(const char **ao_cn_name, uint32_t &ao
                              "wrong data type");
                 return WAFLZ_STATUS_ERROR;
         }
+        }
         l_s = MMDB_get_value(&l_ls.entry,
                              &l_e_dat,
                              "location",
@@ -594,8 +597,8 @@ int32_t geoip2_mmdb::get_country_city_name(const char **ao_cn_name, uint32_t &ao
         switch(l_e_dat.type) {
         case MMDB_DATA_TYPE_UTF8_STRING:
         {
-                *ao_city_name = l_e_dat.utf8_string;
-                ao_city_name_len = l_e_dat.data_size;
+                *ao_lat = l_e_dat.utf8_string;
+                ao_lat_len = l_e_dat.data_size;
                 break;
         }
         default:
@@ -629,8 +632,8 @@ int32_t geoip2_mmdb::get_country_city_name(const char **ao_cn_name, uint32_t &ao
         switch(l_e_dat.type) {
         case MMDB_DATA_TYPE_UTF8_STRING:
         {
-                *ao_city_name = l_e_dat.utf8_string;
-                ao_city_name_len = l_e_dat.data_size;
+                *ao_longt = l_e_dat.utf8_string;
+                ao_longt_len = l_e_dat.data_size;
                 break;
         }
         default:

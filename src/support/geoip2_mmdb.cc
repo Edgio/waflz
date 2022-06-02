@@ -570,6 +570,75 @@ int32_t geoip2_mmdb::get_country_city_name(const char **ao_cn_name, uint32_t &ao
                              "wrong data type");
                 return WAFLZ_STATUS_ERROR;
         }
+        l_s = MMDB_get_value(&l_ls.entry,
+                             &l_e_dat,
+                             "location",
+                             "lattitude",
+                             NULL);
+        if(l_s != MMDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "looking up the entry data: reason: %s",
+                             MMDB_strerror(l_s));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_e_dat.has_data)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "data missing");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // extract
+        // -------------------------------------------------
+        switch(l_e_dat.type) {
+        case MMDB_DATA_TYPE_UTF8_STRING:
+        {
+                *ao_city_name = l_e_dat.utf8_string;
+                ao_city_name_len = l_e_dat.data_size;
+                break;
+        }
+        default:
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "wrong data type");
+                return WAFLZ_STATUS_ERROR;
+        }
+        }
+        l_s = MMDB_get_value(&l_ls.entry,
+                             &l_e_dat,
+                             "location",
+                             "longitude",
+                             NULL);
+        if(l_s != MMDB_SUCCESS)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "looking up the entry data: reason: %s",
+                             MMDB_strerror(l_s));
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(!l_e_dat.has_data)
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "data missing");
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // extract
+        // -------------------------------------------------
+        switch(l_e_dat.type) {
+        case MMDB_DATA_TYPE_UTF8_STRING:
+        {
+                *ao_city_name = l_e_dat.utf8_string;
+                ao_city_name_len = l_e_dat.data_size;
+                break;
+        }
+        default:
+        {
+                WAFLZ_PERROR(m_err_msg,
+                             "wrong data type");
+                return WAFLZ_STATUS_ERROR;
+        }
         }
         return WAFLZ_STATUS_OK;
 }

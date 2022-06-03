@@ -86,7 +86,12 @@ public:
                  bool a_parse_json = false);
         ~resp_ctx();
 
-        int32_t reset_phase_1();
+        // response header evaluation
+        int32_t init_phase_3();
+
+        // response body evaluation
+        int32_t init_phase_4(const ctype_parser_map_t &a_ctype_parser_map);
+        int32_t reset_phase_3();
         void show(void);
         // -------------------------------------------------
         // public members
@@ -102,6 +107,11 @@ public:
         // body parser
         // -------------------------------------------------
         parser *m_body_parser;
+        // -------------------------------------------------
+        // state
+        // -------------------------------------------------
+        bool m_init_phase_3;
+        bool m_init_phase_4;
         // -------------------------------------------------
         // response ctx callbacks struct
         // -------------------------------------------------

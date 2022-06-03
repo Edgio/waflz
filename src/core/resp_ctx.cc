@@ -52,7 +52,10 @@ resp_ctx::resp_ctx(void *a_ctx,
         m_resp_status(0),
         m_body_parser(),
         m_body_arg_list(),
-
+        // -------------------------------------------------
+        // collections
+        // -------------------------------------------------
+        m_cx_tx_map(),
         // -------------------------------------------------
         // state
         // -------------------------------------------------
@@ -100,7 +103,8 @@ int32_t resp_ctx::init_phase_3()
         {
                 return WAFLZ_STATUS_OK;
         }
-
+        m_init_phase_3 = true;
+        return WAFLZ_STATUS_OK;
 }
 
 int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)
@@ -166,7 +170,6 @@ int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)
                 delete m_body_parser;
                 m_body_parser = NULL;
         }
-        bool l_is_url_encoded = false;
         // -------------------------------------------------
         // init parser...
         // -------------------------------------------------

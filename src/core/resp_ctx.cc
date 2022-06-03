@@ -14,7 +14,7 @@
 #include "event.pb.h"
 #include "waflz/resp_ctx.h"
 #include "waflz/string_util.h"
-#include "parser/parser_url_encoded.h"
+//#include "parser/parser_url_encoded.h"
 #include "parser/parser_xml.h"
 #include "parser/parser_json.h"
 #include <stdlib.h>
@@ -51,6 +51,7 @@ resp_ctx::resp_ctx(void *a_ctx,
         m_body_len(0),
         m_resp_status(0),
         m_body_parser(),
+        m_body_arg_list(),
 
         // -------------------------------------------------
         // state
@@ -171,75 +172,24 @@ int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)
         // -------------------------------------------------
         switch(i_p->second)
         {
-        // -------------------------------------------------
-        // PARSER_NONE
-        // -------------------------------------------------
-        case PARSER_NONE:
-        {
-                // do nothing...
-                m_init_phase_4 = true;
-                return WAFLZ_STATUS_OK;
-        }
-        // -------------------------------------------------
-        // PARSER_URL_ENCODED
-        // -------------------------------------------------
-        case PARSER_URL_ENCODED:
-        {
-                m_body_parser = new parser_url_encoded(this);
-                l_is_url_encoded = true;
-                break;
-        }
-        // -------------------------------------------------
-        // PARSER_XML
-        // -------------------------------------------------
-        case PARSER_XML:
-        {
-                if (!m_parse_xml)
+                // -------------------------------------------------
+                // PARSER_NONE
+                // -------------------------------------------------
+                case PARSER_NONE:
                 {
                         // do nothing...
                         m_init_phase_4 = true;
                         return WAFLZ_STATUS_OK;
                 }
-                parser_xml* l_parser_xml = new parser_xml(this);
-                // -----------------------------------------
-                // optional set capture xxe
-                // -----------------------------------------
-                l_parser_xml->set_capture_xxe(m_xml_capture_xxe);
-                m_body_parser = l_parser_xml;
-                break;
-        }
-        // -------------------------------------------------
-        // PARSER_JSON
-        // -------------------------------------------------
-        case PARSER_JSON:
-        {
-                if (!m_parse_json)
+                // -------------------------------------------------
+                // default
+                // -------------------------------------------------
+                default:
                 {
                         // do nothing...
                         m_init_phase_4 = true;
                         return WAFLZ_STATUS_OK;
                 }
-                m_body_parser = new parser_json(this);
-                break;
-        }
-        // -------------------------------------------------
-        // PARSER_MULTIPART
-        // -------------------------------------------------
-        case PARSER_MULTIPART:
-        {
-                // TODO -fix???
-                m_init_phase_4 = true;
-                return WAFLZ_STATUS_OK;
-        }
-        // -------------------------------------------------
-        // default
-        // -------------------------------------------------
-        default:
-        {
-                // do nothing...
-                m_init_phase_4 = true;
-                return WAFLZ_STATUS_OK;
-        }
         }
         if (!m_body_parser)
         {
@@ -258,9 +208,9 @@ int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // TODO get request body
+        // TODO get response body
         // -------------------------------------------------
-        if (!m_callbacks->m_get_rqst_body_str_cb)
+        if (!m_callbacks->m_get_resp_body_str_cb)
         {
                 m_init_phase_4 = true;
                 return WAFLZ_STATUS_OK;
@@ -287,7 +237,7 @@ int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)
                 l_rd_count = 0;
                 char *l_buf = m_body_data+l_rd_count_total;
                 uint32_t l_to_read = l_body_len-l_rd_count_total;
-                l_s = m_callbacks->m_get_rqst_body_str_cb(l_buf,
+                l_s = m_callbacks->m_get_resp_body_str_cb(l_buf,
                                              &l_rd_count,
                                              &l_is_eos,
                                              m_ctx,
@@ -300,35 +250,6 @@ int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)
                 if (!l_rd_count)
                 {
                         continue;
-                }
-                // -------------------------------------------------
-                // if the profile has json parser enabled, check for
-                // mismatch between content-type and actual content
-                // We only check for json structure. Can extend it to
-                // xml if this fixes some false positives
-                // -------------------------------------------------
-                if (m_parse_json &&
-                   l_is_url_encoded)
-                {
-                        if (infer_is_json(l_buf, l_rd_count))
-                        {
-                                delete m_body_parser;
-                                m_body_parser = NULL;
-                                // -------------------------
-                                // Change parser to json
-                                // -------------------------
-                                m_body_parser = new parser_json(this);
-                                l_s = m_body_parser->init();
-                                if (l_s != WAFLZ_STATUS_OK)
-                                {
-                                        // do nothing...
-                                        return WAFLZ_STATUS_ERROR;
-                                }
-                        }
-                        // ---------------------------------
-                        // check only once in while loop
-                        // ---------------------------------
-                        l_is_url_encoded = false;
                 }
                 // -----------------------------------------
                 // process chunk

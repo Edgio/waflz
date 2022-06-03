@@ -1410,6 +1410,8 @@ int32_t config_parser::parse_vars(variable_list_t &ao_variable_list,
                         else VARIABLE_SET_IF_KV(MATCHED_VARS_NAMES)
                         else VARIABLE_SET_IF_KV(UNIQUE_ID)
                         else VARIABLE_SET_IF_KV(IP)
+                        else VARIABLE_SET_IF_KV(SD1_ISO)
+                        else VARIABLE_SET_IF_KV(SD2_ISO)
                         // default
                         else
                         {

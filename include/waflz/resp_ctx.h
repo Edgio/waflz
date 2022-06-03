@@ -55,14 +55,17 @@ typedef struct {
 //! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 class waf;
-
+struct cx_case_i_comp
+{
+        bool operator() (const std::string& lhs, const std::string& rhs) const
+        {
+                return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+        }
+};
+typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 typedef std::list<data_t> data_list_t;
-//! ----------------------------------------------------------------------------
-//! xpath optimization
-//! ----------------------------------------------------------------------------
-typedef std::list <const_arg_t> xpath_arg_list_t;
-typedef std::map <std::string, xpath_arg_list_t> xpath_cache_map_t;
+
 //! ----------------------------------------------------------------------------
 //! resp_ctx
 //! ----------------------------------------------------------------------------

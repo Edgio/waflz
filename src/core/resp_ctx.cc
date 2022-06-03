@@ -55,7 +55,7 @@ resp_ctx::resp_ctx(void *a_ctx,
         // -------------------------------------------------
         // collections
         // -------------------------------------------------
-        m_cx_tx_map(),
+        //m_cx_tx_map(),
         // -------------------------------------------------
         // state
         // -------------------------------------------------
@@ -261,7 +261,7 @@ int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)
                 {
                         //NDBG_PRINT("error m_body_parser->process_chunk()\n");
                         // Set request body error var in tx map and return
-                        m_cx_tx_map["REQBODY_ERROR"] = "1";
+                        //m_cx_tx_map["REQBODY_ERROR"] = "1";
                         m_init_phase_4 = true;
                         return WAFLZ_STATUS_OK;
                 }
@@ -276,7 +276,7 @@ int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)
         if (l_s != WAFLZ_STATUS_OK)
         {
                 // Set request body error var in tx map and return
-                m_cx_tx_map["REQBODY_ERROR"] = "1";
+                // m_cx_tx_map["REQBODY_ERROR"] = "1";
                 m_init_phase_4 = true;
                 return WAFLZ_STATUS_OK;
         }

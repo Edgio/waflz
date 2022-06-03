@@ -55,7 +55,7 @@ typedef struct {
 //! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 class waf;
-typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
+//typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 typedef std::list<data_t> data_list_t;
 
@@ -107,7 +107,7 @@ public:
         // -------------------------------------------------
         // collections...
         // -------------------------------------------------
-        cx_map_t m_cx_tx_map;
+        //cx_map_t m_cx_tx_map;
         // -------------------------------------------------
         // state
         // -------------------------------------------------

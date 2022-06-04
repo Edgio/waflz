@@ -1397,16 +1397,12 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         // -------------------------------------------------
         data_t l_cn_name;
         data_t l_city_name;
-        data_t l_lat;
-        data_t l_longt;
         l_cn_name.m_data = NULL;
         l_city_name.m_data = NULL;
-        l_lat.m_data = NULL;
-        l_longt.m_data = NULL;
         l_cn_name.m_len = 0;
         l_city_name.m_len = 0;
-        l_lat.m_len = 0;
-        l_longt.m_data = 0;
+        double l_lat = 0.000000;
+        double l_longit = 0.000000;
         // -------------------------------------------------
         // We only do lookup when we have an event. This is
         // to avoid uneccessary lookups, init_phase_1 does
@@ -1416,8 +1412,8 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         // -------------------------------------------------
         a_geoip2_mmdb.get_geoip_data(&l_cn_name.m_data, l_cn_name.m_len,
                                     &l_city_name.m_data, l_city_name.m_len,
-                                    &l_lat.m_data, l_lat.m_len,
-                                    &l_longt.m_data, l_longt.m_len,
+                                    l_lat,
+                                    l_longit,
                                     m_src_addr.m_data, m_src_addr.m_len);
         if (l_cn_name.m_data &&
            l_cn_name.m_len > 0)
@@ -1434,16 +1430,8 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         {
                 ao_event.set_geoip_country_code2(m_geo_cn2.m_data, m_geo_cn2.m_len);
         }
-        if (l_lat.m_data &&
-           l_lat.m_len > 0)
-        {
-                ao_event.set_geoip_latitude(l_lat.m_data, l_lat.m_len);
-        }
-        if (l_longt.m_data &&
-           l_longt.m_len > 0)
-        {
-                ao_event.set_geoip_longitude(l_longt.m_data, l_longt.m_len);
-        }
+        ao_event.set_geoip_latitude(l_lat);
+        ao_event.set_geoip_longitude(l_longit);
         if(m_src_sd1_iso.m_data &&
            m_src_sd1_iso.m_len > 0)
         {

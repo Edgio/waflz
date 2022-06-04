@@ -49,8 +49,8 @@ public:
         int32_t get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_len);
         int32_t get_geoip_data(const char **ao_cn_name, uint32_t &ao_cn_name_len,
                                const char **ao_city_name, uint32_t &ao_city_name_len,
-                               const char **ao_lat, uint32_t &ao_lat_len,
-                               const char **ao_longt, uint32_t &ao_longt_len,
+                               double &ao_lat,
+                               double &ao_longit,
                                const char *a_ip, uint32_t a_ip_len);
         // -------------------------------------------------
         //                G E T T E R S

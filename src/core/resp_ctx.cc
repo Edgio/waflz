@@ -14,6 +14,7 @@
 #include "event.pb.h"
 #include "waflz/resp_ctx.h"
 #include "waflz/string_util.h"
+#include "core/decode.h"
 //#include "parser/parser_url_encoded.h"
 #include "parser/parser_xml.h"
 #include "parser/parser_json.h"
@@ -31,7 +32,7 @@ namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! static
 //! ----------------------------------------------------------------------------
-//uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
+//uint32_t resp_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
 
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -105,6 +106,72 @@ int32_t resp_ctx::init_phase_3()
         }
         m_init_phase_3 = true;
         return WAFLZ_STATUS_OK;
+
+        // -------------------------------------------------
+        // headers
+        // -------------------------------------------------
+        uint32_t l_hdr_size = 0;
+        if (m_callbacks && m_callbacks->m_get_resp_header_size_cb)
+        {
+                int32_t l_s;
+                l_s = m_callbacks->m_get_resp_header_size_cb(&l_hdr_size, m_ctx);
+                if (l_s != 0)
+                {
+                        //WAFLZ_PERROR(m_err_msg, "performing s_get_resp_header_size_cb");
+                }
+        }
+        for(uint32_t i_h = 0; i_h < l_hdr_size; ++i_h)
+        {
+                const_arg_t l_hdr;
+                if (!m_callbacks || !m_callbacks->m_get_resp_header_w_idx_cb)
+                {
+                        continue;
+                }
+                int32_t l_s;
+                l_s = m_callbacks->m_get_resp_header_w_idx_cb(&l_hdr.m_key, &l_hdr.m_key_len,
+                                                 &l_hdr.m_val, &l_hdr.m_val_len,
+                                                 m_ctx,
+                                                 i_h);
+                if (l_s != 0)
+                {
+                        //WAFLZ_PERROR(m_err_msg, "performing s_get_resp_header_w_idx_cb: idx: %u", i_h);
+                        continue;
+                }
+                if (!l_hdr.m_key)
+                {
+                        continue;
+                }
+                // -----------------------------------------
+                // else just add header...
+                // -----------------------------------------
+                else
+                {
+                        m_header_list.push_back(l_hdr);
+                        // ---------------------------------
+                        // map
+                        // ---------------------------------
+                        data_t l_key;
+                        l_key.m_data = l_hdr.m_key;
+                        l_key.m_len = l_hdr.m_key_len;
+                        data_t l_val;
+                        l_val.m_data = l_hdr.m_val;
+                        l_val.m_len = l_hdr.m_val_len;
+                        m_header_map[l_key] = l_val;
+                }
+                // -----------------------------------------
+                // parse content-type header...
+                // e.g: Content-type:multipart/form-data; application/xml(asdhbc)  ;   aasdhhhasd;asdajj-asdad    ;; ;;"
+                // -----------------------------------------
+                if (strncasecmp(l_hdr.m_key, "Content-Type", sizeof("Content-Type") - 1) == 0)
+                {
+                        parse_content_type(m_content_type_list, &l_hdr);
+                }
+                // Get content-length, to be verified in phase 2
+                if (strncasecmp(l_hdr.m_key, "Content-Length", sizeof("Content-Length") - 1) == 0)
+                {
+                        m_content_length = strntoul(l_hdr.m_val , l_hdr.m_val_len, NULL, 10);
+                }
+        }
 }
 
 int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)

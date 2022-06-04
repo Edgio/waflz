@@ -44,7 +44,10 @@ extern "C" {
 #endif
 typedef struct {
         get_resp_data_cb_t m_get_resp_content_type_list_cb;
-        get_rqst_data_size_cb_t m_get_resp_content_length_cb;
+        get_resp_data_size_cb_t m_get_resp_content_length_cb;
+        get_resp_data_size_cb_t m_get_resp_header_size_cb;
+        get_resp_data_w_key_cb_t m_get_rqst_header_w_key_cb;
+        get_resp_kv_w_idx_cb_t m_get_resp_header_w_idx_cb;
         get_resp_body_data_cb_t m_get_resp_body_str_cb;
 }resp_ctx_callbacks;
 #ifdef __cplusplus

@@ -99,6 +99,7 @@ public:
         uint64_t m_content_length;
         data_list_t m_content_type_list;
         data_map_t m_header_map;
+        const_arg_list_t m_header_list;
         uint32_t m_body_len_max;
         char *m_body_data;
         uint32_t m_body_len;

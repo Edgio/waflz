@@ -652,16 +652,26 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         geoip2_mmdb& l_geoip2_mmdb = m_engine.get_geoip2_mmdb();
         data_t l_cn_name;
         data_t l_city_name;
-        l_s = l_geoip2_mmdb.get_country_city_name(&l_cn_name.m_data,
-                                                  l_cn_name.m_len,
-                                                  &l_city_name.m_data,
-                                                  l_city_name.m_len,
-                                                  a_ctx->m_src_addr.m_data,
-                                                  a_ctx->m_src_addr.m_len);
+        l_cn_name.m_data = NULL;
+        l_city_name.m_data = NULL;
+        l_cn_name.m_len = 0;
+        l_city_name.m_len = 0;
+        double l_lat = 0.000000;
+        double l_longit = 0.000000;
+        l_s = l_geoip2_mmdb.get_geoip_data(&l_cn_name.m_data,
+                                          l_cn_name.m_len,
+                                          &l_city_name.m_data,
+                                          l_city_name.m_len,
+                                          l_lat,
+                                          l_longit,
+                                          a_ctx->m_src_addr.m_data,
+                                          a_ctx->m_src_addr.m_len);
         if(l_s != WAFLZ_STATUS_ERROR)
         {
                 l_at->set_geoip_country_name(l_cn_name.m_data, l_cn_name.m_len);
                 l_at->set_geoip_city_name(l_city_name.m_data, l_city_name.m_len);
+                l_at->set_geoip_latitude(l_lat);
+                l_at->set_geoip_longitude(l_longit);
         }
         // -------------------------------------------------
         // done...

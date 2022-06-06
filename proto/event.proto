@@ -120,6 +120,10 @@ message event {
         optional string geoip_country_code2 = 70;
         optional string geoip_country_name = 71;
         optional string geoip_city_name = 72;
+        optional string geoip_sd1_iso = 73;
+        optional string geoip_sd2_iso = 74;
+        optional double geoip_latitude = 75;
+        optional double geoip_longitude = 76;
         // -------------------------------------------------
         // bot fields
         // -------------------------------------------------

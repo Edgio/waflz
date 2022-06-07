@@ -2558,7 +2558,7 @@ int32_t in_scope_resp(bool &ao_match,
            (a_scope.host().has_value() ||
             a_scope.host().values_size()))
         {
-                const data_t &l_d = a_ctx->m_host;
+                /*const data_t &l_d = a_ctx->m_host;
                 if (!l_d.m_data ||
                    !l_d.m_len)
                 {
@@ -2578,7 +2578,7 @@ int32_t in_scope_resp(bool &ao_match,
                 if (!l_matched)
                 {
                         return WAFLZ_STATUS_OK;
-                }
+                }*/
         }
         // -------------------------------------------------
         // path
@@ -2588,7 +2588,7 @@ int32_t in_scope_resp(bool &ao_match,
            (a_scope.path().has_value() ||
             a_scope.path().values_size()))
         {
-                data_t l_d = a_ctx->m_uri;
+                /*data_t l_d = a_ctx->m_uri;
                 if (!l_d.m_data ||
                    !l_d.m_len)
                 {
@@ -2614,7 +2614,7 @@ int32_t in_scope_resp(bool &ao_match,
                 if (!l_matched)
                 {
                         return WAFLZ_STATUS_OK;
-                }
+                }*/
         }
         ao_match = true;
         return WAFLZ_STATUS_OK;

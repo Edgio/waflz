@@ -1325,12 +1325,12 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
                 {
                         continue;
                 }
-                l_s = process_response(ao_enf,
+                l_s = process_response(/*ao_enf,
                               ao_audit_event,
                               ao_prod_event,
                               l_sc, a_ctx,
                               a_part_mk,
-                              ao_resp_ctx);
+                              ao_resp_ctx*/);
                 if (l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO -log error???
@@ -1678,6 +1678,28 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
         }
         return WAFLZ_STATUS_OK;
 }
+
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+int32_t scopes::process_response(/*const waflz_pb::enforcement** ao_enf,
+                        waflz_pb::event** ao_audit_event,
+                        waflz_pb::event** ao_prod_event,
+                        const ::waflz_pb::scope& a_scope,
+                        void *a_ctx,
+                        part_mk_t a_part_mk,
+                        resp_ctx **ao_resp_ctx*/)
+{
+
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        done:
+                return WAFLZ_STATUS_OK;
+}
+
 //! ----------------------------------------------------------------------------
 //! \details TODO
 //! \return  TODO

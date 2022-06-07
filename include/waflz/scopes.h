@@ -171,6 +171,14 @@ private:
                         void *a_ctx,
                         part_mk_t a_part_mk,
                         rqst_ctx **ao_rqst_ctx);
+
+        int32_t process_response(/*const waflz_pb::enforcement** ao_enf,
+                        waflz_pb::event** ao_audit_event,
+                        waflz_pb::event** ao_prod_event,
+                        const ::waflz_pb::scope& a_scope,
+                        void *a_ctx,
+                        part_mk_t a_part_mk,
+                        resp_ctx **ao_resp_ctx*/);
         bool compare_dates(const char* a_loaded_date, const char* a_new_date);
         // -------------------------------------------------
         // private members

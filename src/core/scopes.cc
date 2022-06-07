@@ -1696,7 +1696,7 @@ int32_t scopes::process_response(/*const waflz_pb::enforcement** ao_enf,
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
-        done:
+        //done:
                 return WAFLZ_STATUS_OK;
 }
 

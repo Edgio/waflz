@@ -221,6 +221,12 @@ int32_t in_scope(bool &ao_match,
                  const waflz_pb::scope &a_scope,
                  rqst_ctx *a_ctx);
 //! ----------------------------------------------------------------------------
+//! check scope for response
+//! ----------------------------------------------------------------------------
+int32_t in_scope_resp(bool &ao_match,
+                 const waflz_pb::scope &a_scope,
+                 resp_ctx *a_ctx);
+//! ----------------------------------------------------------------------------
 //! get/convert enforcement
 //! ----------------------------------------------------------------------------
 int32_t compile_action(waflz_pb::enforcement& ao_axn, char* ao_err_msg);

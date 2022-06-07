@@ -47,6 +47,7 @@ namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
 get_data_cb_t rqst_ctx::s_get_bot_ch_prob = NULL;
+//get_data_cb_t rqst_ctx::s_get_bot_js = NULL;
 //! ----------------------------------------------------------------------------
 //! \details TODO
 //! \return  TODO
@@ -297,6 +298,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_src_sd2_iso(),
         m_xml_capture_xxe(true),
         m_bot_ch(),
+        m_bot_js(),
         m_ans(0),
         m_ctx(a_ctx)
 {

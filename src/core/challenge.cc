@@ -62,9 +62,9 @@ namespace ns_waflz
 //! ----------------------------------------------------------------------------
 challenge::challenge(void):
                     m_err_msg(),
+                    m_bot_js(),
                     m_pb(NULL),
-                    m_prob_map(),
-                    m_prob_vector()
+                    m_chal_map()
 {
 }
 //! ----------------------------------------------------------------------------
@@ -150,14 +150,12 @@ int32_t challenge::load(void* a_js)
         // -------------------------------------------------
         // load in...
         // -------------------------------------------------
-        m_prob_map.clear();
-        m_prob_vector.clear();
+        m_chal_map.clear();
         for(int i_c = 0 ; i_c < m_pb->problems_size(); ++i_c)
         {
                 const waflz_pb::problem& i_p = m_pb->problems(i_c);
                 int32_t l_id = i_p.id();
-                m_prob_map[l_id] = &i_p;
-                m_prob_vector.push_back(l_id);
+                m_chal_map[l_id] = &i_p;
         }
         return WAFLZ_STATUS_OK;
 }
@@ -221,6 +219,29 @@ int32_t challenge::load(const char* a_buf, uint32_t a_buf_len)
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
+//! @brief   loads bot script
+//! @param   <a_file_path> - path to file
+//! @param   <a_file_path_len> - length of a_file_path
+//! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure
+//! ----------------------------------------------------------------------------
+int32_t challenge::load_bot_js(const char* a_file_path, uint32_t a_file_path_len)
+{
+        int32_t l_s;
+        char *l_buf = NULL;
+        uint32_t l_buf_len;
+        l_s = read_file(a_file_path, &l_buf, l_buf_len);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "performing read_file: %s",
+                             a_file_path);
+                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        m_bot_js.assign(l_buf, l_buf_len);
+        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
 //! @brief   loads the bot challenges from json
 //!          add it to corresponding maps
 //! @param   <a_file_path> - path to file
@@ -250,89 +271,83 @@ int32_t challenge::load_file(const char* a_file_path, uint32_t a_file_path_len)
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! @brief   get random problem id for browser challenge
-//! @param   <ao_problem_id> - output var to store the id
+//! @brief   get a decoded browser challenge
 //! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure
 //! ----------------------------------------------------------------------------
-int32_t challenge::get_rand_id(void)
+int32_t challenge::get_challenge(const std::string **ao_html)
 {
-        int32_t l_size = m_prob_vector.size();
-        if(l_size <= 0)
-        {
-                WAFLZ_PERROR(m_err_msg, "%s", "problem vector is empty");
-                return WAFLZ_STATUS_ERROR;
-        }
-        int32_t l_index = rand() % l_size;
-        // return @ index 0 for others...
-        if((l_index < 0 ) || 
-            (l_index >= l_size))
-        {
-                l_index = 0;
-        }
-        return m_prob_vector[l_index];
-}
-//! ----------------------------------------------------------------------------
-//! @brief   get a decoded browser challenge with ectoken
-//! @param   <ao_problem_id> - output var to store the id
-//! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure
-//! ----------------------------------------------------------------------------
-int32_t challenge::get_challenge(const std::string** ao_html, rqst_ctx* a_ctx)
-{
-        int32_t l_id = get_rand_id();
-        if(l_id == WAFLZ_STATUS_ERROR)
-        {
-                WAFLZ_PERROR(m_err_msg, "getting random problem id failed");
-                return WAFLZ_STATUS_ERROR;
-        }
-        return get_challenge(ao_html, l_id, a_ctx);
-}
-//! ----------------------------------------------------------------------------
-//! @brief   get a decoded browser challenge with ectoken
-//! @param   <ao_problem_id> - output var to store the id
-//! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure
-//! ----------------------------------------------------------------------------
-int32_t challenge::get_challenge(const std::string **ao_html, int32_t a_prob_id, rqst_ctx* a_ctx)
-{
-        int32_t l_s;
-        if(!a_ctx)
-        {
-                WAFLZ_PERROR(m_err_msg, "rqst_ctx == NULL");
-                return WAFLZ_STATUS_ERROR;
-        }
         if(!ao_html)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_html = NULL;
         // -------------------------------------------------
-        // get challenge string using prob_id
+        // get challenge html using challenge_id.
+        // always hardcoding to 1. It will
+        // change if we decide to introduce different level
+        // of challenges
         // -------------------------------------------------
-        prob_map_t::const_iterator i_c = m_prob_map.begin();
-        i_c = m_prob_map.find(a_prob_id);
-        if(i_c == m_prob_map.end())
+        chal_map_t::const_iterator i_c = m_chal_map.begin();
+        int l_chal_id = 1;
+        i_c = m_chal_map.find(l_chal_id);
+        if(i_c == m_chal_map.end())
         {
                 WAFLZ_PERROR(m_err_msg, "%s", "problem id not found in the config");
                 return WAFLZ_STATUS_ERROR;
         }
         const waflz_pb::problem &l_p = *(i_c->second);
         *ao_html = &(l_p.response_body_base64());
-        if(a_ctx->s_get_bot_ch_prob)
+        return WAFLZ_STATUS_OK;
+}
+
+//! ----------------------------------------------------------------------------
+//! @brief   set problem, ans, ectoken and bot js (for custom challeneg) in the ctx.
+//! @param   <a_ctx> - request context
+//! @param   a_custom - bool to denote if its a custom challenge
+//! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure
+//! ----------------------------------------------------------------------------
+int32_t challenge::set_chal_vars_in_ctx(rqst_ctx* a_ctx, bool a_custom)
+{
+        // -------------------------------------------------
+        // use callback to set problem and ans in ctx
+        // -------------------------------------------------
+        int32_t l_s;
+        if(!a_ctx->s_get_bot_ch_prob)
         {
-                l_s = a_ctx->s_get_bot_ch_prob(a_ctx->m_bot_ch, &a_ctx->m_ans);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        WAFLZ_PERROR(m_err_msg, "failed to get bot challenge");
-                        return WAFLZ_STATUS_ERROR;
-                }
+                WAFLZ_PERROR(m_err_msg, "bot_prob_callback is null");
+                return WAFLZ_STATUS_ERROR;
+        }
+        l_s = a_ctx->s_get_bot_ch_prob(a_ctx->m_bot_ch, &a_ctx->m_ans);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "failed to get bot challenge");
+                return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
-        // get ectoken
+        //  Frame ectoken and set them in ctx
         // -------------------------------------------------
-        l_s = set_ectoken(a_ctx->m_ans, a_ctx);
-        if(l_s != 0)
+        l_s = set_ectoken(a_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "set_ectoken failed");
                 return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        //  if custom challenge, frame js and set them
+        //  in ctx
+        // -------------------------------------------------
+        if(a_custom)
+        {
+                char* l_buf = NULL;
+                size_t l_buf_len = 0;
+                l_s =  ns_waflz::render(&l_buf, l_buf_len, m_bot_js.c_str(), m_bot_js.length(), a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_buf) { free(l_buf); l_buf = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                a_ctx->m_bot_js.assign(l_buf, l_buf_len);
+                if(l_buf) { free(l_buf); l_buf = NULL;}
         }
         return WAFLZ_STATUS_OK;
 }
@@ -340,11 +355,9 @@ int32_t challenge::get_challenge(const std::string **ao_html, int32_t a_prob_id,
 //! @brief   get ectoken. ectoken formed with ip, ua from ctx, random problem
 //!          id and current time in epoch seconds
 //! @param   <ao_ectoken> - output variable for ectoken
-//! @param   <ao_prob_id> - prob id used in the ectoken
 //! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure
 //! ----------------------------------------------------------------------------
-int32_t challenge::set_ectoken(int32_t a_ans,
-                               rqst_ctx* a_ctx)
+int32_t challenge::set_ectoken(rqst_ctx* a_ctx)
 {
         int32_t l_s;
         if(!a_ctx)
@@ -374,7 +387,7 @@ int32_t challenge::set_ectoken(int32_t a_ans,
                                    l_v.m_len,
                                    l_v.m_data,
                                    l_ct,
-                                   a_ans);
+                                   a_ctx->m_ans);
         if(l_token_clr_len < 0)
         {
                 if(l_token_clr) { free(l_token_clr); l_token_clr = NULL; }
@@ -419,7 +432,7 @@ int32_t challenge::render_challenge(char** ao_buf, uint32_t &ao_buf_len, rqst_ct
 {
         const std::string *l_b64 = NULL;
         int32_t l_s;
-        l_s = get_challenge(&l_b64, a_ctx);
+        l_s = get_challenge(&l_b64);
         if((l_s != WAFLZ_STATUS_OK) ||
             !l_b64)
         {

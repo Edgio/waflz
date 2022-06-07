@@ -301,7 +301,7 @@ int32_t challenge::get_challenge(const std::string **ao_html)
 }
 
 //! ----------------------------------------------------------------------------
-//! @brief   set problem, ans, ectoken and bot js (for custom challeneg) in the ctx.
+//! @brief   set problem, ans, ectoken and bot js (for custom challenge) in the ctx.
 //! @param   <a_ctx> - request context
 //! @param   a_custom - bool to denote if its a custom challenge
 //! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure

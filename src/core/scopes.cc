@@ -1295,12 +1295,19 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         // run phase 3 init - TODO
         // -------------------------------------------------
-        
+        int32_t l_s;
+        l_s = l_ctx->init_phase_3();
+        if (l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO -log error???
+                if (!ao_resp_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
 
         // -------------------------------------------------
         // for each scope...
         // -------------------------------------------------
-        /*for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 const ::waflz_pb::scope& l_sc = m_pb->scopes(i_s);
                 bool l_m;
@@ -1318,7 +1325,7 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
                 {
                         continue;
                 }
-                l_s = process(ao_enf,
+                l_s = process_response(ao_enf,
                               ao_audit_event,
                               ao_prod_event,
                               l_sc, a_ctx,
@@ -1352,7 +1359,7 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
                 // break out on first scope match
                 // -----------------------------------------
                 break;
-        }*/
+        }
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------

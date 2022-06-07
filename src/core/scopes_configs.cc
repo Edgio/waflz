@@ -492,7 +492,7 @@ int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
-        // process
+        // process response
         // -------------------------------------------------
         const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;

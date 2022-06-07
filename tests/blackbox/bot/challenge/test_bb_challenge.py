@@ -170,11 +170,8 @@ class custom_html_parse(HTMLParser):
 # operation in js. If problem changes in data file, this needs to be updated
 # ------------------------------------------------------------------------------
 def solve_challenge(a_html):
-    print("a_html -{}".format(a_html))
     l_problem_p = re.search('val =.[0-9]{3}\+[0-9]{3}', a_html)
-    print("l_problem_p - {}".format(l_problem_p))
     l_problem_vars = l_problem_p.group(0).split("=")[-1].split('+')
-    print("l_problem_vars - {}".format(l_problem_vars))
     l_solution = int(l_problem_vars[0]) + int(l_problem_vars[1])
     l_ectoken_p = re.search('__ecbmchid=(.*?)"', a_html)
     l_ectoken = l_ectoken_p.group(0)
@@ -230,8 +227,6 @@ def test_challenge_in_bot_config(setup_waflz_server_action):
     # ------------------------------------------------------
     l_parser = html_parse()
     l_parser.feed(l_r.text)
-    print("text-{}".format(l_r.text))
-    print("data-{}".format(l_parser.m_data))
     assert 'function' in l_parser.m_data
     l_solution_cookies = solve_challenge(l_parser.m_data)
     # ------------------------------------------------------
@@ -493,10 +488,8 @@ def test_custom_challenge(setup_waflz_server_custom_challenge):
     # ------------------------------------------------------
     # solve challenge
     # ------------------------------------------------------
-    print("text-{}".format(l_r.text))
     l_parser = custom_html_parse()
     l_parser.feed(l_r.text)
-    print("parser - {}".format(l_parser.m_data))
 
     assert 'function()' in l_parser.m_data
     l_solution_cookies = solve_challenge(l_parser.m_data)

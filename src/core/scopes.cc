@@ -1639,35 +1639,12 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
 //! \param   TODO
 //! ----------------------------------------------------------------------------
 int32_t scopes::process_response(
-                        waflz_pb::event** ao_audit_event,
+                        /*waflz_pb::event** ao_audit_event,
                         waflz_pb::event** ao_prod_event,
                         void *a_ctx,
                         part_mk_t a_part_mk,
-                        resp_ctx **ao_resp_ctx)
+                        resp_ctx **ao_resp_ctx*/)
 {
-        // -------------------------------------------------
-        // sanity checking
-        // -------------------------------------------------
-        if (!ao_audit_event ||
-           !ao_prod_event)
-        {
-                // TODO reason???
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // clear ao_* inputs
-        // -------------------------------------------------
-        *ao_audit_event = NULL;
-        *ao_prod_event = NULL;
-        // -------------------------------------------------
-        // *************************************************
-        //                   A U D I T
-        // *************************************************
-
-        // -------------------------------------------------
-        // cleanup
-        // -------------------------------------------------
-        //done:
                 return WAFLZ_STATUS_OK;
 }
 

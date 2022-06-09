@@ -478,6 +478,16 @@ int32_t scopes_configs::process_response(
         {
                 pthread_mutex_lock(&m_mutex);
         }
+        ns_waflz::scopes *l_scopes = NULL;
+        l_scopes = get_scopes(a_id);
+        if(!l_scopes)
+        {
+                if(m_enable_locking)
+                {
+                        pthread_mutex_unlock(&m_mutex);
+                }
+                return WAFLZ_STATUS_OK;
+        }
         // -------------------------------------------------
         // process response
         // -------------------------------------------------

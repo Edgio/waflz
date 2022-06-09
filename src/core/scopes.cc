@@ -1638,7 +1638,7 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes::process_response(const waflz_pb::enforcement** ao_enf,
+int32_t scopes::process_response(
                         waflz_pb::event** ao_audit_event,
                         waflz_pb::event** ao_prod_event,
                         void *a_ctx,
@@ -1648,8 +1648,7 @@ int32_t scopes::process_response(const waflz_pb::enforcement** ao_enf,
         // -------------------------------------------------
         // sanity checking
         // -------------------------------------------------
-        if (!ao_enf ||
-           !ao_audit_event ||
+        if (!ao_audit_event ||
            !ao_prod_event)
         {
                 // TODO reason???
@@ -1658,7 +1657,6 @@ int32_t scopes::process_response(const waflz_pb::enforcement** ao_enf,
         // -------------------------------------------------
         // clear ao_* inputs
         // -------------------------------------------------
-        *ao_enf = NULL;
         *ao_audit_event = NULL;
         *ao_prod_event = NULL;
         // -------------------------------------------------

@@ -140,8 +140,7 @@ public:
                                        void *a_ctx, const rqst_ctx_callbacks *a_callbacks,
                                        rqst_ctx **ao_rqst_ctx);
 
-        int32_t process_response(
-                        waflz_pb::event **ao_audit_event,
+        int32_t process_response(waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
                         part_mk_t a_part_mk,

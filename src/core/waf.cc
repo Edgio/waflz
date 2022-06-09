@@ -2518,7 +2518,7 @@ int32_t waf::process_response(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // init
         // -------------------------------------------------
-        l_s = l_ctx->init_phase_3(m_engine.get_geoip2_mmdb());
+        l_s = l_ctx->init_phase_3();
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
@@ -2537,11 +2537,11 @@ int32_t waf::process_response(waflz_pb::event **ao_event,
                 // TODO -log error???
                 if(l_ctx && !ao_resp_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
-        }*/
+        }
         if(l_ctx->m_intercepted)
         {
                 goto report;
-        }
+        }*/
         // -------------------------------------------------
         // *************************************************
         //                 P H A S E  4
@@ -2570,6 +2570,7 @@ int32_t waf::process_response(waflz_pb::event **ao_event,
                 if(l_ctx && !ao_resp_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }*/
+        return WAFLZ_STATUS_OK;
 }
 
 

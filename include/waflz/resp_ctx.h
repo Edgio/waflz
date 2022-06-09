@@ -91,6 +91,10 @@ public:
         int32_t reset_phase_3();
         void show(void);
         // -------------------------------------------------
+        // setters
+        // -------------------------------------------------
+        void set_body_max_len(uint32_t a_body_len_max) { m_body_len_max = a_body_len_max; }
+        // -------------------------------------------------
         // public members
         // -------------------------------------------------
         uint32_t m_an;

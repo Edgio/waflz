@@ -352,9 +352,8 @@ int32_t challenge::set_chal_vars_in_ctx(rqst_ctx* a_ctx, bool a_custom)
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
-//! @brief   get ectoken. ectoken formed with ip, ua from ctx, random problem
-//!          id and current time in epoch seconds
-//! @param   <ao_ectoken> - output variable for ectoken
+//! @brief   Frame ectoken with ip, ua, answer for the problem and current time
+//! @param   <a_ctx> - request context with ip, ua and answer for the problem
 //! @return  WAFLZ_STATUS_OK on success, WAFLZ_STATUS_ERROR on failure
 //! ----------------------------------------------------------------------------
 int32_t challenge::set_ectoken(rqst_ctx* a_ctx)

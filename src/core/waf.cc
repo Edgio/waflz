@@ -2469,6 +2469,110 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
         }
         return WAFLZ_STATUS_OK;
 }
+
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+int32_t waf::process_response(waflz_pb::event **ao_event,
+                     void *a_ctx,
+                     resp_ctx **ao_resp_ctx,
+                     bool a_custom_rules)
+{
+        if(!m_pb)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+#ifdef WAFLZ_NATIVE_ANOMALY_MODE
+        m_anomaly_score_cur = 0;
+#endif
+        int32_t l_s = WAFLZ_STATUS_OK;
+        // -------------------------------------------------
+        // create new if null
+        // -------------------------------------------------
+        resp_ctx *l_ctx = NULL;
+        if(ao_resp_ctx &&
+           *ao_resp_ctx)
+        {
+                l_ctx = *ao_resp_ctx;
+        }
+        if(!l_ctx)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_resp_ctx == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(m_pb->has_request_body_in_memory_limit())
+        {
+                l_ctx->set_body_max_len(m_pb->request_body_in_memory_limit());
+        }
+        if(!a_custom_rules)
+        {
+                //l_ctx->set_parse_xml(m_parse_xml);
+                //l_ctx->set_parse_json(m_parse_json);
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                   P H A S E  3
+        // *************************************************
+        // -------------------------------------------------
+        // init
+        // -------------------------------------------------
+        l_s = l_ctx->init_phase_3(m_engine.get_geoip2_mmdb());
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO -log error???
+                if(l_ctx && !ao_resp_ctx) { delete l_ctx; l_ctx = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // process
+        // -------------------------------------------------
+        /*l_s = process_phase(ao_event,
+                            m_compiled_config->m_directive_list_phase_1,
+                            m_compiled_config->m_marker_map_phase_1,
+                            *l_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO -log error???
+                if(l_ctx && !ao_resp_ctx) { delete l_ctx; l_ctx = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }*/
+        if(l_ctx->m_intercepted)
+        {
+                goto report;
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                 P H A S E  4
+        // *************************************************
+        // -------------------------------------------------
+        // -------------------------------------------------
+        // init
+        // -------------------------------------------------
+        l_s = l_ctx->init_phase_4(m_ctype_parser_map);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO -log error???
+                if(l_ctx && !ao_resp_ctx) { delete l_ctx; l_ctx = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // process
+        // -------------------------------------------------
+        /*l_s = process_phase(ao_event,
+                            m_compiled_config->m_directive_list_phase_2,
+                            m_compiled_config->m_marker_map_phase_2,
+                            NULL, *l_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                // TODO -log error???
+                if(l_ctx && !ao_resp_ctx) { delete l_ctx; l_ctx = NULL;}
+                return WAFLZ_STATUS_ERROR;
+        }*/
+}
+
+
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO

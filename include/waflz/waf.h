@@ -16,6 +16,7 @@
 #include <waflz/config_parser.h>
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/resp_ctx.h"
 #include <set>
 //! ----------------------------------------------------------------------------
 //! constants

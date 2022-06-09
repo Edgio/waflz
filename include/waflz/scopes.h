@@ -140,7 +140,7 @@ public:
                                        void *a_ctx, const rqst_ctx_callbacks *a_callbacks,
                                        rqst_ctx **ao_rqst_ctx);
 
-        int32_t process_response(const waflz_pb::enforcement **ao_enf,
+        int32_t process_response(
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
@@ -228,12 +228,6 @@ int32_t rl_run_op(bool &ao_matched,
 int32_t in_scope(bool &ao_match,
                  const waflz_pb::scope &a_scope,
                  rqst_ctx *a_ctx);
-//! ----------------------------------------------------------------------------
-//! check scope for response
-//! ----------------------------------------------------------------------------
-int32_t in_scope_resp(bool &ao_match,
-                 const waflz_pb::scope &a_scope,
-                 resp_ctx *a_ctx);
 //! ----------------------------------------------------------------------------
 //! get/convert enforcement
 //! ----------------------------------------------------------------------------

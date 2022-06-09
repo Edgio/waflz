@@ -464,7 +464,7 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
+int32_t scopes_configs::process_response(
                                 waflz_pb::event **ao_audit_event,
                                 waflz_pb::event **ao_prod_event,
                                 void *a_ctx,
@@ -479,24 +479,10 @@ int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
                 pthread_mutex_lock(&m_mutex);
         }
         // -------------------------------------------------
-        // get scopes for id
-        // -------------------------------------------------
-        ns_waflz::scopes *l_scopes = NULL;
-        l_scopes = get_scopes(a_id);
-        if(!l_scopes)
-        {
-                if(m_enable_locking)
-                {
-                        pthread_mutex_unlock(&m_mutex);
-                }
-                return WAFLZ_STATUS_OK;
-        }
-        // -------------------------------------------------
         // process response
         // -------------------------------------------------
-        const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
-        l_s = l_scopes->process_response(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_resp_ctx);
+        l_s = l_scopes->process_response(ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_resp_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)
@@ -504,25 +490,6 @@ int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
                         pthread_mutex_unlock(&m_mutex);
                 }
                 return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // create enforcement copy...
-        // -------------------------------------------------
-        if(l_enf)
-        {
-                *ao_enf = new waflz_pb::enforcement();
-                (*ao_enf)->CopyFrom(*l_enf);
-                // -----------------------------------------
-                // The enforcement for bot repdb are initiated
-                // in bot.cc, which needs to be cleaned here.
-                // Usually there will always be 1 enf per scope
-                // per bot config which will be taken care by
-                // destructor
-                // -----------------------------------------
-                //if((*ao_resp_ctx)->m_bot_repdb_enf)
-                //{
-                        //if(l_enf) { delete l_enf; l_enf = NULL; }
-                //}
         }
         if(m_enable_locking)
         {

@@ -41,9 +41,7 @@ namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 resp_ctx::resp_ctx(void *a_ctx,
                    uint32_t a_body_len_max,
-                   const resp_ctx_callbacks *a_callbacks,
-                   bool a_parse_xml,
-                   bool a_parse_json):
+                   const resp_ctx_callbacks *a_callbacks):
         m_an(),
         m_content_length(0),
         m_content_type_list(),

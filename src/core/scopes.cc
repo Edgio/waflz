@@ -1267,7 +1267,7 @@ int32_t scopes::process(const waflz_pb::enforcement **ao_enf,
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
+int32_t scopes::process_response(
                         waflz_pb::event **ao_audit_event,
                         waflz_pb::event **ao_prod_event,
                         void *a_ctx,
@@ -1285,8 +1285,6 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
         // create resp_ctx
         // -------------------------------------------------
         resp_ctx *l_ctx = NULL;
-        // TODO -fix args!!!
-        //l_rqst_ctx = new rqst_ctx(a_ctx, l_body_size_max, m_waf->get_parse_json());
         l_ctx = new resp_ctx(a_ctx, DEFAULT_BODY_SIZE_MAX, a_cb);
         if (ao_resp_ctx)
         {
@@ -1303,63 +1301,19 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
                 if (!ao_resp_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
-
-        // -------------------------------------------------
-        // for each scope...
-        // -------------------------------------------------
-        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        // -----------------------------------------
+        // Log scope id and name
+        // that generated an event
+        // -----------------------------------------
+        if (*ao_audit_event)
         {
-                const ::waflz_pb::scope& l_sc = m_pb->scopes(i_s);
-                bool l_m;
-                l_s = in_scope_resp(l_m, l_sc, l_ctx);
-                if (l_s != WAFLZ_STATUS_OK)
-                {
-                        // TODO -log error???
-                        if (!ao_resp_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // no match continue to next check...
-                // -----------------------------------------
-                if (!l_m)
-                {
-                        continue;
-                }
-                l_s = process_response(/*ao_enf,
-                              ao_audit_event,
-                              ao_prod_event,
-                              l_sc, a_ctx,
-                              a_part_mk,
-                              ao_resp_ctx*/);
-                if (l_s != WAFLZ_STATUS_OK)
-                {
-                        // TODO -log error???
-                        if (!ao_resp_ctx && l_ctx) { delete l_ctx; l_ctx = NULL; }
-                        return WAFLZ_STATUS_ERROR;
-                }
-                // -----------------------------------------
-                // Log scope id and name
-                // that generated an event
-                // -----------------------------------------
-                if (*ao_audit_event)
-                {
-                        (*ao_audit_event)->set_scope_config_id(l_sc.id());
-                        (*ao_audit_event)->set_scope_config_name(l_sc.name());
-                        (*ao_audit_event)->set_account_type(m_account_type);
-                        (*ao_audit_event)->set_partner_id(m_partner_id);
-                }
-                if (*ao_prod_event)
-                {
-                        (*ao_prod_event)->set_scope_config_id(l_sc.id());
-                        (*ao_prod_event)->set_scope_config_name(l_sc.name());
-                        (*ao_prod_event)->set_account_type(m_account_type);
-                        (*ao_prod_event)->set_partner_id(m_partner_id);
-                }
-                // -----------------------------------------
-                // break out on first scope match
-                // -----------------------------------------
-                break;
+                
         }
+        if (*ao_prod_event)
+        {
+                
+        }
+
         // -------------------------------------------------
         // cleanup
         // -------------------------------------------------
@@ -1684,14 +1638,33 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes::process_response(/*const waflz_pb::enforcement** ao_enf,
+int32_t scopes::process_response(const waflz_pb::enforcement** ao_enf,
                         waflz_pb::event** ao_audit_event,
                         waflz_pb::event** ao_prod_event,
-                        const ::waflz_pb::scope& a_scope,
                         void *a_ctx,
                         part_mk_t a_part_mk,
-                        resp_ctx **ao_resp_ctx*/)
+                        resp_ctx **ao_resp_ctx)
 {
+        // -------------------------------------------------
+        // sanity checking
+        // -------------------------------------------------
+        if (!ao_enf ||
+           !ao_audit_event ||
+           !ao_prod_event)
+        {
+                // TODO reason???
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // clear ao_* inputs
+        // -------------------------------------------------
+        *ao_enf = NULL;
+        *ao_audit_event = NULL;
+        *ao_prod_event = NULL;
+        // -------------------------------------------------
+        // *************************************************
+        //                   A U D I T
+        // *************************************************
 
         // -------------------------------------------------
         // cleanup
@@ -2550,93 +2523,6 @@ int32_t in_scope(bool &ao_match,
                 {
                         return WAFLZ_STATUS_OK;
                 }
-        }
-        ao_match = true;
-        return WAFLZ_STATUS_OK;
-}
-
-
-//! ----------------------------------------------------------------------------
-//! \details check if response "in scope"
-//! \return  true if in scope
-//!          false if not in scope
-//! \param   a_scope TODO
-//! \param   a_ctx   TODO
-//! ----------------------------------------------------------------------------
-int32_t in_scope_resp(bool &ao_match,
-                 const waflz_pb::scope &a_scope,
-                 resp_ctx *a_ctx)
-{
-        ao_match = false;
-        if (!a_ctx)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // host
-        // -------------------------------------------------
-        if (a_scope.has_host() &&
-           a_scope.host().has_type() &&
-           (a_scope.host().has_value() ||
-            a_scope.host().values_size()))
-        {
-                /*const data_t &l_d = a_ctx->m_host;
-                if (!l_d.m_data ||
-                   !l_d.m_len)
-                {
-                        return WAFLZ_STATUS_OK;
-                }
-                bool l_matched = false;
-                int32_t l_s;
-                l_s = rl_run_op(l_matched,
-                                a_scope.host(),
-                                l_d.m_data,
-                                l_d.m_len,
-                                true);
-                if (l_s != WAFLZ_STATUS_OK)
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if (!l_matched)
-                {
-                        return WAFLZ_STATUS_OK;
-                }*/
-        }
-        // -------------------------------------------------
-        // path
-        // -------------------------------------------------
-        if (a_scope.has_path() &&
-           a_scope.path().has_type() &&
-           (a_scope.path().has_value() ||
-            a_scope.path().values_size()))
-        {
-                /*data_t l_d = a_ctx->m_uri;
-                if (!l_d.m_data ||
-                   !l_d.m_len)
-                {
-                        return WAFLZ_STATUS_OK;
-                }
-                // use length w/o q string
-                // use length w/o q string
-                if (a_ctx->m_uri_path_len)
-                {
-                        l_d.m_len = a_ctx->m_uri_path_len;
-                }
-                bool l_matched = false;
-                int32_t l_s;
-                l_s = rl_run_op(l_matched,
-                                a_scope.path(),
-                                l_d.m_data,
-                                l_d.m_len,
-                                true);
-                if (l_s != WAFLZ_STATUS_OK)
-                {
-                        return WAFLZ_STATUS_ERROR;
-                }
-                if (!l_matched)
-                {
-                        return WAFLZ_STATUS_OK;
-                }*/
         }
         ao_match = true;
         return WAFLZ_STATUS_OK;

@@ -80,9 +80,7 @@ public:
         // -------------------------------------------------
         resp_ctx(void *a_ctx,
                  uint32_t a_body_len_max,
-                 const resp_ctx_callbacks *a_callbacks,
-                 bool a_parse_xml = false,
-                 bool a_parse_json = false);
+                 const resp_ctx_callbacks *a_callbacks);
         ~resp_ctx();
 
         // response header evaluation

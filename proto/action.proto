@@ -46,6 +46,7 @@ message enforcement {
         optional uint32 retry_after = 8;
         optional bool display_default_error_page = 9;
         optional type_t enf_type = 10;
+        optional bool is_custom_challenge = 11;
         // Custom response
         optional uint32 status = 100;
         optional string response_body_base64 = 101;

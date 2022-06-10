@@ -87,9 +87,6 @@ TEST_CASE( "test maps", "[test maps]") {
         SECTION("Verify prob/answer/challenge in map") {
                 int32_t l_s;
                 ns_waflz::challenge l_ch;
-                int32_t l_id;
-                l_id = l_ch.get_rand_id();
-                REQUIRE(l_id == WAFLZ_STATUS_ERROR);
                 l_s = l_ch.load(VALID_CHALLENGE_JSON, sizeof(VALID_CHALLENGE_JSON));
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 // -----------------------------------------
@@ -100,9 +97,9 @@ TEST_CASE( "test maps", "[test maps]") {
                 // verify challenge string
                 // -----------------------------------------
                 const std::string *l_cs = NULL;
-                l_s = l_ch.get_challenge(&l_cs, 2, &l_ctx);
+                l_s = l_ch.get_challenge(&l_cs);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
-                REQUIRE((*l_cs == "some random base64 encoded html string2"));
+                REQUIRE((*l_cs == "some random base64 encoded html string1"));
         }	
 }
 //! ----------------------------------------------------------------------------
@@ -128,7 +125,8 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 l_ua_chrome.m_data = "chrome";
                 l_ua_chrome.m_len = strlen(l_ua_chrome.m_data);
                 l_ctx.m_header_map[l_ua] = l_ua_chrome;
-                l_ch.set_ectoken(200, &l_ctx);
+                l_ctx.m_ans = 200;
+                l_ch.set_ectoken(&l_ctx);
                 ns_waflz::data_t l_k;
                 ns_waflz::data_t l_v;
                 l_ctx.m_cookie_map.clear();
@@ -203,6 +201,14 @@ TEST_CASE("test ectoken", "[test ectoken]") {
                 REQUIRE((l_pass == false));
                 REQUIRE((l_event->challenge_status() == ::waflz_pb::event_chal_status_t_CHAL_STATUS_WRONG_ANSWER));
                 if(l_event) { delete l_event; l_event=NULL; }
-                //NDBG_PRINT("err: %s\n", l_ch.get_err_msg());
+                // -----------------------------------------
+                // set correct answer in cookie
+                // -----------------------------------------
+                l_v.m_data = "200";
+                l_v.m_len = sizeof("200") - 1;
+                l_ctx.m_cookie_map[l_k] = l_v;
+                l_s = l_ch.verify(l_pass, 60, &l_ctx, &l_event);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_pass == true));
         }
 }

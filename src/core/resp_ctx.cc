@@ -43,6 +43,8 @@ resp_ctx::resp_ctx(void *a_ctx,
                    uint32_t a_body_len_max,
                    const resp_ctx_callbacks *a_callbacks):
         m_an(),
+        m_host(),
+        m_uri(),
         m_content_length(0),
         m_content_type_list(),
         m_header_map(),
@@ -140,6 +142,56 @@ int32_t resp_ctx::init_phase_3()
         }
         m_init_phase_3 = true;
         return WAFLZ_STATUS_OK;
+
+         // -------------------------------------------------
+        // host
+        // -------------------------------------------------
+        if (m_callbacks && m_callbacks->m_get_resp_host_cb)
+        {
+                int32_t l_s;
+                // get src address
+                l_s = m_callbacks->m_get_resp_host_cb(&m_host.m_data,
+                                         &m_host.m_len,
+                                         m_ctx);
+                if (l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+
+        // -------------------------------------------------
+        // get uri, url and quert string
+        // According to modsecurity:
+        //
+        // (REQUEST_URI) : holds the full request URL
+        // including the query string data
+        // (e.g., /index.php?p=X). However, it will never
+        // contain a domain name, even if it was provided on
+        // the request line.
+        //
+        // (REQUEST_URI_RAW): will contain the domain
+        // name if it was provided on the request line
+        // (e.g., http://www.example.com/index.php?p=X
+        // The domain name depends on request line.
+        // The most common form is origin-form according to
+        // https://tools.ietf.org/html/rfc7230#section-5.3.1
+        // waflz only supports origin form at this time,
+        // meaning uri=uri
+        // -------------------------------------------------
+        if (m_callbacks && m_callbacks->m_get_resp_uri_cb)
+        {
+                int32_t l_s;
+                // get uri
+                l_s = m_callbacks->m_get_resp_uri_cb(&m_uri.m_data,
+                                                     &m_uri.m_len,
+                                                     m_ctx);
+                if (l_s != 0)
+                {
+                        // TODO log reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
 
         // -------------------------------------------------
         // headers

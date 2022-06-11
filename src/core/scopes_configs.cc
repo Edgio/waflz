@@ -464,7 +464,7 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes_configs::process_response(
+int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
                                 waflz_pb::event **ao_audit_event,
                                 waflz_pb::event **ao_prod_event,
                                 void *a_ctx,
@@ -491,8 +491,9 @@ int32_t scopes_configs::process_response(
         // -------------------------------------------------
         // process response
         // -------------------------------------------------
+        const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
-        l_s = l_scopes->process_response(ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_resp_ctx);
+        l_s = l_scopes->process_response(l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_resp_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)

@@ -98,6 +98,8 @@ public:
         // public members
         // -------------------------------------------------
         uint32_t m_an;
+        data_t m_host;
+        data_t m_uri;
         uint64_t m_content_length;
         data_list_t m_content_type_list;
         data_map_t m_header_map;

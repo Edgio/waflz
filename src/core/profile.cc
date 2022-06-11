@@ -525,14 +525,14 @@ int32_t profile::process_response(waflz_pb::event **ao_event,
            m_pb->general_settings().has_xml_capture_xxe() &&
            m_pb->general_settings().xml_capture_xxe())
         {
-                l_resp_ctx->m_xml_capture_xxe = true;
+                //l_resp_ctx->m_xml_capture_xxe = true;
         }
         // -------------------------------------------------
         // process waf...
         // -------------------------------------------------
         if(a_part_mk & PART_MK_WAF)
         {
-                l_s = m_waf->process(&l_event, a_ctx, &l_resp_ctx);
+                l_s = m_waf->process_response(&l_event, a_ctx, &l_resp_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());

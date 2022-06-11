@@ -43,6 +43,8 @@ namespace ns_waflz {
 extern "C" {
 #endif
 typedef struct {
+        get_rqst_data_cb_t m_get_rqst_host_cb;
+        get_rqst_data_cb_t m_get_rqst_uri_cb;
         get_resp_data_cb_t m_get_resp_content_type_list_cb;
         get_resp_data_size_cb_t m_get_resp_content_length_cb;
         get_resp_data_size_cb_t m_get_resp_header_size_cb;

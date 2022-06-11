@@ -14,6 +14,7 @@
 #include "support/ndebug.h"
 #include "waflz/engine.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/resp_ctx.h"
 #include "waflz/waf.h"
 #include "event.pb.h"
 #include "rule.pb.h"
@@ -204,6 +205,89 @@ int32_t rules::process(waflz_pb::event **ao_event,
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }
+
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+int32_t rules::process_response(waflz_pb::event **ao_event,
+                       void *a_ctx,
+                       resp_ctx **ao_resp_ctx)
+{
+        if(!ao_event)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_event == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_event = NULL;
+        int32_t l_s;
+        // -------------------------------------------------
+        // create new if null
+        // -------------------------------------------------
+        resp_ctx *l_resp_ctx = NULL;
+        if(ao_resp_ctx &&
+           *ao_resp_ctx)
+        {
+                l_resp_ctx = *ao_resp_ctx;
+        }
+        if(!l_resp_ctx)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_resp_ctx == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(m_waf->get_request_body_in_memory_limit() > 0)
+        {
+                l_resp_ctx->set_body_max_len(m_waf->get_request_body_in_memory_limit());
+        }
+        //todo_resp: ask if this needs to be done 
+        //l_resp_ctx->set_parse_xml(true);
+        //l_resp_ctx->set_parse_json(true);
+        // -------------------------------------------------
+        // run phase 1 init
+        // -------------------------------------------------
+        l_s = l_resp_ctx->init_phase_3();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "performing resp_ctx::init_phase_3");
+                if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        waflz_pb::event *l_event = NULL;
+        // -------------------------------------------------
+        // process waf...
+        // -------------------------------------------------
+        l_s = m_waf->process_response(&l_event, a_ctx, &l_resp_ctx, true);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());
+                if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // done...
+        // -------------------------------------------------
+        // todo_resp: if we need to log events
+        /*if(l_event)
+        {
+                l_s = l_resp_ctx->append_rqst_info(*l_event, m_engine.get_geoip2_mmdb());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "performing resp_ctx::append_rqst_info");
+                        if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_event->set_rule_intercept_status(403);
+                if(get_pb()->has_last_modified_date())
+                {
+                        l_event->set_config_last_modified(get_pb()->last_modified_date());
+                }
+                *ao_event = l_event;
+        }*/
+        if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+        return WAFLZ_STATUS_OK;
+}
+
 //! ----------------------------------------------------------------------------
 //! \details TODO
 //! \return  TODO

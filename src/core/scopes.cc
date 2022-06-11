@@ -1752,7 +1752,7 @@ audit_profile:
         {
                 int32_t l_s;
                 // -----------------------------------------
-                // reset phase 1 to handle ignore...
+                // reset phase 3 to handle ignore...
                 // -----------------------------------------
                 l_s = (*ao_resp_ctx)->reset_phase_3();
                 if (l_s != WAFLZ_STATUS_OK)
@@ -1794,7 +1794,7 @@ prod:
         // -------------------------------------------------
         // enforcements
         // -------------------------------------------------
-enforcements:
+/*enforcements:
         if (!m_enfx)
         {
                 //goto limits;
@@ -1817,7 +1817,7 @@ enforcements:
                         }
                         goto done;
                 }
-        }
+        }*/
 
 prod_rules:
         // -------------------------------------------------

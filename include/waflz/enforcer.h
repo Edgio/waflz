@@ -42,6 +42,7 @@ public:
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t load(void *a_js);
         int32_t process(const waflz_pb::enforcement** ao_enf, rqst_ctx* a_ctx);
+        //int32_t process_response(const waflz_pb::enforcement** ao_enf, resp_ctx* a_ctx);
         int32_t merge(waflz_pb::config &ao_cfg);
         void update_start_time(void);
         uint64_t get_total_limits() const { return m_stat_total_limits; }

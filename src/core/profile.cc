@@ -467,6 +467,108 @@ int32_t profile::validate(void)
         }
         return WAFLZ_STATUS_OK;
 }
+
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+int32_t profile::process_response(waflz_pb::event **ao_event,
+                         void *a_ctx,
+                         part_mk_t a_part_mk,
+                         resp_ctx **ao_resp_ctx)
+{
+        if(!ao_event)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_event == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_event = NULL;
+        int32_t l_s;
+        // -------------------------------------------------
+        // create new if null
+        // -------------------------------------------------
+        resp_ctx *l_resp_ctx = NULL;
+        if(ao_resp_ctx &&
+           *ao_resp_ctx)
+        {
+                l_resp_ctx = *ao_resp_ctx;
+        }
+        if(!l_resp_ctx)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_resp_ctx == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(m_waf->get_request_body_in_memory_limit() > 0)
+        {
+                l_resp_ctx->set_body_max_len(m_waf->get_request_body_in_memory_limit());
+        }
+        // todo_resp
+        //l_resp_ctx->set_parse_xml(m_waf->get_parse_xml());
+        //l_resp_ctx->set_parse_json(m_waf->get_parse_json());
+        // -------------------------------------------------
+        // run phase 3 init
+        // -------------------------------------------------
+        l_s = l_resp_ctx->init_phase_3();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "performing resp_ctx::init_phase_3");
+                if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        waflz_pb::event *l_event = NULL;
+        // -------------------------------------------------
+        // optionally set xml capture xxe
+        // TODO remove or move this elsewhere later
+        // -------------------------------------------------
+        if(m_pb->has_general_settings() &&
+           m_pb->general_settings().has_xml_capture_xxe() &&
+           m_pb->general_settings().xml_capture_xxe())
+        {
+                l_resp_ctx->m_xml_capture_xxe = true;
+        }
+        // -------------------------------------------------
+        // process waf...
+        // -------------------------------------------------
+        if(a_part_mk & PART_MK_WAF)
+        {
+                l_s = m_waf->process(&l_event, a_ctx, &l_resp_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());
+                        if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // We got an event
+        // -------------------------------------------------
+        /*if(l_event)
+        {
+                l_s = l_resp_ctx->append_rqst_info(*l_event, m_engine.get_geoip2_mmdb());
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "performing resp_ctx::append_rqst_info");
+                        if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_event->set_rule_intercept_status(403);
+                l_event->set_waf_profile_id(m_pb->id());
+                l_event->set_waf_profile_name(m_pb->name());
+                if(!m_resp_header_name.empty())
+                {
+                        l_event->set_response_header_name(m_resp_header_name);
+                }
+                if(m_pb->has_last_modified_date())
+                {
+                        l_event->set_config_last_modified(m_pb->last_modified_date());
+                }
+                *ao_event = l_event;
+        }*/
+        if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+        return WAFLZ_STATUS_OK;
+}
+
 //! ----------------------------------------------------------------------------
 //! \details TODO
 //! \return  TODO

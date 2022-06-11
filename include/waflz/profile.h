@@ -55,6 +55,7 @@ public:
         profile(engine &a_engine);
         ~profile();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process_response(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, resp_ctx **ao_resp_ctx = NULL);
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t load(void* a_js);
         int32_t load(const waflz_pb::profile *a_pb);

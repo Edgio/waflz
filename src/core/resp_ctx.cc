@@ -201,11 +201,6 @@ int32_t resp_ctx::init_phase_3()
                 if (l_q)
                 {
                         m_uri_path_len = l_q - m_uri.m_data;
-                        // ---------------------------------
-                        // get query string
-                        // ---------------------------------
-                        m_query_str.m_data = l_q + 1;
-                        m_query_str.m_len = m_uri.m_len - m_uri_path_len - 1;
                 }
         }
 

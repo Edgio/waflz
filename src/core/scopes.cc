@@ -1308,7 +1308,7 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 const ::waflz_pb::scope& l_sc = m_pb->scopes(i_s);
-                if (l_sc.has_inspect_response() && l_sc.inspect_response)
+                if (l_sc.has_inspect_response() && l_sc.inspect_response())
                 {
                         bool l_m;
                         l_s = in_scope_response(l_m, l_sc, l_ctx);

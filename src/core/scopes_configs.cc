@@ -493,7 +493,7 @@ int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
         // -------------------------------------------------
         const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
-        l_s = l_scopes->process_response(l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_resp_ctx);
+        l_s = l_scopes->process_response(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_resp_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)

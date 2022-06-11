@@ -1797,12 +1797,12 @@ prod:
 enforcements:
         if (!m_enfx)
         {
-                goto limits;
+                //goto limits;
         }
         if (a_part_mk & PART_MK_LIMITS)
         {
                 int32_t l_s;
-                l_s = m_enfx->process(ao_enf, *ao_resp_ctx);
+                l_s = m_enfx->process_response(ao_enf, *ao_resp_ctx);
                 if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg, "performing enforcer process");

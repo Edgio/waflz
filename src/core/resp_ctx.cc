@@ -45,6 +45,7 @@ resp_ctx::resp_ctx(void *a_ctx,
         m_an(),
         m_host(),
         m_uri(),
+        m_uri_path_len(0),
         m_content_length(0),
         m_content_type_list(),
         m_header_map(),
@@ -190,6 +191,21 @@ int32_t resp_ctx::init_phase_3()
                 {
                         // TODO log reason???
                         return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // get path length w/o q string
+                // -----------------------------------------
+                m_uri_path_len = m_uri.m_len;
+                const char *l_q = NULL;
+                l_q = (const char *)memchr(m_uri.m_data, '?', m_uri.m_len);
+                if (l_q)
+                {
+                        m_uri_path_len = l_q - m_uri.m_data;
+                        // ---------------------------------
+                        // get query string
+                        // ---------------------------------
+                        m_query_str.m_data = l_q + 1;
+                        m_query_str.m_len = m_uri.m_len - m_uri_path_len - 1;
                 }
         }
 

@@ -1308,7 +1308,7 @@ int32_t scopes::process_response(const waflz_pb::enforcement **ao_enf,
         for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
         {
                 const ::waflz_pb::scope& l_sc = m_pb->scopes(i_s);
-                if (l_sc.has_inspect_element() && l_sc.inspect_element == true)
+                if (l_sc.has_inspect_response() && l_sc.inspect_response)
                 {
                         bool l_m;
                         l_s = in_scope_response(l_m, l_sc, l_ctx);
@@ -1686,14 +1686,225 @@ int32_t scopes::load_profile(ns_waflz::profile* a_profile)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-int32_t scopes::process_response(
-                        /*waflz_pb::event** ao_audit_event,
+int32_t scopes::process_response(const waflz_pb::enforcement** ao_enf,
+                        waflz_pb::event** ao_audit_event,
                         waflz_pb::event** ao_prod_event,
+                        const ::waflz_pb::scope& a_scope,
                         void *a_ctx,
                         part_mk_t a_part_mk,
-                        resp_ctx **ao_resp_ctx*/)
+                        resp_ctx **ao_resp_ctx)
 {
-                return WAFLZ_STATUS_OK;
+                // -------------------------------------------------
+                // sanity checking
+                // -------------------------------------------------
+                if (!ao_enf ||
+                   !ao_audit_event ||
+                   !ao_prod_event)
+                {
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -------------------------------------------------
+                // clear ao_* inputs
+                // -------------------------------------------------
+                *ao_enf = NULL;
+                *ao_audit_event = NULL;
+                *ao_prod_event = NULL;
+
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+audit_rules:
+        if ((a_part_mk & PART_MK_RULES) &&
+           a_scope.has__rules_audit__reserved())
+        {
+                rules *l_rules = (rules *)a_scope._rules_audit__reserved();
+                waflz_pb::event *l_event = NULL;
+                int32_t l_s;
+                l_s = l_rules->process_response(&l_event, a_ctx, ao_resp_ctx);
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        if (l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if (!l_event)
+                {
+                        goto audit_profile;
+                }
+                l_event->set_rules_config_id(l_rules->get_id());
+                l_event->set_rules_config_name(l_rules->get_name());
+                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                if (a_scope.has_rules_audit_action() &&
+                   a_scope.rules_audit_action().has_enf_type())
+                {
+                         l_event->set_waf_profile_action(a_scope.rules_audit_action().enf_type());
+                }
+                *ao_audit_event = l_event;
+                goto prod;
+        }
+        // -------------------------------------------------
+        // profile
+        // -------------------------------------------------
+audit_profile:
+        if ((a_part_mk & PART_MK_WAF) &&
+           a_scope.has__profile_audit__reserved())
+        {
+                int32_t l_s;
+                // -----------------------------------------
+                // reset phase 1 to handle ignore...
+                // -----------------------------------------
+                l_s = (*ao_resp_ctx)->reset_phase_3();
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // profile process
+                // -----------------------------------------
+                profile *l_profile = (profile *)a_scope._profile_audit__reserved();
+                waflz_pb::event *l_event = NULL;
+                l_s = l_profile->process_response(&l_event, a_ctx, PART_MK_WAF, ao_resp_ctx);
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        if (l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if (!l_event)
+                {
+                        goto prod;
+                }
+                l_event->set_waf_profile_action(waflz_pb::enforcement_type_t_ALERT);
+                if (a_scope.has_profile_audit_action() &&
+                   a_scope.profile_audit_action().has_enf_type())
+                {
+                         l_event->set_waf_profile_action(a_scope.profile_audit_action().enf_type());
+                }
+                *ao_audit_event = l_event;
+                goto prod;
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                    P R O D
+        // *************************************************
+        // -------------------------------------------------
+prod:
+        // -------------------------------------------------
+        // enforcements
+        // -------------------------------------------------
+enforcements:
+        if (!m_enfx)
+        {
+                goto limits;
+        }
+        if (a_part_mk & PART_MK_LIMITS)
+        {
+                int32_t l_s;
+                l_s = m_enfx->process(ao_enf, *ao_resp_ctx);
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "performing enforcer process");
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if (*ao_enf)
+                {
+                        //TODO: handle browser challenge validation
+                        if ((*ao_enf)->has_status())
+                        {
+                                (*ao_resp_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
+                        goto done;
+                }
+        }
+
+prod_rules:
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+        if ((a_part_mk & PART_MK_RULES) &&
+           a_scope.has__rules_prod__reserved())
+        {
+                // -----------------------------------------
+                // process
+                // -----------------------------------------
+                rules *l_rules = (rules *)a_scope._rules_prod__reserved();
+                waflz_pb::event *l_event = NULL;
+                int32_t l_s;
+                l_s = l_rules->process_response(&l_event, a_ctx, ao_resp_ctx);
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        if (l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if (!l_event)
+                {
+                        goto prod_profile;
+                }
+                l_event->set_rules_config_id(l_rules->get_id());
+                l_event->set_rules_config_name(l_rules->get_name());
+                *ao_prod_event = l_event;
+                if (a_scope.has_rules_prod_action())
+                {
+                        *ao_enf = &(a_scope.rules_prod_action());;
+                        if ((*ao_enf)->has_status())
+                        {
+                                (*ao_resp_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
+                }
+                goto done;
+        }
+        // -------------------------------------------------
+        // profile
+        // -------------------------------------------------
+prod_profile:
+        if ((a_part_mk & PART_MK_WAF) &&
+           a_scope.has__profile_prod__reserved())
+        {
+                // -----------------------------------------
+                // reset phase 1 to handle ignore...
+                // -----------------------------------------
+                int32_t l_s;
+                l_s = (*ao_resp_ctx)->reset_phase_3();
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // profile process
+                // -----------------------------------------
+                profile *l_profile = (profile *)a_scope._profile_prod__reserved();
+                waflz_pb::event *l_event = NULL;
+                l_s = l_profile->process_response(&l_event, a_ctx, PART_MK_WAF, ao_resp_ctx);
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        if (l_event) { delete l_event; l_event = NULL; }
+                        // TODO reason???
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if (!l_event)
+                {
+                        goto done;
+                }
+                *ao_prod_event = l_event;
+                if (a_scope.has_profile_prod_action())
+                {
+                        *ao_enf = &(a_scope.profile_prod_action());
+                        if ((*ao_enf)->has_status())
+                        {
+                                (*ao_resp_ctx)->m_resp_status = (*ao_enf)->status();
+                        }
+                }
+                goto done;
+        }
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+done:
+        return WAFLZ_STATUS_OK;
 }
 
 //! ----------------------------------------------------------------------------

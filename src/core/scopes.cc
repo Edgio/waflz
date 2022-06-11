@@ -1714,7 +1714,7 @@ int32_t scopes::process_response(const waflz_pb::enforcement** ao_enf,
         // -------------------------------------------------
         // rules
         // -------------------------------------------------
-audit_rules:
+//audit_rules:
         if ((a_part_mk & PART_MK_RULES) &&
            a_scope.has__rules_audit__reserved())
         {
@@ -1819,7 +1819,7 @@ prod:
                 }
         }*/
 
-prod_rules:
+//prod_rules:
         // -------------------------------------------------
         // rules
         // -------------------------------------------------

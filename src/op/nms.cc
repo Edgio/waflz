@@ -595,7 +595,7 @@ int32_t nms::contains_ipv4(bool &ao_match, const char *a_buf, uint32_t a_buf_len
 int32_t nms::contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len)
 {
         ao_match = false;
-        if(!ipv4_arr)
+        if(!ipv6_arr)
         {
                 // error???
                 return WAFLZ_STATUS_OK;

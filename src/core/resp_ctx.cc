@@ -141,10 +141,8 @@ int32_t resp_ctx::init_phase_3()
         {
                 return WAFLZ_STATUS_OK;
         }
-        m_init_phase_3 = true;
-        return WAFLZ_STATUS_OK;
 
-         // -------------------------------------------------
+        // -------------------------------------------------
         // host
         // -------------------------------------------------
         if (m_callbacks && m_callbacks->m_get_resp_host_cb)
@@ -269,6 +267,8 @@ int32_t resp_ctx::init_phase_3()
                         m_content_length = strntoul(l_hdr.m_val , l_hdr.m_val_len, NULL, 10);
                 }
         }
+        m_init_phase_3 = true;
+        return WAFLZ_STATUS_OK;
 }
 
 int32_t resp_ctx::init_phase_4(const ctype_parser_map_t &a_ctype_parser_map)

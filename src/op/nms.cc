@@ -270,8 +270,7 @@ int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
         char* l_err = NULL;
         uint32_t l_bits;
         l_bits = strtoul(l_slash_pos + 1, &l_err, 10);
-        if(*l_err ||
-           (l_bits == ULONG_MAX))
+        if(*l_err)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
@@ -419,8 +418,7 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
         char* l_err = NULL;
         uint32_t l_bits;
         l_bits = strtoul(l_slash_pos + 1, &l_err, 10);
-        if(*l_err ||
-           (l_bits == ULONG_MAX))
+        if(*l_err)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;

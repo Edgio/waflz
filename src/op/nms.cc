@@ -329,14 +329,14 @@ int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
                 // Check if prefix of prefix is already in 
                 // nms
                 // ----------------------------------------
-                if(i<l_bits && ipv4_arr[i].find(l_masked_addr & temp_mask)!=ipv4_arr[i].end()) {
+                if(i< (int) l_bits && ipv4_arr[i].find(l_masked_addr & temp_mask)!=ipv4_arr[i].end()) {
                         break;
                 }
                 // ----------------------------------------
                 // check to find all CIDRs and IPs matching
                 // this prefix and delete
                 // ----------------------------------------
-                if(i>l_bits) {
+                if(i> (int) l_bits) {
                         std::set<in_addr_t>::iterator itr = ipv4_arr[i].lower_bound(l_masked_addr);
                         while(itr!=ipv4_arr[i].end()) {
                                 if((*itr & l_mask) == l_masked_addr) {
@@ -492,7 +492,7 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
                 // Check if prefix of prefix is already in 
                 // nms (create new with l_masked_addr[i] & temp_mask[i])
                 // ----------------------------------------
-                if(i<l_bits) {
+                if(i< (int) l_bits) {
                         in6_addr input_masked;
                         for (int i_c = 0; i_c < 4; ++i_c)
                         {
@@ -518,7 +518,7 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
                 // check to find all CIDRs and IPs matching
                 // this prefix and delete
                 // ----------------------------------------
-                else if(i>l_bits) {
+                else if(i> (int) l_bits) {
                         std::set<in6_addr>::iterator itr = ipv6_arr[i].lower_bound(l_masked_addr);
                         while(itr!=ipv6_arr[i].end()) {
                                 if((itr->s6_addr32[0] & l_mask.s6_addr32[0])==l_masked_addr.s6_addr32[0] &&

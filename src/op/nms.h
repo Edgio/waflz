@@ -79,16 +79,17 @@ public:
         nms();
         ~nms();
         nms(const ns_waflz::nms& a) {
-                nms ret;
-                ret.ipv4_arr=a.get_ipv4_arr();
-                ret.ipv6_arr= a.get_ipv6_arr();
-        }
-
-        nms& operator=(const ns_waflz::nms& a) {
                 nms();
                 set_ipv4_arr(a.get_ipv4_arr());
                 set_ipv6_arr(a.get_ipv6_arr());
                 return *this;
+        }
+
+        nms& operator=(const ns_waflz::nms& a) {
+                nms* ret = new nms();
+                ret->set_ipv4_arr(a.get_ipv4_arr());
+                ret->set_ipv6_arr(a.get_ipv6_arr());
+                return *ret;
         }
         int32_t add(const char *a_buf, uint32_t a_buf_len);
         int32_t contains(bool &ao_match, const char *a_buf, uint32_t a_buf_len);

@@ -1,24 +1,11 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2017 Verizon.  All Rights Reserved.
-//: All Rights Reserved
+//: Copyright Edgecast Inc.
 //:
-//: \file:    nms.cc
+//: \file:    TODO
 //: \details: TODO
-//: \author:  Robert J. Peters
-//: \date:    01/01/2014
 //:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
+//: Licensed under the terms of the Apache 2.0 open source license.
+//: Please refer to the LICENSE file in the project root for the terms.
 //: ----------------------------------------------------------------------------
 //: ----------------------------------------------------------------------------
 //: includes
@@ -153,28 +140,6 @@ int32_t nms::add(const char *a_buf, uint32_t a_buf_len)
         return WAFLZ_STATUS_ERROR;
 #endif
 }
-//Helper
-#if 0
-int32_t nms::print_map()
-{
-        NDBG_PRINT("ipv4 map\n");
-        TRC_DEBUG("ipv4 map\n");
-        NDBG_PRINT("Size:: %lu\n", m_ipv4_mask_map->size());
-        TRC_DEBUG("Size:: %lu\n", m_ipv4_mask_map->size());
-        for (ipv4_mask_map_t::iterator i_t = m_ipv4_mask_map->begin(); i_t  != m_ipv4_mask_map->end(); ++i_t)
-        {
-                ipv4_set_t::iterator i_s_t;
-                for(i_s_t = i_t->second.begin(); i_s_t != i_t->second.end(); ++i_s_t)
-                {
-                        struct in_addr l_t;
-                        l_t.s_addr = *i_s_t;
-                        NDBG_PRINT("%d   ::  %s\n", i_t->first, inet_ntoa(l_t));
-                        TRC_DEBUG("%d   ::  %s\n", i_t->first, inet_ntoa(l_t));
-                }
-        }
-        return WAFLZ_STATUS_OK;
-}
-#endif
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO

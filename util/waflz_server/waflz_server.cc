@@ -641,14 +641,41 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx* a_ctx,
                 }
                 const std::string *l_b64 = NULL;
                 int32_t l_s;
-                l_s = g_challenge->get_challenge(&l_b64, a_ctx);
-                if((l_s != WAFLZ_STATUS_OK) ||
-                    !l_b64)
+                // -----------------------------------------
+                // get base64 encoded challenge
+                // -----------------------------------------
+                bool is_custom = false;
+                if(a_enf.has_is_custom_challenge())
                 {
+                        is_custom = a_enf.is_custom_challenge();
+                }
+                if(is_custom)
+                {
+                        if(a_enf.has_response_body_base64())
+                        {
+                                l_b64 = &(a_enf.response_body_base64());
+                        }
+                }
+                else
+                {
+                        l_s = g_challenge->get_challenge(&l_b64);
+                        if((l_s != WAFLZ_STATUS_OK))
+                        {
+                                break;
+                        }
+                }
+                if(!l_b64 || l_b64->empty())
+                {
+                        printf("Error b64 is empty\n");
                         break;
                 }
-                if(l_b64->empty())
+                // -----------------------------------------
+                // set challenge vars in ctx for rendering
+                // -----------------------------------------
+                l_s = g_challenge->set_chal_vars_in_ctx(a_ctx, is_custom);
+                if(l_s != WAFLZ_STATUS_OK)
                 {
+                        printf("set chal vars in ctx failed\n");
                         break;
                 }
                 // -----------------------------------------
@@ -663,6 +690,7 @@ static ns_is2::h_resp_t handle_enf(ns_waflz::rqst_ctx* a_ctx,
                         if(l_dcd) { free(l_dcd); l_dcd = NULL; }
                         break;
                 }
+
                 //NDBG_PRINT("DECODED: \n*************\n%.*s\n*************\n", (int)l_dcd_len, l_dcd);
                 // -----------------------------------------
                 // render
@@ -983,6 +1011,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -d  --config-dir    configuration directory (REQUIRED for scopes)\n");
         fprintf(a_stream, "  -x, --random-ips    randomly generate ips\n");
         fprintf(a_stream, "  -c, --challenge     json containing browser challenges\n");
+        fprintf(a_stream, "  -n, --bot-js        js to insert in custom browser challenges\n");
         fprintf(a_stream, "  \n");
         fprintf(a_stream, "KV DB Configuration:\n");
 #ifdef WAFLZ_KV_DB_REDIS
@@ -1048,6 +1077,7 @@ int main(int argc, char** argv)
         bool l_lmdb = false;
         bool l_lmdb_ip = false;
         std::string l_challenge_file;
+        std::string l_script_file;
         ns_waflz::engine* l_engine = NULL;
         ns_waflz::kv_db* l_kv_db = NULL;
 #ifdef ENABLE_PROFILER
@@ -1082,6 +1112,7 @@ int main(int argc, char** argv)
                 { "config-dir",   1, 0, 'd' },
                 { "random-ips",   0, 0, 'x' },
                 { "challenge",    1, 0, 'c' },
+                { "bot-js",       1, 0, 'n' },
                 // -----------------------------------------
                 // kv db config
                 // -----------------------------------------
@@ -1122,9 +1153,9 @@ int main(int argc, char** argv)
         // Args...
         // -------------------------------------------------
 #ifdef ENABLE_PROFILER
-        char l_short_arg_list[] = "hvf:a:e:m:l:b:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:AH:C:";
+        char l_short_arg_list[] = "hvf:a:e:m:l:b:r:g:s:d:xc:n:R:LIp:jzo:w:y:t:T:AH:C:";
 #else
-        char l_short_arg_list[] = "hvf:a:e:m:l:b:r:g:s:d:xc:R:LIp:jzo:w:y:t:T:A";
+        char l_short_arg_list[] = "hvf:a:e:m:l:b:r:g:s:d:xc:n:R:LIp:jzo:w:y:t:T:A";
 #endif
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
@@ -1272,6 +1303,14 @@ int main(int argc, char** argv)
                 case 'c':
                 {
                         l_challenge_file = l_arg;
+                        break;
+                }
+               // -----------------------------------------
+               // bot script
+               // -----------------------------------------
+                case 'n':
+                {
+                        l_script_file = l_arg;
                         break;
                 }
                 // -----------------------------------------
@@ -1602,6 +1641,20 @@ int main(int argc, char** argv)
                 {
                         NDBG_OUTPUT("error performing challenge load file: %s: reason: %s",
                                     l_challenge_file.c_str(),
+                                    g_challenge->get_err_msg());
+                        exit(STATUS_ERROR);
+                }
+        }
+        // -------------------------------------------------
+        // load bot script for custom challenges
+        // -------------------------------------------------
+        if(!l_script_file.empty())
+        {
+                l_s = g_challenge->load_bot_js(l_script_file.c_str(), l_script_file.length());
+                if(l_s != STATUS_OK)
+                {
+                        NDBG_OUTPUT("error failed to load script file: %s: reason: %s",
+                                    l_script_file.c_str(),
                                     g_challenge->get_err_msg());
                         exit(STATUS_ERROR);
                 }

@@ -297,6 +297,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_src_sd2_iso(),
         m_xml_capture_xxe(true),
         m_bot_ch(),
+        m_bot_js(),
         m_ans(0),
         m_ctx(a_ctx)
 {

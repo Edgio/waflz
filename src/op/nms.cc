@@ -191,7 +191,7 @@ nms::addr_t nms::detect_addr(const char *a_buf, uint32_t a_buf_len)
 {
         nms::addr_t l_addr = nms::ADDR_NONE;
         int l_s;
-        if(memchr(a_buf, a_buf_len, ':') == NULL)
+        if(memchr(a_buf, ':', a_buf_len) == NULL)
         {
                 struct in_addr l_in;
                 l_s = inet_pton(AF_INET, a_buf, &l_in);

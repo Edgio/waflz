@@ -95,6 +95,30 @@
       "enf_type": "CUSTOM_RESPONSE"
     }
   },
+ {
+    "id":"7Mc9MEPb",
+    "name": "Scopes to test custom bot challenge",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "mycustombotchallenge.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+   "bots_prod_id" : "wHyMHxV7",
+   "bots_prod_action": {
+      "id": "TDWqQxfx",
+      "name": "action_name",
+      "enf_type": "BROWSER_CHALLENGE",
+      "is_custom_challenge": true,
+      "response_body_base64":"PCFET0NUWVBFIEhUTUw+PGh0bWwgbGFuZz0iZW4tVVMiPjxoZWFkPjx0aXRsZT5WYWxpZGF0aW5nIHlvdXIgYnJvd3NlcjwvdGl0bGU+e3tCT1RfSlN9fTwvaGVhZD48dGFibGUgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgY2VsbHBhZGRpbmc9IjIwIj48dHI+PHRkIGFsaWduPSJjZW50ZXIiIHZhbGlnbj0ibWlkZGxlIj48ZGl2IGNsYXNzPSJicm93c2VyLXZlcmlmaWNhdGlvbiI+PG5vc2NyaXB0PjxoMSBkYXRhLXRyYW5zbGF0ZT0idHVybl9vbl9qcyIgc3R5bGU9ImNvbG9yOiNiZDI0MjY7Ij5QbGVhc2UgdHVybiBKYXZhU2NyaXB0IG9uIGFuZCByZWxvYWQgdGhlIHBhZ2UuPC9oMT48L25vc2NyaXB0PjwvZGl2PjwvdGQ+PC90cj48L3RhYmxlPjxoMT5WYWxpZGF0aW5nIHlvdXIgYnJvd3NlciE8L2gxPjwvYm9keT48L2h0bWw+",
+      "valid_for_sec" : 3,
+      "status":401
+   }
+  },
   {
     "id": "KlTjhs",
     "name": "scope for testing bodies",

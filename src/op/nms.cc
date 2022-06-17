@@ -290,7 +290,7 @@ int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
         // ----------------------------------------
         // iterate through to handle redundancies
         // ----------------------------------------
-        for(uint32_t i = 0 ;uint32_t i<33;++i) 
+        for(uint32_t i = 0 ;i < 33; ++i) 
         {
                 int32_t temp_mask = (i == 0) ? 0 : htonl(~((1 << (32 - i))-1 ));
                 // ----------------------------------------
@@ -325,11 +325,11 @@ int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
         ipv4_arr[l_bits].insert(l_masked_addr);
         return WAFLZ_STATUS_OK;
 }
-//: ------------------------------------------------------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
-//: ------------------------------------------------------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 int32_t nms::add_ipv4(const char *a_buf, uint32_t a_buf_len)
 {
         if(memchr(a_buf, '/', a_buf_len) == NULL)
@@ -338,11 +338,11 @@ int32_t nms::add_ipv4(const char *a_buf, uint32_t a_buf_len)
         }
         return add_ipv4_cidr(a_buf, a_buf_len);
 }
-//: ------------------------------------------------------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
-//: ------------------------------------------------------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 int32_t nms::add_ipv6_plain(const char *a_buf, uint32_t a_buf_len)
 {
         struct in6_addr l_in6;
@@ -372,24 +372,24 @@ int32_t nms::add_ipv6_plain(const char *a_buf, uint32_t a_buf_len)
         ipv6_arr[128].insert(l_in6);
         return WAFLZ_STATUS_OK;
 }
-//: ------------------------------------------------------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
-//: ------------------------------------------------------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
 {
-        // --------------------------------------------------------------------------------
+        // -------------------------------------------------
         // find slash
-        // --------------------------------------------------------------------------------
+        // -------------------------------------------------
         char *l_slash_pos = (char *)memchr(a_buf, '/', a_buf_len);
         if(l_slash_pos[1] == '\0')
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        // --------------------------------------------------------------------------------
+        // -------------------------------------------------
         // get bits
-        // --------------------------------------------------------------------------------
+        // -------------------------------------------------
         char* l_err = NULL;
         uint32_t l_bits;
         l_bits = strtoul(l_slash_pos + 1, &l_err, 10);
@@ -465,7 +465,8 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
         {
                 // ----------------------------------------
                 // Check if prefix of prefix is already in 
-                // nms (create new with l_masked_addr[i] & temp_mask[i])
+                // nms (create new with l_masked_addr[i] &
+                // temp_mask[i])
                 // ----------------------------------------
                 if(i< l_bits) 
                 {
@@ -621,8 +622,8 @@ int32_t nms::contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len
         return WAFLZ_STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
-//: \details: Pairwise check for prefixes, say length i, that match up to the last bit, then compress them
-//              to length (i-1) prefix
+//: \details: Pairwise check for prefixes, say length i, that match up to the
+//            last bit, then compress them to length (i-1) prefix
 //: \return:  Status code
 //: \param:   None
 //: ----------------------------------------------------------------------------
@@ -637,9 +638,9 @@ int32_t nms::compress() {
                 {
                         continue;
                 }
-                // -------------------------------------------------
+                // -----------------------------------------
                 // Construct length (i-1) mask
-                // -------------------------------------------------
+                // -----------------------------------------
                 uint32_t next_mask = (l_bits-1 == 0) ? 0 : htonl(~((1 << (32 - (l_bits-1))) - 1));
                 while(itr!=ipv4_arr[l_bits].end()) 
                 {
@@ -649,10 +650,10 @@ int32_t nms::compress() {
                         {
                                 break;
                         }
-                        // -------------------------------------------------
-                        // Check if contiguous prefixes match after applying
-                        // (i-1) mask
-                        // -------------------------------------------------
+                        // ---------------------------------
+                        // Check if contiguous prefixes match
+                        // after applying (i-1) mask
+                        // ---------------------------------
                         if((*next_itr & next_mask)==(*itr & next_mask) ) 
                         {
                                 ipv4_arr[l_bits-1].insert(*itr & next_mask);
@@ -669,16 +670,16 @@ int32_t nms::compress() {
         for(uint32_t l_bits = 128;l_bits>0;--l_bits) 
         {
                 std::set<in6_addr>::iterator itr = ipv6_arr[l_bits].begin();
-                // -------------------------------------------------
+                // -----------------------------------------
                 // If empty, go to next prefix length
-                // -------------------------------------------------
+                // -----------------------------------------
                 if(itr==ipv6_arr[l_bits].end()) 
                 {
                         continue;
                 }
-                // -------------------------------------------------
+                // -----------------------------------------
                 // Construct length (i-1) mask
-                // -------------------------------------------------
+                // -----------------------------------------
                 in6_addr l_next_mask;
                 for (uint32_t i_c = 0; i_c < 4; ++i_c)
                 {
@@ -700,19 +701,19 @@ int32_t nms::compress() {
                 {
                         std::set<in6_addr>::iterator next_itr=itr;
                         next_itr++;
-                        // -------------------------------------------------
-                        // Check if contiguous IDs match after applying 
-                        // (i-1) mask
-                        // -------------------------------------------------
+                        // ---------------------------------
+                        // Check if contiguous IDs match
+                        // after applying  (i-1) mask
+                        // ---------------------------------
                         if( (next_itr->s6_addr32[0] & l_next_mask.s6_addr32[0] ) == (itr->s6_addr32[0] & l_next_mask.s6_addr32[0])
                                 && (next_itr->s6_addr32[1] & l_next_mask.s6_addr32[1] ) == (itr->s6_addr32[1] & l_next_mask.s6_addr32[1])
                                 && (next_itr->s6_addr32[2] & l_next_mask.s6_addr32[2] ) == (itr->s6_addr32[2] & l_next_mask.s6_addr32[2])
                                 && (next_itr->s6_addr32[3] & l_next_mask.s6_addr32[3] ) == (itr->s6_addr32[3] & l_next_mask.s6_addr32[3]) )  
                         {
-                                // -------------------------------------------------
+                                // -------------------------
                                 // Construct (i-1) prefix, and add, erasing
                                 // previous prefixes
-                                // -------------------------------------------------
+                                // -------------------------
                                 in6_addr next_prefix;
                                 for(uint32_t i_c = 0;i_c<4;++i_c) 
                                 {

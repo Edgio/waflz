@@ -219,6 +219,7 @@ public:
         // bot challenge
         // -------------------------------------------------
         std::string m_bot_ch;
+        std::string m_bot_js;
         uint32_t m_ans;
 private:
         // -------------------------------------------------

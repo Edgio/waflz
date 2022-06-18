@@ -27,7 +27,7 @@ def run_command(command):
     stdout, stderr = p.communicate()
     return (p.returncode, stdout, stderr)
 # ------------------------------------------------------------------------------
-# setup scopez server in event mode
+# setup waflz server in event mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
 def setup_waflz_server():
@@ -36,12 +36,12 @@ def setup_waflz_server():
     # ------------------------------------------------------
     l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
-    l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
-    l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
-    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
-    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
-    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/conf/scopes'))
+    l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/conf'))
+    l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/ruleset'))
+    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/db/GeoLite2-City.mmdb'))
+    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/db/GeoLite2-ASN.mmdb'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../../build/util/waflz_server/waflz_server'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
                                   '-b', l_scopes_dir,
@@ -59,7 +59,7 @@ def setup_waflz_server():
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
 # ------------------------------------------------------------------------------
-# setup scopez server in action mode
+# setup waflz server in action mode
 # ------------------------------------------------------------------------------
 @pytest.fixture()
 def setup_waflz_server_action():
@@ -68,13 +68,14 @@ def setup_waflz_server_action():
     # ------------------------------------------------------
     # l_cwd = os.getcwd()
     l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
-    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
-    l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf'))
-    l_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
-    l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
-    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
-    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/db/GeoLite2-City.mmdb'))
+    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/db/GeoLite2-ASN.mmdb'))
+    l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/conf'))
+    l_challenge = os.path.realpath(os.path.join(l_file_path, '../../../data/bot/bot-challenges.json'))
+    l_cust_chal_js = os.path.realpath(os.path.join(l_file_path, '../../../data/bot/bot-js.txt'))
+    l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/ruleset'))
+    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/conf/scopes'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../../build/util/waflz_server/waflz_server'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
                                   '-b', l_scopes_dir,
@@ -82,6 +83,7 @@ def setup_waflz_server_action():
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
                                   '-c', l_challenge,
+                                  '-n', l_cust_chal_js,
                                   '-j'])
     print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
                                   '-d', l_conf_dir,
@@ -90,12 +92,58 @@ def setup_waflz_server_action():
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
                                   '-c', l_challenge,
+                                  '-n', l_cust_chal_js,
                                   '-j'])))
     time.sleep(1)
     # ------------------------------------------------------
     # yield...
     # ------------------------------------------------------
     yield setup_waflz_server_action
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    _, _, _ = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
+# ------------------------------------------------------------------------------
+# setup waflz server in action mode for custom challenge
+# load only the js to be inserted for custom challenge.
+# not loading global challenge in this server to test custom challenge
+# ------------------------------------------------------------------------------
+@pytest.fixture()
+def setup_waflz_server_custom_challenge():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
+    # l_cwd = os.getcwd()
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/db/GeoLite2-City.mmdb'))
+    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/db/GeoLite2-ASN.mmdb'))
+    l_conf_dir = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/conf'))
+    l_cust_chal_js = os.path.realpath(os.path.join(l_file_path, '../../../data/bot/bot-js.txt'))
+    l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/ruleset'))
+    l_scopes_dir = os.path.realpath(os.path.join(l_file_path, '../../../data/waf/conf/scopes'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
+                                  '-d', l_conf_dir,
+                                  '-b', l_scopes_dir,
+                                  '-r', l_ruleset_path,
+                                  '-g', l_geoip2city_path,
+                                  '-s', l_geoip2ISP_path,
+                                  '-n', l_cust_chal_js,
+                                  '-j'])
+    print('cmd: \n{}\n'.format(' '.join([l_waflz_server_path,
+                                  '-d', l_conf_dir,
+                                  '-b', l_scopes_dir,
+                                  '-r', l_ruleset_path,
+                                  '-g', l_geoip2city_path,
+                                  '-s', l_geoip2ISP_path,
+                                  '-n', l_cust_chal_js,
+                                  '-j'])))
+    time.sleep(1)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_waflz_server_custom_challenge
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
@@ -109,6 +157,12 @@ class html_parse(HTMLParser):
    m_data = ""
    def handle_data(self, data):
         if data.startswith('function'):
+            self.m_data = data
+
+class custom_html_parse(HTMLParser):
+    m_data = ""
+    def handle_data(self, data):
+        if data.startswith('window.onload'):
             self.m_data = data
 # ------------------------------------------------------------------------------
 # Solve browser challenge
@@ -418,3 +472,58 @@ def test_bot_rules_audit_rdb_takes_precedence(setup_waflz_server_action):
     #test we are logging all headers
     assert 'request_headers' in l_r_json['prod_profile']['req_info']
     assert len(l_r_json['prod_profile']['req_info']['request_headers']) == 6
+# ------------------------------------------------------------------------------
+# test custom challenge
+# ------------------------------------------------------------------------------
+def test_custom_challenge(setup_waflz_server_custom_challenge):
+    # ------------------------------------------------------
+    # test for recieving a bot challenge
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mycustombotchallenge.com',
+                 'user-agent': 'bot-testing',
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    # ------------------------------------------------------
+    # solve challenge
+    # ------------------------------------------------------
+    l_parser = custom_html_parse()
+    l_parser.feed(l_r.text)
+
+    assert 'function()' in l_parser.m_data
+    l_solution_cookies = solve_challenge(l_parser.m_data)
+    # ------------------------------------------------------
+    # test again with solved challenge and cookies
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mycustombotchallenge.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    #-------------------------------------------------------
+    # check no event is returned
+    # ------------------------------------------------------
+    assert l_r_json['errors'][0]['message'] == 'OK'
+    #-------------------------------------------------------
+    # sleep for 3 seconds for challenge to expire
+    # ------------------------------------------------------
+    time.sleep(3)
+    # ------------------------------------------------------
+    # test with previous solved challenge, new challenge
+    # should be returned
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {'host': 'mycustombotchallenge.com',
+                 'user-agent': 'bot-testing',
+                 'Cookie': l_solution_cookies,
+                 'waf-scopes-id': '0052'}
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 401
+    l_parser = custom_html_parse()
+    l_parser.feed(l_r.text)
+    assert 'function()' in l_parser.m_data
+

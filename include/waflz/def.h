@@ -75,6 +75,13 @@ typedef enum {
         PART_MK_BOTS = 16,
         PART_MK_ALL = 31
 } part_mk_t;
+struct cx_case_i_comp
+{
+        bool operator() (const std::string& lhs, const std::string& rhs) const
+        {
+                return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+        }
+};
 #endif
 //! ----------------------------------------------------------------------------
 //! constants

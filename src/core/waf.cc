@@ -931,6 +931,11 @@ int32_t waf::set_defaults(bool a_custom_rules)
         set_var_tx(l_conf_pb, "900017", "arg_length", "8000");
         set_var_tx(l_conf_pb, "900018", "total_arg_length", "64000");
         set_var_tx(l_conf_pb, "900020", "combined_file_sizes", "6291456");
+        // -------------------------------------------------
+        // outbound anomaly settings
+        // -------------------------------------------------
+        set_var_tx(l_conf_pb, "900050", "outbound_anomaly_score_threshold", "1");
+        set_var_tx(l_conf_pb, "900051", "outbound_anomaly_score", "0");
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -1354,54 +1359,15 @@ done:
         m_is_initd = true;
         return WAFLZ_STATUS_OK;
 }
-#if 0
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t waf::init_line(config_parser::format_t a_format, const std::string &a_line)
-{
-         // Check if already is initd
-        if(m_is_initd)
-        {
-                return WAFLZ_STATUS_OK;
-        }
-        int32_t l_s;
-        // -------------------------------------------------
-        // parse
-        // -------------------------------------------------
-        l_s = m_parser.parse_line(a_format, m_pb, a_line);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                NDBG_PRINT("error\n");
-                return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // set ruleset info
-        // -------------------------------------------------
-        m_pb->set_ruleset_id("__na__");
-        m_pb->set_ruleset_version("__na__");
-        // -------------------------------------------------
-        // compile
-        // -------------------------------------------------
-        l_s = compile();
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        m_is_initd = true;
-        return WAFLZ_STATUS_OK;
-}
-#endif
-//! ----------------------------------------------------------------------------
-//! \details: TODO
-//! \return:  TODO
-//! \param:   TODO
-//! ----------------------------------------------------------------------------
+template <typename T>
 int32_t waf::process_rule(waflz_pb::event **ao_event,
                           const waflz_pb::sec_rule_t &a_rule,
-                          rqst_ctx &a_ctx)
+                          T &a_ctx)
 {
         WFLZ_TRC_RULE("%s%s%s\n",
                       ANSI_COLOR_FG_YELLOW,
@@ -1522,10 +1488,11 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
+template <typename T>
 int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                                bool &ao_match,
                                const waflz_pb::sec_rule_t &a_rule,
-                               rqst_ctx &a_ctx)
+                               T &a_ctx)
 {
         macro *l_macro =  &(m_engine.get_macro());
         ao_match = false;
@@ -1826,8 +1793,9 @@ a_ctx.m_cx_rule_map[l_k] = l_v; \
 /// @param  a_action, request context
 /// @return WAFLZ_STATUS_ERROR or WAFLZ_STATUS_OK
 /// ----------------------------------------------------------------------------
+template <typename T>
 int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
-                               rqst_ctx &a_ctx)
+                               T &a_ctx)
 {
         // -------------------------------------------------
         // check for skip
@@ -2021,9 +1989,10 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
+template <typename T>
 int32_t waf::process_match(waflz_pb::event** ao_event,
                            const waflz_pb::sec_rule_t& a_rule,
-                           rqst_ctx& a_ctx)
+                           T& a_ctx)
 {
         if(!ao_event ||
            !a_rule.has_action())
@@ -2377,10 +2346,11 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
+template <typename T>
 int32_t waf::process_phase(waflz_pb::event **ao_event,
                            const directive_list_t &a_dl,
                            const marker_map_t &a_mm,
-                           rqst_ctx &a_ctx)
+                           T &a_ctx)
 {
         a_ctx.m_intercepted = false;
         for(directive_list_t::const_iterator i_d = a_dl.begin();
@@ -2506,11 +2476,6 @@ int32_t waf::process_response(waflz_pb::event **ao_event,
         {
                 l_ctx->set_body_max_len(m_pb->request_body_in_memory_limit());
         }
-        if(!a_custom_rules)
-        {
-                //l_ctx->set_parse_xml(m_parse_xml);
-                //l_ctx->set_parse_json(m_parse_json);
-        }
         // -------------------------------------------------
         // *************************************************
         //                   P H A S E  3
@@ -2528,9 +2493,9 @@ int32_t waf::process_response(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // process
         // -------------------------------------------------
-        /*l_s = process_phase(ao_event,
-                            m_compiled_config->m_directive_list_phase_1,
-                            m_compiled_config->m_marker_map_phase_1,
+        l_s = process_phase(ao_event,
+                            m_compiled_config->m_directive_list_phase_3,
+                            m_compiled_config->m_marker_map_phase_3,
                             *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
@@ -2541,7 +2506,7 @@ int32_t waf::process_response(waflz_pb::event **ao_event,
         if(l_ctx->m_intercepted)
         {
                 goto report;
-        }*/
+        }
         // -------------------------------------------------
         // *************************************************
         //                 P H A S E  4
@@ -2560,16 +2525,70 @@ int32_t waf::process_response(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // process
         // -------------------------------------------------
-        /*l_s = process_phase(ao_event,
-                            m_compiled_config->m_directive_list_phase_2,
-                            m_compiled_config->m_marker_map_phase_2,
-                            NULL, *l_ctx);
+        l_s = process_phase(ao_event,
+                            m_compiled_config->m_directive_list_phase_4,
+                            m_compiled_config->m_marker_map_phase_4,
+                            *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
                 if(l_ctx && !ao_resp_ctx) { delete l_ctx; l_ctx = NULL;}
                 return WAFLZ_STATUS_ERROR;
-        }*/
+        }
+        report:
+        if(!*ao_event)
+        {
+                if(l_ctx && !ao_resp_ctx) { delete l_ctx; l_ctx = NULL;}
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // add meta
+        // -------------------------------------------------
+        waflz_pb::event &l_event = **ao_event;      
+        if(l_event.sub_event_size())
+        {
+                const ::waflz_pb::event& l_se = l_event.sub_event(l_event.sub_event_size() - 1);
+                // -----------------------------------------
+                // rule target...
+                // -----------------------------------------
+                ::waflz_pb::event_var_t* l_ev = l_event.add_rule_target();
+                l_ev->set_name("TX");
+                l_ev->set_param("ANOMALY_SCORE");
+                // -----------------------------------------
+                // rule tag...
+                // -----------------------------------------
+                l_event.add_rule_tag()->assign("OWASP_CRS/ANOMALY/EXCEEDED");
+                // -----------------------------------------
+                // matched_var...
+                // -----------------------------------------
+                if(l_se.has_matched_var())
+                {
+                        l_event.mutable_matched_var()->CopyFrom(l_se.matched_var());
+                }
+                // -----------------------------------------
+                // Custom rules wont have an anomaly score
+                // and setvar for rule msg. Set them here
+                // -----------------------------------------
+                if (a_custom_rules)
+                {
+                        l_event.set_rule_msg(l_se.rule_msg());
+                }
+                // -----------------------------------------
+                // op
+                // -----------------------------------------
+                l_event.mutable_rule_op_name()->assign("gt");
+                l_event.mutable_rule_op_param()->assign("0");
+        }
+#define _SET_IF_EXIST(_str, _field) do { \
+if(l_ctx->m_cx_tx_map.find(_str) != l_ctx->m_cx_tx_map.end()) \
+{ l_event.set_##_field((uint32_t)(strtoul(l_ctx->m_cx_tx_map[_str].c_str(), NULL, 10))); } \
+else { l_event.set_##_field(0); } \
+} while(0)
+        _SET_IF_EXIST("ANOMALY_SCORE", total_anomaly_score);
+        // -------------------------------------------------
+        // cleanup
+        // -------------------------------------------------
+        if(l_ctx && !ao_resp_ctx) { delete l_ctx; l_ctx = NULL;}
         return WAFLZ_STATUS_OK;
 }
 

@@ -54,18 +54,22 @@ resp_ctx::resp_ctx(void *a_ctx,
         m_body_data(NULL),
         m_body_len(0),
         m_resp_status(0),
+        m_intercepted(false),
         m_body_parser(),
         m_body_arg_list(),
         // -------------------------------------------------
         // collections
         // -------------------------------------------------
-        //m_cx_tx_map(),
+        m_cx_matched_var(),
+        m_cx_matched_var_name(),
+        m_cx_tx_map(),
         // -------------------------------------------------
         // state
         // -------------------------------------------------
         m_init_phase_3(false),
         m_init_phase_4(false),
-        
+        m_skip(0),
+        m_skip_after(NULL),
         m_callbacks(a_callbacks),
         m_ctx(a_ctx)
 {

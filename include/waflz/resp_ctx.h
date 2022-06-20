@@ -60,7 +60,8 @@ typedef struct {
 //! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 class waf;
-//typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
+
+typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 typedef std::list<data_t> data_list_t;
 
@@ -111,6 +112,7 @@ public:
         char *m_body_data;
         uint32_t m_body_len;
         uint32_t m_resp_status;
+        bool m_intercepted;
         // -------------------------------------------------
         // body parser
         // -------------------------------------------------
@@ -119,12 +121,17 @@ public:
         // -------------------------------------------------
         // collections...
         // -------------------------------------------------
-        //cx_map_t m_cx_tx_map;
+        std::string m_cx_matched_var;
+        std::string m_cx_matched_var_name;
+        //data_map_t m_cx_rule_map;
+        cx_map_t m_cx_tx_map;
         // -------------------------------------------------
         // state
         // -------------------------------------------------
         bool m_init_phase_3;
         bool m_init_phase_4;
+        uint32_t m_skip;
+        const char * m_skip_after;
         // -------------------------------------------------
         // response ctx callbacks struct
         // -------------------------------------------------

@@ -223,8 +223,12 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
         // -------------------------------------------------
         ao_cx_cfg.m_marker_map_phase_1.clear();
         ao_cx_cfg.m_marker_map_phase_2.clear();
+        ao_cx_cfg.m_marker_map_phase_3.clear();
+        ao_cx_cfg.m_marker_map_phase_4.clear();
         ao_cx_cfg.m_directive_list_phase_1.clear();
         ao_cx_cfg.m_directive_list_phase_2.clear();
+        ao_cx_cfg.m_directive_list_phase_3.clear();
+        ao_cx_cfg.m_directive_list_phase_4.clear();
         // -------------------------------------------------
         // for each directive...
         // -------------------------------------------------
@@ -266,9 +270,13 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                 {
                         ao_cx_cfg.m_directive_list_phase_1.push_back(&l_d);
                         ao_cx_cfg.m_directive_list_phase_2.push_back(&l_d);
+                        ao_cx_cfg.m_directive_list_phase_3.push_back(&l_d);
+                        ao_cx_cfg.m_directive_list_phase_4.push_back(&l_d);
                         const ::std::string& l_m = l_d.marker();
                         ao_cx_cfg.m_marker_map_phase_1[l_m] = --(ao_cx_cfg.m_directive_list_phase_1.end());
                         ao_cx_cfg.m_marker_map_phase_2[l_m] = --(ao_cx_cfg.m_directive_list_phase_2.end());
+                        ao_cx_cfg.m_marker_map_phase_3[l_m] = --(ao_cx_cfg.m_directive_list_phase_3.end());
+                        ao_cx_cfg.m_marker_map_phase_4[l_m] = --(ao_cx_cfg.m_directive_list_phase_4.end());
                         continue;
                 }
                 // -----------------------------------------
@@ -289,6 +297,15 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                         {
                                 ao_cx_cfg.m_directive_list_phase_2.push_back(&l_d);
                         }
+                        if(l_a.phase() == 3)
+                        {
+                                ao_cx_cfg.m_directive_list_phase_3.push_back(&l_d);
+                        }
+                        if(l_a.phase() == 4)
+                        {
+                                ao_cx_cfg.m_directive_list_phase_4.push_back(&l_d);
+                        }
+
                 }
                 // -----------------------------------------
                 // rule processing
@@ -320,6 +337,14 @@ int32_t engine::compile(compiled_config_t &ao_cx_cfg,
                 if(l_a.phase() == 2)
                 {
                         ao_cx_cfg.m_directive_list_phase_2.push_back(&l_d);
+                }
+                if(l_a.phase() == 3)
+                {
+                        ao_cx_cfg.m_directive_list_phase_3.push_back(&l_d);
+                }
+                if(l_a.phase() == 4)
+                {
+                        ao_cx_cfg.m_directive_list_phase_4.push_back(&l_d);
                 }
                 waflz_pb::sec_rule_t *l_rule = &l_r;
                 bool l_is_block = false;
@@ -750,6 +775,50 @@ int32_t engine::merge(compiled_config_t &ao_cx_cfg,
                 {
                         const ::std::string& l_m = (*i_d)->marker();
                         ao_cx_cfg.m_marker_map_phase_2[l_m] = --(ao_cx_cfg.m_directive_list_phase_2.end());
+                }
+        }
+        // -------------------------------------------------
+        // phase 3
+        // -------------------------------------------------
+        const directive_list_t &l_dl_p3 = a_cx_cfg.m_directive_list_phase_3;
+        for(directive_list_t::const_iterator i_d = l_dl_p3.begin();
+            i_d != l_dl_p3.end();
+            ++i_d)
+        {
+                if(!(*i_d))
+                {
+                        continue;
+                }
+                ao_cx_cfg.m_directive_list_phase_3.push_back(*i_d);
+                // -----------------------------------------
+                // special handling for markers
+                // -----------------------------------------
+                if((*i_d)->has_marker())
+                {
+                        const ::std::string& l_m = (*i_d)->marker();
+                        ao_cx_cfg.m_marker_map_phase_3[l_m] = --(ao_cx_cfg.m_directive_list_phase_3.end());
+                }
+        }
+        // -------------------------------------------------
+        // phase 4
+        // -------------------------------------------------
+        const directive_list_t &l_dl_p4 = a_cx_cfg.m_directive_list_phase_4;
+        for(directive_list_t::const_iterator i_d = l_dl_p4.begin();
+            i_d != l_dl_p4.end();
+            ++i_d)
+        {
+                if(!(*i_d))
+                {
+                        continue;
+                }
+                ao_cx_cfg.m_directive_list_phase_4.push_back(*i_d);
+                // -----------------------------------------
+                // special handling for markers
+                // -----------------------------------------
+                if((*i_d)->has_marker())
+                {
+                        const ::std::string& l_m = (*i_d)->marker();
+                        ao_cx_cfg.m_marker_map_phase_4[l_m] = --(ao_cx_cfg.m_directive_list_phase_4.end());
                 }
         }
         return WAFLZ_STATUS_OK;

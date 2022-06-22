@@ -1364,10 +1364,9 @@ done:
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-template <typename T>
 int32_t waf::process_rule(waflz_pb::event **ao_event,
                           const waflz_pb::sec_rule_t &a_rule,
-                          T &a_ctx)
+                          rqst_ctx &a_ctx)
 {
         WFLZ_TRC_RULE("%s%s%s\n",
                       ANSI_COLOR_FG_YELLOW,
@@ -1488,11 +1487,10 @@ int32_t waf::process_rule(waflz_pb::event **ao_event,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-template <typename T>
 int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                                bool &ao_match,
                                const waflz_pb::sec_rule_t &a_rule,
-                               T &a_ctx)
+                               rqst_ctx &a_ctx)
 {
         macro *l_macro =  &(m_engine.get_macro());
         ao_match = false;
@@ -1793,9 +1791,8 @@ a_ctx.m_cx_rule_map[l_k] = l_v; \
 /// @param  a_action, request context
 /// @return WAFLZ_STATUS_ERROR or WAFLZ_STATUS_OK
 /// ----------------------------------------------------------------------------
-template <typename T>
 int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
-                               T &a_ctx)
+                               rqst_ctx &a_ctx)
 {
         // -------------------------------------------------
         // check for skip
@@ -1989,10 +1986,9 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-template <typename T>
 int32_t waf::process_match(waflz_pb::event** ao_event,
                            const waflz_pb::sec_rule_t& a_rule,
-                           T& a_ctx)
+                           rqst_ctx& a_ctx)
 {
         if(!ao_event ||
            !a_rule.has_action())
@@ -2346,11 +2342,10 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-template <typename T>
 int32_t waf::process_phase(waflz_pb::event **ao_event,
                            const directive_list_t &a_dl,
                            const marker_map_t &a_mm,
-                           T &a_ctx)
+                           rqst_ctx &a_ctx)
 {
         a_ctx.m_intercepted = false;
         for(directive_list_t::const_iterator i_d = a_dl.begin();
@@ -2439,16 +2434,713 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
         }
         return WAFLZ_STATUS_OK;
 }
-
+/// ----------------------------------------------------------------------------
+/// @brief  process the actions in modsec directive or inside a rule
+/// @param  a_action, request context
+/// @return WAFLZ_STATUS_ERROR or WAFLZ_STATUS_OK
+/// ----------------------------------------------------------------------------
+int32_t waf::process_resp_action_nd(const waflz_pb::sec_action_t &a_action,
+                                    rqst_ctx &a_ctx)
+{
+        // -------------------------------------------------
+        // check for skip
+        // -------------------------------------------------
+        if(a_action.has_skip() &&
+           (a_action.skip() > 0))
+        {
+                a_ctx.m_skip = a_action.skip();
+                a_ctx.m_skip_after = NULL;
+        }
+        // -------------------------------------------------
+        // check for skipafter
+        // -------------------------------------------------
+        if(a_action.has_skipafter() &&
+           !a_action.skipafter().empty())
+        {
+                a_ctx.m_skip = a_action.skip();
+                a_ctx.m_skip_after = a_action.skipafter().c_str();
+        }
+        // -------------------------------------------------
+        // for each var
+        // -------------------------------------------------
+        macro &l_macro = m_engine.get_macro();
+        for(int32_t i_sv = 0; i_sv < a_action.setvar_size(); ++i_sv)
+        {
+                const ::waflz_pb::sec_action_t_setvar_t& l_sv = a_action.setvar(i_sv);
+                //NDBG_PRINT("%ssetvar%s: %s%s%s\n",
+                //           ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF,
+                //           ANSI_COLOR_FG_GREEN, l_sv.ShortDebugString().c_str(), ANSI_COLOR_OFF);
+                //------------------------------------------
+                // var expansion
+                //------------------------------------------
+                const ::std::string& l_var = l_sv.var();
+                const std::string *l_var_ref = &l_var;
+                std::string l_sv_var;
+                if(l_macro.has(l_var))
+                {
+                        //NDBG_PRINT("%ssetvar%s: VAR!!!!\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF);
+                        int32_t l_s;
+                        l_s = l_macro(l_sv_var, l_var, &a_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                        l_var_ref = &l_sv_var;
+                }
+                //------------------------------------------
+                // val expansion
+                //------------------------------------------
+                const ::std::string& l_val = l_sv.val();
+                const std::string *l_val_ref = &l_val;
+                std::string l_sv_val;
+                if(l_macro.has(l_val))
+                {
+                        //NDBG_PRINT("%ssetvar%s: VAL!!!!\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF);
+                        int32_t l_s;
+                        l_s = l_macro(l_sv_val, l_val, &a_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                        l_val_ref = &l_sv_val;
+                }
+                //------------------------------------------
+                // *****************************************
+                //               S C O P E
+                // *****************************************
+                //------------------------------------------
+                switch(l_sv.scope())
+                {
+                // -----------------------------------------
+                // TX
+                // -----------------------------------------
+                case ::waflz_pb::sec_action_t_setvar_t_scope_t_TX:
+                {
+                        cx_map_t &l_cx_map = a_ctx.m_cx_tx_map;
+                        //----------------------------------
+                        // *********************************
+                        //              O P
+                        // *********************************
+                        //----------------------------------
+                        switch(l_sv.op())
+                        {
+                        //----------------------------------
+                        // ASSIGN
+                        //----------------------------------
+                        case ::waflz_pb::sec_action_t_setvar_t_op_t_ASSIGN:
+                        {
+                                l_cx_map[*l_var_ref] =  *l_val_ref;
+                                break;
+                        }
+                        //----------------------------------
+                        // DELETE
+                        //----------------------------------
+                        case ::waflz_pb::sec_action_t_setvar_t_op_t_DELETE:
+                        {
+                                cx_map_t::iterator i_t = l_cx_map.find(*l_var_ref);
+                                if(i_t != l_cx_map.end())
+                                {
+                                        l_cx_map.erase(i_t);
+                                }
+                                break;
+                        }
+                        //----------------------------------
+                        // INCREMENT
+                        //----------------------------------
+                        // e.g setvar:tx.rfi_score=+%{tx.critical_anomaly_score}
+                        case ::waflz_pb::sec_action_t_setvar_t_op_t_INCREMENT:
+                        {
+                                int32_t l_pv = 0;
+                                cx_map_t::iterator i_t = l_cx_map.find(*l_var_ref);
+                                // -------------------------
+                                // TODO -use strntol instead
+                                // of atoi...
+                                // -------------------------
+#if 0
+                                int32_t l_in_val;
+                                char *l_end_ptr = NULL;
+                                l_in_val = strntol(a_buf, a_len, &l_end_ptr, 10);
+                                if((l_in_val == LONG_MAX) ||
+                                   (l_in_val == LONG_MIN))
+                                {
+                                        return WAFLZ_STATUS_OK;
+                                }
+                                if(l_end_ptr == a_buf)
+                                {
+                                        return WAFLZ_STATUS_OK;
+                                }
+#endif
+                                if(i_t != l_cx_map.end())
+                                {
+                                        l_pv = atoi(i_t->second.c_str());
+                                }
+                                int32_t l_nv = 0;
+                                l_nv = atoi(l_val_ref->c_str());
+                                //NDBG_PRINT("INC: var[%s]: %d by: %d\n", l_var_ref->c_str(), l_pv, l_nv);
+                                char l_val_str[8];
+                                snprintf(l_val_str, 8, "%d", l_pv + l_nv);
+                                l_cx_map[*l_var_ref] = l_val_str;
+                                break;
+                        }
+                        //----------------------------------
+                        // DECREMENT
+                        //----------------------------------
+                        case ::waflz_pb::sec_action_t_setvar_t_op_t_DECREMENT:
+                        {
+                                int32_t l_pv = 0;
+                                cx_map_t::iterator i_t = l_cx_map.find(*l_var_ref);
+                                if(i_t != l_cx_map.end())
+                                {
+                                        l_pv = atoi(i_t->second.c_str());
+                                }
+                                int32_t l_nv = 0;
+                                l_nv = atoi(l_val_ref->c_str());
+                                char l_val_str[8];
+                                snprintf(l_val_str, 8, "%d", l_pv - l_nv);
+                                l_cx_map[*l_var_ref] =  l_val_str;
+                                break;
+                        }
+                        //----------------------------------
+                        // default
+                        //----------------------------------
+                        default:
+                        {
+                                //NDBG_PRINT("error invalid op\n");
+                                break;
+                        }
+                        }
+                        break;
+                }
+                // -----------------------------------------
+                // IP
+                // -----------------------------------------
+                case ::waflz_pb::sec_action_t_setvar_t_scope_t_IP:
+                {
+                        // TODO ???
+                        continue;
+                }
+                // -----------------------------------------
+                // default
+                // -----------------------------------------
+                default:
+                {
+                }
+                }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+int32_t waf::process_resp_rule_part(waflz_pb::event **ao_event,
+                                        bool &ao_match,
+                                        const waflz_pb::sec_rule_t &a_rule,
+                                        resp_ctx &a_ctx)
+{
+        macro *l_macro =  &(m_engine.get_macro());
+        ao_match = false;
+        const waflz_pb::sec_action_t &l_a = a_rule.action();
+        bool l_multimatch = l_a.multimatch();
+        // -------------------------------------------------
+        // get operator
+        // -------------------------------------------------
+        if(!a_rule.has_operator_() ||
+           !a_rule.operator_().has_type())
+        {
+                // TODO log error -shouldn't happen???
+                return WAFLZ_STATUS_OK;
+        }
+        const ::waflz_pb::sec_rule_t_operator_t& l_op = a_rule.operator_();
+        op_t l_op_cb = NULL;
+        l_op_cb = get_op_cb(l_op.type());
+        // -------------------------------------------------
+        // variable loop
+        // -------------------------------------------------
+        uint32_t l_var_count = 0;
+        for(int32_t i_var = 0; i_var < a_rule.variable_size(); ++i_var)
+        {
+                // -----------------------------------------
+                // get var cb
+                // -----------------------------------------
+                const waflz_pb::variable_t& l_var = a_rule.variable(i_var);
+                if(!l_var.has_type())
+                {
+                        return WAFLZ_STATUS_OK;
+                }
+                get_var_t l_get_var = NULL;
+                l_get_var = get_var_cb(l_var.type());
+                if(!l_get_var)
+                {
+                        return WAFLZ_STATUS_OK;
+                }
+                int32_t l_s;
+                const char *l_x_data;
+                uint32_t l_x_len;
+                // -----------------------------------------
+                // extract list of data
+                // -----------------------------------------
+                const_arg_list_t l_data_list;
+                l_s = l_get_var(l_data_list, l_var_count, l_var, &a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // Handle count first
+                // -----------------------------------------
+                if(l_var.is_count())
+                {
+                        std::string l_v_c = to_string(l_var_count);
+                        l_x_data = l_v_c.c_str();
+                        l_x_len = l_v_c.length();
+                        bool l_match = false;
+                        if(!l_op_cb)
+                        {
+                                continue;
+                        }
+                        l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                // TODO log reason???
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                        if(!l_match)
+                        {
+                                continue;
+                        }
+                        // Reflect Variable name
+                        const google::protobuf::EnumValueDescriptor* l_var_desc =
+                                        waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
+                        a_ctx.m_cx_matched_var.assign(l_x_data, l_x_len);
+                        a_ctx.m_cx_matched_var_name = l_var_desc->name();
+                        ao_match = true;
+                        break;
+                }
+                // -----------------------------------------
+                // data loop
+                // -----------------------------------------
+                for(const_arg_list_t::const_iterator i_v = l_data_list.begin();
+                    i_v != l_data_list.end();
+                    ++i_v)
+                {
+                        // ---------------------------------
+                        // transformation loop
+                        // ---------------------------------
+                        // ---------------------------------
+                        // Set size to at least one if no tx
+                        // specified
+                        // ---------------------------------
+                        int32_t l_t_size = l_a.t_size() ? l_a.t_size() : 1;
+                        l_x_data = i_v->m_val;
+                        l_x_len = i_v->m_val_len;
+                        bool l_mutated = false;
+                        for(int32_t i_t = 0; i_t < l_t_size; ++i_t)
+                        {
+                                // -------------------------
+                                // *************************
+                                //           T X
+                                // *************************
+                                // -------------------------
+                                waflz_pb::sec_action_t_transformation_type_t l_t_type = waflz_pb::sec_action_t_transformation_type_t_NONE;
+                                if(i_t > 1 ||
+                                   l_a.t_size())
+                                {
+                                        l_t_type = l_a.t(i_t);
+                                }
+                                if(l_t_type == waflz_pb::sec_action_t_transformation_type_t_NONE)
+                                {
+                                        goto run_op;
+                                }
+                                // -------------------------
+                                // if tx...
+                                // -------------------------
+                                {
+                                tx_cb_t l_tx_cb = NULL;
+                                l_tx_cb = get_tx_cb(l_t_type);
+                                if(!l_tx_cb)
+                                {
+                                        continue;
+                                }
+                                char *l_tx_data = NULL;
+                                uint32_t l_tx_len = 0;
+                                l_s = l_tx_cb(&l_tx_data, l_tx_len, l_x_data, l_x_len);
+                                if(l_s != WAFLZ_STATUS_OK)
+                                {
+                                        // TODO log reason???
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                                // -------------------------
+                                // mark current tx so op can
+                                // check if tolower required
+                                // by rule.
+                                // avoids multiple tolower
+                                // called on same string
+                                // -------------------------
+                                mark_tx_applied(&a_ctx, l_t_type);
+                                // -------------------------
+                                // if mutated again free
+                                // last
+                                // -------------------------
+                                if(l_mutated)
+                                {
+                                        free(const_cast <char *>(l_x_data));
+                                        l_x_len = 0;
+                                        l_mutated = false;
+                                }
+                                l_mutated = true;
+                                l_x_data = l_tx_data;
+                                l_x_len = l_tx_len;
+                                // -------------------------
+                                // break if no data
+                                // no point in transforming
+                                // or matching further
+                                // -------------------------
+                                if(!l_x_data ||
+                                   !l_x_len)
+                                {
+                                        break;
+                                }
+                                }
+run_op:
+                                // -------------------------
+                                // skip op if:
+                                // not multimatch
+                                // AND
+                                // not the end of the list
+                                // -------------------------
+                                if(!l_multimatch &&
+                                   (i_t != (l_t_size - 1)))
+                                {
+                                        continue;
+                                }
+                                // -------------------------
+                                // *************************
+                                //           O P
+                                // *************************
+                                // -------------------------
+                                if(!l_op_cb)
+                                {
+                                        // TODO log error -shouldn't happen???
+                                        continue;
+                                }
+                                bool l_match = false;
+                                WFLZ_TRC_ALL("op val: %s%.*s%s\n", ANSI_COLOR_FG_GREEN, l_x_len, l_x_data, ANSI_COLOR_FG_MAGENTA);
+                                l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx);
+                                if(l_s != WAFLZ_STATUS_OK)
+                                {
+                                        // TODO log reason???
+                                        return WAFLZ_STATUS_ERROR;
+                                }
+                                if(!l_match)
+                                {
+                                        continue;
+                                }
+                                if(l_var.type() ==  waflz_pb::variable_t_type_t_ARGS_COMBINED_SIZE)
+                                {
+                                        a_ctx.m_cx_matched_var_name = "ARGS_COMBINED_SIZE";
+                                        a_ctx.m_cx_matched_var = to_string(l_x_len);
+                                }
+                                else
+                                {
+                                        // Reflect Variable name
+                                        const google::protobuf::EnumValueDescriptor* l_var_desc =
+                                                        waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
+                                        a_ctx.m_cx_matched_var.assign(l_x_data, l_x_len);
+                                        a_ctx.m_cx_matched_var_name = l_var_desc->name();
+                                        if(i_v->m_key_len)
+                                        {
+                                                std::string l_var_name(i_v->m_key, strnlen(i_v->m_key, i_v->m_key_len));
+                                                a_ctx.m_cx_matched_var_name +=":";
+                                                a_ctx.m_cx_matched_var_name.append(l_var_name);
+                                        }
+                                }
+                                WFLZ_TRC_MATCH("%s%s%s\n",
+                                                ANSI_COLOR_FG_MAGENTA,
+                                                a_rule.ShortDebugString().c_str(),
+                                                ANSI_COLOR_OFF);
+                                ao_match = true;
+                                break;
+                        }
+                        // ---------------------------------
+                        // final cleanup
+                        // ---------------------------------
+                        if(l_mutated)
+                        {
+                                free(const_cast <char *>(l_x_data));
+                                l_x_data = NULL;
+                                l_x_len = 0;
+                                l_mutated = false;
+                                a_ctx.m_src_asn_str.m_tx_applied = 0; // Reset
+                        }
+                        // ---------------------------------
+                        // got a match -outtie
+                        // ---------------------------------
+                        if(ao_match)
+                        {
+                                break;
+                        }
+                }
+                // -----------------------------------------
+                // got a match -outtie
+                // -----------------------------------------
+                if(ao_match)
+                {
+                        break;
+                }
+        }
+        // -------------------------------------------------
+        // *************************************************
+        //                A C T I O N S
+        // *************************************************
+        // -------------------------------------------------
+        if(ao_match)
+        {
+#define _SET_RULE_INFO(_field, _str) \
+if(l_a.has_##_field()) { \
+data_t l_k; l_k.m_data = _str; l_k.m_len = sizeof(_str) - 1; \
+data_t l_v; \
+l_v.m_data = l_a._field().c_str(); \
+l_v.m_len = l_a._field().length(); \
+a_ctx.m_cx_rule_map[l_k] = l_v; \
+}
+                // -----------------------------------------
+                // set rule info
+                // -----------------------------------------
+                _SET_RULE_INFO(id, "id");
+                _SET_RULE_INFO(msg, "msg");
+                // -----------------------------------------
+                // TODO -only run
+                // non-disruptive???
+                // -----------------------------------------
+                int32_t l_s = process_action_nd(l_a, a_ctx);
+                if(l_s == WAFLZ_STATUS_ERROR)
+                {
+                        NDBG_PRINT("error executing action");
+                }
+                //NDBG_PRINT("%sACTIONS%s: !!!\n%s%s%s\n",
+                //           ANSI_COLOR_BG_CYAN, ANSI_COLOR_OFF,
+                //           ANSI_COLOR_FG_CYAN, l_a.ShortDebugString().c_str(), ANSI_COLOR_OFF);
+        }
+        // -------------------------------------------------
+        // null out any set skip values
+        // -------------------------------------------------
+        else
+        {
+                a_ctx.m_skip = 0;
+                a_ctx.m_skip_after = NULL;
+        }
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+int32_t waf::process_resp_rule(waflz_pb::event **ao_event,
+                               const waflz_pb::sec_rule_t &a_rule,
+                               resp_ctx &a_ctx)
+{
+        WFLZ_TRC_RULE("%s%s%s\n",
+                      ANSI_COLOR_FG_YELLOW,
+                      a_rule.ShortDebugString().c_str(),
+                      ANSI_COLOR_OFF);
+        // -------------------------------------------------
+        // chain rule loop
+        // -------------------------------------------------
+        const waflz_pb::sec_rule_t *l_rule = NULL;
+        int32_t l_cr_idx = -1;
+        bool i_match = false;
+        do {
+                //NDBG_PRINT("RULE[%4d]************************************\n", l_cr_idx);
+                //NDBG_PRINT("l_cr_idx: %d\n", l_cr_idx);
+                if(l_cr_idx == -1)
+                {
+                        l_rule = &a_rule;
+                }
+                else if((l_cr_idx >= 0) &&
+                        (l_cr_idx < a_rule.chained_rule_size()))
+                {
+                        l_rule = &(a_rule.chained_rule(l_cr_idx));
+                }
+                else
+                {
+                        //WAFLZ_PERROR(m_err_msg, "bad chained rule idx: %d -size: %d",
+                        //             l_cr_idx,
+                        //             a_rule.chained_rule_size());
+                        return WAFLZ_STATUS_ERROR;
+                }
+                //show_rule_info(a_rule);
+                // Get action
+                if(!l_rule->has_action())
+                {
+                        // TODO is OK???
+                        ++l_cr_idx;
+                        continue;
+                }
+                if(!l_rule->has_operator_())
+                {
+                        // TODO this aight???
+                        // TODO is OK???
+                        ++l_cr_idx;
+                        continue;
+                }
+                int32_t l_s;
+                i_match = false;
+                l_s = process_resp_rule_part(ao_event,
+                                                 i_match,
+                                                 *l_rule,
+                                                 a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        //WAFLZ_PERROR(m_err_msg, "bad chained rule idx: %d -size: %d",
+                        //             l_cr_idx,
+                        //             a_rule.chained_rule_size());
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(!i_match)
+                {
+                        // bail out on first un-matched...
+                        return WAFLZ_STATUS_OK;
+                }
+                ++l_cr_idx;
+        } while(l_cr_idx < a_rule.chained_rule_size());
+        // -------------------------------------------------
+        // never matched...
+        // -------------------------------------------------
+        if(!i_match)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // matched...
+        // -------------------------------------------------
+        if(!a_rule.has_action())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // run disruptive action...
+        // -------------------------------------------------
+        WFLZ_TRC_MATCH("ACTION: %s%s%s\n",
+                        ANSI_COLOR_FG_RED,
+                        a_rule.action().ShortDebugString().c_str(),
+                        ANSI_COLOR_OFF);
+        int32_t l_s;
+        l_s = process_match(ao_event, a_rule, a_ctx);
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                NDBG_PRINT("error processing rule\n");
+        }
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+int32_t waf::process_resp_phase(waflz_pb::event **ao_event,
+                                const directive_list_t &a_dl,
+                                const marker_map_t &a_mm,
+                                resp_ctx &a_ctx)
+{
+        a_ctx.m_intercepted = false;
+        for(directive_list_t::const_iterator i_d = a_dl.begin();
+            i_d != a_dl.end();
+            ++i_d)
+        {
+                if(!(*i_d))
+                {
+                        //NDBG_PRINT("SKIPPING\n");
+                        continue;
+                }
+                // -----------------------------------------
+                // marker
+                // -----------------------------------------
+                const ::waflz_pb::directive_t& l_d = **i_d;
+                if(l_d.has_marker())
+                {
+                        //NDBG_PRINT("%sMARKER%s: %s%s%s\n",
+                        //           ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
+                        //           ANSI_COLOR_BG_RED, l_d.marker().c_str(), ANSI_COLOR_OFF);
+                        continue;
+                }
+                // -----------------------------------------
+                // action
+                // -----------------------------------------
+                if(l_d.has_sec_action())
+                {
+                        const waflz_pb::sec_action_t &l_a = l_d.sec_action();
+                        int32_t l_s = process_resp_action_nd(l_a, a_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                NDBG_PRINT("error processing rule\n");
+                        }
+                        continue;
+                }
+                // -----------------------------------------
+                // rule
+                // -----------------------------------------
+                if(l_d.has_sec_rule())
+                {
+                        const waflz_pb::sec_rule_t &l_r = l_d.sec_rule();
+                        if(!l_r.has_action())
+                        {
+                                //NDBG_PRINT("error no action for rule: %s\n", l_r.ShortDebugString().c_str());
+                                continue;
+                        }
+                        int32_t l_s;
+                        l_s = process_rule(ao_event, l_r, a_ctx);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                return WAFLZ_STATUS_ERROR;
+                        }
+                }
+                // -----------------------------------------
+                // break if intercepted
+                // -----------------------------------------
+                if(a_ctx.m_intercepted)
+                {
+                        break;
+                }
+                // -----------------------------------------
+                // handle skip
+                // -----------------------------------------
+                if(a_ctx.m_skip)
+                {
+                        //NDBG_PRINT("%sskipping%s...: %d\n", ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF, a_ctx.m_skip);
+                        while(a_ctx.m_skip &&
+                              (i_d != a_dl.end()))
+                        {
+                                ++i_d;
+                                --a_ctx.m_skip;
+                        }
+                        a_ctx.m_skip = 0;
+                }
+                else if(a_ctx.m_skip_after)
+                {
+                        //NDBG_PRINT("%sskipping%s...: %s\n", ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF, a_ctx.m_skip_after);
+                        marker_map_t::const_iterator i_nd;
+                        i_nd = a_mm.find(a_ctx.m_skip_after);
+                        if(i_nd != a_mm.end())
+                        {
+                                i_d = i_nd->second;
+                        }
+                        a_ctx.m_skip_after = NULL;
+                }
+        }
+        return WAFLZ_STATUS_OK;
+}
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
 int32_t waf::process_response(waflz_pb::event **ao_event,
-                     void *a_ctx,
-                     resp_ctx **ao_resp_ctx,
-                     bool a_custom_rules)
+                              void *a_ctx,
+                              resp_ctx **ao_resp_ctx,
+                              bool a_custom_rules)
 {
         if(!m_pb)
         {
@@ -2493,10 +3185,10 @@ int32_t waf::process_response(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // process
         // -------------------------------------------------
-        l_s = process_phase(ao_event,
-                            m_compiled_config->m_directive_list_phase_3,
-                            m_compiled_config->m_marker_map_phase_3,
-                            *l_ctx);
+        l_s = process_resp_phase(ao_event,
+                                 m_compiled_config->m_directive_list_phase_3,
+                                 m_compiled_config->m_marker_map_phase_3,
+                                 *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???
@@ -2525,10 +3217,10 @@ int32_t waf::process_response(waflz_pb::event **ao_event,
         // -------------------------------------------------
         // process
         // -------------------------------------------------
-        l_s = process_phase(ao_event,
-                            m_compiled_config->m_directive_list_phase_4,
-                            m_compiled_config->m_marker_map_phase_4,
-                            *l_ctx);
+        l_s = process_resp_phase(ao_event,
+                                 m_compiled_config->m_directive_list_phase_4,
+                                 m_compiled_config->m_marker_map_phase_4,
+                                 *l_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 // TODO -log error???

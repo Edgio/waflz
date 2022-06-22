@@ -40,10 +40,9 @@ public:
         macro(void);
         int32_t init(void);
         bool has(const std::string &a_str);
-        template<typename T>
         int32_t operator () (std::string &ao_exp,
                              const std::string& a_str,
-                             T *a_ctx);
+                             rqst_ctx *a_ctx);
 private:
         // -------------------------------------------------
         // private methods

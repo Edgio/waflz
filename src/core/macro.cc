@@ -30,10 +30,9 @@ namespace ns_waflz {
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-template<typename T>
 static int32_t get_var(std::string &ao_var,
                        waflz_pb::variable_t_type_t a_type,
-                       T *a_ctx)
+                       rqst_ctx *a_ctx)
 {
         get_var_t l_get_var = NULL;
         l_get_var = get_var_cb(a_type);
@@ -72,10 +71,9 @@ static int32_t get_var(std::string &ao_var,
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-template<typename T>
 static int32_t expand(std::string &ao_exp,
                       const std::string& a_str,
-                      T *a_ctx)
+                      rqst_ctx *a_ctx)
 {
         if(!a_ctx)
         {
@@ -534,10 +532,9 @@ bool macro::has(const std::string &a_str)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
-template<typename T>
 int32_t macro::operator ()(std::string &ao_exp,
                            const std::string& a_str,
-                           T *a_ctx)
+                           rqst_ctx *a_ctx)
 {
         if(!a_ctx)
         {

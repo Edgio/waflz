@@ -134,18 +134,21 @@ private:
         waf(const waf &);
         waf& operator=(const waf &);
         // -------------------------------------------------
-        // process
+        // process request
         // -------------------------------------------------
-        template <typename T>
-        int32_t process_phase(waflz_pb::event **ao_event, const directive_list_t &a_dl, const marker_map_t &a_mm, T &a_ctx);
-        template <typename T>
-        int32_t process_rule(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, T &a_ctx);
-        template <typename T>
-        int32_t process_rule_part(waflz_pb::event **ao_event, bool &ao_match, const waflz_pb::sec_rule_t &a_rule, T &a_ctx);
-        template <typename T>
-        int32_t process_action_nd(const waflz_pb::sec_action_t &a_action, T &a_ctx);
-        template <typename T>
-        int32_t process_match(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, T &a_ctx);
+        int32_t process_phase(waflz_pb::event **ao_event, const directive_list_t &a_dl, const marker_map_t &a_mm, rqst_ctx &a_ctx);
+        int32_t process_rule(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, rqst_ctx &a_ctx);
+        int32_t process_rule_part(waflz_pb::event **ao_event, bool &ao_match, const waflz_pb::sec_rule_t &a_rule, rqst_ctx &a_ctx);
+        int32_t process_action_nd(const waflz_pb::sec_action_t &a_action, rqst_ctx &a_ctx);
+        int32_t process_match(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, rqst_ctx &a_ctx);
+        // -------------------------------------------------
+        // process response
+        // -------------------------------------------------
+        int32_t process_resp_phase(waflz_pb::event **ao_event, const directive_list_t &a_dl, const marker_map_t &a_mm, resp_ctx &a_ctx);
+        int32_t process_resp_rule(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, resp_ctx &a_ctx);
+        int32_t process_resp_rule_part(waflz_pb::event **ao_event, bool &ao_match, const waflz_pb::sec_rule_t &a_rule, resp_ctx &a_ctx);
+        int32_t process_resp_action_nd(const waflz_pb::sec_action_t &a_action, resp_ctx &a_ctx);
+        int32_t process_resp_match(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, resp_ctx &a_ctx);
         int32_t compile(void);
         int32_t set_defaults(bool a_custom_rules);
         // -------------------------------------------------

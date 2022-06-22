@@ -26,11 +26,10 @@
 //! macros
 //! ----------------------------------------------------------------------------
 #define GET_VAR(_type) \
-        template<typename T> \
         static int32_t _get_var_##_type(const_arg_list_t &ao_list, \
                                         uint32_t &ao_count, \
                                         const waflz_pb::variable_t &a_var, \
-                                        T *a_ctx)
+                                        rqst_ctx *a_ctx)
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! ****************************************************************************

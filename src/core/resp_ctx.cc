@@ -62,6 +62,7 @@ resp_ctx::resp_ctx(void *a_ctx,
         // -------------------------------------------------
         m_cx_matched_var(),
         m_cx_matched_var_name(),
+        m_cx_rule_map(),
         m_cx_tx_map(),
         // -------------------------------------------------
         // state

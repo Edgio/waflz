@@ -2434,13 +2434,369 @@ int32_t waf::process_phase(waflz_pb::event **ao_event,
         }
         return WAFLZ_STATUS_OK;
 }
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+int32_t waf::process_resp_match(waflz_pb::event** ao_event,
+                                const waflz_pb::sec_rule_t& a_rule,
+                                resp_ctx& a_ctx)
+{
+        if(!ao_event ||
+           !a_rule.has_action())
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        const waflz_pb::sec_action_t &l_action = a_rule.action();
+        // -------------------------------------------------
+        // compare...
+        // -------------------------------------------------
+        // 1. get "anomaly_score"...
+        // 2. get "inbound_anomaly_score_threshold" or "inbound_anomaly_score_level" --> threshold
+        // 3. if(l_score >= l_threshold) mark as intercepted...
+        // -------------------------------------------------
+        cx_map_t::const_iterator i_t;
+        int32_t l_anomaly_score = -1;
+        // -------------------------------------------------
+        // handle paranoia...
+        // Based on paranoia level different rules set
+        // different scores. The CRS uses the following vars
+        // crs < v4             or crs >= v4
+        // tx.anomaly_score_pl1 or inbound_anomaly_score_pl1
+        // tx.anomaly_score_pl2 or inbound_anomaly_score_pl2
+        // tx.anomaly_score_pl3 or inbound_anomaly_score_pl3
+        // tx.anomaly_score_pl4 or inbound_anomaly_score_pl4
+        // -------------------------------------------------
+        // Here we emulate the blocking evaluation config
+        // 1. Check current paranoia level
+        // 2. Sum up all pl scores until current pl
+        // 3. Set the anomaly_score = sum of #2
+        // -------------------------------------------------
+        // Only calculate score if the rule is setting a var
+        // e.g setvar:'tx.anomaly_score_pl1=+%{tx.notice_anomaly_score}
+        // Or is a chained rule
+        // -------------------------------------------------
+        if(l_action.setvar_size() > 0 ||
+            a_rule.chained_rule_size() > 0)
+        {
+                uint32_t l_cur_anomaly = 0;
+                uint32_t i_pl = 1;
+                do
+                {
+                        std::string l_ex_anomaly = "anomaly_score_pl" + to_string(i_pl);
+                        std::string l_iex_anomaly = "outbound_anomaly_score_pl" + to_string(i_pl);
+                        i_t = a_ctx.m_cx_tx_map.find(l_ex_anomaly);
+                        if(i_t == a_ctx.m_cx_tx_map.end())
+                        {
+                                i_t = a_ctx.m_cx_tx_map.find(l_iex_anomaly);
+                        }
+                        if(i_t == a_ctx.m_cx_tx_map.end())
+                        {
+                                ++i_pl;
+                                continue;
+                        }
+                        long int l_pl_score;
+                        char *l_end_ptr = NULL;
+                        l_pl_score = strntol(i_t->second.c_str(), i_t->second.length(), &l_end_ptr, 10);
+                        if((l_pl_score == LONG_MAX) ||
+                            (l_pl_score == LONG_MIN) ||
+                            (l_pl_score < 0))
+                        {
+                                ++i_pl;
+                                continue;
+                        }
+                        if(l_end_ptr == i_t->second.c_str())
+                        {
+                                ++i_pl;
+                                continue;
+                        }
+                        l_cur_anomaly += (uint32_t)l_pl_score;
+                        ++i_pl;
+                } while(m_paranoia_level >= i_pl);
+                if(l_cur_anomaly)
+                {
+                        a_ctx.m_cx_tx_map["anomaly_score"]  = to_string(l_cur_anomaly);
+                }
+        }
+        // -------------------------------------------------
+        // get anomaly score
+        // -------------------------------------------------
+        i_t = a_ctx.m_cx_tx_map.find("anomaly_score");
+        if(i_t == a_ctx.m_cx_tx_map.end())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // TODO -use strntol instead
+        // of atoi...
+        // -------------------------------------------------
+        l_anomaly_score = atoi(i_t->second.c_str());
+        // -------------------------------------------------
+        // skip if no anomaly score and
+        // w/o action or PASS types...
+        // -------------------------------------------------
+        if((l_anomaly_score <= 0) &&
+           (!l_action.has_action_type() ||
+            (l_action.action_type() == ::waflz_pb::sec_action_t_action_type_t_PASS)))
+        {
+                return WAFLZ_STATUS_OK;
+        }
+#ifdef WAFLZ_NATIVE_ANOMALY_MODE
+        // -------------------------------------------------
+        // skip logging events not contributing to anomaly
+        // action
+        // -------------------------------------------------
+        if(m_anomaly_score_cur >= l_anomaly_score &&
+           l_action.action_type() == waflz_pb::sec_action_t_action_type_t_PASS)
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        m_anomaly_score_cur = l_anomaly_score;
+#endif
+#define _GET_TX_FIELD(_str, _val) do { \
+        i_t = a_ctx.m_cx_tx_map.find(_str); \
+        if(i_t == a_ctx.m_cx_tx_map.end()) { \
+                NDBG_PRINT("rule: %s missing tx field: %s.\n", a_rule.ShortDebugString().c_str(), _str);\
+                return WAFLZ_STATUS_ERROR; \
+        } \
+        _val = atoi(i_t->second.c_str()); \
+} while(0)
+        // -------------------------------------------------
+        // *************************************************
+        // handling anomaly mode natively...
+        // *************************************************
+        // -------------------------------------------------
+#ifdef WAFLZ_NATIVE_ANOMALY_MODE
+        // -------------------------------------------------
+        // get field values...
+        // -------------------------------------------------
+        int32_t l_threshold = -1;
+        _GET_TX_FIELD("outbound_anomaly_score_threshold", l_threshold);
+        //NDBG_PRINT("%sl_anomaly_score%s: %d\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, l_anomaly_score);
+        //NDBG_PRINT("%sl_threshold%s:     %d\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, l_threshold);
+        // -------------------------------------------------
+        // check threshold
+        // -------------------------------------------------
+        if(l_anomaly_score >= l_threshold)
+        {
+                a_ctx.m_intercepted = true;
+        }
+#else
+        // ---------------------------------
+        // handle anomaly mode in ruleset
+        // ---------------------------------
+        UNUSED(l_threshold);
+        if(l_action.has_action_type() &&
+           (l_action.action_type() == waflz_pb::sec_action_t_action_type_t_DENY))
+        {
+                a_ctx.m_intercepted = true;
+        }
+#endif
+        // -------------------------------------------------
+        // check for nolog
+        // -------------------------------------------------
+        if(l_action.has_nolog() &&
+           l_action.nolog() &&
+           l_action.action_type() == ::waflz_pb::sec_action_t_action_type_t_PASS)
+        {
+                a_ctx.m_intercepted = false;
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // skip events w/o messages
+        // -------------------------------------------------
+        if(!l_action.has_msg())
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // create info...
+        // -------------------------------------------------
+        waflz_pb::event* l_sub_event = NULL;
+        if(!(*ao_event))
+        {
+                *ao_event = new ::waflz_pb::event();
+        }
+        //NDBG_PRINT("%sadd_sub_event%s:\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF);
+        l_sub_event = (*ao_event)->add_sub_event();
+        // -------------------------------------------------
+        // populate info
+        // -------------------------------------------------
+        // -------------------------------------------------
+        // msg
+        // -------------------------------------------------
+        std::string l_msg;
+        macro &l_macro = m_engine.get_macro();
+        if(l_macro.has(l_action.msg()))
+        {
+                int32_t l_s;
+                l_s = l_macro(l_msg, l_action.msg(), &a_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        if(!l_msg.empty())
+        {
+                 (*ao_event)->set_rule_msg(l_msg);
+                 l_sub_event->set_rule_msg(l_msg);
+        }
+        else
+        {
+                if(l_action.has_msg()) { l_sub_event->set_rule_msg(l_action.msg()); }
+                (*ao_event)->set_rule_msg(l_action.msg());
+        }
+        // -------------------------------------------------
+        // rule info
+        // -------------------------------------------------
+        if(l_action.has_id()) { l_sub_event->set_rule_id((uint32_t)atol(l_action.id().c_str())); }
+        if(a_rule.operator_().has_type())
+        {
+                const google::protobuf::EnumValueDescriptor* l_op_desc =
+                                        waflz_pb::sec_rule_t_operator_t_type_t_descriptor()->FindValueByNumber(a_rule.operator_().type());
+                l_sub_event->set_rule_op_name(l_op_desc->name());
+        }
+        if(a_rule.operator_().has_value()) { l_sub_event->set_rule_op_param(a_rule.operator_().value()); }
+        // -------------------------------------------------
+        // tx vars
+        // -------------------------------------------------
+        l_sub_event->set_total_anomaly_score(l_anomaly_score);
+        // -------------------------------------------------
+        // rule targets
+        // -------------------------------------------------
+        //NDBG_PRINT("rule matched %s\n", a_rule.DebugString().c_str());
+        for(int32_t i_k = 0; i_k < a_rule.variable_size(); ++i_k)
+        {
+                const waflz_pb::variable_t &l_var = a_rule.variable(i_k);
+                const google::protobuf::EnumValueDescriptor* l_var_desc =
+                                       waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_var.type());
+                waflz_pb::event::var_t *l_mvar = NULL;
+                l_mvar = l_sub_event->add_rule_target();
+                // -----------------------------------------
+                // counting???
+                // -----------------------------------------
+                if(l_var.has_is_count() &&
+                   l_var.is_count())
+                {
+                        l_mvar->set_is_counting(true);
+                }
+                // -----------------------------------------
+                // no match info
+                // -----------------------------------------
+                if(l_var.match_size() <= 0)
+                {
+                        l_mvar->set_name(l_var_desc->name());
+                        continue;
+                }
+                // -----------------------------------------
+                // for each match...
+                // -----------------------------------------
+                for(int32_t i_m = 0; i_m < l_var.match_size(); ++i_m)
+                {
+                        // ---------------------------------
+                        // name
+                        // ---------------------------------
+                        l_mvar->set_name(l_var_desc->name());
+                        // ---------------------------------
+                        // value
+                        // ---------------------------------
+                        const waflz_pb::variable_t_match_t &l_match = l_var.match(i_m);
+                        if(!l_match.value().empty())
+                        {
+                                // -------------------------
+                                // fix up string to indicate
+                                // is regex
+                                // -------------------------
+                                std::string l_val = l_match.value();
+                                if(l_match.is_regex())
+                                {
+                                        l_val.insert(0, "/");
+                                        l_val += "/";
+                                }
+                                l_mvar->set_param(l_val);
+                        }
+                        // ---------------------------------
+                        // negated???
+                        // ---------------------------------
+                        if(l_match.is_negated())
+                        {
+                                l_mvar->set_is_negated(true);
+                        }
+                }
+        }
+        // -------------------------------------------------
+        // rule tags
+        // -------------------------------------------------
+        for(int32_t i_a = 0; i_a < l_action.tag_size(); ++i_a)
+        {
+                l_sub_event->add_rule_tag(l_action.tag(i_a));
+        }
+        // -------------------------------------------------
+        // intercept status
+        // -------------------------------------------------
+        // -------------------------------------------------
+        // Special logic for handling bot rules:
+        // auditlog+pass  = log req + allow req
+        // auditlog+block = log req + custom action for auth
+        // auditlog+deny  = log req + block req
+        // -------------------------------------------------
+        if(l_action.has_auditlog())
+        {
+                switch (l_action.action_type())
+                {
+                case ::waflz_pb::sec_action_t_action_type_t_PASS:
+                {
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_OK);
+                        break;
+                }
+                case ::waflz_pb::sec_action_t_action_type_t_BLOCK:
+                {
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_AUTHENTICATION_REQUIRED);
+                        break;
+                }
+                // Rules that outright want to deny request
+                case ::waflz_pb::sec_action_t_action_type_t_DENY:
+                {
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
+                        break;
+                }
+                default:
+                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
+                }
+        }
+        else
+        {
+                l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
+        }
+#define CAP_LEN(_len) (_len > 1024 ? 1024: _len)
+        waflz_pb::event::var_t* l_m_var = NULL;
+        // -------------------------------------------------
+        // matched var
+        // -------------------------------------------------
+        l_m_var = l_sub_event->mutable_matched_var();
+        l_m_var->set_name(a_ctx.m_cx_matched_var_name);
+        // -------------------------------------------------
+        // check for no log or sanitized action
+        // -------------------------------------------------
+        if(l_action.sanitisematched() ||
+           m_no_log_matched)
+        {
+                l_m_var->set_value("**SANITIZED**");
+        }
+        else
+        {
+                l_m_var->set_value(a_ctx.m_cx_matched_var.c_str(), CAP_LEN(a_ctx.m_cx_matched_var.length()));
+        }
+        return WAFLZ_STATUS_OK;
+}
 /// ----------------------------------------------------------------------------
 /// @brief  process the actions in modsec directive or inside a rule
 /// @param  a_action, request context
 /// @return WAFLZ_STATUS_ERROR or WAFLZ_STATUS_OK
 /// ----------------------------------------------------------------------------
 int32_t waf::process_resp_action_nd(const waflz_pb::sec_action_t &a_action,
-                                    rqst_ctx &a_ctx)
+                                    resp_ctx &a_ctx)
 {
         // -------------------------------------------------
         // check for skip
@@ -2682,7 +3038,7 @@ int32_t waf::process_resp_rule_part(waflz_pb::event **ao_event,
                 // extract list of data
                 // -----------------------------------------
                 const_arg_list_t l_data_list;
-                l_s = l_get_var(l_data_list, l_var_count, l_var, &a_ctx);
+                l_s = l_get_resp_var(l_data_list, l_var_count, l_var, &a_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
@@ -2771,14 +3127,6 @@ int32_t waf::process_resp_rule_part(waflz_pb::event **ao_event,
                                         // TODO log reason???
                                         return WAFLZ_STATUS_ERROR;
                                 }
-                                // -------------------------
-                                // mark current tx so op can
-                                // check if tolower required
-                                // by rule.
-                                // avoids multiple tolower
-                                // called on same string
-                                // -------------------------
-                                mark_tx_applied(&a_ctx, l_t_type);
                                 // -------------------------
                                 // if mutated again free
                                 // last
@@ -2872,7 +3220,7 @@ run_op:
                                 l_x_data = NULL;
                                 l_x_len = 0;
                                 l_mutated = false;
-                                a_ctx.m_src_asn_str.m_tx_applied = 0; // Reset
+                                //a_ctx.m_src_asn_str.m_tx_applied = 0; // Reset
                         }
                         // ---------------------------------
                         // got a match -outtie
@@ -2914,7 +3262,7 @@ a_ctx.m_cx_rule_map[l_k] = l_v; \
                 // TODO -only run
                 // non-disruptive???
                 // -----------------------------------------
-                int32_t l_s = process_action_nd(l_a, a_ctx);
+                int32_t l_s = process_resp_action_nd(l_a, a_ctx);
                 if(l_s == WAFLZ_STATUS_ERROR)
                 {
                         NDBG_PRINT("error executing action");
@@ -3028,7 +3376,7 @@ int32_t waf::process_resp_rule(waflz_pb::event **ao_event,
                         a_rule.action().ShortDebugString().c_str(),
                         ANSI_COLOR_OFF);
         int32_t l_s;
-        l_s = process_match(ao_event, a_rule, a_ctx);
+        l_s = process_resp_match(ao_event, a_rule, a_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 NDBG_PRINT("error processing rule\n");
@@ -3091,7 +3439,7 @@ int32_t waf::process_resp_phase(waflz_pb::event **ao_event,
                                 continue;
                         }
                         int32_t l_s;
-                        l_s = process_rule(ao_event, l_r, a_ctx);
+                        l_s = process_resp_rule(ao_event, l_r, a_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;

@@ -149,6 +149,9 @@ private:
         int32_t process_resp_rule_part(waflz_pb::event **ao_event, bool &ao_match, const waflz_pb::sec_rule_t &a_rule, resp_ctx &a_ctx);
         int32_t process_resp_action_nd(const waflz_pb::sec_action_t &a_action, resp_ctx &a_ctx);
         int32_t process_resp_match(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, resp_ctx &a_ctx);
+        // -------------------------------------------------
+        // compile
+        // -------------------------------------------------
         int32_t compile(void);
         int32_t set_defaults(bool a_custom_rules);
         // -------------------------------------------------

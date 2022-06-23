@@ -123,7 +123,7 @@ public:
         // -------------------------------------------------
         std::string m_cx_matched_var;
         std::string m_cx_matched_var_name;
-        //data_map_t m_cx_rule_map;
+        data_map_t m_cx_rule_map;
         cx_map_t m_cx_tx_map;
         // -------------------------------------------------
         // state

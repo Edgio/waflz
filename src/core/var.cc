@@ -30,6 +30,11 @@
                                         uint32_t &ao_count, \
                                         const waflz_pb::variable_t &a_var, \
                                         rqst_ctx *a_ctx)
+#define GET_RESP_VAR(_type) \
+        static int32_t _get_resp_var_##_type(const_arg_list_t &ao_list, \
+                                        uint32_t &ao_count, \
+                                        const waflz_pb::variable_t &a_var, \
+                                        resp_ctx *a_ctx)
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! ****************************************************************************
@@ -1509,20 +1514,263 @@ GET_VAR(SD2_ISO)
         _ADD_VAR(a_ctx->m_src_sd2_iso);
         return WAFLZ_STATUS_OK;
 }
-
+//! ----------------------------------------------------------------------------
+//! \details: TX
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+GET_RESP_VAR(TX)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        //NDBG_PRINT("a_var: %s\n", a_var.ShortDebugString().c_str());
+        if(!a_var.match_size())
+        {
+                //NDBG_PRINT("no tx variable specified\n");
+                return WAFLZ_STATUS_OK;
+        }
+        for(int32_t i_m = 0; i_m < a_var.match_size(); ++i_m)
+        {
+                // -----------------------------------------
+                // has value???
+                // -----------------------------------------
+                if(!a_var.match(i_m).has_value())
+                {
+                        continue;
+                }
+                // -----------------------------------------
+                // in map???
+                // -----------------------------------------
+                const std::string &l_val = a_var.match(i_m).value();
+                cx_map_t::const_iterator i_tx = a_ctx->m_cx_tx_map.find(l_val);
+                if(i_tx == a_ctx->m_cx_tx_map.end())
+                {
+                        continue;
+                }
+                const std::string &l_key = i_tx->first;
+                const std::string &l_str = i_tx->second;
+                uint32_t l_len = l_str.length();
+                // -----------------------------------------
+                // is count???
+                // -----------------------------------------
+                if(a_var.is_count())
+                {
+                        if(l_len > 0)
+                        {
+                                ++ao_count;
+                        }
+                        continue;
+                }
+                // -----------------------------------------
+                // If the variable is not set
+                // Dont push anything. An empty val can
+                // match with rx. Dont want to do that
+                // -----------------------------------------
+                if(l_len <= 0)
+                {
+                        continue;
+                }
+                const_arg_t l_data;
+                l_data.m_key = l_key.c_str();
+                l_data.m_key_len = l_key.length();
+                l_data.m_val = l_str.c_str();
+                l_data.m_val_len = l_len;
+                ao_list.push_back(l_data);
+                //NDBG_PRINT("TX(found): %s: -> %s\n", l_val.c_str(), l_str.c_str());
+        }
+        //NDBG_PRINT("%svar%s: %s%s%s\n",
+        //           ANSI_COLOR_BG_WHITE, ANSI_COLOR_OFF,
+        //           ANSI_COLOR_FG_WHITE, a_var.ShortDebugString().c_str(), ANSI_COLOR_OFF);
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: MATCHED_VAR
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+GET_RESP_VAR(MATCHED_VAR)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // last matched var...
+        const_arg_t l_data;
+        l_data.m_key = a_ctx->m_cx_matched_var_name.c_str();
+        l_data.m_key_len = a_ctx->m_cx_matched_var_name.length();
+        l_data.m_val = a_ctx->m_cx_matched_var.c_str();
+        l_data.m_val_len = a_ctx->m_cx_matched_var.length();
+        ao_list.push_back(l_data);
+        //NDBG_PRINT("get var matched var = %s\n", l_data.m_data);
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: MATCHED_VAR
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+GET_RESP_VAR(MATCHED_VAR_NAME)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // last matched var...
+        const_arg_t l_data;
+        l_data.m_key = a_ctx->m_cx_matched_var_name.c_str();
+        l_data.m_key_len = a_ctx->m_cx_matched_var_name.length();
+        l_data.m_val = a_ctx->m_cx_matched_var_name.c_str();
+        l_data.m_val_len = a_ctx->m_cx_matched_var_name.length();
+        ao_list.push_back(l_data);
+        //NDBG_PRINT("get var matched var = %s\n", l_data.m_data);
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: MATCHED_VAR
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+GET_RESP_VAR(MATCHED_VARS)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // last matched var...
+        // TODO -get all matches...
+        const_arg_t l_data;
+        l_data.m_key = a_ctx->m_cx_matched_var_name.c_str();
+        l_data.m_key_len = a_ctx->m_cx_matched_var_name.length();
+        l_data.m_val = a_ctx->m_cx_matched_var.c_str();
+        l_data.m_val_len = a_ctx->m_cx_matched_var.length();
+        ao_list.push_back(l_data);
+        //NDBG_PRINT("get var matched var = %s\n", l_data.m_data);
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: MATCHED_VAR
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+GET_RESP_VAR(MATCHED_VARS_NAMES)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // last matched var...
+        // TODO -get all matches...
+        const_arg_t l_data;
+        l_data.m_key = a_ctx->m_cx_matched_var_name.c_str();
+        l_data.m_key_len = a_ctx->m_cx_matched_var_name.length();
+        l_data.m_val = a_ctx->m_cx_matched_var_name.c_str();
+        l_data.m_val_len = a_ctx->m_cx_matched_var_name.length();
+        ao_list.push_back(l_data);
+        //NDBG_PRINT("get var matched var = %s\n", l_data.m_data);
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: RESPONSE_HEADERS
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+GET_RESP_VAR(RESPONSE_HEADERS)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // unconditional match
+        // -------------------------------------------------
+        if(!a_var.match_size() ||
+           ((a_var.match_size() == 1) &&
+            !a_var.match(0).has_value()))
+        {
+                add_vars_const(ao_list,
+                               ao_count,
+                               a_ctx->m_header_list,
+                               a_var.is_count(),
+                               false);
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // get matches
+        // -------------------------------------------------
+        get_matched_const(ao_list,
+                          ao_count,
+                          a_var,
+                          a_ctx->m_header_list,
+                          a_var.is_count(),
+                          false);
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: RESPONSE_BODY
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+GET_RESP_VAR(RESPONSE_BODY)
+{
+        if(!a_ctx)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // unconditional match
+        // -------------------------------------------------
+        if(!a_var.match_size() ||
+           ((a_var.match_size() == 1) &&
+           !a_var.match(0).has_value()))
+        {
+                const_arg_t l_data;
+                l_data.m_key = NULL;
+                l_data.m_key_len = 0;
+                l_data.m_val = a_ctx->m_body_data;
+                l_data.m_val_len = a_ctx->m_body_len;
+                ao_list.push_back(l_data);
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // TODO optimize out creation of tmp list???
+        // -------------------------------------------------
+        const_arg_list_t l_list;
+        const_arg_t l_arg;
+        l_arg.m_key = a_ctx->m_body_data;
+        l_arg.m_key_len = a_ctx->m_body_len;
+        l_arg.m_val = NULL;
+        l_arg.m_val_len = 0;
+        l_list.push_back(l_arg);
+        // -------------------------------------------------
+        // get query arg values
+        // -------------------------------------------------
+        get_matched_const(ao_list,
+                          ao_count,
+                          a_var,
+                          l_list,
+                          a_var.is_count(),
+                          true);
+        return WAFLZ_STATUS_OK;
+}
 //! ----------------------------------------------------------------------------
 //! macros
 //! ----------------------------------------------------------------------------
 #define INIT_GET_VAR(_type) \
         s_var_cb_vector[waflz_pb::variable_t_type_t_##_type] = _get_var_##_type
+#define INIT_GET_RESP_VAR(_type) \
+        s_resp_var_cb_vector[waflz_pb::variable_t_type_t_##_type] = _get_resp_var_##_type
 //! ----------------------------------------------------------------------------
 //! types
 //! ----------------------------------------------------------------------------
 typedef std::vector <get_var_t> get_var_cb_vector_t;
+typedef std::vector <get_resp_var_t> get_resp_var_cb_vector_t;
 //! ----------------------------------------------------------------------------
 //! vector...
 //! ----------------------------------------------------------------------------
 static get_var_cb_vector_t s_var_cb_vector = get_var_cb_vector_t(1024);
+static get_resp_var_cb_vector_t s_resp_var_cb_vector = get_resp_var_cb_vector_t(100);
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
@@ -1587,6 +1835,17 @@ void init_var_cb_vector(void)
         INIT_GET_VAR(SD1_ISO);
         INIT_GET_VAR(SD2_ISO);
 }
+void init_resp_var_cb_vector(void)
+{
+        INIT_GET_RESP_VAR(RESPONSE_HEADERS);
+        //INIT_GET_RESP_VAR(RESPONSE_HEADERS_NAMES);
+        INIT_GET_RESP_VAR(RESPONSE_BODY);
+        INIT_GET_RESP_VAR(TX);
+        INIT_GET_RESP_VAR(MATCHED_VAR);
+        INIT_GET_RESP_VAR(MATCHED_VAR_NAME);
+        INIT_GET_RESP_VAR(MATCHED_VARS);
+        INIT_GET_RESP_VAR(MATCHED_VARS_NAMES);
+}
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
@@ -1595,6 +1854,15 @@ void init_var_cb_vector(void)
 get_var_t get_var_cb(waflz_pb::variable_t_type_t a_type)
 {
         return s_var_cb_vector[a_type];
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+get_resp_var_t get_resp_var_cb(waflz_pb::variable_t_type_t a_type)
+{
+        return s_resp_var_cb_vector[a_type];
 }
 
 }

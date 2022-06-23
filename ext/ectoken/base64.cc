@@ -48,7 +48,7 @@ namespace ns_ectoken_v3 {
  *   The character "=" signifies a special processing function used for
  *   padding within the printable encoding procedure.
  *
- *   EDGECAST_SPECIFIC_NOTE:  This verison has been modified to perform the
+ *   EDGIO_SPECIFIC_NOTE:     This verison has been modified to perform the
  *                            first part of url-safe encoding as per RFC4648
  *                            We do not include padding in our output.
  *

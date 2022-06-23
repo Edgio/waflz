@@ -1,5 +1,5 @@
 //! ----------------------------------------------------------------------------
-//! Copyright Edgecast Inc.
+//! Copyright Edgio Inc.
 //!
 //! \file:    TODO
 //! \details: TODO
@@ -123,7 +123,6 @@ TEST_CASE( "maxminds geoip2 mmdb test", "[geoip2_mmdb]" ) {
                                              strlen("72.21.92.7"));
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 //NDBG_PRINT("CN: %.*s\n", l_buf_len, l_buf);
-                // edgecast!!!
                 REQUIRE((l_asn == 15133));
                 l_s = l_geoip2_mmdb->get_asn(l_asn,
                                              "172.217.5.206",

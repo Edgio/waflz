@@ -1,4 +1,4 @@
 [submodule "sub/is2"]
 	path = sub/is2
-	url = https://github.com/EdgeCast/is2
+	url = https://github.com/edgioinc/is2
 	branch = master

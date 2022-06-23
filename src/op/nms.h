@@ -1,16 +1,16 @@
-//: ----------------------------------------------------------------------------
-//: Copyright Edgecast Inc.
-//:
-//: \file:    TODO
-//: \details: TODO
-//:
-//: Licensed under the terms of the Apache 2.0 open source license.
-//: Please refer to the LICENSE file in the project root for the terms.
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Edgecast Inc.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _NMS_H_
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 
 #include <set>
 #include <list>
@@ -19,9 +19,9 @@
 #include <string>
 namespace ns_waflz
 {
-//: ----------------------------------------------------------------------------
-//: netmask set
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! netmask set
+//! ----------------------------------------------------------------------------
 class nms
 {
 public:
@@ -73,7 +73,8 @@ public:
                 set_ipv6_arr(a.get_ipv6_arr());
         }
 
-        nms& operator=(const ns_waflz::nms& a) {
+        nms& operator=(const ns_waflz::nms& a) 
+        {
                 set_ipv4_arr(a.get_ipv4_arr());
                 set_ipv6_arr(a.get_ipv6_arr());
                 return *this;
@@ -81,26 +82,30 @@ public:
         int32_t add(const char *a_buf, uint32_t a_buf_len);
         int32_t contains(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
         int32_t compress();
-        ipv4_set_t* get_ipv4_arr() const{
+        ipv4_set_t* get_ipv4_arr() const
+        {
                 ipv4_set_t* copy=new ipv4_set_t[33];
                 for(int i=0;i<33;++i) {
                         copy[i] = ipv4_arr[i];
                 }
                 return copy;
         }
-        ipv6_set_t* get_ipv6_arr() const {
+        ipv6_set_t* get_ipv6_arr() const 
+        {
                 ipv6_set_t* copy=new ipv6_set_t[33];
                 for(int i=0;i<129;++i) {
                         copy[i] = ipv6_arr[i];
                 }
                 return copy;
         }
-        void set_ipv4_arr( ipv4_set_t* a_ipv4_arr ) {
+        void set_ipv4_arr( ipv4_set_t* a_ipv4_arr ) 
+        {
                for(int i = 0;i<33;++i) {
                 *ipv4_arr=a_ipv4_arr[i];
                }
         }
-        void set_ipv6_arr( ipv6_set_t* a_ipv6_arr ) {
+        void set_ipv6_arr( ipv6_set_t* a_ipv6_arr ) 
+        {
                for(int i = 0;i<129;++i) {
                 *ipv6_arr=a_ipv6_arr[i];
                }
@@ -138,15 +143,15 @@ private:
         ipv4_set_t* ipv4_arr;
         ipv6_set_t* ipv6_arr;
 };
-//: ----------------------------------------------------------------------------
-//: types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! types
+//! ----------------------------------------------------------------------------
 typedef std::list <const std::string *> ip_str_list_t;
-//: ----------------------------------------------------------------------------
-//: ****************************************************************************
-//:                            U T I L I T I E S
-//: ****************************************************************************
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! ****************************************************************************
+//!                            U T I L I T I E S
+//! ****************************************************************************
+//! ----------------------------------------------------------------------------
 int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str);
 int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file);
 int32_t create_nms_from_ip_str_list(nms **ao_nms, const ip_str_list_t &a_ip_str_list);

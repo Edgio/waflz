@@ -95,6 +95,45 @@ int32_t read_file(const char *a_file, char **ao_buf, uint32_t &ao_len)
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
+//! \brief   write contents of buffer to the file
+//! \details writes contents of a_buf to a_file
+//! \return  0 on Success
+//!          -1 on Failure
+//! \param   a_file: file to read from
+//! \param   ao_buf: reference to buffer object to write into
+//! \param   ao_len: file length (returned)
+//! ----------------------------------------------------------------------------
+int32_t write_file(const char *a_file, char *a_buf, int32_t a_len)
+{
+        // Open file...
+        int32_t l_s;
+        FILE * l_file;
+        l_file = fopen(a_file,"w");
+        if (NULL == l_file)
+        {
+                FILE_UTIL_PERROR("Error opening file: %s  Reason: %s",
+                                 a_file, strerror(errno));
+                return WAFLZ_STATUS_ERROR;
+        }
+
+        int32_t l_write_size;
+        l_write_size = fwrite(a_buf, 1, a_len, l_file);
+        if(l_write_size != a_len)
+        {
+                FILE_UTIL_PERROR("Error performing fwrite.  Reason: %s [%d:%d]\n",
+                                 strerror(errno), l_write_size, a_len);
+                return WAFLZ_STATUS_ERROR;
+        }
+        // Close file...
+        l_s = fclose(l_file);
+        if (0 != l_s)
+        {
+                FILE_UTIL_PERROR("Error performing fclose.  Reason: %s\n", strerror(errno));
+                return WAFLZ_STATUS_ERROR;
+        }
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
 //! \details Writes data from a_buffer into tmp file with prefix a_prefix
 //! \return  0 on Success
 //!          -1 on Failure

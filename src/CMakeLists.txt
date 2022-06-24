@@ -10,6 +10,7 @@ LIST(APPEND INST_HDRS ${HDRS})
 # include paths
 # ------------------------------------------------------------------------------
 include_directories(
+    /opt/local/include
     #${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     # ------------------------------------------------------

@@ -1553,7 +1553,7 @@ int32_t waf::process_rule_part(waflz_pb::event **ao_event,
                         {
                                 continue;
                         }
-                        l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx);
+                        l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx, NULL);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 // TODO log reason???
@@ -1680,7 +1680,7 @@ run_op:
                                 }
                                 bool l_match = false;
                                 WFLZ_TRC_ALL("op val: %s%.*s%s\n", ANSI_COLOR_FG_GREEN, l_x_len, l_x_data, ANSI_COLOR_FG_MAGENTA);
-                                l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx);
+                                l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx, NULL);
                                 if(l_s != WAFLZ_STATUS_OK)
                                 {
                                         // TODO log reason???
@@ -1832,7 +1832,7 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                 {
                         //NDBG_PRINT("%ssetvar%s: VAR!!!!\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF);
                         int32_t l_s;
-                        l_s = l_macro(l_sv_var, l_var, &a_ctx);
+                        l_s = l_macro(l_sv_var, l_var, &a_ctx, NULL);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
@@ -1849,7 +1849,7 @@ int32_t waf::process_action_nd(const waflz_pb::sec_action_t &a_action,
                 {
                         //NDBG_PRINT("%ssetvar%s: VAL!!!!\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF);
                         int32_t l_s;
-                        l_s = l_macro(l_sv_val, l_val, &a_ctx);
+                        l_s = l_macro(l_sv_val, l_val, &a_ctx, NULL);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
@@ -2178,7 +2178,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         if(l_macro.has(l_action.msg()))
         {
                 int32_t l_s;
-                l_s = l_macro(l_msg, l_action.msg(), &a_ctx);
+                l_s = l_macro(l_msg, l_action.msg(), &a_ctx, NULL);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
@@ -2631,7 +2631,7 @@ int32_t waf::process_resp_match(waflz_pb::event** ao_event,
         if(l_macro.has(l_action.msg()))
         {
                 int32_t l_s;
-                l_s = l_macro(l_msg, l_action.msg(), &a_ctx);
+                l_s = l_macro(l_msg, l_action.msg(), NULL, &a_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
@@ -2836,7 +2836,7 @@ int32_t waf::process_resp_action_nd(const waflz_pb::sec_action_t &a_action,
                 {
                         //NDBG_PRINT("%ssetvar%s: VAR!!!!\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF);
                         int32_t l_s;
-                        l_s = l_macro(l_sv_var, l_var, &a_ctx);
+                        l_s = l_macro(l_sv_var, l_var, NULL, &a_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
@@ -2853,7 +2853,7 @@ int32_t waf::process_resp_action_nd(const waflz_pb::sec_action_t &a_action,
                 {
                         //NDBG_PRINT("%ssetvar%s: VAL!!!!\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF);
                         int32_t l_s;
-                        l_s = l_macro(l_sv_val, l_val, &a_ctx);
+                        l_s = l_macro(l_sv_val, l_val, NULL, &a_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 return WAFLZ_STATUS_ERROR;
@@ -3025,8 +3025,8 @@ int32_t waf::process_resp_rule_part(waflz_pb::event **ao_event,
                 {
                         return WAFLZ_STATUS_OK;
                 }
-                get_var_t l_get_var = NULL;
-                l_get_var = get_var_cb(l_var.type());
+                get_resp_var_t l_get_var = NULL;
+                l_get_var = get_resp_var_cb(l_var.type());
                 if(!l_get_var)
                 {
                         return WAFLZ_STATUS_OK;
@@ -3038,7 +3038,7 @@ int32_t waf::process_resp_rule_part(waflz_pb::event **ao_event,
                 // extract list of data
                 // -----------------------------------------
                 const_arg_list_t l_data_list;
-                l_s = l_get_resp_var(l_data_list, l_var_count, l_var, &a_ctx);
+                l_s = l_get_var(l_data_list, l_var_count, l_var, &a_ctx);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         return WAFLZ_STATUS_ERROR;
@@ -3056,7 +3056,7 @@ int32_t waf::process_resp_rule_part(waflz_pb::event **ao_event,
                         {
                                 continue;
                         }
-                        l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx);
+                        l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, NULL, &a_ctx);
                         if(l_s != WAFLZ_STATUS_OK)
                         {
                                 // TODO log reason???
@@ -3175,7 +3175,7 @@ run_op:
                                 }
                                 bool l_match = false;
                                 WFLZ_TRC_ALL("op val: %s%.*s%s\n", ANSI_COLOR_FG_GREEN, l_x_len, l_x_data, ANSI_COLOR_FG_MAGENTA);
-                                l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, &a_ctx);
+                                l_s = l_op_cb(l_match, l_op, l_x_data, l_x_len, l_macro, NULL, &a_ctx);
                                 if(l_s != WAFLZ_STATUS_OK)
                                 {
                                         // TODO log reason???
@@ -3767,7 +3767,7 @@ report:
                 std::string l_msg;
                 const char l_msg_macro[] = "Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}): Last Matched Message: %{tx.msg}";
                 macro *l_macro =  &(m_engine.get_macro());
-                l_s = (*l_macro)(l_msg, l_msg_macro, l_ctx);
+                l_s = (*l_macro)(l_msg, l_msg_macro, l_ctx, NULL);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_ctx && !ao_rqst_ctx) { delete l_ctx; l_ctx = NULL;}

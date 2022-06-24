@@ -82,7 +82,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -143,7 +143,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -223,7 +223,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -280,7 +280,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -336,7 +336,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -392,7 +392,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -448,7 +448,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -508,7 +508,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -568,7 +568,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -628,7 +628,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -688,7 +688,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value( l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -748,7 +748,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -809,7 +809,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -870,7 +870,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -943,7 +943,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1016,7 +1016,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1089,7 +1089,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1160,7 +1160,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1226,7 +1226,7 @@ TEST_CASE( "test op", "[op]" ) {
                         bool l_match = false;
                         //NDBG_PRINT("COMP: %.*s == %.*s\n", (int)strlen(l_in), l_in, (int)strlen(l_vec[i_p].m_op_val), l_vec[i_p].m_op_val);
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1287,7 +1287,7 @@ TEST_CASE( "test op", "[op]" ) {
                         bool l_match = false;
                         //NDBG_PRINT("COMP: %.*s == %.*s\n", (int)strlen(l_in), l_in, (int)strlen(l_vec[i_p].m_op_val), l_vec[i_p].m_op_val);
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1345,7 +1345,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1413,7 +1413,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1465,7 +1465,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1516,7 +1516,7 @@ TEST_CASE( "test op", "[op]" ) {
                         char *l_buf = NULL;
                         uint32_t l_len = 0;
                         bool l_match = false;
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }
@@ -1580,7 +1580,7 @@ TEST_CASE( "test op", "[op]" ) {
                         uint32_t l_len = 0;
                         bool l_match = false;
                         l_op.set_value(l_vec[i_p].m_op_val);
-                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx);
+                        l_s = l_cb(l_match, l_op, l_in, strlen(l_in), &l_macro, l_rqst_ctx, NULL);
                         REQUIRE((l_s == WAFLZ_STATUS_OK));
                         REQUIRE((l_match == l_vec[i_p].m_match));
                 }

@@ -31,8 +31,6 @@ python-httplib2
 # User-Agent: python-httpx/VERSION
 python-httpx/
 # http library
-# http://docs.python-requests.org/en/master/
-python-requests
 # http library
 # https://docs.python.org/2/library/urllib.html
 Python-urllib

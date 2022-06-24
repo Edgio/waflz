@@ -894,6 +894,29 @@ void set_var_tx(waflz_pb::sec_config_t &ao_conf_pb,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
+void set_resp_var_tx(waflz_pb::sec_config_t &ao_conf_pb,
+                const char *a_id,
+                const char *a_var,
+                const std::string a_val)
+{
+        ::waflz_pb::sec_action_t* l_a = NULL;
+        l_a = ao_conf_pb.add_directive()->mutable_sec_action();
+        l_a->set_id(a_id);
+        l_a->set_phase(3);
+        l_a->add_t(waflz_pb::sec_action_t_transformation_type_t_NONE);
+        l_a->set_nolog(true);
+        l_a->set_action_type(waflz_pb::sec_action_t_action_type_t_PASS);
+        ::waflz_pb::sec_action_t_setvar_t* l_sv = NULL;
+        l_sv = l_a->add_setvar();
+        l_sv->set_scope(waflz_pb::sec_action_t_setvar_t_scope_t_TX);
+        l_sv->set_var(a_var);
+        l_sv->set_val(a_val);
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t waf::set_defaults(bool a_custom_rules)
 {
         ::waflz_pb::sec_config_t& l_conf_pb = *m_pb;
@@ -934,8 +957,8 @@ int32_t waf::set_defaults(bool a_custom_rules)
         // -------------------------------------------------
         // outbound anomaly settings
         // -------------------------------------------------
-        set_var_tx(l_conf_pb, "900050", "outbound_anomaly_score_threshold", "1");
-        set_var_tx(l_conf_pb, "900051", "outbound_anomaly_score", "0");
+        set_resp_var_tx(l_conf_pb, "900050", "outbound_anomaly_score_threshold", "1");
+        set_resp_var_tx(l_conf_pb, "900051", "outbound_anomaly_score", "0");
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -1017,19 +1040,17 @@ int32_t waf::init(profile &a_profile)
         set_var_tx(l_conf_pb, "900007", "xss_score", "0");
         set_var_tx(l_conf_pb, "900008", "inbound_anomaly_score", "0");
         // -------------------------------------------------
-        // changing var names depending on ruleset
-        // version...
-        // OWASP changed from:
-        //   inbound_anomaly_score_level
-        //   to
-        //   outbound_anomaly_score_threshold
+        // Default anomaly threshold
         // -------------------------------------------------
-        //Default anomaly threshold
         std::string l_anomaly_threshold = "5";
         // Use top level threshold setting
         l_anomaly_threshold = to_string(l_gs.anomaly_threshold());
         set_var_tx(l_conf_pb, "900010", "inbound_anomaly_score_threshold", l_anomaly_threshold);
-
+        std::string l_outbound_anomaly_threshold = "5";
+        // Use top level threshold setting
+        l_outbound_anomaly_threshold = to_string(l_gs.outbound_anomaly_threshold());
+        set_resp_var_tx(l_conf_pb, "900050", "outbound_anomaly_score_threshold", l_outbound_anomaly_threshold);
+        set_resp_var_tx(l_conf_pb, "900051", "outbound_anomaly_score", "0");
         // -------------------------------------------------
         // general settings
         // -------------------------------------------------
@@ -2462,11 +2483,10 @@ int32_t waf::process_resp_match(waflz_pb::event** ao_event,
         // handle paranoia...
         // Based on paranoia level different rules set
         // different scores. The CRS uses the following vars
-        // crs < v4             or crs >= v4
-        // tx.anomaly_score_pl1 or inbound_anomaly_score_pl1
-        // tx.anomaly_score_pl2 or inbound_anomaly_score_pl2
-        // tx.anomaly_score_pl3 or inbound_anomaly_score_pl3
-        // tx.anomaly_score_pl4 or inbound_anomaly_score_pl4
+        // tx.outbound_anomaly_score_pl1
+        // tx.outbound_anomaly_score_pl2
+        // tx.outbound_anomaly_score_pl3
+        // tx.outbound_anomaly_score_pl4
         // -------------------------------------------------
         // Here we emulate the blocking evaluation config
         // 1. Check current paranoia level
@@ -2474,7 +2494,7 @@ int32_t waf::process_resp_match(waflz_pb::event** ao_event,
         // 3. Set the anomaly_score = sum of #2
         // -------------------------------------------------
         // Only calculate score if the rule is setting a var
-        // e.g setvar:'tx.anomaly_score_pl1=+%{tx.notice_anomaly_score}
+        // e.g setvar:'tx.outbound_anomaly_score_pl2=+%{tx.notice_anomaly_score}
         // Or is a chained rule
         // -------------------------------------------------
         if(l_action.setvar_size() > 0 ||
@@ -2484,13 +2504,8 @@ int32_t waf::process_resp_match(waflz_pb::event** ao_event,
                 uint32_t i_pl = 1;
                 do
                 {
-                        std::string l_ex_anomaly = "anomaly_score_pl" + to_string(i_pl);
-                        std::string l_iex_anomaly = "outbound_anomaly_score_pl" + to_string(i_pl);
+                        std::string l_ex_anomaly = "outbound_anomaly_score_pl" + to_string(i_pl);
                         i_t = a_ctx.m_cx_tx_map.find(l_ex_anomaly);
-                        if(i_t == a_ctx.m_cx_tx_map.end())
-                        {
-                                i_t = a_ctx.m_cx_tx_map.find(l_iex_anomaly);
-                        }
                         if(i_t == a_ctx.m_cx_tx_map.end())
                         {
                                 ++i_pl;

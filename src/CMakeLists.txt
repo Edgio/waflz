@@ -47,6 +47,9 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/ext
     ${CMAKE_SOURCE_DIR}/ext/yajl
     /usr/include/libxml2
+    # OS X hack to support /usr/local/include
+    # ref: https://gitlab.kitware.com/cmake/cmake/-/issues/19120
+    /usr/local/include
 )
 # ------------------------------------------------------------------------------
 # source files
@@ -242,6 +245,7 @@ SET(HDRS
     # support
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/src/support/file_util.h
+
 )
 if(BUILD_REDIS)
   list(APPEND HDRS

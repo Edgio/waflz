@@ -124,7 +124,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
   INCLUDE_DIRECTORIES(/usr/local/opt/protobuf/include)
   INCLUDE_DIRECTORIES(/usr/local/opt/pcre/include)
-  INCLUDE_DIRECTORIES(/usr/local/opt/libxml2/include/libxml2)
+  INCLUDE_DIRECTORIES(/usr/local/opt/libxml2/include)
   INCLUDE_DIRECTORIES(/usr/local/opt/rapidjson/include)
   # --------------------------------------------------------
   # link dirs

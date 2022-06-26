@@ -18,9 +18,9 @@
 #include "jspb/jspb.h"
 #include "scope.pb.h"
 #include "event.pb.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/error.h"
-#include "rapidjson/error/en.h"
+#include <rapidjson/document.h>
+#include <rapidjson/error/error.h>
+#include <rapidjson/error/en.h>
 #include "ectoken/ectoken_v3.h"
 #include "support/file_util.h"
 #include "support/ndebug.h"

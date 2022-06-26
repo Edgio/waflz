@@ -74,8 +74,8 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     #install some packages
     sudo apt-get update
-    sudo apt-get install -y cmake build-essential libssl-dev uuid-dev libxml2-dev zlib1g-dev liblzma-dev libicu-dev protobuf-compiler libprotobuf-dev python-pip gdb git libpcre3-dev
-
+    sudo apt-get install -y cmake build-essential libssl-dev uuid-dev libxml2-dev zlib1g-dev liblzma-dev libicu-dev protobuf-compiler libprotobuf-dev python-pip gdb git libpcre3-dev rapidjson-dev
+ 
     #python stuff
     pip install -r waflz/requirements.txt
   SHELL

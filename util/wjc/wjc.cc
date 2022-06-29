@@ -1,5 +1,5 @@
 //! ----------------------------------------------------------------------------
-//! Copyright Edgecast Inc.
+//! Copyright Edgio Inc.
 //!
 //! \file:    TODO
 //! \details: TODO
@@ -537,7 +537,7 @@ void print_version(FILE* a_stream, int exit_code)
 {
         // print out the version information
         fprintf(a_stream, "waflz JSON Compiler.\n");
-        fprintf(a_stream, "Copyright (C) Edgecast Inc.\n");
+        fprintf(a_stream, "Copyright (C) Edgio Inc.\n");
         fprintf(a_stream, "  Version: %s\n", WAFLZ_VERSION);
         exit(exit_code);
 }

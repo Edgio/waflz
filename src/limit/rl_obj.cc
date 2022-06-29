@@ -1,5 +1,5 @@
 //! ----------------------------------------------------------------------------
-//! Copyright Edgecast Inc.
+//! Copyright Edgio Inc.
 //!
 //! \file:    TODO
 //! \details: TODO
@@ -20,9 +20,9 @@
 #include "op/regex.h"
 #include "op/nms.h"
 #include "limit.pb.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/error.h"
-#include "rapidjson/error/en.h"
+#include <rapidjson/document.h>
+#include <rapidjson/error/error.h>
+#include <rapidjson/error/en.h>
 #include <stdlib.h>
 #include <string.h>
 namespace ns_waflz

@@ -1,5 +1,5 @@
 //! ----------------------------------------------------------------------------
-//! Copyright Edgecast Inc.
+//! Copyright Edgio Inc.
 //!
 //! \file:    TODO
 //! \details: TODO
@@ -21,9 +21,9 @@
 #include "waflz/trace.h"
 #include "waflz/string_util.h"
 #include "waflz/geoip2_mmdb.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/error.h"
-#include "rapidjson/error/en.h"
+#include <rapidjson/document.h>
+#include <rapidjson/error/error.h>
+#include <rapidjson/error/en.h>
 #include "support/file_util.h"
 #include "support/time_util.h"
 #include "support/ndebug.h"

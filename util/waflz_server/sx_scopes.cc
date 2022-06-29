@@ -1,5 +1,5 @@
 //! ----------------------------------------------------------------------------
-//! Copyright Edgecast Inc.
+//! Copyright Edgio Inc.
 //!
 //! \file:    TODO
 //! \details: TODO
@@ -24,9 +24,9 @@
 #include "event.pb.h"
 #include "profile.pb.h"
 #include "limit.pb.h"
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/prettywriter.h"
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>

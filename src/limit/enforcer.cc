@@ -1,5 +1,5 @@
 //! ----------------------------------------------------------------------------
-//! Copyright Edgecast Inc.
+//! Copyright Edgio Inc.
 //!
 //! \file:    TODO
 //! \details: TODO
@@ -17,9 +17,9 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/def.h"
 #include "waflz/scopes.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/error.h"
-#include "rapidjson/error/en.h"
+#include <rapidjson/document.h>
+#include <rapidjson/error/error.h>
+#include <rapidjson/error/en.h>
 #include "limit.pb.h"
 //! ----------------------------------------------------------------------------
 //! constants

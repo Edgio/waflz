@@ -1,5 +1,5 @@
 //! ----------------------------------------------------------------------------
-//! Copyright Edgecast Inc.
+//! Copyright Edgio Inc.
 //!
 //! \file:    TODO
 //! \details: TODO
@@ -15,10 +15,10 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/repeated_field.h>
 #include <stdio.h>
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/prettywriter.h"
-#include "rapidjson/error/error.h"
-#include "rapidjson/error/en.h"
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/error/error.h>
+#include <rapidjson/error/en.h>
 #include "base64/base64.h"
 //! ----------------------------------------------------------------------------
 //! Macros

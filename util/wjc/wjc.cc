@@ -553,21 +553,21 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "Run the WAF JSON Compiler.\n");
         fprintf(a_stream, "\n");
         fprintf(a_stream, "Options:\n");
-        fprintf(a_stream, "  -h, --help                 Display this help and exit.\n");
-        fprintf(a_stream, "  -v, --version              Display the version number and exit.\n");
-        fprintf(a_stream, "  -r, --ruleset-dir          WAF Ruleset directory [REQUIRED]\n");
-        fprintf(a_stream, "  -p, --profile              WAF profile\n");
-        fprintf(a_stream, "  -a, --acl                  ACL\n");
-        fprintf(a_stream, "  -R, --rules                custom rules\n");
-        fprintf(a_stream, "  -b, --bots                 bot rules\n");
-        fprintf(a_stream, "  -l  --limit                Rate limit\n");
-        fprintf(a_stream, "  -d  --config-dir           Configuration directory\n");
-        fprintf(a_stream, "  -s  --scopes               Scopes config\n");
-        fprintf(a_stream, "  -j, --json                 Display config [Default: OFF]\n");
-        fprintf(a_stream, "  -c, --render-html          Render html with bot challenge\n");
-        fprintf(a_stream, "  -i, --mustache-html-file   html file with mustache for JS insertion\n");
-        fprintf(a_stream, "  -t, --js-file              file containing JS content\n");
-        fprintf(a_stream, "  -o, --output-html-file     output file to render content\n");
+        fprintf(a_stream, "  -h, --help                      Display this help and exit.\n");
+        fprintf(a_stream, "  -v, --version                   Display the version number and exit.\n");
+        fprintf(a_stream, "  -r, --ruleset-dir               WAF Ruleset directory [REQUIRED]\n");
+        fprintf(a_stream, "  -p, --profile                   WAF profile\n");
+        fprintf(a_stream, "  -a, --acl                       ACL\n");
+        fprintf(a_stream, "  -R, --rules                     custom rules\n");
+        fprintf(a_stream, "  -b, --bots                      bot rules\n");
+        fprintf(a_stream, "  -l  --limit                     Rate limit\n");
+        fprintf(a_stream, "  -d  --config-dir                Configuration directory\n");
+        fprintf(a_stream, "  -s  --scopes                    Scopes config\n");
+        fprintf(a_stream, "  -j, --json                      Display config [Default: OFF]\n");
+        fprintf(a_stream, "  -c, --render-html               Render html with bot challenge\n");
+        fprintf(a_stream, "  -i, --mustache-html-file        html file with mustache for JS insertion\n");
+        fprintf(a_stream, "  -t, --js-file                   file containing JS content\n");
+        fprintf(a_stream, "  -o, --output-html-file           output file to render content\n");
         fprintf(a_stream, "\n");
         fprintf(a_stream, "example:\n");
         fprintf(a_stream, "  wjc --profile=waf.wafprof.json\n");
@@ -596,21 +596,21 @@ int main(int argc, char** argv)
         config_mode_t l_config_mode = CONFIG_MODE_NONE;
         struct option l_long_options[] =
         {
-                { "help",        0, 0, 'h' },
-                { "version",     0, 0, 'v' },
-                { "ruleset-dir", 1, 0, 'r' },
-                { "profile",     1, 0, 'p' },
-                { "acl",         1, 0, 'a' },
-                { "rules",       1, 0, 'R' },
-                { "bots",        1, 0, 'b' },
-                { "limit",       1, 0, 'l' },
-                { "config-dir",  1, 0, 'd' },
-                { "scopes",      1, 0, 's' },
-                { "input-html",  1, 0, 'i' },
-                { "output-html", 1, 0, 'o' },
-                { "js",          1, 0, 't' },
-                { "render",      0, 0, 'c' },
-                { "json",        0, 0, 'j' },
+                { "help",                0, 0, 'h' },
+                { "version",             0, 0, 'v' },
+                { "ruleset-dir",         1, 0, 'r' },
+                { "profile",             1, 0, 'p' },
+                { "acl",                 1, 0, 'a' },
+                { "rules",               1, 0, 'R' },
+                { "bots",                1, 0, 'b' },
+                { "limit",               1, 0, 'l' },
+                { "config-dir",          1, 0, 'd' },
+                { "scopes",              1, 0, 's' },
+                { "mustache-html-file",  1, 0, 'i' },
+                { "output-html-file",    1, 0, 'o' },
+                { "js-file",             1, 0, 't' },
+                { "render-html",         0, 0, 'c' },
+                { "json",                0, 0, 'j' },
                 // list sentinel
                 { 0, 0, 0, 0 }
         };

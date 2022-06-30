@@ -17,6 +17,7 @@ namespace ns_waflz {
 //! utils
 //! ----------------------------------------------------------------------------
 int32_t read_file(const char *a_file, char **ao_buf, uint32_t &ao_len);
+int32_t write_file(const char *a_file, char *a_buf, int32_t a_len);
 int32_t write_tmp(const char *a_prefix,
                   const char *a_buf,
                   uint32_t a_len,

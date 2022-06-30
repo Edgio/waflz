@@ -16,6 +16,7 @@
 #include "waflz/rules.h"
 #include "waflz/bots.h"
 #include "waflz/challenge.h"
+#include "waflz/render.h"
 #include "support/ndebug.h"
 #include "support/file_util.h"
 #include "support/time_util.h"
@@ -77,6 +78,7 @@ typedef enum {
         CONFIG_MODE_ACL,
         CONFIG_MODE_LIMIT,
         CONFIG_MODE_SCOPES,
+        CONFIG_MODE_RENDER_HTML,
         CONFIG_MODE_NONE
 } config_mode_t;
 //! ----------------------------------------------------------------------------
@@ -446,6 +448,86 @@ static int32_t validate_scopes(const std::string &a_file, std::string &a_ruleset
         return STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
+//! get_bot_ch_prob
+//! ----------------------------------------------------------------------------
+int32_t get_bot_ch_prob(std::string &ao_challenge, uint32_t *ao_ans)
+{
+        int l_num_one, l_num_two = 0;
+        srand (ns_waflz::get_time_ms());
+        l_num_one = rand() % 100 + 100;
+        l_num_two = rand() % 100 + 100;
+        ao_challenge += ns_waflz::to_string(l_num_one);
+        ao_challenge += "+";
+        ao_challenge += ns_waflz::to_string(l_num_two);
+        *ao_ans = l_num_one + l_num_two;
+        return 0;
+}
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+static int32_t render_html(const std::string& a_input_html_file,
+                           const std::string& a_bot_js_file,
+                           const std::string& ao_output_html_file)
+{
+        int32_t l_s;
+        // -------------------------------------------------
+        // read file
+        // -------------------------------------------------
+        char *l_html = NULL;
+        uint32_t l_html_len = 0;
+        l_s = ns_waflz::read_file(a_input_html_file.c_str(), &l_html, l_html_len);
+        if(l_s != STATUS_OK)
+        {
+                fprintf(stderr, "failed to read file at %s\n", a_input_html_file.c_str());
+                if(l_html) { free(l_html); l_html = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // init rqst ctx, challenge object, load challenge
+        // -------------------------------------------------
+        ns_waflz::rqst_ctx l_ctx(NULL, 1024, NULL);
+        ns_waflz::rqst_ctx::s_get_bot_ch_prob = get_bot_ch_prob;
+        ns_waflz::challenge l_challenge;
+        l_s = l_challenge.load_bot_js(a_bot_js_file.c_str(), a_bot_js_file.length());
+        if(l_s != STATUS_OK)
+        {
+                return STATUS_ERROR;
+        }
+
+        l_s = l_challenge.set_chal_vars_in_ctx(&l_ctx, true);
+        if(l_s != STATUS_OK)
+        {
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // render
+        // -------------------------------------------------
+        char* l_buf = NULL;
+        size_t l_buf_len = 0;
+        l_s = ns_waflz::render(&l_buf, l_buf_len, l_html, l_html_len, &l_ctx);
+        if(l_s != STATUS_OK)
+        {
+                if(l_buf) { free(l_buf); l_buf = NULL; }
+                if(l_html) { free(l_html); l_html = NULL; }
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // write rendered html to file
+        // -------------------------------------------------
+        l_s = ns_waflz::write_file(ao_output_html_file.c_str(), l_buf, l_buf_len);
+        if(l_s != STATUS_OK)
+        {
+                if(l_buf) { free(l_buf); l_buf = NULL; }
+                if(l_html) { free(l_html); l_html = NULL; }
+                return STATUS_ERROR;
+        }
+        if(l_buf) { free(l_buf); l_buf = NULL; }
+        if(l_html) { free(l_html); l_html = NULL; }
+        return STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
 //! \details Print Version info to a_stream with exit code
 //! \return  NA
 //! \param   a_stream: Where to write version info (eg sterr/stdout)
@@ -471,17 +553,21 @@ void print_usage(FILE* a_stream, int exit_code)
         fprintf(a_stream, "Run the WAF JSON Compiler.\n");
         fprintf(a_stream, "\n");
         fprintf(a_stream, "Options:\n");
-        fprintf(a_stream, "  -h, --help         Display this help and exit.\n");
-        fprintf(a_stream, "  -v, --version      Display the version number and exit.\n");
-        fprintf(a_stream, "  -r, --ruleset-dir  WAF Ruleset directory [REQUIRED]\n");
-        fprintf(a_stream, "  -p, --profile      WAF profile\n");
-        fprintf(a_stream, "  -a, --acl          ACL\n");
-        fprintf(a_stream, "  -R, --rules        custom rules\n");
-        fprintf(a_stream, "  -b, --bots         bot rules\n");
-        fprintf(a_stream, "  -l  --limit        Rate limit\n");
-        fprintf(a_stream, "  -d  --config-dir   Configuration directory\n");
-        fprintf(a_stream, "  -s  --scopes       Scopes config\n");
-        fprintf(a_stream, "  -j, --json         Display config [Default: OFF]\n");
+        fprintf(a_stream, "  -h, --help                      Display this help and exit.\n");
+        fprintf(a_stream, "  -v, --version                   Display the version number and exit.\n");
+        fprintf(a_stream, "  -r, --ruleset-dir               WAF Ruleset directory [REQUIRED]\n");
+        fprintf(a_stream, "  -p, --profile                   WAF profile\n");
+        fprintf(a_stream, "  -a, --acl                       ACL\n");
+        fprintf(a_stream, "  -R, --rules                     custom rules\n");
+        fprintf(a_stream, "  -b, --bots                      bot rules\n");
+        fprintf(a_stream, "  -l  --limit                     Rate limit\n");
+        fprintf(a_stream, "  -d  --config-dir                Configuration directory\n");
+        fprintf(a_stream, "  -s  --scopes                    Scopes config\n");
+        fprintf(a_stream, "  -j, --json                      Display config [Default: OFF]\n");
+        fprintf(a_stream, "  -c, --render-html               Render html with bot challenge\n");
+        fprintf(a_stream, "  -i, --mustache-html-file        html file with mustache for JS insertion\n");
+        fprintf(a_stream, "  -t, --js-file                   file containing JS content\n");
+        fprintf(a_stream, "  -o, --output-html-file           output file to render content\n");
         fprintf(a_stream, "\n");
         fprintf(a_stream, "example:\n");
         fprintf(a_stream, "  wjc --profile=waf.wafprof.json\n");
@@ -501,26 +587,34 @@ int main(int argc, char** argv)
         std::string l_file;
         std::string l_ruleset_dir;
         std::string l_conf_dir;
+        std::string l_input_html_file;
+        std::string l_output_html_file;
+        std::string l_js_file;
+        bool l_render = false;
         bool l_display_json = false;
         int l_option_index = 0;
         config_mode_t l_config_mode = CONFIG_MODE_NONE;
         struct option l_long_options[] =
         {
-                { "help",        0, 0, 'h' },
-                { "version",     0, 0, 'v' },
-                { "ruleset-dir", 1, 0, 'r' },
-                { "profile",     1, 0, 'p' },
-                { "acl",         1, 0, 'a' },
-                { "rules",       1, 0, 'R' },
-                { "bots",        1, 0, 'b' },
-                { "limit",       1, 0, 'l' },
-                { "config-dir",  1, 0, 'd' },
-                { "scopes",      1, 0, 's' },
-                { "json",        0, 0, 'j' },
+                { "help",                0, 0, 'h' },
+                { "version",             0, 0, 'v' },
+                { "ruleset-dir",         1, 0, 'r' },
+                { "profile",             1, 0, 'p' },
+                { "acl",                 1, 0, 'a' },
+                { "rules",               1, 0, 'R' },
+                { "bots",                1, 0, 'b' },
+                { "limit",               1, 0, 'l' },
+                { "config-dir",          1, 0, 'd' },
+                { "scopes",              1, 0, 's' },
+                { "mustache-html-file",  1, 0, 'i' },
+                { "output-html-file",    1, 0, 'o' },
+                { "js-file",             1, 0, 't' },
+                { "render-html",         0, 0, 'c' },
+                { "json",                0, 0, 'j' },
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
-        while ((l_opt = getopt_long_only(argc, argv, "hvr:p:a:R:b:l:d:s:j", l_long_options, &l_option_index)) != -1)
+        while ((l_opt = getopt_long_only(argc, argv, "hvr:p:a:R:b:l:d:s:i:o:t:cj", l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)
                 {
@@ -616,6 +710,39 @@ int main(int argc, char** argv)
                 {
                         l_file = optarg;
                         l_config_mode = CONFIG_MODE_SCOPES;
+                        break;
+                }
+                // -----------------------------------------
+                //
+                // -----------------------------------------
+                case 'i':
+                {
+                        l_input_html_file = optarg;
+                        break;
+                }
+                // -----------------------------------------
+                //
+                // -----------------------------------------
+                case 'o':
+                {
+                        l_output_html_file = optarg;
+                        break;
+                }
+                // -----------------------------------------
+                //
+                // -----------------------------------------
+                case 't':
+                {
+                        l_js_file = optarg;
+                        break;
+                }
+                // -----------------------------------------
+                //
+                // -----------------------------------------
+                case 'c':
+                {
+                        l_render = true;
+                        l_config_mode = CONFIG_MODE_RENDER_HTML;
                         break;
                 }
                 // -----------------------------------------
@@ -720,6 +847,30 @@ int main(int argc, char** argv)
         case(CONFIG_MODE_SCOPES):
         {
                 l_s = validate_scopes(l_file, l_ruleset_dir, l_conf_dir);
+                if(l_s != STATUS_OK)
+                {
+                        return STATUS_ERROR;
+                }
+                break;
+        }
+        // -------------------------------------------------
+        // render challenge
+        // -------------------------------------------------
+        case(CONFIG_MODE_RENDER_HTML):
+        {
+                if(l_input_html_file.empty())
+                {
+                        fprintf(stderr, "error:input html file with mustache required.\n");
+                }
+                if(l_js_file.empty())
+                {
+                        fprintf(stderr, "error:file with JS tag is required.\n");
+                }
+                if(l_output_html_file.empty())
+                {
+                        fprintf(stderr, "error:output file to write the rendered html is required.\n");
+                }
+                l_s = render_html(l_input_html_file, l_js_file, l_output_html_file);
                 if(l_s != STATUS_OK)
                 {
                         return STATUS_ERROR;

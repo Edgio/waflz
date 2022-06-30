@@ -99,9 +99,6 @@ int32_t read_file(const char *a_file, char **ao_buf, uint32_t &ao_len)
 //! \details writes contents of a_buf to a_file
 //! \return  0 on Success
 //!          -1 on Failure
-//! \param   a_file: file to read from
-//! \param   ao_buf: reference to buffer object to write into
-//! \param   ao_len: file length (returned)
 //! ----------------------------------------------------------------------------
 int32_t write_file(const char *a_file, char *a_buf, int32_t a_len)
 {
@@ -122,6 +119,7 @@ int32_t write_file(const char *a_file, char *a_buf, int32_t a_len)
         {
                 FILE_UTIL_PERROR("Error performing fwrite.  Reason: %s [%d:%d]\n",
                                  strerror(errno), l_write_size, a_len);
+                fclose(l_file);
                 return WAFLZ_STATUS_ERROR;
         }
         // Close file...

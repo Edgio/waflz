@@ -42,8 +42,6 @@ public:
                                            sizeof(a.s6_addr)));
                 }
         };
-        typedef std::set<in_addr_t> ipv4_set_t;
-        typedef std::set<in6_addr, cmp_in6_addr> ipv6_set_t;
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
@@ -51,19 +49,19 @@ public:
         ~nms();
         int32_t add(const char *a_buf, uint32_t a_buf_len);
         int32_t contains(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
-        int32_t compress();
 private:
         // -------------------------------------------------
         // private types
         // -------------------------------------------------
+        typedef std::set<in_addr_t> ipv4_set_t;
+        typedef std::set<in6_addr, cmp_in6_addr> ipv6_set_t;
         // -------------------------------------------------
         // nested data structure:
-        // outer map indexed by subnet mask bits, and inner
-        // maps indexed by ipv4/ipv6 addresses.
-        // To determine whether an ip address is contained
-        // iterate over all known netmasks, starting from
-        // largest (i.e., 32 for ipv4 or 128 for ipv6)
-        // looking for the ip address.
+        // array of sets containing prefixes. Prefix length 
+        // of each set is array index. To determine whether 
+        // an ip address is contained iterate each possible
+        // netmask length, starting from smallest 
+        // looking for a match. 
         // -------------------------------------------------
         // -------------------------------------------------
         // private methods
@@ -80,8 +78,6 @@ private:
         int32_t add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len);
         int32_t contains_ipv4(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
         int32_t contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
-        int32_t contains_ipv4_prefix(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
-        int32_t contains_ipv6_prefix(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

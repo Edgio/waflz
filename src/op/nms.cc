@@ -161,7 +161,7 @@ nms::addr_t nms::detect_addr(const char *a_buf, uint32_t a_buf_len)
 {
         nms::addr_t l_addr = nms::ADDR_NONE;
         int l_s;
-        if(memchr(a_buf, a_buf_len, ':') == NULL)
+        if(memchr(a_buf, ':', a_buf_len) == NULL)
         {
                 struct in_addr l_in;
                 l_s = inet_pton(AF_INET, a_buf, &l_in);
@@ -285,21 +285,6 @@ int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
         if(!ipv4_arr)
         {
                 ipv4_arr = new ipv4_set_t[33];
-        }
-        // ----------------------------------------
-        // iterate through to handle redundancies
-        // ----------------------------------------
-        for(uint32_t i = 0 ;i < 33; ++i) 
-        {
-                int32_t temp_mask = (i == 0) ? 0 : htonl(~((1 << (32 - i))-1 ));
-                // ----------------------------------------
-                // Check each prefix of current prefix is 
-                // already in nms
-                // ----------------------------------------
-                if(i < l_bits && ipv4_arr[i].find(l_masked_addr & temp_mask)!=ipv4_arr[i].end()) 
-                {
-                        return WAFLZ_STATUS_OK;
-                }
         }
         // ----------------------------------------
         // add
@@ -439,41 +424,6 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
         if(!ipv6_arr)
         {
                 ipv6_arr = new ipv6_set_t[129];
-        }
-        // ----------------------------------------
-        // iterate through to handle redundancies
-        // ----------------------------------------
-        for(uint32_t i = 0 ;i<129;++i) 
-        {
-                // ----------------------------------------
-                // Check if prefix of prefix is already in 
-                // nms (create new with l_masked_addr[i] &
-                // temp_mask[i])
-                // ----------------------------------------
-                if(i < l_bits) 
-                {
-                        in6_addr input_masked;
-                        for (uint32_t i_c = 0; i_c < 4; ++i_c)
-                        {
-                                uint32_t l_v = i - 32*i_c;
-                                if(l_v >= 32)
-                                {
-                                        input_masked.s6_addr32[i_c] = l_in6.s6_addr32[i_c] & 0xffffffff;
-                                }
-                                else if(l_v <= 0)
-                                {
-                                        input_masked.s6_addr32[i_c] = 0;
-                                }
-                                else
-                                {
-                                        input_masked.s6_addr32[i_c] = l_in6.s6_addr32[i_c] & htonl(~((1 << (32 - i + 32*i_c)) - 1));
-                                }
-                        }
-                        if(ipv6_arr[i].find(input_masked)!=ipv6_arr[i].end()) 
-                        {
-                                return WAFLZ_STATUS_OK;
-                        }
-                }
         }
         // -------------------------------------------------
         // add
@@ -676,6 +626,7 @@ int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
                         // line was truncated
                         //TRC_OUTPUT("Error: lines must be shorter than %d chars\n", MAX_READLINE_SIZE);
                         if(l_nms) { delete l_nms; l_nms = NULL;}
+                        if(l_fp) { fclose(l_fp); l_fp = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
@@ -694,11 +645,16 @@ int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         if(l_nms) { delete l_nms; l_nms = NULL;}
+                        if(l_fp) { fclose(l_fp); l_fp = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 //NDBG_PRINT("READLINE: %s\n", l_line.c_str());
         }
         *ao_nms = l_nms;
+         // -------------------------------------------------
+        // Close file...
+        // -------------------------------------------------
+        if(l_fp) { fclose(l_fp); l_fp = NULL;}
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------

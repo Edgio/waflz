@@ -59,7 +59,7 @@ sudo make install
 
 ##### Package Requirements (with Homebrew)
 ```sh
-$ brew install cmake openssl protobuf libxml2 pcre dpkg
+$ brew install cmake openssl protobuf libxml2 pcre dpkg rapidjson jq
 ```
 
 ##### Python Package Requirements

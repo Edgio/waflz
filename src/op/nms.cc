@@ -201,17 +201,6 @@ int32_t nms::add_ipv4_plain(const char *a_buf, uint32_t a_buf_len)
                 ipv4_arr = new ipv4_set_t[33];
         }
         bool l_match=false;
-        // -------------------------------------------------
-        // If ipv4 already contained, dont add
-        // -------------------------------------------------
-        if(contains_ipv4(l_match,a_buf,a_buf_len)!=WAFLZ_STATUS_OK) 
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(l_match) 
-        {
-                return WAFLZ_STATUS_OK;
-        }
         ipv4_arr[32].insert(l_in.s_addr);
         return WAFLZ_STATUS_OK;
 }
@@ -325,17 +314,6 @@ int32_t nms::add_ipv6_plain(const char *a_buf, uint32_t a_buf_len)
                 ipv6_arr = new ipv6_set_t[129];
         }
         bool l_match=false;
-        // -------------------------------------------------
-        // If IPv6 already contained, don't add
-        // -------------------------------------------------
-        if(contains_ipv6(l_match,a_buf,a_buf_len)!=WAFLZ_STATUS_OK) 
-        {
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(l_match) 
-        {
-                return WAFLZ_STATUS_OK;
-        }
         ipv6_arr[128].insert(l_in6);
         return WAFLZ_STATUS_OK;
 }

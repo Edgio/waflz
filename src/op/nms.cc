@@ -200,7 +200,6 @@ int32_t nms::add_ipv4_plain(const char *a_buf, uint32_t a_buf_len)
         {
                 ipv4_arr = new ipv4_set_t[33];
         }
-        bool l_match=false;
         ipv4_arr[32].insert(l_in.s_addr);
         return WAFLZ_STATUS_OK;
 }
@@ -313,7 +312,6 @@ int32_t nms::add_ipv6_plain(const char *a_buf, uint32_t a_buf_len)
         {
                 ipv6_arr = new ipv6_set_t[129];
         }
-        bool l_match=false;
         ipv6_arr[128].insert(l_in6);
         return WAFLZ_STATUS_OK;
 }

@@ -56,14 +56,6 @@ private:
         typedef std::set<in_addr_t> ipv4_set_t;
         typedef std::set<in6_addr, cmp_in6_addr> ipv6_set_t;
         // -------------------------------------------------
-        // nested data structure:
-        // array of sets containing prefixes. Prefix length 
-        // of each set is array index. To determine whether 
-        // an ip address is contained iterate each possible
-        // netmask length, starting from smallest 
-        // looking for a match. 
-        // -------------------------------------------------
-        // -------------------------------------------------
         // private methods
         // -------------------------------------------------
         // disallow copy/assign
@@ -78,6 +70,14 @@ private:
         int32_t add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len);
         int32_t contains_ipv4(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
         int32_t contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
+        // -------------------------------------------------
+        // nested data structure:
+        // array of sets containing prefixes. Prefix length 
+        // of each set is array index. To determine whether 
+        // an ip address is contained iterate each possible
+        // netmask length, starting from smallest 
+        // looking for a match. 
+        // -------------------------------------------------
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

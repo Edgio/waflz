@@ -11,7 +11,6 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
-#include <map>
 #include <set>
 #include <list>
 #include <netinet/in.h>
@@ -33,17 +32,6 @@ public:
                 ADDR_IPV6,
                 ADDR_NONE
         } addr_t;
-        // -------------------------------------------------
-        // public methods
-        // -------------------------------------------------
-        nms();
-        ~nms();
-        int32_t add(const char *a_buf, uint32_t a_buf_len);
-        int32_t contains(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
-private:
-        // -------------------------------------------------
-        // private types
-        // -------------------------------------------------
         struct cmp_in6_addr
         {
                 bool operator()(const in6_addr& a,
@@ -55,18 +43,18 @@ private:
                 }
         };
         // -------------------------------------------------
-        // nested data structure:
-        // outer map indexed by subnet mask bits, and inner
-        // maps indexed by ipv4/ipv6 addresses.
-        // To determine whether an ip address is contained
-        // iterate over all known netmasks, starting from
-        // largest (i.e., 32 for ipv4 or 128 for ipv6)
-        // looking for the ip address.
+        // public methods
+        // -------------------------------------------------
+        nms();
+        ~nms();
+        int32_t add(const char *a_buf, uint32_t a_buf_len);
+        int32_t contains(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
+private:
+        // -------------------------------------------------
+        // private types
         // -------------------------------------------------
         typedef std::set<in_addr_t> ipv4_set_t;
-        typedef std::map<uint32_t, ipv4_set_t> ipv4_mask_map_t;
         typedef std::set<in6_addr, cmp_in6_addr> ipv6_set_t;
-        typedef std::map<uint32_t, ipv6_set_t> ipv6_mask_map_t;
         // -------------------------------------------------
         // private methods
         // -------------------------------------------------
@@ -83,10 +71,18 @@ private:
         int32_t contains_ipv4(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
         int32_t contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len);
         // -------------------------------------------------
+        // nested data structure:
+        // array of sets containing prefixes. Prefix length 
+        // of each set is array index. To determine whether 
+        // an ip address is contained iterate each possible
+        // netmask length, starting from smallest 
+        // looking for a match. 
+        // -------------------------------------------------
+        // -------------------------------------------------
         // private members
         // -------------------------------------------------
-        ipv4_mask_map_t *m_ipv4_mask_map;
-        ipv6_mask_map_t *m_ipv6_mask_map;
+        ipv4_set_t* ipv4_arr;
+        ipv6_set_t* ipv6_arr;
 };
 //! ----------------------------------------------------------------------------
 //! types

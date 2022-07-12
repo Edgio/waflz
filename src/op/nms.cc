@@ -15,8 +15,6 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <string.h>
 #include <algorithm>
 //! ----------------------------------------------------------------------------
 //! constants
@@ -78,8 +76,8 @@ namespace ns_waflz
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
 nms::nms():
-        m_ipv4_mask_map(NULL),
-        m_ipv6_mask_map(NULL)
+        ipv4_arr(new ipv4_set_t[33]),
+        ipv6_arr(new ipv6_set_t[129])
 {}
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -88,38 +86,32 @@ nms::nms():
 //! ----------------------------------------------------------------------------
 nms::~nms()
 {
-        if(m_ipv4_mask_map) { delete m_ipv4_mask_map; m_ipv4_mask_map = NULL;}
-        if(m_ipv6_mask_map) { delete m_ipv6_mask_map; m_ipv6_mask_map = NULL;}
+        if (ipv4_arr) { delete[] ipv4_arr; ipv4_arr = NULL;}
+        if (ipv6_arr) { delete[] ipv6_arr; ipv6_arr = NULL;}
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::add(const char *a_buf, uint32_t a_buf_len)
+int32_t nms::add(const char* a_buf, uint32_t a_buf_len)
 {
         // -------------------------------------------------
         // detect type
         // -------------------------------------------------
-        int32_t l_s = WAFLZ_STATUS_OK;
         // TODO -address type detection is crude
-        if(strchr(a_buf, ':') == NULL)
+        if (strchr(a_buf, ':') == NULL)
         {
-                l_s = add_ipv4(a_buf, a_buf_len);
+                return add_ipv4(a_buf, a_buf_len);
         }
-        else
-        {
-                l_s = add_ipv6(a_buf, a_buf_len);
-        }
-        //NDBG_PRINT("l_s: %d\n", l_s);
-        return l_s;
+        return add_ipv6(a_buf, a_buf_len);
 #if 0
         // -------------------------------------------------
         // detect type
         // -------------------------------------------------
         ip_tree::addr_t l_addr = ip_tree::ADDR_NONE;
         l_addr = detect_addr(a_buf, a_buf_len);
-        if(l_addr == ip_tree::ADDR_NONE)
+        if (l_addr == ip_tree::ADDR_NONE)
         {
                 WAFLZ_PERROR(m_err_msg, "invalid ipv address: %.*s",
                              a_buf_len, a_buf);
@@ -147,36 +139,14 @@ int32_t nms::add(const char *a_buf, uint32_t a_buf_len)
         return WAFLZ_STATUS_ERROR;
 #endif
 }
-//Helper
-#if 0
-int32_t nms::print_map()
-{
-        NDBG_PRINT("ipv4 map\n");
-        TRC_DEBUG("ipv4 map\n");
-        NDBG_PRINT("Size:: %lu\n", m_ipv4_mask_map->size());
-        TRC_DEBUG("Size:: %lu\n", m_ipv4_mask_map->size());
-        for (ipv4_mask_map_t::iterator i_t = m_ipv4_mask_map->begin(); i_t  != m_ipv4_mask_map->end(); ++i_t)
-        {
-                ipv4_set_t::iterator i_s_t;
-                for(i_s_t = i_t->second.begin(); i_s_t != i_t->second.end(); ++i_s_t)
-                {
-                        struct in_addr l_t;
-                        l_t.s_addr = *i_s_t;
-                        NDBG_PRINT("%d   ::  %s\n", i_t->first, inet_ntoa(l_t));
-                        TRC_DEBUG("%d   ::  %s\n", i_t->first, inet_ntoa(l_t));
-                }
-        }
-        return WAFLZ_STATUS_OK;
-}
-#endif
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::contains(bool &ao_match, const char *a_buf, uint32_t a_buf_len)
+int32_t nms::contains(bool &ao_match, const char* a_buf, uint32_t a_buf_len)
 {
-        if(strchr(a_buf, ':') == NULL)
+        if (strchr(a_buf, ':') == NULL)
         {
                 return contains_ipv4(ao_match, a_buf, a_buf_len);
         }
@@ -187,15 +157,15 @@ int32_t nms::contains(bool &ao_match, const char *a_buf, uint32_t a_buf_len)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-nms::addr_t nms::detect_addr(const char *a_buf, uint32_t a_buf_len)
+nms::addr_t nms::detect_addr(const char* a_buf, uint32_t a_buf_len)
 {
         nms::addr_t l_addr = nms::ADDR_NONE;
         int l_s;
-        if(memchr(a_buf, ':', a_buf_len) == NULL)
+        if (memchr(a_buf, ':', a_buf_len) == NULL)
         {
                 struct in_addr l_in;
                 l_s = inet_pton(AF_INET, a_buf, &l_in);
-                if(l_s > 0)
+                if (l_s > 0)
                 {
                         l_addr = nms::ADDR_IPV4;
                 }
@@ -204,7 +174,7 @@ nms::addr_t nms::detect_addr(const char *a_buf, uint32_t a_buf_len)
         {
                 struct in6_addr l_in6;
                 l_s = inet_pton(AF_INET6, a_buf, &l_in6);
-                if(l_s > 0)
+                if (l_s > 0)
                 {
                         l_addr = nms::ADDR_IPV6;
                 }
@@ -216,21 +186,21 @@ nms::addr_t nms::detect_addr(const char *a_buf, uint32_t a_buf_len)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::add_ipv4_plain(const char *a_buf, uint32_t a_buf_len)
+int32_t nms::add_ipv4_plain(const char* a_buf, uint32_t a_buf_len)
 {
         struct in_addr l_in;
         int l_s;
-        errno=0;
         l_s = inet_pton(AF_INET, a_buf, &l_in);
-        if(l_s != 1)
+        if (l_s != 1)
         {
+                // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!m_ipv4_mask_map)
+        if (!ipv4_arr)
         {
-                m_ipv4_mask_map = new ipv4_mask_map_t();
+                ipv4_arr = new ipv4_set_t[33];
         }
-        (*m_ipv4_mask_map)[32].insert(l_in.s_addr);
+        ipv4_arr[32].insert(l_in.s_addr);
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -238,13 +208,13 @@ int32_t nms::add_ipv4_plain(const char *a_buf, uint32_t a_buf_len)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
+int32_t nms::add_ipv4_cidr(const char* a_buf, uint32_t a_buf_len)
 {
         // -------------------------------------------------
         // find slash
         // -------------------------------------------------
-        char *l_slash_pos = (char *)memchr(a_buf, '/', a_buf_len);
-        if(l_slash_pos[1] == '\0')
+        char* l_slash_pos = (char *)memchr(a_buf, '/', a_buf_len);
+        if (l_slash_pos[1] == '\0')
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
@@ -253,16 +223,14 @@ int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
         // get bits
         // -------------------------------------------------
         char* l_err = NULL;
-        unsigned long int l_bits_ul;
-        l_bits_ul = strtoul(l_slash_pos + 1, &l_err, 10);
-        if(*l_err ||
-           (l_bits_ul == ULONG_MAX))
+        uint32_t l_bits;
+        l_bits = strtoul(l_slash_pos + 1, &l_err, 10);
+        if (*l_err)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
         }
-        uint32_t l_bits = (uint32_t)l_bits_ul;
-        if(l_bits > 32)
+        if (l_bits > 32)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
@@ -290,7 +258,7 @@ int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
         struct in_addr l_in;
         int l_s;
         l_s = inet_pton(AF_INET, l_nm_ip, &l_in);
-        if(l_s != 1)
+        if (l_s != 1)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
@@ -300,13 +268,16 @@ int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
         // -------------------------------------------------
         uint32_t l_masked_addr = l_in.s_addr & l_mask;
         // -------------------------------------------------
-        // add
+        // create sets if not already created
         // -------------------------------------------------
-        if(!m_ipv4_mask_map)
+        if (!ipv4_arr)
         {
-                m_ipv4_mask_map = new ipv4_mask_map_t();
+                ipv4_arr = new ipv4_set_t[33];
         }
-        (*m_ipv4_mask_map)[l_bits].insert(l_masked_addr);
+        // ----------------------------------------
+        // add
+        // ----------------------------------------
+        ipv4_arr[l_bits].insert(l_masked_addr);
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -314,9 +285,9 @@ int32_t nms::add_ipv4_cidr(const char *a_buf, uint32_t a_buf_len)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::add_ipv4(const char *a_buf, uint32_t a_buf_len)
+int32_t nms::add_ipv4(const char* a_buf, uint32_t a_buf_len)
 {
-        if(memchr(a_buf, '/', a_buf_len) == NULL)
+        if (memchr(a_buf, '/', a_buf_len) == NULL)
         {
                 return add_ipv4_plain(a_buf, a_buf_len);
         }
@@ -327,21 +298,21 @@ int32_t nms::add_ipv4(const char *a_buf, uint32_t a_buf_len)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::add_ipv6_plain(const char *a_buf, uint32_t a_buf_len)
+int32_t nms::add_ipv6_plain(const char* a_buf, uint32_t a_buf_len)
 {
         struct in6_addr l_in6;
         int l_s;
         l_s = inet_pton(AF_INET6, a_buf, &l_in6);
-        if(l_s != 1)
+        if (l_s != 1)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!m_ipv6_mask_map)
+        if (!ipv6_arr)
         {
-                m_ipv6_mask_map = new ipv6_mask_map_t();
+                ipv6_arr = new ipv6_set_t[129];
         }
-        (*m_ipv6_mask_map)[128].insert(l_in6);
+        ipv6_arr[128].insert(l_in6);
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -349,13 +320,13 @@ int32_t nms::add_ipv6_plain(const char *a_buf, uint32_t a_buf_len)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
+int32_t nms::add_ipv6_cidr(const char* a_buf, uint32_t a_buf_len)
 {
         // -------------------------------------------------
         // find slash
         // -------------------------------------------------
-        char *l_slash_pos = (char *)memchr(a_buf, '/', a_buf_len);
-        if(l_slash_pos[1] == '\0')
+        char* l_slash_pos = (char *)memchr(a_buf, '/', a_buf_len);
+        if (l_slash_pos[1] == '\0')
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -363,16 +334,14 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
         // get bits
         // -------------------------------------------------
         char* l_err = NULL;
-        unsigned long int l_bits_ul;
-        l_bits_ul = strtoul(l_slash_pos + 1, &l_err, 10);
-        if(*l_err ||
-           (l_bits_ul == ULONG_MAX))
+        uint32_t l_bits;
+        l_bits = strtoul(l_slash_pos + 1, &l_err, 10);
+        if (*l_err)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
         }
-        uint32_t l_bits = (uint32_t)l_bits_ul;
-        if(l_bits > 128)
+        if (l_bits > 128)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
@@ -381,14 +350,14 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
         // build netmask
         // -------------------------------------------------
         in6_addr l_mask;
-        for (int i_c = 0; i_c < 4; ++i_c)
+        for (uint32_t i_c = 0; i_c < 4; ++i_c)
         {
-                int l_v = l_bits - 32*i_c;
-                if(l_v >= 32)
+                uint32_t l_v = l_bits - 32*i_c;
+                if (l_v >= 32)
                 {
                         l_mask.s6_addr32[i_c] = 0xffffffff;
                 }
-                else if(l_v <= 0)
+                else if (l_v <= 0)
                 {
                         l_mask.s6_addr32[i_c] = 0;
                 }
@@ -415,7 +384,7 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
         struct in6_addr l_in6;
         int l_s;
         l_s = inet_pton(AF_INET6, l_nm_ip, &l_in6);
-        if(l_s != 1)
+        if (l_s != 1)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
@@ -424,18 +393,18 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
         // create masked address
         // -------------------------------------------------
         struct in6_addr l_masked_addr;
-        for (int i_c = 0; i_c < 4; ++i_c)
+        for (uint32_t i_c = 0; i_c < 4; ++i_c)
         {
                 l_masked_addr.s6_addr32[i_c] = l_in6.s6_addr32[i_c] & l_mask.s6_addr32[i_c];
+        }
+        if (!ipv6_arr)
+        {
+                ipv6_arr = new ipv6_set_t[129];
         }
         // -------------------------------------------------
         // add
         // -------------------------------------------------
-        if(!m_ipv6_mask_map)
-        {
-                m_ipv6_mask_map = new ipv6_mask_map_t();
-        }
-        (*m_ipv6_mask_map)[l_bits].insert(l_masked_addr);
+        ipv6_arr[l_bits].insert(l_masked_addr);
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -443,9 +412,9 @@ int32_t nms::add_ipv6_cidr(const char *a_buf, uint32_t a_buf_len)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::add_ipv6(const char *a_buf, uint32_t a_buf_len)
+int32_t nms::add_ipv6(const char* a_buf, uint32_t a_buf_len)
 {
-        if(memchr(a_buf, '/', a_buf_len) == NULL)
+        if (memchr(a_buf, '/', a_buf_len) == NULL)
         {
                 return add_ipv6_plain(a_buf, a_buf_len);
         }
@@ -457,31 +426,32 @@ int32_t nms::add_ipv6(const char *a_buf, uint32_t a_buf_len)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::contains_ipv4(bool &ao_match, const char *a_buf, uint32_t a_buf_len)
+int32_t nms::contains_ipv4(bool &ao_match, const char* a_buf, uint32_t a_buf_len)
 {
         ao_match = false;
-        if(!m_ipv4_mask_map)
+        if (!ipv4_arr)
         {
-                // error???
                 return WAFLZ_STATUS_OK;
         }
         // convert to ipv4
         in_addr l_in;
         int l_s;
         l_s = inet_pton(AF_INET, a_buf, &l_in);
-        if(l_s != 1)
+        if (l_s != 1)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
         }
-        for(ipv4_mask_map_t::const_reverse_iterator i_m = m_ipv4_mask_map->rbegin();
-            i_m != m_ipv4_mask_map->rend();
-            ++i_m)
+        for(uint32_t l_bits=0; l_bits< 33; ++l_bits)
         {
-                const int l_bits = i_m->first;
+                // -------------------------------------------------
+                // Construct prefix mask
+                // -------------------------------------------------
                 const uint32_t l_nm = (l_bits == 0) ? 0 : htonl(~((1 << (32 - l_bits)) - 1));
-                ipv4_set_t::const_iterator i_a = i_m->second.find(l_nm & l_in.s_addr);
-                if(i_a != i_m->second.end())
+                // -------------------------------------------------
+                // If prefix found, ip is contained
+                // -------------------------------------------------
+                if ( ipv4_arr[l_bits].find(l_nm & l_in.s_addr) != ipv4_arr[l_bits].end())
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
@@ -494,10 +464,10 @@ int32_t nms::contains_ipv4(bool &ao_match, const char *a_buf, uint32_t a_buf_len
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t nms::contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len)
+int32_t nms::contains_ipv6(bool &ao_match, const char* a_buf, uint32_t a_buf_len)
 {
         ao_match = false;
-        if(!m_ipv6_mask_map)
+        if (!ipv6_arr)
         {
                 // error???
                 return WAFLZ_STATUS_OK;
@@ -505,25 +475,25 @@ int32_t nms::contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len
         in6_addr l_in6;
         int l_s;
         l_s = inet_pton(AF_INET6, a_buf, &l_in6);
-        if(l_s != 1)
+        if (l_s != 1)
         {
                 // TODO log reason???
                 return WAFLZ_STATUS_ERROR;
         }
-        for(ipv6_mask_map_t::const_reverse_iterator i_m = m_ipv6_mask_map->rbegin();
-            i_m != m_ipv6_mask_map->rend();
-            ++i_m)
+        for(uint32_t l_bits=0; l_bits<129; ++l_bits)
         {
+                // -------------------------------------------------
+                // Construct prefix
+                // -------------------------------------------------
                 in6_addr l_masked;
-                const int l_bits = i_m->first;
-                for (int i_c = 0; i_c < 4; ++i_c)
+                for (uint32_t i_c = 0; i_c < 4; ++i_c)
                 {
                         int32_t l_pos = l_bits - 32*i_c;
-                        if(l_pos >= 32)
+                        if (l_pos >= 32)
                         {
                                 l_masked.s6_addr32[i_c] = l_in6.s6_addr32[i_c] & 0xffffffff;
                         }
-                        else if(l_pos <= 0)
+                        else if (l_pos <= 0)
                         {
                                 l_masked.s6_addr32[i_c] = 0;
                         }
@@ -532,8 +502,10 @@ int32_t nms::contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len
                                 l_masked.s6_addr32[i_c] = l_in6.s6_addr32[i_c] & htonl(~((1 << (32 - l_bits + 32*i_c)) - 1));
                         }
                 }
-                ipv6_set_t::const_iterator i_a = i_m->second.find(l_masked);
-                if(i_a != i_m->second.end())
+                // -------------------------------------------------
+                // If prefix found, IP is contained
+                // -------------------------------------------------
+                if (ipv6_arr[l_bits].find(l_masked) != ipv6_arr[l_bits].end())
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
@@ -556,10 +528,10 @@ int32_t nms::contains_ipv6(bool &ao_match, const char *a_buf, uint32_t a_buf_len
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str)
+int32_t create_nms_from_str(nms** ao_nms, const std::string &a_str)
 {
         //NDBG_PRINT("%sNMS_FROM_STR%s: %s\n",ANSI_COLOR_BG_WHITE, ANSI_COLOR_OFF, a_str.c_str());
-        if(!ao_nms)
+        if (!ao_nms)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -568,32 +540,32 @@ int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str)
         // split by IP string sep...
         // -------------------------------------------------
         int32_t l_s;
-        nms *l_nms = new nms();
+        nms* l_nms = new nms();
         size_t l_start = 0;
         size_t l_end = 0;
         while((l_end = a_str.find(IP_STR_SEPARATOR, l_start)) != std::string::npos)
         {
-                if(l_end != l_start)
+                if (l_end != l_start)
                 {
                         std::string i_str = a_str.substr(l_start, l_end - l_start);
-                        i_str.erase( std::remove_if( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
+                        i_str.erase( std::remove_if ( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
                         l_s = l_nms->add(i_str.c_str(), i_str.length());
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
-                                if(l_nms) { delete l_nms; l_nms = NULL;}
+                                if (l_nms) { delete l_nms; l_nms = NULL;}
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
                 l_start = l_end + 1;
         }
-        if(l_end != l_start)
+        if (l_end != l_start)
         {
                 std::string i_str = a_str.substr(l_start);
-                i_str.erase( std::remove_if( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
+                i_str.erase( std::remove_if ( i_str.begin(), i_str.end(), ::isspace ), i_str.end() );
                 l_s = l_nms->add(i_str.c_str(), i_str.length());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_nms) { delete l_nms; l_nms = NULL;}
+                        if (l_nms) { delete l_nms; l_nms = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -605,9 +577,9 @@ int32_t create_nms_from_str(nms **ao_nms, const std::string &a_str)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
+int32_t create_nms_from_file(nms** ao_nms, const std::string &a_file)
 {
-        if(!ao_nms)
+        if (!ao_nms)
         {
                 return WAFLZ_STATUS_ERROR;
         }
@@ -615,26 +587,26 @@ int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
         //NDBG_PRINT("%sNMS_FROM_FILE%s: %s\n",ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, a_file.c_str());
         FILE * l_fp;
         l_fp = fopen(a_file.c_str(),"r");
-        if (NULL == l_fp)
+        if (l_fp == NULL)
         {
                 //NDBG_PRINT("error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
-        nms *l_nms = new nms();
+        nms* l_nms = new nms();
         char l_rline[MAX_READLINE_SIZE];
         while(fgets(l_rline, sizeof(l_rline), l_fp))
         {
                 size_t l_rline_len = strnlen(l_rline, MAX_READLINE_SIZE);
-                if(!l_rline_len)
+                if (!l_rline_len)
                 {
                         continue;
                 }
-                else if(l_rline_len == MAX_READLINE_SIZE)
+                else if (l_rline_len == MAX_READLINE_SIZE)
                 {
                         // line was truncated
                         //TRC_OUTPUT("Error: lines must be shorter than %d chars\n", MAX_READLINE_SIZE);
-                        if(l_nms) { delete l_nms; l_nms = NULL;}
-                        if(l_fp) { fclose(l_fp); l_fp = NULL;}
+                        if (l_nms) { delete l_nms; l_nms = NULL;}
+                        if (l_fp) { fclose(l_fp); l_fp = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 // -----------------------------------------
@@ -643,17 +615,17 @@ int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
                 // nuke endline
                 l_rline[l_rline_len - 1] = '\0';
                 std::string l_line(l_rline);
-                l_line.erase( std::remove_if( l_line.begin(), l_line.end(), ::isspace ), l_line.end() );
-                if(l_line.empty())
+                l_line.erase( std::remove_if ( l_line.begin(), l_line.end(), ::isspace ), l_line.end() );
+                if (l_line.empty())
                 {
                         continue;
                 }
                 int32_t l_s;
                 l_s = l_nms->add(l_line.c_str(), l_line.length());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_nms) { delete l_nms; l_nms = NULL;}
-                        if(l_fp) { fclose(l_fp); l_fp = NULL;}
+                        if (l_nms) { delete l_nms; l_nms = NULL;}
+                        if (l_fp) { fclose(l_fp); l_fp = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
                 //NDBG_PRINT("READLINE: %s\n", l_line.c_str());
@@ -662,7 +634,7 @@ int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
         // -------------------------------------------------
         // Close file...
         // -------------------------------------------------
-        if(l_fp) { fclose(l_fp); l_fp = NULL;}
+        if (l_fp) { fclose(l_fp); l_fp = NULL;}
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -670,38 +642,37 @@ int32_t create_nms_from_file(nms **ao_nms, const std::string &a_file)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-int32_t create_nms_from_ip_str_list(nms **ao_nms,
+int32_t create_nms_from_ip_str_list(nms** ao_nms,
                                     const ip_str_list_t &a_ip_str_list)
 {
-        if(!ao_nms)
+        if (!ao_nms)
         {
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_nms = NULL;
-        nms *l_nms = new nms();
+        nms* l_nms = new nms();
         for(ip_str_list_t::const_iterator i_ip = a_ip_str_list.begin();
             i_ip != a_ip_str_list.end();
             ++i_ip)
         {
-                if(!*i_ip)
+                if (!*i_ip)
                 {
                         continue;
                 }
                 const std::string &l_ip = **i_ip;
-                if(l_ip.empty())
+                if (l_ip.empty())
                 {
                         continue;
                 }
                 int32_t l_s;
                 l_s = l_nms->add(l_ip.c_str(), l_ip.length());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_nms) { delete l_nms; l_nms = NULL;}
+                        if (l_nms) { delete l_nms; l_nms = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
         }
         *ao_nms = l_nms;
         return WAFLZ_STATUS_OK;
-
 }
 }

@@ -282,3 +282,4 @@ done:
         return WAFLZ_STATUS_OK;
 }
 }
+

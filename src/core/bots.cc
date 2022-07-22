@@ -136,8 +136,6 @@ int32_t bots::load(void* a_js)
 //! ----------------------------------------------------------------------------
 int32_t bots::process(waflz_pb::event **ao_event,
                        void *a_ctx,
-                       waflz_pb::enforcement **ao_repdb_enf,
-                       const waflz_pb::enforcement **a_scope_enf,
                        rqst_ctx **ao_rqst_ctx)
 {
         if(!ao_event)
@@ -198,72 +196,8 @@ int32_t bots::process(waflz_pb::event **ao_event,
                 // -----------------------------------------
                 l_rqst_ctx->m_log_request = true;
                 // -----------------------------------------
-                // check subevent intercept status to decide
-                // which action to take
-                // only need to check first subevent at
-                // index 0
-                // all subevents/rules required to have same
-                // intercept status
-                // enforced from rule policy
+                // populate event with rqst info
                 // -----------------------------------------
-                switch(l_event->sub_event(0).rule_intercept_status())
-                {
-                case HTTP_STATUS_OK:
-                {
-                        *ao_repdb_enf = new waflz_pb::enforcement();
-                        (*ao_repdb_enf)->set_enf_type(waflz_pb::enforcement_type_t_ALERT);
-                        l_rqst_ctx->m_bot_repdb_enf = true;
-                        break;
-                }
-                case HTTP_STATUS_FORBIDDEN:
-                {
-                        *ao_repdb_enf = new waflz_pb::enforcement();
-                        (*ao_repdb_enf)->set_enf_type(waflz_pb::enforcement_type_t_BLOCK_REQUEST);
-                        l_rqst_ctx->m_bot_repdb_enf = true;
-                        break;
-                }
-                case HTTP_STATUS_AUTHENTICATION_REQUIRED:
-                {
-                        // ---------------------------------
-                        // only browser challenge for now
-                        // can extend to more
-                        // Check for enforcement type
-                        // if browser challenge,
-                        // verify challenge
-                        // ---------------------------------
-                        const waflz_pb::enforcement *l_enf = *a_scope_enf;
-                        bool l_pass = false;
-                        if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
-                        {
-                                // -------------------------
-                                // check cookie
-                                // verify browser challenge
-                                // -------------------------
-                                // default to valid for 10 min
-                                uint32_t l_valid_for_s = 600;
-                                if(l_enf->has_valid_for_sec())
-                                {
-                                        l_valid_for_s = l_enf->valid_for_sec();
-                                }
-                                int32_t l_s;
-                                l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx, &l_event);
-                                if(l_s != WAFLZ_STATUS_OK)
-                                {
-                                        // do nothing -re-issue challenge bye sending an event
-                                }
-                                if(l_pass)
-                                {
-                                        // Challenge passed, delete event and return
-                                        if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
-                                        if(l_event) { delete l_event; l_event =  NULL; }
-                                        return WAFLZ_STATUS_OK;
-                                }
-                                l_event->set_token_duration_sec(l_valid_for_s);
-                        }
-                        l_rqst_ctx->m_bot_repdb_enf = false;
-                        break;
-                }
-                }
                 l_s = l_rqst_ctx->append_rqst_info(*l_event, m_engine.get_geoip2_mmdb());
                 if(l_s != WAFLZ_STATUS_OK)
                 {
@@ -276,8 +210,8 @@ int32_t bots::process(waflz_pb::event **ao_event,
                 {
                         l_event->set_config_last_modified(get_pb()->last_modified_date());
                 }
-                *ao_event = l_event;
         }
+        *ao_event = l_event;
         if(!ao_rqst_ctx && l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
         return WAFLZ_STATUS_OK;
 }

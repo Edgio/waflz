@@ -175,6 +175,7 @@ message event {
         optional string response_header_name = 241;
         optional string ruleset_id = 242;
         optional string ruleset_version = 243;
+        optional string bot_manager_config_id = 244;
         // -------------------------------------------------
         // change/rev info about config
         // -------------------------------------------------

@@ -58,6 +58,7 @@ class rqst_ctx;
 class acl;
 class rules;
 class bots;
+class bot_manager;
 class profile;
 class limit;
 class kv_db;
@@ -99,12 +100,16 @@ public:
         typedef std::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
         typedef std::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
         typedef std::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
+        typedef std::unordered_map<std::string, bot_manager*, str_hash> id_bot_manager_map_t;
+        // to be deprecated
         typedef std::unordered_map<std::string, bots*, str_hash> id_bots_map_t;
 #else
         typedef std::tr1::unordered_map<std::string, acl*, str_hash> id_acl_map_t;
         typedef std::tr1::unordered_map<std::string, rules*, str_hash> id_rules_map_t;
         typedef std::tr1::unordered_map<std::string, profile*, str_hash> id_profile_map_t;
         typedef std::tr1::unordered_map<std::string, limit*, str_hash> id_limit_map_t;
+        typedef std::tr1::unordered_map<std::string, bot_manager*, str_hash> id_bot_manager_map_t;
+        // to be deprecated
         typedef std::tr1::unordered_map<std::string, bots*, str_hash> id_bots_map_t;
 #endif
         // -------------------------------------------------
@@ -124,6 +129,7 @@ public:
         int32_t load_acl(ns_waflz::acl* a_acl);
         int32_t load_rules(ns_waflz::rules* a_rules);
         int32_t load_bots(ns_waflz::bots* a_bots);
+        int32_t load_bot_manager(ns_waflz::bot_manager* a_bot_manager);
         int32_t load_profile(ns_waflz::profile* a_profile);
         int32_t load_limit(ns_waflz::limit* a_limit);
         int32_t process(const waflz_pb::enforcement **ao_enf,
@@ -187,6 +193,8 @@ private:
         id_rules_map_t m_id_rules_map;
         id_profile_map_t m_id_profile_map;
         id_limit_map_t m_id_limit_map;
+        id_bot_manager_map_t m_id_bot_manager_map;
+        //to be deprecated
         id_bots_map_t m_id_bots_map;
         // -------------------------------------------------
         // enforcements

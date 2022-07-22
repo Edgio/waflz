@@ -257,7 +257,6 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_resp_status(0),
         m_signal_enf(0),
         m_log_request(false),
-        m_bot_repdb_enf(false),
         m_limit(NULL),
         m_body_parser(),
         // -------------------------------------------------

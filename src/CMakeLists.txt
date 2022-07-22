@@ -148,6 +148,7 @@ SET(SRCS
     core/scopes_configs.cc
     core/rules.cc
     core/bots.cc
+    core/bot_manager.cc
     core/challenge.cc
     # ------------------------------------------------------
     # limit
@@ -214,6 +215,7 @@ SET(HDRS
     ${CMAKE_SOURCE_DIR}/include/waflz/rqst_ctx.h
     ${CMAKE_SOURCE_DIR}/include/waflz/rules.h
     ${CMAKE_SOURCE_DIR}/include/waflz/bots.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/bot_manager.h
     ${CMAKE_SOURCE_DIR}/include/waflz/scopes_configs.h
     ${CMAKE_SOURCE_DIR}/include/waflz/scopes.h
     ${CMAKE_SOURCE_DIR}/include/waflz/trace.h
@@ -236,6 +238,7 @@ SET(HDRS
     # ------------------------------------------------------
     ${CMAKE_BINARY_DIR}/proto/acl.pb.h
     ${CMAKE_BINARY_DIR}/proto/action.pb.h
+    ${CMAKE_BINARY_DIR}/proto/bot_manager.pb.h
     ${CMAKE_BINARY_DIR}/proto/event.pb.h
     ${CMAKE_BINARY_DIR}/proto/limit.pb.h
     ${CMAKE_BINARY_DIR}/proto/profile.pb.h

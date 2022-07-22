@@ -239,7 +239,6 @@ int32_t acl::load(void* a_js)
         }
         return WAFLZ_STATUS_OK;
 }
-
 //! ----------------------------------------------------------------------------
 //! \details TODO
 //! \return  TODO

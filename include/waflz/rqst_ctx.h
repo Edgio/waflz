@@ -170,7 +170,6 @@ public:
         uint32_t m_resp_status;
         bool m_signal_enf;
         bool m_log_request;
-        bool m_bot_repdb_enf;
         // -------------------------------------------------
         // TODO FIX!!! -not thread safe...
         // -------------------------------------------------

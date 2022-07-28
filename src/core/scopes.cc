@@ -16,6 +16,7 @@
 #include "waflz/acl.h"
 #include "waflz/rules.h"
 #include "waflz/bots.h"
+#include "waflz/bot_manager.h"
 #include "waflz/engine.h"
 #include "waflz/rl_obj.h"
 #include "waflz/lm_db.h"
@@ -35,6 +36,7 @@
 #include "event.pb.h"
 #include "limit.pb.h"
 #include "rule.pb.h"
+#include "bot_manager.pb.h"
 #include <fnmatch.h>
 //! ----------------------------------------------------------------------------
 //! constants
@@ -296,6 +298,7 @@ scopes::scopes(engine &a_engine, kv_db &a_kv_db, challenge& a_challenge):
         m_id_rules_map(),
         m_id_profile_map(),
         m_id_limit_map(),
+        m_id_bot_manager_map(),
         m_id_bots_map(),
         m_enfx(NULL),
         m_challenge(a_challenge)
@@ -745,6 +748,53 @@ acl_prod_action:
                 }
         }
         // -------------------------------------------------
+        // bots manager - if scope has bot manager config,
+        // do not load bot rules in scope. go to rules
+        // -------------------------------------------------
+        if(a_scope.has_bot_manager_config_id())
+        {
+                // -----------------------------------------
+                // check exist
+                // -----------------------------------------
+                id_bot_manager_map_t::iterator i_bot_m = m_id_bot_manager_map.find(a_scope.bot_manager_config_id());
+                if (i_bot_m != m_id_bot_manager_map.end())
+                {
+                        a_scope.set__bot_manager_config__reserved((uint64_t)i_bot_m->second);
+                        goto rules_audit;
+                }
+                // -----------------------------------------
+                // load file and make bot manager obj
+                // -----------------------------------------
+                std::string l_path;
+                l_path = a_conf_dir_path + "/bot_manager/" + m_cust_id + "-" + a_scope.bot_manager_config_id() +".bot_manager.json";
+                int32_t l_s;
+                char *l_buf = NULL;
+                uint32_t l_buf_len;
+                l_s = read_file(l_path.c_str(), &l_buf, l_buf_len);
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", ns_waflz::get_err_msg());
+                        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                        return WAFLZ_STATUS_ERROR;
+                }
+                bot_manager* l_bot_manager = new bot_manager(m_engine, m_challenge);
+                l_s = l_bot_manager->load(l_buf, l_buf_len, a_conf_dir_path);
+                if (l_s != WAFLZ_STATUS_OK)
+                {
+                        NDBG_PRINT("error loading bot manager conf file: %s. reason: %s\n",
+                                   l_path.c_str(),
+                                   l_bot_manager->get_err_msg());
+                        if (l_bot_manager) { delete l_bot_manager; l_bot_manager = NULL;}
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // add to map
+                // -----------------------------------------
+                a_scope.set__bot_manager_config__reserved((uint64_t)l_bot_manager);
+                m_id_bot_manager_map[a_scope.bot_manager_config_id()] = l_bot_manager;
+                goto rules_audit;
+        }
+        // -------------------------------------------------
         // bots prod
         // -------------------------------------------------
         if (a_scope.has_bots_prod_id())
@@ -794,6 +844,7 @@ bots_prod_action:
                         return WAFLZ_STATUS_ERROR;
                 }       
         }
+rules_audit:
         // -------------------------------------------------
         // rules audit
         // -------------------------------------------------
@@ -1516,6 +1567,60 @@ int32_t scopes::load_bots(ns_waflz::bots* a_bots)
 //! \return  TODO
 //! \param   TODO
 //! ----------------------------------------------------------------------------
+int32_t scopes::load_bot_manager(ns_waflz::bot_manager* a_bot_manager)
+{
+        if (!a_bot_manager)
+        {
+                return WAFLZ_STATUS_ERROR;
+        }
+        const std::string& l_id = a_bot_manager->get_id();
+        // -------------------------------------------------
+        // check id in map
+        // -------------------------------------------------
+        id_bot_manager_map_t::iterator i_t = m_id_bot_manager_map.find(l_id);
+        if (i_t == m_id_bot_manager_map.end())
+        {
+                if (a_bot_manager) { delete a_bot_manager; a_bot_manager = NULL; }
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // check if bot manager is latest
+        // -------------------------------------------------
+        const waflz_pb::bot_manager* l_old_pb = i_t->second->get_pb();
+        const waflz_pb::bot_manager* l_new_pb = a_bot_manager->get_pb();
+        if ((l_old_pb != NULL) &&
+           (l_new_pb != NULL) &&
+           (l_old_pb->has_last_modified_date()) &&
+           (l_new_pb->has_last_modified_date()))
+        {
+                if (!compare_dates(l_old_pb->last_modified_date().c_str(),
+                                  l_new_pb->last_modified_date().c_str()))
+                {
+                        if (a_bot_manager) { delete a_bot_manager; a_bot_manager = NULL; }
+                        return WAFLZ_STATUS_OK;
+                }
+        }
+        if (i_t->second) { delete i_t->second; i_t->second = NULL;}
+        i_t->second = a_bot_manager;
+        // -------------------------------------------------
+        // update scope's reserved fields
+        // -------------------------------------------------
+        for(int i_s = 0; i_s < m_pb->scopes_size(); ++i_s)
+        {
+                ::waflz_pb::scope& l_sc = *(m_pb->mutable_scopes(i_s));
+                if (l_sc.has_bot_manager_config_id() &&
+                   l_sc.bot_manager_config_id() == l_id)
+                {
+                        l_sc.set__bot_manager_config__reserved((uint64_t)a_bot_manager);
+                }
+        }
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t scopes::load_profile(ns_waflz::profile* a_profile)
 {
         if (!a_profile)
@@ -1880,7 +1985,30 @@ limits:
                 }
         }
         // -------------------------------------------------
-        // bots
+        // bot manager
+        // -------------------------------------------------
+        if ((a_part_mk & PART_MK_BOTS) &&
+            a_scope.has__bot_manager_config__reserved())
+        {
+                bot_manager* l_bot_manager = (bot_manager*)a_scope._bot_manager_config__reserved();
+                waflz_pb::event* l_event = NULL;
+                int32_t l_s;
+                l_s = l_bot_manager->process(&l_event, ao_enf, a_ctx, ao_rqst_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        if(l_event) { delete l_event; l_event = NULL; }
+                        WAFLZ_PERROR(m_err_msg, "%s", l_bot_manager->get_err_msg());
+                        return WAFLZ_STATUS_ERROR;
+                }
+                if(!l_event)
+                {
+                        goto prod_rules;
+                }
+                *ao_prod_event = l_event;
+                goto done;
+        }
+        // -------------------------------------------------
+        // bots - to be deprecated
         // -------------------------------------------------
         if ((a_part_mk & PART_MK_BOTS) &&
            a_scope.has__bots_prod__reserved())
@@ -1890,10 +2018,9 @@ limits:
                 // -----------------------------------------
                 bots* l_bots = (bots*)a_scope._bots_prod__reserved();
                 waflz_pb::event *l_event = NULL;
-                waflz_pb::enforcement *l_repdb_enf = NULL;
-                const waflz_pb::enforcement *l_scope_enf = &(a_scope.bots_prod_action());
+                const waflz_pb::enforcement *l_enf = &(a_scope.bots_prod_action());
                 int32_t l_s;
-                l_s = l_bots->process(&l_event, a_ctx, &l_repdb_enf, &l_scope_enf, ao_rqst_ctx);
+                l_s = l_bots->process(&l_event, a_ctx, ao_rqst_ctx);
                 if (l_s != WAFLZ_STATUS_OK)
                 {
                         if (l_event) { delete l_event; l_event = NULL; }
@@ -1904,17 +2031,39 @@ limits:
                 {
                         goto prod_rules;
                 }
+                bool l_pass = false;
+                if(l_enf->enf_type() == waflz_pb::enforcement_type_t_BROWSER_CHALLENGE)
+                {
+                        // -------------------------
+                        // check cookie
+                        // verify browser challenge
+                        // -------------------------
+                        // default to valid for 10 min
+                        uint32_t l_valid_for_s = 600;
+                        if(l_enf->has_valid_for_sec())
+                        {
+                                l_valid_for_s = l_enf->valid_for_sec();
+                        }
+                        int32_t l_s;
+                        l_s = m_challenge.verify(l_pass, l_valid_for_s, *ao_rqst_ctx, &l_event);
+                        if(l_s != WAFLZ_STATUS_OK)
+                        {
+                                // do nothing -re-issue challenge bye sending an event
+                        }
+                        if(l_pass)
+                        {
+                                // Challenge passed, move on to next step
+                                if(l_event) { delete l_event; l_event =  NULL; }
+                                goto prod_rules;
+                        }
+                        l_event->set_token_duration_sec(l_valid_for_s);
+                }
                 l_event->set_bots_config_id(l_bots->get_id());
                 l_event->set_bots_config_name(l_bots->get_name());
                 *ao_prod_event = l_event;
-                if (l_repdb_enf)
+                if (a_scope.has_bots_prod_action())
                 {
-                        *ao_enf = l_repdb_enf;
-                }
-                else if (a_scope.has_bots_prod_action() &&
-                        !(*ao_rqst_ctx)->m_bot_repdb_enf)
-                {
-                        *ao_enf = l_scope_enf;
+                        *ao_enf = l_enf;
                         if ((*ao_enf)->has_status())
                         {
                                 (*ao_rqst_ctx)->m_resp_status = (*ao_enf)->status();

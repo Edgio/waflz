@@ -71,11 +71,16 @@ message scope {
         optional uint64 _profile_prod__reserved = 3110;
         optional enforcement profile_prod_action = 3120;
         // -------------------------------------------------
-        // bot
+        // bots_prod_id and action - to be deprecated
         // -------------------------------------------------
         optional string bots_prod_id = 3121;
         optional uint64 _bots_prod__reserved = 3122;
         optional enforcement bots_prod_action = 3123;
+        // -------------------------------------------------
+        // bot_manager_config
+        // -------------------------------------------------
+        optional string bot_manager_config_id = 3124;
+        optional uint64 _bot_manager_config__reserved = 3125;
         // -------------------------------------------------
         // limits
         // -------------------------------------------------

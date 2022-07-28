@@ -2317,40 +2317,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // -------------------------------------------------
         // intercept status
         // -------------------------------------------------
-        // -------------------------------------------------
-        // Special logic for handling bot rules:
-        // auditlog+pass  = log req + allow req
-        // auditlog+block = log req + custom action for auth
-        // auditlog+deny  = log req + block req
-        // -------------------------------------------------
-        if(l_action.has_auditlog())
-        {
-                switch (l_action.action_type())
-                {
-                case ::waflz_pb::sec_action_t_action_type_t_PASS:
-                {
-                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_OK);
-                        break;
-                }
-                case ::waflz_pb::sec_action_t_action_type_t_BLOCK:
-                {
-                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_AUTHENTICATION_REQUIRED);
-                        break;
-                }
-                // Rules that outright want to deny request
-                case ::waflz_pb::sec_action_t_action_type_t_DENY:
-                {
-                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
-                        break;
-                }
-                default:
-                        l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
-                }
-        }
-        else
-        {
-                l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
-        }
+        l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
 #define CAP_LEN(_len) (_len > 1024 ? 1024: _len)
         waflz_pb::event::var_t* l_m_var = NULL;
         // -------------------------------------------------

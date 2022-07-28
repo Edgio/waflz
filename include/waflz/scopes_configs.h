@@ -60,6 +60,7 @@ public:
         int32_t load_acl(const char* a_buf, uint32_t a_buf_len);
         int32_t load_limit(const char* a_buf, uint32_t a_buf_len);
         int32_t load_rules(const char* a_buf, uint32_t a_buf_len);
+        int32_t load_bot_manager(const char* a_buf, uint32_t a_buf_len);
         int32_t load_bots(const char* a_buf, uint32_t a_buf_len);
         int32_t load_profile(const char* a_buf, uint32_t a_buf_len);
         int32_t process(waflz_pb::enforcement **ao_enf,
@@ -92,6 +93,7 @@ private:
         int32_t load_limit(void* a_js);
         int32_t load_rules(void* a_js);
         int32_t load_bots(void* a_js);
+        int32_t load_bot_manager(void* a_js);
         int32_t load_profile(void* a_js);
         // -------------------------------------------------
         // Private members

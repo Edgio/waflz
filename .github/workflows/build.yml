@@ -12,7 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-18.04, macos-latest]
+        os: [ubuntu-22.04, ubuntu-20.04, ubuntu-18.04, macos-latest]
         build: [debug, release]
       fail-fast: false
 
@@ -24,7 +24,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install Ubuntu dependencies
-      if: matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-18.04'
+      if: matrix.os == 'ubuntu-22.04' || matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-18.04'
       run: |
         sudo apt-get update
         sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev rapidjson-dev

@@ -1045,6 +1045,8 @@ sd_iso_check:
         // -------------------------------------------------
         // subdivision
         // -------------------------------------------------
+        bool l_match_1= false;
+        bool l_match_2 = false;
         if (m_sd_iso_blacklist.size() && 
                 l_buf &&
                 l_buf_len &&
@@ -1054,23 +1056,24 @@ sd_iso_check:
                 a_ctx.m_geo_cn2.m_len)
         {
                 std::string l_sd1_str;
+                std::string l_sd2_str;
                 l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
                 l_sd1_str += "-";
                 l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                l_match_1 = (m_sd_iso_blacklist.find(l_sd1_str) != m_sd_iso_blacklist.end());
                 if (a_ctx.m_src_sd2_iso.m_data &&
                    a_ctx.m_src_sd2_iso.m_len)
                 {
-                        std::string l_sd2_str;
                         l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
                         l_sd2_str += "-";
                         l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
-                        if (m_sd_iso_blacklist.find(l_sd2_str) == m_sd_iso_blacklist.end() && 
-                                m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
+                        l_match_2 = (m_sd_iso_blacklist.find(l_sd2_str) != m_sd_iso_blacklist.end());
+                        if (!l_match_1 && !l_match_2)
                         {
                                 goto asn_check;
                         } 
                 }
-                else if (m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
+                else if (!l_match_1)
                 {
                         goto asn_check;
                 }
@@ -1082,20 +1085,34 @@ sd_iso_check:
                 // -----------------------------------------
                 // subevent
                 // -----------------------------------------
-                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
-                l_sevent->set_rule_id(80013);
-                l_sevent->set_rule_msg("Blacklist Subdivision match");
-                l_sevent->set_rule_op_name("sd_iso_Lookup");
-                l_sevent->set_rule_op_param("");
-                l_sevent->add_rule_tag("BLACKLIST/Subdivision");
-                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
-                l_rule_target->set_name("TX");
-                l_rule_target->set_param("REAL_IP");
-                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
-                l_var->set_name("GEO:Subdivision");
-                //char l_asn_str[16];
-                //snprintf(l_asn_str, 16, "AS%u", a_ctx.m_src_asn);
-                //l_var->set_value(l_asn_str);
+                if(l_match_1) {
+                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                        l_sevent->set_rule_id(80013);
+                        l_sevent->set_rule_msg("Blacklist Subdivision match");
+                        l_sevent->set_rule_op_name("sd_iso_Lookup");
+                        l_sevent->set_rule_op_param("");
+                        l_sevent->add_rule_tag("BLACKLIST/Subdivision");
+                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                        l_rule_target->set_name("TX");
+                        l_rule_target->set_param("REAL_IP");
+                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                        l_var->set_name("GEO:Subdivision");
+                        l_var->set_value(l_sd1_str);
+                }
+                if(l_match_2) {
+                        ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                        l_sevent->set_rule_id(80013);
+                        l_sevent->set_rule_msg("Blacklist Subdivision match");
+                        l_sevent->set_rule_op_name("sd_iso_Lookup");
+                        l_sevent->set_rule_op_param("");
+                        l_sevent->add_rule_tag("BLACKLIST/Subdivision");
+                        ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                        l_rule_target->set_name("TX");
+                        l_rule_target->set_param("REAL_IP");
+                        ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                        l_var->set_name("GEO:Subdivision");
+                        l_var->set_value(l_sd2_str);
+                }
                 *ao_event = l_event;
                 return WAFLZ_STATUS_OK;
         }

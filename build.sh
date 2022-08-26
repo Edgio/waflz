@@ -64,7 +64,6 @@ main() {
     make test && \
     umask 0022 && chmod -R a+rX . && \
     make package && \
-    make release && \
     popd && \
     exit $?
 }

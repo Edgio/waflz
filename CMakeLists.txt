@@ -312,10 +312,6 @@ if(BUILD_ASAN)
 else()
     SET(RELEASE_PACKAGE_FILE_NAME "waflz_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb")
 endif()
-add_custom_target(release
-    COMMAND ${CMAKE_SOURCE_DIR}/support/deb2tar.sh -d ${CMAKE_BINARY_DIR}/${RELEASE_PACKAGE_FILE_NAME}
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
 # ------------------------------------------------------------------------------
 # docs
 # ------------------------------------------------------------------------------

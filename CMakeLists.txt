@@ -20,6 +20,7 @@ option(BUILD_REDIS          "Build support for redis" OFF)
 option(BUILD_UBUNTU         "Build for Ubuntu" OFF)
 option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
 option(BUILD_REDHAT         "Build for Red Hat" OFF)
+option(BUILD_CUSTOM_CAPLENMAX  "Build with custom CAP_LEN maximum" OFF)
 # ------------------------------------------------------------------------------
 # Add the corrent -std flag, whatever it is
 # ------------------------------------------------------------------------------
@@ -70,6 +71,7 @@ message("    Build support for redis:                   " "BUILD_REDIS          
 message("    Build for Ubuntu (adds package help):      " "BUILD_UBUNTU            " ${BUILD_UBUNTU})
 message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
 message("    Build for Red Hat:                         " "BUILD_REDHAT            " ${BUILD_REDHAT})
+message("    Build with custom CAP_LEN maximum:         " "BUILD_CUSTOM_CAPLENMAX  " ${BUILD_CUSTOM_CAPLENMAX})
 message("")
 # ------------------------------------------------------------------------------
 # Fortify Options
@@ -109,6 +111,14 @@ endif()
 if(BUILD_REDHAT)
   set(LIBRARIES ${LIBRARIES} ssl crypto pcre protobuf xml2)
   add_definitions(-DWAFLZ_PCRE_INFO_FLAGS_MISSING)
+endif()
+# ------------------------------------------------------------------------------
+# special build case for CUSTOM_CAPLENMAX
+# ------------------------------------------------------------------------------
+if(BUILD_CUSTOM_CAPLENMAX)
+  add_definitions(-DWAFLZ_CUSTOM_CAPLENMAX=${BUILD_CUSTOM_CAPLENMAX})
+else()
+  add_definitions(-DWAFLZ_CUSTOM_CAPLENMAX=1024)
 endif()
 # ------------------------------------------------------------------------------
 # Mac OS X

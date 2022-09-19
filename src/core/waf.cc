@@ -2318,7 +2318,7 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         // intercept status
         // -------------------------------------------------
         l_sub_event->set_rule_intercept_status(HTTP_STATUS_FORBIDDEN);
-#define CAP_LEN(_len) (_len > 1024 ? 1024: _len)
+#define CAP_LEN(_len) (_len > WAFLZ_CUSTOM_CAPLENMAX ? WAFLZ_CUSTOM_CAPLENMAX: _len)
         waflz_pb::event::var_t* l_m_var = NULL;
         // -------------------------------------------------
         // matched var

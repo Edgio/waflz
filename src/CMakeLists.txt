@@ -246,7 +246,6 @@ SET(HDRS
     # support
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/src/support/file_util.h
-    ${CMAKE_SOURCE_DIR}/src/support/curl_util.h
 
 
 )
@@ -279,7 +278,6 @@ target_include_directories(waflzcore PUBLIC
     ${CMAKE_BINARY_DIR}
 )
 target_link_libraries(waflz
-    curl
     ssl
     crypto
     pcre

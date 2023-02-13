@@ -2543,7 +2543,7 @@ int32_t config_parser::get_action_string(std::string &ao_str,
         if(a_sec_action.has_##_a_key()) \
         {\
                 char __buf[64];\
-                sprintf(__buf, "%u", a_sec_action._a_key());\
+                snprintf(__buf, 64, "%u", a_sec_action._a_key());\
                 ao_str += #_a_key;\
                 ao_str += ":";\
                 ao_str += __buf;\
@@ -2553,7 +2553,7 @@ int32_t config_parser::get_action_string(std::string &ao_str,
         if(a_sec_action.has_##_a_key()) \
         {\
                 char __buf[64];\
-                sprintf(__buf, "%u", a_sec_action._a_key());\
+                snprintf(__buf, 64, "%u", a_sec_action._a_key());\
                 ao_str += #_a_key;\
                 ao_str += ":'";\
                 ao_str += __buf;\

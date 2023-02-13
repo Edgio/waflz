@@ -102,7 +102,6 @@ SET(SRCS
     support/trace.cc
     support/ndebug.cc
     support/base64.cc
-    support/curl_util.cc
     # ------------------------------------------------------
     # db
     # ------------------------------------------------------

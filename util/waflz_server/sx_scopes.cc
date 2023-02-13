@@ -48,19 +48,16 @@ namespace ns_waflz_server {
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
 sx_scopes::sx_scopes(ns_waflz::engine& a_engine,
-                     ns_waflz::kv_db &a_db,
-                     ns_waflz::challenge& a_challenge):
+                     ns_waflz::kv_db &a_db):
         m_bg_load(false),
         m_is_rand(false),
         m_engine(a_engine),
         m_db(a_db),
-        m_challenge(a_challenge),
         m_conf_dir(),
         m_scopes_configs(NULL),
         m_update_scopes_h(NULL),
         m_update_acl_h(NULL),
         m_update_rules_h(NULL),
-        m_update_bots_h(NULL),
         m_update_profile_h(NULL),
         m_update_limit_h(NULL)
 {
@@ -76,7 +73,6 @@ sx_scopes::~sx_scopes(void)
         if(m_update_scopes_h) { delete m_update_scopes_h; m_update_scopes_h = NULL; }
         if(m_update_acl_h) { delete m_update_acl_h; m_update_acl_h = NULL; }
         if(m_update_rules_h) { delete m_update_rules_h; m_update_rules_h = NULL; }
-        if(m_update_bots_h) { delete m_update_bots_h; m_update_bots_h = NULL; }
         if(m_update_profile_h) { delete m_update_profile_h; m_update_profile_h = NULL; }
         if(m_update_limit_h) {delete m_update_limit_h; m_update_limit_h = NULL; }
         if(m_scopes_configs) { delete m_scopes_configs; m_scopes_configs = NULL; }
@@ -91,7 +87,7 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         // create scope configs
         // -------------------------------------------------
-        m_scopes_configs = new ns_waflz::scopes_configs(m_engine, m_db, m_challenge, false);
+        m_scopes_configs = new ns_waflz::scopes_configs(m_engine, m_db, false);
         m_scopes_configs->set_conf_dir(m_conf_dir);
         // -------------------------------------------------
         // enable locking
@@ -162,11 +158,6 @@ int32_t sx_scopes::init(void)
         // -------------------------------------------------
         m_update_rules_h = new update_entity_h<ENTITY_TYPE_RULES>(m_scopes_configs, m_bg_load);
         m_lsnr->add_route("/update_rules", m_update_rules_h);
-        // -------------------------------------------------
-        // bots
-        // -------------------------------------------------
-        m_update_bots_h = new update_entity_h<ENTITY_TYPE_BOTS>(m_scopes_configs, m_bg_load);
-        m_lsnr->add_route("/update_bots", m_update_bots_h);
         // -------------------------------------------------
         // profile
         // -------------------------------------------------

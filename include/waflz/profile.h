@@ -14,6 +14,7 @@
 //! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/resp_ctx.h"
 #include <string>
 #include <list>
 #include <set>
@@ -55,6 +56,7 @@ public:
         profile(engine &a_engine);
         ~profile();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, rqst_ctx **ao_rqst_ctx = NULL);
+        int32_t process_response(waflz_pb::event **ao_event, void *a_ctx, part_mk_t a_part_mk, resp_ctx **ao_resp_ctx = NULL);
         int32_t load(const char *a_buf, uint32_t a_buf_len);
         int32_t load(void* a_js);
         int32_t load(const waflz_pb::profile *a_pb);
@@ -112,11 +114,6 @@ private:
         pcre_list_t m_il_query;
         pcre_list_t m_il_header;
         pcre_list_t m_il_cookie;
-        // -------------------------------------------------
-        // friends
-        // -------------------------------------------------
-        friend class instance;
-        friend class acl;
 };
 }
 #endif

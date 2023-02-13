@@ -40,6 +40,10 @@
   #define WAFLZ_STATUS_ERROR -1
 #endif
 
+#ifndef WAFLZ_STATUS_WAIT
+  #define WAFLZ_STATUS_WAIT 1
+#endif
+
 #ifndef WAFLZ_ERR_LEN
   #define WAFLZ_ERR_LEN 4096
 #endif
@@ -62,6 +66,9 @@
   snprintf(_str, WAFLZ_ERR_LEN, __VA_ARGS__); \
 } while(0)
 #endif
+#ifndef DATA_T_EXIST
+#define DATA_T_EXIST(_data_t) ( (_data_t.m_len > 0) && _data_t.m_data)
+#endif
 //! ----------------------------------------------------------------------------
 //! types
 //! ----------------------------------------------------------------------------
@@ -72,9 +79,15 @@ typedef enum {
         PART_MK_WAF = 2,
         PART_MK_RULES = 4,
         PART_MK_LIMITS = 8,
-        PART_MK_BOTS = 16,
-        PART_MK_ALL = 31
+        PART_MK_ALL = 63,
 } part_mk_t;
+struct cx_case_i_comp
+{
+        bool operator() (const std::string& lhs, const std::string& rhs) const
+        {
+                return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+        }
+};
 #endif
 //! ----------------------------------------------------------------------------
 //! constants
@@ -90,8 +103,21 @@ typedef int32_t (*get_rqst_data_w_key_cb_t)(const char **, uint32_t *, void *, c
 typedef int32_t (*get_rqst_kv_w_idx_cb_t)(const char **, uint32_t *, const char **, uint32_t *, void *, uint32_t);
 typedef int32_t (*get_rqst_body_data_cb_t)(char *, uint32_t *, bool* , void *, uint32_t);
 
+//response callbacks
+typedef int32_t (*get_resp_data_size_cb_t)(uint32_t *a, void *);
+typedef int32_t (*get_resp_data_cb_t)(const char **, uint32_t *, void *);
+typedef int32_t (*get_resp_data_w_key_cb_t)(const char **, uint32_t *, void *, const char *, uint32_t);
+typedef int32_t (*get_resp_kv_w_idx_cb_t)(const char **, uint32_t *, const char **, uint32_t *, void *, uint32_t);
+typedef int32_t (*get_resp_body_data_cb_t)(char **, uint32_t *, bool* , void *, uint32_t);
+
 #ifdef __cplusplus
 typedef int32_t (*get_data_cb_t)(std::string&, uint32_t *);
+typedef int32_t (*get_data_subr_t)(const std::string&, 
+                                   const std::string&,
+                                   std::string&,
+                                   void*,
+                                   void*,
+                                   int);
 typedef struct _data {
         const char *m_data;
         uint32_t m_len;
@@ -122,6 +148,12 @@ struct data_case_i_comp
 {
         bool operator()(const data_t& lhs, const data_t& rhs) const
         {
+                //! ----------------------------------------
+                //! NOTE: will match on substrings
+                //! is this an issue?
+                //!
+                //! ex: sub == substring
+                //! ----------------------------------------
                 uint32_t l_len = lhs.m_len > rhs.m_len ? rhs.m_len : lhs.m_len;
                 return strncasecmp(lhs.m_data, rhs.m_data, l_len) < 0;
         }
@@ -169,9 +201,11 @@ struct data_t_case_hash
                    !l_data ||
                    !l_data_len)
                 {
-                        //can't return ERROR from operator,
-                        //so using length as hash value for
-                        //edge cases
+                        // ---------------------------------
+                        // can't return ERROR from operator
+                        // so using length as hash value 
+                        // for edge cases
+                        // ---------------------------------
                         return a_key.m_len;
                 }
                 size_t l_hash = CityHash64(l_data, l_data_len);
@@ -179,7 +213,9 @@ struct data_t_case_hash
                 return l_hash; 
         }
 };
+// ---------------------------------------------------------
 // version string
+// ---------------------------------------------------------
 const char *get_version(void);
 }
 #endif

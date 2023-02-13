@@ -36,14 +36,12 @@ def setup_waflz_server_action():
     l_ruleset_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/ruleset'))
     l_scopez_dir = os.path.realpath(os.path.join(l_file_path, '../../data/waf/conf/scopes'))
     l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
-    l_challenge = os.path.realpath(os.path.join(l_file_path, '../../data/bot/bot-challenges.json'))
     l_subproc = subprocess.Popen([l_waflz_server_path,
                                   '-d', l_conf_dir,
                                   '-b', l_scopez_dir,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
-                                  '-c', l_challenge,
                                   '-j'
                                   ])
     print('cmd: {}'.format(' '.join([l_waflz_server_path,
@@ -52,7 +50,6 @@ def setup_waflz_server_action():
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
                                   '-s', l_geoip2ISP_path,
-                                  '-c', l_challenge,
                                   '-j'])))
                                   # '-b'])))
     time.sleep(1)
@@ -462,74 +459,3 @@ def test_scopes_linkage_update(setup_waflz_server_action):
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'This is rules custom response\n'
-# ------------------------------------------------------------------------------
-# test /update_bots endpoint
-# ------------------------------------------------------------------------------
-def test_update_bots_endpoint(setup_waflz_server_action):
-    l_url = G_TEST_HOST + '/update_bots'
-    l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_test_file = os.path.realpath(os.path.join(l_file_path,
-                                                '../../data/waf/conf/bots/0052-wHyMHxV7.bots.json'))
-    l_test_payload = ''
-    # ------------------------------------------------------
-    # check setup
-    # ------------------------------------------------------
-    assert os.path.exists(l_test_file), 'test file not found!'
-    # ------------------------------------------------------
-    # slurp test file
-    # ------------------------------------------------------
-    with open(l_test_file) as l_tf:
-        l_test_payload = l_tf.read()
-    # ------------------------------------------------------
-    # check setup
-    # ------------------------------------------------------
-    assert l_test_payload, 'payload is empty!'
-    l_json_payload = json.loads(l_test_payload)
-    # ------------------------------------------------------
-    # Check that challenge works
-    # ------------------------------------------------------
-    l_uri = G_TEST_HOST+'/test.html'
-    l_headers = {'host': 'mybot.com',
-                 'user-agent': 'bot-testing',
-                 'waf-scopes-id': '0052'}
-    l_r = requests.get(l_uri, headers=l_headers)
-    assert l_r.status_code == 401
-    # ------------------------------------------------------
-    # Update the bot config
-    # ------------------------------------------------------
-    l_json_payload['directive'][0]['sec_rule']['operator']['value'] = 'chowdah'
-    # ------------------------------------------------------
-    # update the timestamp, else it will silently do nothing and return 200
-    # ref: scopes.cc:load_bots (compare time)
-    # ------------------------------------------------------
-    l_json_payload['last_modified_date'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
-    l_result = requests.post(l_url, timeout=3, json=l_json_payload)
-    assert l_result.status_code == 200
-    assert l_result.json()['status'] == 'success'
-    # ------------------------------------------------------
-    # Expect 200
-    # ------------------------------------------------------
-    l_uri = G_TEST_HOST+'/test.html'
-    l_headers = {'host': 'mybot.com',
-                 'user-agent': 'bot-testing',
-                 'waf-scopes-id': '0052'}
-    l_r = requests.get(l_uri, headers=l_headers)
-    assert l_r.status_code == 200,\
-        "expecting 200, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
-    # ------------------------------------------------------
-    # Expect 401 due to new UA
-    # ------------------------------------------------------
-    l_uri = G_TEST_HOST+'/test.html'
-    l_headers = {'host': 'mybot.com',
-                 'user-agent': 'chowdah',
-                 'waf-scopes-id': '0052'}
-    l_r = requests.get(l_uri, headers=l_headers)
-    assert l_r.status_code == 401,\
-        "expecting 401, got {resp_code} since user-agent changed to chowdah".format(resp_code=l_r.status_code)
-    # ------------------------------------------------------
-    # check negative test - missing customer_id field
-    # ------------------------------------------------------
-    l_cust_id = l_json_payload.pop('customer_id')
-    l_n2_result = requests.post(l_url, json=l_json_payload)
-    assert l_n2_result.status_code == 500,\
-        'expected 500 since customer_id {} is removed'.format(l_cust_id)

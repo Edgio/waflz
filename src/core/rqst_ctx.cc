@@ -17,6 +17,7 @@
 #include "waflz/string_util.h"
 #include "core/decode.h"
 #include "op/regex.h"
+#include "op/nms.h"
 #include "support/ndebug.h"
 #include "support/time_util.h"
 #include "parser/parser_url_encoded.h"
@@ -40,13 +41,12 @@
                         return WAFLZ_STATUS_ERROR; \
                 } \
         } \
-} while(0)
+} while (0)
 namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 //! static
 //! ----------------------------------------------------------------------------
 uint32_t rqst_ctx::s_body_arg_len_cap = _DEFAULT_BODY_ARG_LEN_CAP;
-get_data_cb_t rqst_ctx::s_get_bot_ch_prob = NULL;
 //! ----------------------------------------------------------------------------
 //! \details TODO
 //! \return  TODO
@@ -57,7 +57,7 @@ static bool key_in_ignore_list(const pcre_list_t &a_pcre_list,
                                uint32_t a_data_len)
 {
         bool l_match = false;
-        for(pcre_list_t::const_iterator i_c = a_pcre_list.begin();
+        for (pcre_list_t::const_iterator i_c = a_pcre_list.begin();
             i_c != a_pcre_list.end();
             ++i_c)
         {
@@ -71,7 +71,9 @@ static bool key_in_ignore_list(const pcre_list_t &a_pcre_list,
                 // match?
                 // -----------------------------------------
                 l_s = l_regex->compare(a_data, a_data_len);
+                // -----------------------------------------
                 // We have a match
+                // -----------------------------------------
                 if (l_s >= 0)
                 {
                        l_match = true;
@@ -91,7 +93,7 @@ static int32_t remove_ignored(arg_list_t &ao_arg_list,
         // -------------------------------------------------
         // strip ignored cookies
         // -------------------------------------------------
-        for(arg_list_t::iterator i_a = ao_arg_list.begin();
+        for (arg_list_t::iterator i_a = ao_arg_list.begin();
             i_a != ao_arg_list.end();)
         {
                 bool l_m = false;
@@ -100,10 +102,14 @@ static int32_t remove_ignored(arg_list_t &ao_arg_list,
                                          i_a->m_key_len);
                 if (l_m)
                 {
+                        // ---------------------------------
                         // free alloc'd buffers
+                        // ---------------------------------
                         if (i_a->m_key) { free(i_a->m_key); i_a->m_key = NULL; i_a->m_key_len = 0; }
                         if (i_a->m_val) { free(i_a->m_val); i_a->m_val = NULL; i_a->m_val_len = 0; }
+                        // ---------------------------------
                         // remove from list
+                        // ---------------------------------
                         ao_arg_list.erase(i_a++);
                         continue;
                 }
@@ -122,7 +128,7 @@ static int32_t remove_ignored_const(const_arg_list_t &ao_arg_list,
         // -------------------------------------------------
         // strip ignored cookies
         // -------------------------------------------------
-        for(const_arg_list_t::iterator i_a = ao_arg_list.begin();
+        for (const_arg_list_t::iterator i_a = ao_arg_list.begin();
             i_a != ao_arg_list.end();)
         {
                 bool l_m = false;
@@ -247,8 +253,6 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_body_data(NULL),
         m_body_len(0),
         m_content_length(0),
-        m_parse_xml(a_parse_xml),
-        m_parse_json(a_parse_json),
         m_cookie_mutated(),
         m_req_uuid(),
         m_bytes_out(0),
@@ -257,6 +261,7 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_resp_status(0),
         m_signal_enf(0),
         m_log_request(false),
+        m_use_spoof_ip(false),
         m_limit(NULL),
         m_body_parser(),
         // -------------------------------------------------
@@ -274,9 +279,14 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         m_intercepted(false),
         m_wl_audit(false),
         m_wl_prod(false),
+        m_inspect_body(true),
+        m_json_body(false),
+        m_xml_body(false),
+        m_url_enc_body(false),
         m_skip(0),
         m_skip_after(NULL),
         m_event(NULL),
+        m_inspect_response(false),
         // -------------------------------------------------
         // *************************************************
         // xml optimization
@@ -289,15 +299,10 @@ rqst_ctx::rqst_ctx(void *a_ctx,
         // extensions
         // *************************************************
         // -------------------------------------------------
-        m_src_asn(0),
         m_src_asn_str(),
-        m_geo_cn2(),
-        m_src_sd1_iso(),
-        m_src_sd2_iso(),
+        m_geo_cc_sd(),
+        m_geo_data(),
         m_xml_capture_xxe(true),
-        m_bot_ch(),
-        m_bot_js(),
-        m_ans(0),
         m_ctx(a_ctx)
 {
 }
@@ -311,7 +316,7 @@ rqst_ctx::~rqst_ctx()
         // -------------------------------------------------
         // delete query args
         // -------------------------------------------------
-        for(arg_list_t::iterator i_q = m_query_arg_list.begin();
+        for (arg_list_t::iterator i_q = m_query_arg_list.begin();
             i_q != m_query_arg_list.end();
             ++i_q)
         {
@@ -321,7 +326,7 @@ rqst_ctx::~rqst_ctx()
         // -------------------------------------------------
         // delete body args
         // -------------------------------------------------
-        for(arg_list_t::iterator i_q = m_body_arg_list.begin();
+        for (arg_list_t::iterator i_q = m_body_arg_list.begin();
             i_q != m_body_arg_list.end();
             ++i_q)
         {
@@ -344,11 +349,11 @@ rqst_ctx::~rqst_ctx()
         // -------------------------------------------------
         if (m_xpath_cache_map)
         {
-                for(xpath_cache_map_t::iterator i_p = m_xpath_cache_map->begin();
+                for (xpath_cache_map_t::iterator i_p = m_xpath_cache_map->begin();
                     i_p != m_xpath_cache_map->end();
                     ++i_p)
                 {
-                        for(xpath_arg_list_t::iterator i_s = i_p->second.begin();
+                        for (xpath_arg_list_t::iterator i_s = i_p->second.begin();
                             i_s != i_p->second.end();
                             ++i_s)
                         {
@@ -387,7 +392,7 @@ int32_t rqst_ctx::reset_phase_1()
         // -------------------------------------------------
         if (!m_query_arg_list.empty())
         {
-                for(arg_list_t::iterator i_q = m_query_arg_list.begin();
+                for (arg_list_t::iterator i_q = m_query_arg_list.begin();
                     i_q != m_query_arg_list.end();
                     ++i_q)
                 {
@@ -455,10 +460,12 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         // -------------------------------------------------
         // src addr
         // -------------------------------------------------
-        if (m_callbacks && m_callbacks->m_get_rqst_src_addr_cb)
+        if (m_callbacks && m_callbacks->m_get_rqst_src_addr_cb && !m_use_spoof_ip)
         {
                 int32_t l_s;
+                // -----------------------------------------
                 // get src address
+                // -----------------------------------------
                 l_s = m_callbacks->m_get_rqst_src_addr_cb(&m_src_addr.m_data,
                                              &m_src_addr.m_len,
                                              m_ctx);
@@ -469,73 +476,18 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                 }
         }
         // -------------------------------------------------
-        // country code
+        // Gather country code, sd1, sd2, is_anonymous_proxy
+        // for mmdb
+        //
+        // NOTE: subdiv iso = m_geo_cn2 + "-" + get_sd_iso
         // -------------------------------------------------
-        if (m_src_addr.m_data &&
-           m_src_addr.m_len)
+        if DATA_T_EXIST(m_src_addr)
         {
                 int32_t l_s;
-                m_geo_cn2.m_data = NULL;
-                m_geo_cn2.m_len = 0;
-                l_s = a_geoip2_mmdb.get_country(&m_geo_cn2.m_data,
-                                                m_geo_cn2.m_len,
-                                                m_src_addr.m_data,
-                                                m_src_addr.m_len);
+                l_s = get_geo_data_from_mmdb(a_geoip2_mmdb);
                 if (l_s != WAFLZ_STATUS_OK)
                 {
-                        //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
-                        //            a_geoip2_mmdb.get_err_msg());
-                        // TODO log reason???
-                        // fail is fine...
-                }
-        }
-        // -------------------------------------------------
-        // subdivision iso code
-        // subdiv iso = m_geo_cn2 + "-" + get_sd_iso
-        // -------------------------------------------------
-        if (m_src_addr.m_data &&
-           m_src_addr.m_len)
-        {
-                int32_t l_s;
-                l_s = a_geoip2_mmdb.get_sd_isos(&m_src_sd1_iso.m_data,
-                                                m_src_sd1_iso.m_len,
-                                                &m_src_sd2_iso.m_data,
-                                                m_src_sd2_iso.m_len,
-                                                m_src_addr.m_data,
-                                                m_src_addr.m_len);
-                if (l_s != WAFLZ_STATUS_OK)
-                {
-                        //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
-                        //            a_geoip2_mmdb.get_err_msg());
-                        // TODO log reason???
-                        // fail is fine...
-                }
-        }
-        // -------------------------------------------------
-        // asn
-        // -------------------------------------------------
-        if (m_src_addr.m_data &&
-           m_src_addr.m_len)
-        {
-                int32_t l_s;
-                m_src_asn = 0;
-                l_s = a_geoip2_mmdb.get_asn(m_src_asn,
-                                            m_src_addr.m_data,
-                                            m_src_addr.m_len);
-                if (l_s != WAFLZ_STATUS_OK)
-                {
-                        //NDBG_PRINT("geoip2 country lookup: reason: %s\n",
-                        //           a_geoip2_mmdb.get_err_msg());
-                        // TODO log reason???
-                        // fail is fine...
-                }
-                // -----------------------------------------
-                // converting to str temporarily for str
-                // comparisons...
-                // -----------------------------------------
-                if (m_src_asn)
-                {
-                        m_src_asn_str.m_len = asprintf(&(m_src_asn_str.m_data), "%d", m_src_asn);
+
                 }
         }
         // -------------------------------------------------
@@ -544,7 +496,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if (m_callbacks && m_callbacks->m_get_rqst_local_addr_cb)
         {
                 int32_t l_s;
+                // -----------------------------------------
                 // get src address
+                // -----------------------------------------
                 l_s = m_callbacks->m_get_rqst_local_addr_cb(&m_local_addr.m_data,
                                                &m_local_addr.m_len,
                                                m_ctx);
@@ -560,7 +514,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if (m_callbacks && m_callbacks->m_get_rqst_host_cb)
         {
                 int32_t l_s;
+                // -----------------------------------------
                 // get src address
+                // -----------------------------------------
                 l_s = m_callbacks->m_get_rqst_host_cb(&m_host.m_data,
                                          &m_host.m_len,
                                          m_ctx);
@@ -576,12 +532,16 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if (m_callbacks && m_callbacks->m_get_rqst_port_cb)
         {
                 int32_t l_s;
+                // -----------------------------------------
                 // get request port
+                // -----------------------------------------
                 l_s = m_callbacks->m_get_rqst_port_cb(&m_port,
                                          m_ctx);
                 if (l_s != 0)
                 {
+                        // ---------------------------------
                         // TODO log reason???
+                        // ---------------------------------
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -591,13 +551,17 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if (m_callbacks && m_callbacks->m_get_rqst_scheme_cb)
         {
                 int32_t l_s;
+                // -----------------------------------------
                 // get request scheme
+                // -----------------------------------------
                 l_s = m_callbacks->m_get_rqst_scheme_cb(&m_scheme.m_data,
                                            &m_scheme.m_len,
                                            m_ctx);
                 if (l_s != 0)
                 {
+                        // ---------------------------------
                         // TODO log reason???
+                        // ---------------------------------
                         return WAFLZ_STATUS_ERROR;
                 }
         }
@@ -612,7 +576,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                                                       m_ctx);
                 if (l_s != 0)
                 {
+                        // ---------------------------------
                         // TODO log reason???
+                        // ---------------------------------
                         //return STATUS_ERROR;
                 }
         }
@@ -623,7 +589,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if (s_get_rqst_protocol_cb)
         {
                 int32_t l_s;
-                // get rqst protocol
+                // -----------------------------------------
+                // get request port
+                // -----------------------------------------
                 l_s = s_get_rqst_protocol_cb(&m_protocol.m_data,
                                               m_protocol.m_len,
                                               m_ctx);
@@ -645,7 +613,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if (m_callbacks && m_callbacks->m_get_rqst_line_cb)
         {
                 int32_t l_s;
+                // -----------------------------------------
                 // get request line
+                // -----------------------------------------
                 l_s = m_callbacks->m_get_rqst_line_cb(&m_line.m_data,
                                          &m_line.m_len,
                                          m_ctx);
@@ -661,7 +631,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if (m_callbacks && m_callbacks->m_get_rqst_method_cb)
         {
                 int32_t l_s;
+                // -----------------------------------------
                 // get method
+                // -----------------------------------------
                 l_s = m_callbacks->m_get_rqst_method_cb(&m_method.m_data,
                                            &m_method.m_len,
                                            m_ctx);
@@ -693,7 +665,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if (m_callbacks && m_callbacks->m_get_rqst_uri_cb)
         {
                 int32_t l_s;
+                // -----------------------------------------
                 // get uri
+                // -----------------------------------------
                 l_s = m_callbacks->m_get_rqst_uri_cb(&m_uri.m_data,
                                                      &m_uri.m_len,
                                                      m_ctx);
@@ -750,11 +724,15 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                                 m_file_ext.m_len = m_base.m_len - ((uint32_t)((const char *)l_ptr - m_base.m_data));
                         }
                 }
+                // -----------------------------------------
                 // parse query args
+                // -----------------------------------------
                 if (m_query_str.m_data &&
                    m_query_str.m_len)
                 {
+                        // ---------------------------------
                         // parse args
+                        // ---------------------------------
                         uint32_t l_invalid_cnt = 0;
                         l_s = parse_args(m_query_arg_list,
                                          l_invalid_cnt,
@@ -786,7 +764,9 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
         if (m_callbacks && m_callbacks->m_get_rqst_url_cb)
         {
                 int32_t l_s;
+                // -----------------------------------------
                 // get uri
+                // -----------------------------------------
                 l_s = m_callbacks->m_get_rqst_url_cb(&m_url.m_data,
                                         &m_url.m_len,
                                         m_ctx);
@@ -809,7 +789,7 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                         //WAFLZ_PERROR(m_err_msg, "performing s_get_rqst_header_size_cb");
                 }
         }
-        for(uint32_t i_h = 0; i_h < l_hdr_size; ++i_h)
+        for (uint32_t i_h = 0; i_h < l_hdr_size; ++i_h)
         {
                 const_arg_t l_hdr;
                 if (!m_callbacks || !m_callbacks->m_get_rqst_header_w_idx_cb)
@@ -865,7 +845,7 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                         m_cookie_mutated.clear();
                         uint32_t i_c_idx = 0;
                         uint32_t l_c_len = m_cookie_list.size();
-                        for(const_arg_list_t::const_iterator i_c = m_cookie_list.begin();
+                        for (const_arg_list_t::const_iterator i_c = m_cookie_list.begin();
                             i_c != m_cookie_list.end();
                             ++i_c, ++i_c_idx)
                         {
@@ -930,7 +910,10 @@ int32_t rqst_ctx::init_phase_1(geoip2_mmdb &a_geoip2_mmdb,
                 {
                         parse_content_type(m_content_type_list, &l_hdr);
                 }
-                // Get content-length, to be verified in phase 2
+                // -----------------------------------------
+                // Get content-length, to be verified 
+                // in phase 2
+                // -----------------------------------------
                 if (strncasecmp(l_hdr.m_key, "Content-Length", sizeof("Content-Length") - 1) == 0)
                 {
                         m_content_length = strntoul(l_hdr.m_val , l_hdr.m_val_len, NULL, 10);
@@ -1021,8 +1004,18 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 m_init_phase_2 = true;
                 return WAFLZ_STATUS_OK;
         }
+        // -------------------------------------------------
+        // check for callback. Exit early
+        // -------------------------------------------------
+        if (!m_callbacks->m_get_rqst_body_str_cb)
+        {
+                m_init_phase_2 = true;
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
         // Get the first one from list
         // TODO: may be check through the list?
+        // -------------------------------------------------
         data_t l_type = m_content_type_list.front();
         std::string l_ct;
         l_ct.assign(l_type.m_data, l_type.m_len);
@@ -1041,14 +1034,16 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         // -------------------------------------------------
         // init parser...
         // -------------------------------------------------
-        switch(i_p->second)
+        switch (i_p->second)
         {
         // -------------------------------------------------
         // PARSER_NONE
         // -------------------------------------------------
         case PARSER_NONE:
         {
+                // -----------------------------------------
                 // do nothing...
+                // -----------------------------------------
                 m_init_phase_2 = true;
                 return WAFLZ_STATUS_OK;
         }
@@ -1059,6 +1054,7 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         {
                 m_body_parser = new parser_url_encoded(this);
                 l_is_url_encoded = true;
+                m_url_enc_body = true;
                 break;
         }
         // -------------------------------------------------
@@ -1066,18 +1062,13 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         // -------------------------------------------------
         case PARSER_XML:
         {
-                if (!m_parse_xml)
-                {
-                        // do nothing...
-                        m_init_phase_2 = true;
-                        return WAFLZ_STATUS_OK;
-                }
                 parser_xml* l_parser_xml = new parser_xml(this);
                 // -----------------------------------------
                 // optional set capture xxe
                 // -----------------------------------------
                 l_parser_xml->set_capture_xxe(m_xml_capture_xxe);
                 m_body_parser = l_parser_xml;
+                m_xml_body = true;
                 break;
         }
         // -------------------------------------------------
@@ -1085,13 +1076,8 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         // -------------------------------------------------
         case PARSER_JSON:
         {
-                if (!m_parse_json)
-                {
-                        // do nothing...
-                        m_init_phase_2 = true;
-                        return WAFLZ_STATUS_OK;
-                }
                 m_body_parser = new parser_json(this);
+                m_json_body = true;
                 break;
         }
         // -------------------------------------------------
@@ -1108,14 +1094,18 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         // -------------------------------------------------
         default:
         {
+                // -----------------------------------------
                 // do nothing...
+                // -----------------------------------------
                 m_init_phase_2 = true;
                 return WAFLZ_STATUS_OK;
         }
         }
         if (!m_body_parser)
         {
+                // -----------------------------------------
                 // do nothing...
+                // -----------------------------------------
                 m_init_phase_2 = true;
                 return WAFLZ_STATUS_OK;
         }
@@ -1125,17 +1115,11 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         l_s = m_body_parser->init();
         if (l_s != WAFLZ_STATUS_OK)
         {
+                // -----------------------------------------
                 // do nothing...
+                // -----------------------------------------
                 //NDBG_PRINT("error m_body_parser->init()\n");
                 return WAFLZ_STATUS_ERROR;
-        }
-        // -------------------------------------------------
-        // TODO get request body
-        // -------------------------------------------------
-        if (!m_callbacks->m_get_rqst_body_str_cb)
-        {
-                m_init_phase_2 = true;
-                return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
         // allocate max body size
@@ -1153,7 +1137,7 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         // -------------------------------------------------
         // while body data...
         // -------------------------------------------------
-        while(!l_is_eos &&
+        while (!l_is_eos &&
               (l_rd_count_total < l_body_len))
         {
                 l_rd_count = 0;
@@ -1174,13 +1158,11 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                         continue;
                 }
                 // -------------------------------------------------
-                // if the profile has json parser enabled, check for
-                // mismatch between content-type and actual content
-                // We only check for json structure. Can extend it to
-                // xml if this fixes some false positives
+                // check for mismatch between content-type and actual
+                // content. We only check for json structure. Can
+                // extend it to xml if this fixes some false positives
                 // -------------------------------------------------
-                if (m_parse_json &&
-                   l_is_url_encoded)
+                if (l_is_url_encoded)
                 {
                         if (infer_is_json(l_buf, l_rd_count))
                         {
@@ -1193,7 +1175,9 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                                 l_s = m_body_parser->init();
                                 if (l_s != WAFLZ_STATUS_OK)
                                 {
+                                        // -----------------
                                         // do nothing...
+                                        // -----------------
                                         return WAFLZ_STATUS_ERROR;
                                 }
                         }
@@ -1208,8 +1192,11 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 l_s = m_body_parser->process_chunk(l_buf, l_rd_count);
                 if (l_s != WAFLZ_STATUS_OK)
                 {
+                        // ---------------------------------
+                        // Set request body error var in
+                        // tx map and return
+                        // ---------------------------------
                         //NDBG_PRINT("error m_body_parser->process_chunk()\n");
-                        // Set request body error var in tx map and return
                         m_cx_tx_map["REQBODY_ERROR"] = "1";
                         m_init_phase_2 = true;
                         return WAFLZ_STATUS_OK;
@@ -1224,7 +1211,10 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         l_s = m_body_parser->finish();
         if (l_s != WAFLZ_STATUS_OK)
         {
-                // Set request body error var in tx map and return
+                // -----------------------------------------
+                // Set request body error var in
+                // tx map and return
+                // -----------------------------------------
                 m_cx_tx_map["REQBODY_ERROR"] = "1";
                 m_init_phase_2 = true;
                 return WAFLZ_STATUS_OK;
@@ -1232,7 +1222,7 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
         // -------------------------------------------------
         // cap the arg list size
         // -------------------------------------------------
-        for(arg_list_t::iterator i_k = m_body_arg_list.begin();
+        for (arg_list_t::iterator i_k = m_body_arg_list.begin();
             i_k != m_body_arg_list.end();
             ++i_k)
         {
@@ -1246,6 +1236,69 @@ int32_t rqst_ctx::init_phase_2(const ctype_parser_map_t &a_ctype_parser_map)
                 }
         }
         m_init_phase_2 = true;
+        return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details gets geo data from mmdb, updates m_geo_data
+//! \return  waflz status
+//! \param   a_geoip2_mmdb: mmdb database
+//! ----------------------------------------------------------------------------
+int32_t rqst_ctx::get_geo_data_from_mmdb(geoip2_mmdb &a_geoip2_mmdb)
+{
+        // -------------------------------------------------
+        // if no ip - no data to get
+        // -------------------------------------------------
+        if (!DATA_T_EXIST(m_src_addr))
+        {
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // get geo data
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = a_geoip2_mmdb.get_geo_data(&m_geo_data,
+                                         &m_src_addr);
+        if ( l_s != WAFLZ_STATUS_OK )
+        {
+                // debug here?
+        }
+        // -------------------------------------------------
+        // setting up full m_geo_cc_sd string
+        // -------------------------------------------------
+        if (DATA_T_EXIST(m_geo_data.m_geo_cn2) &&
+                DATA_T_EXIST(m_geo_data.m_src_sd1_iso))
+        {
+                m_geo_cc_sd = std::string(
+                        m_geo_data.m_geo_cn2.m_data,
+                        m_geo_data.m_geo_cn2.m_len);
+                m_geo_cc_sd += "-" + std::string(
+                        m_geo_data.m_src_sd1_iso.m_data,
+                        m_geo_data.m_src_sd1_iso.m_len);
+        }
+        else if (DATA_T_EXIST(m_geo_data.m_geo_cn2) 
+                && DATA_T_EXIST(m_geo_data.m_src_sd2_iso))
+        {
+                m_geo_cc_sd = std::string(
+                        m_geo_data.m_geo_cn2.m_data,
+                        m_geo_data.m_geo_cn2.m_len);
+                m_geo_cc_sd += "-" + std::string(
+                        m_geo_data.m_src_sd2_iso.m_data,
+                        m_geo_data.m_src_sd2_iso.m_len);
+        }
+        // -------------------------------------------------
+        // converting to str temporarily for str
+        // comparisons...
+        // -------------------------------------------------
+        if (m_geo_data.m_src_asn)
+        {
+                m_src_asn_str.m_len = asprintf(
+                                &(m_src_asn_str.m_data),
+                                "%d",
+                                m_geo_data.m_src_asn);
+        }
+        // -------------------------------------------------
+        // return ok
+        // -------------------------------------------------
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -1272,26 +1325,26 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         // -------------------------------------------------
 #define _SET_HEADER(_header, _val) do { \
         l_d.m_data = _header; \
-        l_d.m_len = sizeof(_header); \
-        data_map_t::const_iterator i_h = l_hm.find(l_d); \
+        l_d.m_len = sizeof(_header) - 1; \
+        data_unordered_map_t::const_iterator i_h = l_hm.find(l_d); \
         if (i_h != l_hm.end()) \
         { \
                 l_headers->set_##_val(i_h->second.m_data, i_h->second.m_len); \
         } \
-} while(0)
+} while (0)
 #define _SET_IF_EXIST_STR(_field, _proto) do { \
         if (_field.m_data && \
            _field.m_len) { \
                 l_request_info->set_##_proto(_field.m_data, _field.m_len); \
-        } } while(0)
+        } } while (0)
 #define _SET_IF_EXIST_INT(_field, _proto) do { \
                 l_request_info->set_##_proto(_field); \
-        } while(0)
+        } while (0)
         // -------------------------------------------------
         // headers...
         // -------------------------------------------------
         waflz_pb::request_info::common_header_t* l_headers = l_request_info->mutable_common_header();
-        const data_map_t &l_hm = m_header_map;
+        const data_unordered_map_t &l_hm = m_header_map;
         data_t l_d;
         _SET_HEADER("Referer", referer);
         _SET_HEADER("User-Agent", user_agent);
@@ -1303,7 +1356,7 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         // -------------------------------------------------
         if (m_log_request)
         {
-                for(data_map_t::const_iterator i_h = m_header_map.begin();
+                for (data_unordered_map_t::const_iterator i_h = m_header_map.begin();
                     i_h != m_header_map.end();
                     ++i_h)
                 {
@@ -1324,7 +1377,6 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         // -------------------------------------------------
         // Local address
         // -------------------------------------------------
-        
         if (m_callbacks && m_callbacks->m_get_rqst_local_addr_cb)
         {
                 GET_RQST_DATA(m_callbacks->m_get_rqst_local_addr_cb);
@@ -1395,54 +1447,100 @@ int32_t rqst_ctx::append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geo
         // -------------------------------------------------
         // GEOIP info
         // -------------------------------------------------
-        data_t l_cn_name;
-        data_t l_city_name;
-        l_cn_name.m_data = NULL;
-        l_city_name.m_data = NULL;
-        l_cn_name.m_len = 0;
-        l_city_name.m_len = 0;
-        double l_lat = 0.000000;
-        double l_longit = 0.000000;
-        // -------------------------------------------------
-        // We only do lookup when we have an event. This is
-        // to avoid uneccessary lookups, init_phase_1 does
-        // one lookup for country code and asn. Since city
-        // name and country names are for logging only, we
-        // do that separately here.
-        // -------------------------------------------------
-        a_geoip2_mmdb.get_geoip_data(&l_cn_name.m_data, l_cn_name.m_len,
-                                    &l_city_name.m_data, l_city_name.m_len,
-                                    l_lat,
-                                    l_longit,
-                                    m_src_addr.m_data, m_src_addr.m_len);
-        if (l_cn_name.m_data &&
-           l_cn_name.m_len > 0)
+        if DATA_T_EXIST(m_geo_data.m_cn_name)
         {
-                ao_event.set_geoip_country_name(l_cn_name.m_data, l_cn_name.m_len);
+                ao_event.set_geoip_country_name(
+                                m_geo_data.m_cn_name.m_data,
+                                m_geo_data.m_cn_name.m_len);
         }
-        if (l_city_name.m_data &&
-           l_city_name.m_len > 0)
+        if DATA_T_EXIST(m_geo_data.m_city_name) 
         {
-                ao_event.set_geoip_city_name(l_city_name.m_data, l_city_name.m_len);
+                ao_event.set_geoip_city_name(
+                              m_geo_data.m_city_name.m_data,
+                              m_geo_data.m_city_name.m_len);
         }
-        if (m_geo_cn2.m_data &&
-           m_geo_cn2.m_len > 0)
+        ao_event.set_is_anonymous_proxy(
+                           m_geo_data.m_is_anonymous_proxy);
+        if DATA_T_EXIST(m_geo_data.m_geo_cn2)
         {
-                ao_event.set_geoip_country_code2(m_geo_cn2.m_data, m_geo_cn2.m_len);
+                ao_event.set_geoip_country_code2(
+                                m_geo_data.m_geo_cn2.m_data,
+                                m_geo_data.m_geo_cn2.m_len);
         }
-        ao_event.set_geoip_latitude(l_lat);
-        ao_event.set_geoip_longitude(l_longit);
-        if(m_src_sd1_iso.m_data &&
-           m_src_sd1_iso.m_len > 0)
+        if DATA_T_EXIST(m_geo_data.m_geo_rcc)
         {
-                ao_event.set_geoip_sd1_iso(m_src_sd1_iso.m_data, m_src_sd1_iso.m_len);
+                ao_event.set_geoip_registered_country_code(
+                                m_geo_data.m_geo_rcc.m_data,
+                                m_geo_data.m_geo_rcc.m_len);
         }
-        if(m_src_sd2_iso.m_data &&
-           m_src_sd2_iso.m_len > 0)
+        ao_event.set_geoip_latitude(m_geo_data.m_lat);
+        ao_event.set_geoip_longitude(m_geo_data.m_long);
+        if DATA_T_EXIST(m_geo_data.m_src_sd1_iso)
         {
-                ao_event.set_geoip_sd2_iso(m_src_sd2_iso.m_data, m_src_sd2_iso.m_len);
+                ao_event.set_geoip_sd1_iso(
+                            m_geo_data.m_src_sd1_iso.m_data,
+                            m_geo_data.m_src_sd1_iso.m_len);
         }
+        if DATA_T_EXIST(m_geo_data.m_src_sd2_iso)
+        {
+                ao_event.set_geoip_sd2_iso(
+                            m_geo_data.m_src_sd2_iso.m_data,
+                            m_geo_data.m_src_sd2_iso.m_len);
+        }
+         if (!m_geo_cc_sd.empty())
+        {
+                ao_event.set_geoip_cc_sd(
+                                      m_geo_cc_sd.c_str(),
+                                      m_geo_cc_sd.length());
+        }
+        ao_event.set_geoip_asn(m_geo_data.m_src_asn);
         return WAFLZ_STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details sets the m_scr_addr to spoof header if found
+//! \return  waflz_status 
+//! \param   a_header: the request header to get the ip from
+//! ----------------------------------------------------------------------------
+int32_t rqst_ctx::set_src_ip_from_spoof_header(const std::string& a_header)
+{
+        // -------------------------------------------------
+        // create search data_t
+        // -------------------------------------------------
+        data_t l_search_header;
+        l_search_header.m_data = a_header.c_str();
+        l_search_header.m_len = a_header.length();
+        // -------------------------------------------------
+        // search map for spoof header
+        // -------------------------------------------------
+        data_unordered_map_t::const_iterator i_header = m_header_map.find(l_search_header);
+        // -------------------------------------------------
+        // if found, set ip to spoof
+        // -------------------------------------------------
+        if (i_header != m_header_map.end())
+        {
+                // -----------------------------------------
+                // validate ip
+                // -----------------------------------------
+                nms l_checker;
+                int32_t l_s = l_checker.add(i_header->second.m_data, i_header->second.m_len);
+                // -----------------------------------------
+                // if not valid, using true src ip
+                // -----------------------------------------
+                if (l_s == WAFLZ_STATUS_ERROR)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // if valid, set spoof
+                // -----------------------------------------
+                set_src_addr(i_header->second);
+                m_use_spoof_ip = true;
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // if not found, return error
+        // -------------------------------------------------
+        return WAFLZ_STATUS_ERROR;
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -1466,7 +1564,7 @@ void rqst_ctx::show(void)
         NDBG_OUTPUT(": ------------+ \n");
         NDBG_OUTPUT(": %sQUERY_ARGS%s  :  \n", ANSI_COLOR_FG_GREEN, ANSI_COLOR_OFF);
         NDBG_OUTPUT(": ------------+--------------------------------------------+ \n");
-        for(arg_list_t::const_iterator i_q = m_query_arg_list.begin();
+        for (arg_list_t::const_iterator i_q = m_query_arg_list.begin();
             i_q != m_query_arg_list.end();
             ++i_q)
         {
@@ -1477,7 +1575,7 @@ void rqst_ctx::show(void)
         NDBG_OUTPUT(": ------------+ \n");
         NDBG_OUTPUT(": %sHEADER_LIST%s : \n", ANSI_COLOR_FG_CYAN, ANSI_COLOR_OFF);
         NDBG_OUTPUT(": ------------+--------------------------------------------+ \n");
-        for(const_arg_list_t::const_iterator i_q = m_header_list.begin();
+        for (const_arg_list_t::const_iterator i_q = m_header_list.begin();
             i_q != m_header_list.end();
             ++i_q)
         {
@@ -1488,7 +1586,7 @@ void rqst_ctx::show(void)
         NDBG_OUTPUT(": ------------+ \n");
         NDBG_OUTPUT(": %sCOOKIE_LIST%s : \n", ANSI_COLOR_FG_MAGENTA, ANSI_COLOR_OFF);
         NDBG_OUTPUT(": ------------+--------------------------------------------+ \n");
-        for(const_arg_list_t::const_iterator i_q = m_cookie_list.begin();
+        for (const_arg_list_t::const_iterator i_q = m_cookie_list.begin();
             i_q != m_cookie_list.end();
             ++i_q)
         {

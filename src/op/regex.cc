@@ -17,6 +17,8 @@
 #include <string.h>
 #include <string>
 #include <list>
+#include "waflz/trace.h"
+#include "support/time_util.h"
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------

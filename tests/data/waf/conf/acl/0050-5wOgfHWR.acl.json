@@ -1,6 +1,7 @@
 {
 	"id": "5wOgfHWR",
 	"name": "my cool acl",
+	"allow_anonymous_proxy": false,
 	"url": {
 		"whitelist": [],
 		"accesslist": [],
@@ -12,14 +13,14 @@
 		"blacklist": []
 	},
 	"ip": {
-		"whitelist": [],
+		"whitelist": ["1.1.1.1"],
 		"accesslist": [],
-		"blacklist": []
+		"blacklist": ["2.2.2.2"]
 	},
 	"sd_iso": {
 		"whitelist": [],
 		"accesslist": [],
-		"blacklist": []
+		"blacklist": ["AU-NSW"]
 	},
 	"user_agent": {
 		"whitelist": [],

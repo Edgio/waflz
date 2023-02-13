@@ -16,6 +16,7 @@
 #include <waflz/config_parser.h>
 #include "waflz/def.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/resp_ctx.h"
 #include <set>
 //! ----------------------------------------------------------------------------
 //! constants
@@ -51,6 +52,7 @@ typedef std::list<nms *> nms_list_t;
 typedef std::list<byte_range *> byte_range_list_t;
 typedef std::list<const ::waflz_pb::directive_t *> directive_list_t;
 typedef std::map<std::string, directive_list_t::const_iterator> marker_map_t;
+typedef std::map<std::string, waflz_pb::enforcement*> action_map_t;
 typedef std::set<std::string> disabled_rule_id_set_t;
 typedef struct _compiled_config {
         // phase 1
@@ -59,6 +61,12 @@ typedef struct _compiled_config {
         // phase 2
         marker_map_t m_marker_map_phase_2;
         directive_list_t m_directive_list_phase_2;
+         // phase 3
+        marker_map_t m_marker_map_phase_3;
+        directive_list_t m_directive_list_phase_3;
+         // phase 4
+        marker_map_t m_marker_map_phase_4;
+        directive_list_t m_directive_list_phase_4;
         // storage
         regex_list_t m_regex_list;
         ac_list_t m_ac_list;
@@ -69,6 +77,10 @@ typedef struct _compiled_config {
                 m_directive_list_phase_1(),
                 m_marker_map_phase_2(),
                 m_directive_list_phase_2(),
+                m_marker_map_phase_3(),
+                m_directive_list_phase_3(),
+                m_marker_map_phase_4(),
+                m_directive_list_phase_4(),
                 m_regex_list(),
                 m_ac_list(),
                 m_nms_list(),
@@ -88,6 +100,7 @@ public:
         waf(engine &a_engine);
         ~waf();
         int32_t process(waflz_pb::event **ao_event, void *a_ctx, rqst_ctx **ao_rqst_ctx = NULL, bool a_custom_rules = false);
+        int32_t process_response(waflz_pb::event **ao_event, void *a_ctx, resp_ctx **ao_resp_ctx = NULL, bool a_custom_rules = false);
         int32_t init(profile &a_profile);
         int32_t init(config_parser::format_t a_format, const std::string &a_path, bool a_apply_defaults = false, bool a_custom_rules = false);
         int32_t init(void* a_js, bool a_apply_defaults = false, bool a_custom_rules = false);
@@ -122,14 +135,24 @@ private:
         waf(const waf &);
         waf& operator=(const waf &);
         // -------------------------------------------------
-        // process
+        // process request
         // -------------------------------------------------
         int32_t process_phase(waflz_pb::event **ao_event, const directive_list_t &a_dl, const marker_map_t &a_mm, rqst_ctx &a_ctx);
         int32_t process_rule(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, rqst_ctx &a_ctx);
         int32_t process_rule_part(waflz_pb::event **ao_event, bool &ao_match, const waflz_pb::sec_rule_t &a_rule, rqst_ctx &a_ctx);
         int32_t process_action_nd(const waflz_pb::sec_action_t &a_action, rqst_ctx &a_ctx);
-        int32_t process_action_dx(const waflz_pb::sec_action_t &a_action, rqst_ctx &a_ctx);
         int32_t process_match(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, rqst_ctx &a_ctx);
+        // -------------------------------------------------
+        // process response
+        // -------------------------------------------------
+        int32_t process_resp_phase(waflz_pb::event **ao_event, const directive_list_t &a_dl, const marker_map_t &a_mm, resp_ctx &a_ctx);
+        int32_t process_resp_rule(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, resp_ctx &a_ctx);
+        int32_t process_resp_rule_part(waflz_pb::event **ao_event, bool &ao_match, const waflz_pb::sec_rule_t &a_rule, resp_ctx &a_ctx);
+        int32_t process_resp_action_nd(const waflz_pb::sec_action_t &a_action, resp_ctx &a_ctx);
+        int32_t process_resp_match(waflz_pb::event **ao_event, const waflz_pb::sec_rule_t &a_rule, resp_ctx &a_ctx);
+        // -------------------------------------------------
+        // compile
+        // -------------------------------------------------
         int32_t compile(void);
         int32_t set_defaults(bool a_custom_rules);
         // -------------------------------------------------

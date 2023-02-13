@@ -500,19 +500,4 @@ int32_t get_rqst_body_str_cb(char *ao_data,
         //NDBG_PRINT(": a_to_read:   %u\n", a_to_read);
         return 0;
 }
-//! ----------------------------------------------------------------------------
-//! get_bot_ch_prob
-//! ----------------------------------------------------------------------------
-int32_t get_bot_ch_prob(std::string &ao_challenge, uint32_t *ao_ans)
-{
-        int l_num_one, l_num_two = 0;
-        srand (ns_waflz::get_time_ms());
-        l_num_one = rand() % 100 + 100;
-        l_num_two = rand() % 100 + 100;
-        ao_challenge += ns_waflz::to_string(l_num_one);
-        ao_challenge += "+";
-        ao_challenge += ns_waflz::to_string(l_num_two);
-        *ao_ans = l_num_one + l_num_two;
-        return 0;
-}
 }

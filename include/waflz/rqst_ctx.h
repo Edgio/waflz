@@ -22,6 +22,12 @@
 #include <strings.h>
 #endif
 
+#if defined(__APPLE__) || defined(__darwin__)
+    #include <unordered_map>
+#else
+    #include <tr1/unordered_map>
+#endif
+
 //! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
@@ -64,7 +70,35 @@ typedef struct {
         get_rqst_data_size_cb_t m_get_rqst_bytes_in_cb;
         get_rqst_data_cb_t m_get_rqst_uuid_cb;
         get_rqst_data_size_cb_t m_get_cust_id_cb;
+        get_data_subr_t m_get_subr_cb;
 }rqst_ctx_callbacks;
+
+typedef struct _geoip_data{
+        double m_lat;
+        double m_long;
+        data_t m_cn_name;
+        data_t m_city_name;
+        data_t m_geo_cn2;
+        data_t m_geo_rcc;
+        data_t m_src_sd1_iso;
+        data_t m_src_sd2_iso;
+        bool m_is_anonymous_proxy;
+        uint32_t m_src_asn;
+
+        _geoip_data():
+                m_lat(0),
+                m_long(0),
+                m_cn_name(),
+                m_city_name(),
+                m_geo_cn2(),
+                m_geo_rcc(),
+                m_src_sd1_iso(),
+                m_src_sd2_iso(),
+                m_is_anonymous_proxy(false),
+                m_src_asn(0)
+        {}
+
+} geoip_data;
 #ifdef __cplusplus
 }
 #endif
@@ -77,16 +111,14 @@ class geoip2_mmdb;
 //! ----------------------------------------------------------------------------
 //! types
 //! ----------------------------------------------------------------------------
-struct cx_case_i_comp
-{
-        bool operator() (const std::string& lhs, const std::string& rhs) const
-        {
-                return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
-        }
-};
 typedef std::map<std::string, std::string, cx_case_i_comp> cx_map_t;
 typedef std::map <data_t, data_t, data_case_i_comp> data_map_t;
 typedef std::list<data_t> data_list_t;
+#if defined(__APPLE__) || defined(__darwin__)
+    typedef std::unordered_map<data_t, data_t, data_t_case_hash,data_case_i_comp_unordered> data_unordered_map_t;
+#else
+    typedef std::tr1::unordered_map<data_t, data_t,data_t_case_hash,data_case_i_comp_unordered> data_unordered_map_t;
+#endif
 //! ----------------------------------------------------------------------------
 //! xpath optimization
 //! ----------------------------------------------------------------------------
@@ -101,7 +133,6 @@ public:
         // -------------------------------------------------
         // callbacks
         // -------------------------------------------------
-        static get_data_cb_t s_get_bot_ch_prob;
         // -------------------------------------------------
         // static members
         // -------------------------------------------------
@@ -121,14 +152,15 @@ public:
                              const pcre_list_t *a_il_cookie = NULL);
         int32_t init_phase_2(const ctype_parser_map_t &a_ctype_parser_map);
         int32_t reset_phase_1();
+        int32_t get_geo_data_from_mmdb(geoip2_mmdb &a_geoip2_mmdb);
         int32_t append_rqst_info(waflz_pb::event &ao_event, geoip2_mmdb &a_geoip2_mmdb);
         void show(void);
         // -------------------------------------------------
         // setters
         // -------------------------------------------------
         void set_body_max_len(uint32_t a_body_len_max) { m_body_len_max = a_body_len_max; }
-        void set_parse_xml(bool a_parse_xml) { m_parse_xml = a_parse_xml; }
-        void set_parse_json(bool a_parse_json) { m_parse_json = a_parse_json; }
+        void set_src_addr(data_t a_src_addr) { m_src_addr = a_src_addr; }
+        int32_t set_src_ip_from_spoof_header(const std::string&);
         // -------------------------------------------------
         // public members
         // -------------------------------------------------
@@ -149,7 +181,7 @@ public:
         data_t m_file_ext;
         arg_list_t m_query_arg_list;
         arg_list_t m_body_arg_list;
-        data_map_t m_header_map;
+        data_unordered_map_t m_header_map;
         const_arg_list_t m_header_list;
         const_arg_list_t m_cookie_list;
         data_map_t m_cookie_map;
@@ -160,8 +192,6 @@ public:
         char *m_body_data;
         uint32_t m_body_len;
         uint64_t m_content_length;
-        bool m_parse_xml;
-        bool m_parse_json;
         std::string m_cookie_mutated;
         data_t m_req_uuid;
         uint32_t m_bytes_out;
@@ -170,6 +200,7 @@ public:
         uint32_t m_resp_status;
         bool m_signal_enf;
         bool m_log_request;
+        bool m_use_spoof_ip;
         // -------------------------------------------------
         // TODO FIX!!! -not thread safe...
         // -------------------------------------------------
@@ -193,9 +224,14 @@ public:
         bool m_intercepted;
         bool m_wl_audit;
         bool m_wl_prod;
+        bool m_inspect_body;
+        bool m_json_body;
+        bool m_xml_body;
+        bool m_url_enc_body;
         uint32_t m_skip;
         const char * m_skip_after;
         waflz_pb::event *m_event;
+        bool m_inspect_response;
         // -------------------------------------------------
         // xpath optimization
         // -------------------------------------------------
@@ -207,19 +243,11 @@ public:
         // -------------------------------------------------
         // extensions
         // -------------------------------------------------
-        uint32_t m_src_asn;
         // TODO use uint32???
         mutable_data_t m_src_asn_str;
-        data_t m_geo_cn2;
-        data_t m_src_sd1_iso;
-        data_t m_src_sd2_iso;
+        std::string m_geo_cc_sd;
+        geoip_data m_geo_data;
         bool m_xml_capture_xxe;
-        // -------------------------------------------------
-        // bot challenge
-        // -------------------------------------------------
-        std::string m_bot_ch;
-        std::string m_bot_js;
-        uint32_t m_ans;
 private:
         // -------------------------------------------------
         // private methods

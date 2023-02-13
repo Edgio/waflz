@@ -468,7 +468,7 @@ static int32_t update_field(google::protobuf::Message& ao_msg,
 template <typename F1>
 static int32_t update_enum_field(google::protobuf::Message& ao_msg,
                                  const google::protobuf::Reflection* a_ref,
-                                 const google::protobuf::Descriptor* a_des,
+                                 const google::protobuf::EnumDescriptor* a_des,
                                  const google::protobuf::FieldDescriptor* a_field,
                                  F1 a_updater,
                                  const rapidjson::Value &a_val)
@@ -478,7 +478,7 @@ static int32_t update_enum_field(google::protobuf::Message& ao_msg,
                 JSPB_PERROR("expecting string (enum) for field '%s'", a_field->full_name().c_str());
                 return JSPB_ERROR;
         }
-        const google::protobuf::EnumValueDescriptor* enumValueDescriptor = a_des->FindEnumValueByName(a_val.GetString());
+        const google::protobuf::EnumValueDescriptor* enumValueDescriptor = a_des->FindValueByName(a_val.GetString());
         if (0 == enumValueDescriptor)
         {
                 JSPB_PERROR("unknown enum for field ' '%s': %s", a_field->full_name().c_str(), a_val.GetString());
@@ -639,7 +639,7 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
                 JSPB_TRACE("case: enum\n");
                 l_s = update_enum_field(ao_msg,
                                         a_ref,
-                                        a_des,
+                                        a_field->enum_type(),
                                         a_field,
                                         &google::protobuf::Reflection::SetEnum,
                                         a_val);
@@ -744,7 +744,7 @@ static int32_t update_repeated_enum_field(google::protobuf::Message& ao_msg,
                 int32_t l_s;
                 l_s = update_enum_field(ao_msg,
                                         a_ref,
-                                        a_des,
+                                        a_field->enum_type(),
                                         a_field,
                                         &google::protobuf::Reflection::AddEnum,
                                         *i_m);

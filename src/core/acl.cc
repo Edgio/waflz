@@ -35,7 +35,7 @@
         _val##_len = 0; \
         l_d.m_data = _header; \
         l_d.m_len = sizeof(_header) - 1; \
-        data_map_t::const_iterator i_h = l_hm.find(l_d); \
+        data_unordered_map_t::const_iterator i_h = l_hm.find(l_d); \
         if (i_h != l_hm.end()) \
         { \
                 _val = i_h->second.m_data; \
@@ -79,6 +79,7 @@ acl::acl(engine& a_engine):
         m_cust_id(),
         m_name(),
         m_resp_header_name(),
+        m_allow_anonymous_proxy(true),
         m_ip_whitelist(NULL),
         m_ip_accesslist(NULL),
         m_ip_blacklist(NULL),
@@ -257,7 +258,9 @@ static int32_t compile_regex_list(regex **ao_regex,
         {
                 return WAFLZ_STATUS_OK;
         }
+        // -------------------------------------------------
         // create regex string
+        // -------------------------------------------------
         std::string l_rx;
         l_rx = "(";
         typedef ::google::protobuf::RepeatedPtrField< ::std::string> gpb_list_t;
@@ -278,7 +281,9 @@ static int32_t compile_regex_list(regex **ao_regex,
         l_s = l_pcre->init(l_rx.c_str(), l_rx.length());
         if (l_s != WAFLZ_STATUS_OK)
         {
+                // -----------------------------------------
                 // TODO -more info
+                // -----------------------------------------
                 //WAFLZ_PERROR(m_err_msg, "compiling url whitelist");
                 if (l_pcre)
                 {
@@ -307,6 +312,13 @@ int32_t acl::init()
         m_id = m_pb->id();
         m_cust_id = m_pb->customer_id();
         m_name = m_pb->name();
+        // -------------------------------------------------
+        // allow_anonymous_proxy
+        // -------------------------------------------------
+        if(m_pb->has_allow_anonymous_proxy())
+        {
+                m_allow_anonymous_proxy = m_pb->allow_anonymous_proxy();
+        }
         // -------------------------------------------------
         // resp header names
         // -------------------------------------------------
@@ -530,7 +542,7 @@ int32_t acl::process_whitelist(bool &ao_match, rqst_ctx &a_ctx)
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
         data_t l_d;
-        const data_map_t &l_hm = a_ctx.m_header_map;
+        const data_unordered_map_t &l_hm = a_ctx.m_header_map;
         int32_t l_s;
         // -------------------------------------------------
         // ip
@@ -547,7 +559,10 @@ int32_t acl::process_whitelist(bool &ao_match, rqst_ctx &a_ctx)
                         // TODO log reason???
                         goto country_check;
                 }
-                // if in whitelist -bail out of modsec processing
+                // -----------------------------------------
+                // if in whitelist - 
+                // bail out of modsec processing
+                // -----------------------------------------
                 if (ao_match)
                 {
                         return WAFLZ_STATUS_OK;
@@ -560,11 +575,14 @@ country_check:
         if (m_country_whitelist.size() &&
            l_buf &&
            l_buf_len &&
-           a_ctx.m_geo_cn2.m_data &&
-           a_ctx.m_geo_cn2.m_len)
+           a_ctx.m_geo_data.m_geo_cn2.m_data &&
+           a_ctx.m_geo_data.m_geo_cn2.m_len)
         {
                 std::string l_cn_str;
-                l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_cn_str.assign(
+                        a_ctx.m_geo_data.m_geo_cn2.m_data,
+                        a_ctx.m_geo_data.m_geo_cn2.m_len
+                );
                 if (m_country_whitelist.find(l_cn_str) != m_country_whitelist.end())
                 {
                         ao_match = true;
@@ -577,27 +595,39 @@ country_check:
         if (m_sd_iso_whitelist.size() && 
                 l_buf &&
                 l_buf_len && 
-                a_ctx.m_src_sd1_iso.m_data && 
-                a_ctx.m_src_sd1_iso.m_len &&
-                a_ctx.m_geo_cn2.m_data &&
-                a_ctx.m_geo_cn2.m_len)
+                a_ctx.m_geo_data.m_src_sd1_iso.m_data && 
+                a_ctx.m_geo_data.m_src_sd1_iso.m_len &&
+                a_ctx.m_geo_data.m_geo_cn2.m_data &&
+                a_ctx.m_geo_data.m_geo_cn2.m_len)
         {
                 std::string l_sd1_str;
-                l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_sd1_str.assign(
+                        a_ctx.m_geo_data.m_geo_cn2.m_data,
+                        a_ctx.m_geo_data.m_geo_cn2.m_len
+                );
                 l_sd1_str += "-";
-                l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                l_sd1_str.append(
+                        a_ctx.m_geo_data.m_src_sd1_iso.m_data,
+                        a_ctx.m_geo_data.m_src_sd1_iso.m_len
+                );
                 if (m_sd_iso_whitelist.find(l_sd1_str) != m_sd_iso_whitelist.end())
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
                 }
-                if (a_ctx.m_src_sd2_iso.m_data &&
-                   a_ctx.m_src_sd2_iso.m_len)
+                if (a_ctx.m_geo_data.m_src_sd2_iso.m_data &&
+                   a_ctx.m_geo_data.m_src_sd2_iso.m_len)
                 {
                         std::string l_sd2_str;
-                        l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                        l_sd2_str.assign(
+                                a_ctx.m_geo_data.m_geo_cn2.m_data,
+                                a_ctx.m_geo_data.m_geo_cn2.m_len
+                        );
                         l_sd2_str += "-";
-                        l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
+                        l_sd2_str.append(
+                                a_ctx.m_geo_data.m_src_sd2_iso.m_data,
+                                a_ctx.m_geo_data.m_src_sd2_iso.m_len
+                        );
                         if (m_sd_iso_whitelist.find(l_sd2_str) != m_sd_iso_whitelist.end())
                         {
                                 ao_match = true;
@@ -609,9 +639,9 @@ country_check:
         // asn
         // -------------------------------------------------
         if (m_asn_whitelist.size() &&
-           a_ctx.m_src_asn)
+           a_ctx.m_geo_data.m_src_asn)
         {
-                if (m_asn_whitelist.find(a_ctx.m_src_asn) != m_asn_whitelist.end())
+                if (m_asn_whitelist.find(a_ctx.m_geo_data.m_src_asn) != m_asn_whitelist.end())
                 {
                         ao_match = true;
                         return WAFLZ_STATUS_OK;
@@ -626,7 +656,9 @@ country_check:
         {
                 int32_t l_s;
                 l_s = m_url_rx_whitelist->compare(a_ctx.m_uri.m_data, a_ctx.m_uri.m_len);
+                // -----------------------------------------
                 // if failed to match
+                // -----------------------------------------
                 if (l_s >= 0)
                 {
                         ao_match = true;
@@ -647,7 +679,9 @@ country_check:
         {
                 int32_t l_s;
                 l_s = m_ua_rx_whitelist->compare(l_buf, l_buf_len);
+                // -----------------------------------------
                 // if failed to match
+                // -----------------------------------------
                 if (l_s >= 0)
                 {
                         ao_match = true;
@@ -669,7 +703,9 @@ referer_check:
         {
                 int32_t l_s;
                 l_s = m_referer_rx_whitelist->compare(l_buf, l_buf_len);
+                // -----------------------------------------
                 // if failed to match
+                // -----------------------------------------
                 if (l_s >= 0)
                 {
                         ao_match = true;
@@ -717,12 +753,12 @@ int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
         data_t l_d;
-        const data_map_t &l_hm = a_ctx.m_header_map;
+        const data_unordered_map_t &l_hm = a_ctx.m_header_map;
         int32_t l_s;
         // -------------------------------------------------
-        // ip
+        // ip or src_addr used for: 
+        // ip, subdivision, country, asn
         // -------------------------------------------------
-        // ip or src_addr used for: ip, subdivision, country, asn
         l_buf = a_ctx.m_src_addr.m_data;
         l_buf_len = a_ctx.m_src_addr.m_len;
         if (!m_ip_accesslist)
@@ -737,7 +773,9 @@ int32_t acl::process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 l_s = m_ip_accesslist->contains(l_match, l_buf, l_buf_len);
                 if (l_s != WAFLZ_STATUS_OK)
                 {
+                        // ---------------------------------
                         // TODO log error reason???
+                        // ---------------------------------
                         goto country_check;
                 }
                 if (l_match)
@@ -756,11 +794,14 @@ country_check:
         l_has = true;
         if (l_buf &&
            l_buf_len &&
-           a_ctx.m_geo_cn2.m_data &&
-           a_ctx.m_geo_cn2.m_len)
+           a_ctx.m_geo_data.m_geo_cn2.m_data &&
+           a_ctx.m_geo_data.m_geo_cn2.m_len)
         {
                 std::string l_cn_str;
-                l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_cn_str.assign(
+                        a_ctx.m_geo_data.m_geo_cn2.m_data,
+                        a_ctx.m_geo_data.m_geo_cn2.m_len
+                );
                 if (m_country_accesslist.find(l_cn_str) != m_country_accesslist.end())
                 {
                         return WAFLZ_STATUS_OK;
@@ -776,26 +817,39 @@ sd_iso_check:
         }
         l_has = true;
         if (l_buf &&
-           l_buf_len &&a_ctx.m_src_sd1_iso.m_data && 
-           a_ctx.m_src_sd1_iso.m_data &&
-           a_ctx.m_geo_cn2.m_data &&
-           a_ctx.m_geo_cn2.m_len)
+           l_buf_len && 
+           a_ctx.m_geo_data.m_src_sd1_iso.m_data && 
+           a_ctx.m_geo_data.m_src_sd1_iso.m_data &&
+           a_ctx.m_geo_data.m_geo_cn2.m_data &&
+           a_ctx.m_geo_data.m_geo_cn2.m_len)
         {
                 std::string l_sd1_str;
-                l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_sd1_str.assign(
+                        a_ctx.m_geo_data.m_geo_cn2.m_data,
+                        a_ctx.m_geo_data.m_geo_cn2.m_len
+                );
                 l_sd1_str += "-";
-                l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
+                l_sd1_str.append(
+                        a_ctx.m_geo_data.m_src_sd1_iso.m_data,
+                        a_ctx.m_geo_data.m_src_sd1_iso.m_len
+                );
                 if (m_sd_iso_accesslist.find(l_sd1_str) != m_sd_iso_accesslist.end())
                 {
                         return WAFLZ_STATUS_OK;
                 }
-                if (a_ctx.m_src_sd2_iso.m_data &&
-                   a_ctx.m_src_sd2_iso.m_len)
+                if (a_ctx.m_geo_data.m_src_sd2_iso.m_data &&
+                   a_ctx.m_geo_data.m_src_sd2_iso.m_len)
                 {
                         std::string l_sd2_str;
-                        l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                        l_sd2_str.assign(
+                                a_ctx.m_geo_data.m_geo_cn2.m_data,
+                                a_ctx.m_geo_data.m_geo_cn2.m_len
+                        );
                         l_sd2_str += "-";
-                        l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
+                        l_sd2_str.append(
+                                a_ctx.m_geo_data.m_src_sd2_iso.m_data,
+                                a_ctx.m_geo_data.m_src_sd2_iso.m_len
+                        );
                         if (m_sd_iso_accesslist.find(l_sd2_str) != m_sd_iso_accesslist.end())
                         {
                                 return WAFLZ_STATUS_OK;
@@ -814,9 +868,9 @@ asn_check:
                 goto url_check;
         }
         l_has = true;
-        if (a_ctx.m_src_asn)
+        if (a_ctx.m_geo_data.m_src_asn)
         {
-                if (m_asn_accesslist.find(a_ctx.m_src_asn) != m_asn_accesslist.end())
+                if (m_asn_accesslist.find(a_ctx.m_geo_data.m_src_asn) != m_asn_accesslist.end())
                 {
                         return WAFLZ_STATUS_OK;
                 }
@@ -830,7 +884,9 @@ url_check:
                 goto user_agent_check;
         }
         l_has = true;
+        // -------------------------------------------------
         // set buf to uri
+        // -------------------------------------------------
         l_buf = a_ctx.m_uri.m_data;
         l_buf_len = a_ctx.m_uri.m_len;
         if (l_buf &&
@@ -852,7 +908,9 @@ user_agent_check:
                 goto referer_check;
         }
         l_has = true;
+        // -------------------------------------------------
         // get header from header map.
+        // -------------------------------------------------
         _GET_HEADER("User-Agent", l_buf);
         if (l_buf &&
            l_buf_len)
@@ -951,7 +1009,7 @@ int32_t acl::process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
         const char *l_buf = NULL;
         uint32_t l_buf_len = 0;
         data_t l_d;
-        const data_map_t &l_hm = a_ctx.m_header_map;
+        const data_unordered_map_t &l_hm = a_ctx.m_header_map;
         int32_t l_s;
         // ------------------------------------------------------------
         // ip or src_addr used for: ip, subdivision, 
@@ -1004,11 +1062,14 @@ country_check:
         if (m_country_blacklist.size() &&
            l_buf &&
            l_buf_len &&
-           a_ctx.m_geo_cn2.m_data &&
-           a_ctx.m_geo_cn2.m_len)
+           a_ctx.m_geo_data.m_geo_cn2.m_data &&
+           a_ctx.m_geo_data.m_geo_cn2.m_len)
         {
                 std::string l_cn_str;
-                l_cn_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                l_cn_str.assign(
+                        a_ctx.m_geo_data.m_geo_cn2.m_data,
+                        a_ctx.m_geo_data.m_geo_cn2.m_len
+                );
                 bool l_match = false;
                 if (m_country_blacklist.find(l_cn_str) != m_country_blacklist.end())
                 {
@@ -1045,32 +1106,38 @@ sd_iso_check:
         // -------------------------------------------------
         // subdivision
         // -------------------------------------------------
+        bool l_match_1= false;
+        bool l_match_2 = false;
         if (m_sd_iso_blacklist.size() && 
                 l_buf &&
                 l_buf_len &&
-                a_ctx.m_src_sd1_iso.m_data &&
-                a_ctx.m_src_sd1_iso.m_len &&
-                a_ctx.m_geo_cn2.m_data &&
-                a_ctx.m_geo_cn2.m_len)
+                a_ctx.m_geo_data.m_src_sd1_iso.m_data &&
+                a_ctx.m_geo_data.m_src_sd1_iso.m_len &&
+                a_ctx.m_geo_data.m_geo_cn2.m_data &&
+                a_ctx.m_geo_data.m_geo_cn2.m_len)
         {
                 std::string l_sd1_str;
-                l_sd1_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                std::string l_sd2_str;
+                l_sd1_str.assign(a_ctx.m_geo_data.m_geo_cn2.m_data, a_ctx.m_geo_data.m_geo_cn2.m_len);
                 l_sd1_str += "-";
-                l_sd1_str.append(a_ctx.m_src_sd1_iso.m_data, a_ctx.m_src_sd1_iso.m_len);
-                if (a_ctx.m_src_sd2_iso.m_data &&
-                   a_ctx.m_src_sd2_iso.m_len)
+                l_sd1_str.append(
+                        a_ctx.m_geo_data.m_src_sd1_iso.m_data,
+                        a_ctx.m_geo_data.m_src_sd1_iso.m_len
+                );
+                l_match_1 = (m_sd_iso_blacklist.find(l_sd1_str) != m_sd_iso_blacklist.end());
+                if (!l_match_1 &&
+                   a_ctx.m_geo_data.m_src_sd2_iso.m_data &&
+                   a_ctx.m_geo_data.m_src_sd2_iso.m_len)
                 {
-                        std::string l_sd2_str;
-                        l_sd2_str.assign(a_ctx.m_geo_cn2.m_data, a_ctx.m_geo_cn2.m_len);
+                        l_sd2_str.assign(
+                                a_ctx.m_geo_data.m_geo_cn2.m_data,
+                                a_ctx.m_geo_data.m_geo_cn2.m_len
+                        );
                         l_sd2_str += "-";
-                        l_sd2_str.append(a_ctx.m_src_sd2_iso.m_data, a_ctx.m_src_sd2_iso.m_len);
-                        if (m_sd_iso_blacklist.find(l_sd2_str) == m_sd_iso_blacklist.end() && 
-                                m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
-                        {
-                                goto asn_check;
-                        } 
+                        l_sd2_str.append(a_ctx.m_geo_data.m_src_sd2_iso.m_data, a_ctx.m_geo_data.m_src_sd2_iso.m_len);
+                        l_match_2 = (m_sd_iso_blacklist.find(l_sd2_str) != m_sd_iso_blacklist.end());
                 }
-                else if (m_sd_iso_blacklist.find(l_sd1_str) == m_sd_iso_blacklist.end())
+                if (!l_match_1 && !l_match_2)
                 {
                         goto asn_check;
                 }
@@ -1093,9 +1160,14 @@ sd_iso_check:
                 l_rule_target->set_param("REAL_IP");
                 ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
                 l_var->set_name("GEO:Subdivision");
-                //char l_asn_str[16];
-                //snprintf(l_asn_str, 16, "AS%u", a_ctx.m_src_asn);
-                //l_var->set_value(l_asn_str);
+                if (l_match_1)
+                {
+                        l_var->set_value(l_sd1_str);
+                }
+                else if (l_match_2)
+                {
+                        l_var->set_value(l_sd2_str);
+                }
                 *ao_event = l_event;
                 return WAFLZ_STATUS_OK;
         }
@@ -1104,10 +1176,10 @@ asn_check:
         // ASN
         // -------------------------------------------------
         if (m_asn_blacklist.size() &&
-           a_ctx.m_src_asn)
+           a_ctx.m_geo_data.m_src_asn)
         {
                 bool l_match = false;
-                if (m_asn_blacklist.find(a_ctx.m_src_asn) != m_asn_blacklist.end())
+                if (m_asn_blacklist.find(a_ctx.m_geo_data.m_src_asn) != m_asn_blacklist.end())
                 {
                         l_match = true;
                 }
@@ -1135,7 +1207,7 @@ asn_check:
                 ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
                 l_var->set_name("GEO:ASN");
                 char l_asn_str[16];
-                snprintf(l_asn_str, 16, "AS%u", a_ctx.m_src_asn);
+                snprintf(l_asn_str, 16, "AS%u", a_ctx.m_geo_data.m_src_asn);
                 l_var->set_value(l_asn_str);
                 *ao_event = l_event;
                 return WAFLZ_STATUS_OK;
@@ -1148,7 +1220,9 @@ url_check:
         {
                 goto user_agent_check;
         }
+        // -------------------------------------------------
         // set buf to uri
+        // -------------------------------------------------
         l_buf = a_ctx.m_uri.m_data;
         l_buf_len = a_ctx.m_uri.m_len;
         if (m_url_rx_blacklist &&
@@ -1196,7 +1270,9 @@ user_agent_check:
         {
                 goto referer_check;
         }
+        // -------------------------------------------------
         // get header from header map.
+        // -------------------------------------------------
         _GET_HEADER("User-Agent", l_buf);
         if (m_ua_rx_blacklist &&
            l_buf &&
@@ -1348,6 +1424,34 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 return WAFLZ_STATUS_ERROR;
         }
         *ao_event = NULL;
+        // -----------------------------------------------------------
+        // is_anonymous_proxy
+        // ------------------------------------------------------------
+        if (!m_allow_anonymous_proxy && a_ctx.m_geo_data.m_is_anonymous_proxy)
+        {
+                // -----------------------------------------
+                // top level event
+                // -----------------------------------------
+                waflz_pb::event *l_event = new ::waflz_pb::event();
+                l_event->set_rule_msg("Anonymous Proxy not allowed");
+                // -----------------------------------------
+                // subevent
+                // -----------------------------------------
+                ::waflz_pb::event *l_sevent = l_event->add_sub_event();
+                l_sevent->set_rule_id(80014);
+                l_sevent->set_rule_msg("Anonymous Proxy not allowed");
+                l_sevent->set_rule_op_name("");
+                l_sevent->set_rule_op_param("");
+                l_sevent->add_rule_tag("ANONYMOUS PROXY");
+                ::waflz_pb::event_var_t* l_rule_target = l_sevent->add_rule_target();
+                l_rule_target->set_name("TX");
+                l_rule_target->set_param("REAL_IP");
+                ::waflz_pb::event_var_t* l_var = l_sevent->mutable_matched_var();
+                l_var->set_name("GEO:anonymous_proxy");
+                l_var->set_value("true");
+                *ao_event = l_event;
+                return WAFLZ_STATUS_OK;
+        }
         // -------------------------------------------------
         // file size check
         // -------------------------------------------------
@@ -1360,7 +1464,7 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 uint32_t l_buf_len = 0;
                 unsigned long l_cl = 0;
                 data_t l_d;
-                const data_map_t &l_hm = a_ctx.m_header_map;
+                const data_unordered_map_t &l_hm = a_ctx.m_header_map;
                 _GET_HEADER("Content-Length", l_buf);
                 if (!l_buf ||
                    !l_buf_len)
@@ -1378,12 +1482,16 @@ int32_t acl::process_settings(waflz_pb::event **ao_event, rqst_ctx &a_ctx)
                 }
                 if (!m_pb->has_max_file_size())
                 {
+                        // ---------------------------------
                         // no max file size specified
+                        // ---------------------------------
                         goto method_check;
                 }
                 if (l_cl < m_pb->max_file_size())
                 {
-                        // file size within limits
+                        // ---------------------------------
+                        // file size within limits.
+                        // ---------------------------------
                         goto method_check;
                 }
                 // -----------------------------------------
@@ -1420,11 +1528,15 @@ method_check:
         if (a_ctx.m_method.m_data &&
            a_ctx.m_method.m_len)
         {
+                // -----------------------------------------
                 // Look for method in allowed m set
+                // -----------------------------------------
                 std::string l_method(a_ctx.m_method.m_data, a_ctx.m_method.m_len);
                 if (m_allowed_http_methods.find(l_method) != m_allowed_http_methods.end())
                 {
+                        // ---------------------------------
                         // Found the method in allowed list
+                        // ---------------------------------
                         goto content_type_check;
                 }
                 // -----------------------------------------
@@ -1523,10 +1635,17 @@ file_ext_check:
            a_ctx.m_file_ext.m_len)
         {
                 std::string l_file_ext(a_ctx.m_file_ext.m_data, a_ctx.m_file_ext.m_len);
-                // unlike previous checks, extension shouldnt be in list, hence ==
+                // -----------------------------------------
+                // unlike previous checks, extension 
+                // shouldnt be in list, hence ==
+                // -----------------------------------------
                 if (m_disallowed_extensions.find(l_file_ext) == m_disallowed_extensions.end())
                 {
-                        // extension not found in disallowed list
+                        // ---------------------------------
+                        // extension not found in disallowed 
+                        // list shouldnt be in list, 
+                        // hence ==
+                        // ---------------------------------
                         goto header_check;
                 }
                 // -----------------------------------------
@@ -1565,7 +1684,9 @@ header_check:
             i_h != a_ctx.m_header_list.end();
             ++i_h)
         {
+                // -----------------------------------------
                 // similar to previous check, ==
+                // -----------------------------------------
                 if (m_disallowed_headers.find(i_h->m_key) == m_disallowed_headers.end())
                 {
                         continue;
@@ -1689,7 +1810,9 @@ int32_t acl::process(waflz_pb::event **ao_event,
         {
                 return WAFLZ_STATUS_ERROR;
         }
+        // -------------------------------------------------
         // if whitelist match, we outtie
+        // -------------------------------------------------
         if (l_match)
         {
                 ao_whitelist = true;

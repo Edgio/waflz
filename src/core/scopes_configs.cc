@@ -15,8 +15,6 @@
 #include "waflz/scopes_configs.h"
 #include "waflz/scopes.h"
 #include "waflz/rules.h"
-#include "waflz/bots.h"
-#include "waflz/bot_manager.h"
 #include "waflz/acl.h"
 #include "waflz/engine.h"
 #include "waflz/trace.h"
@@ -39,7 +37,6 @@ namespace ns_waflz {
 //! ----------------------------------------------------------------------------
 scopes_configs::scopes_configs(engine &a_engine,
                                kv_db& a_db,
-                               challenge& a_challenge,
                                bool a_enable_locking):
         m_cust_id_scopes_map(),
         m_err_msg(),
@@ -47,11 +44,12 @@ scopes_configs::scopes_configs(engine &a_engine,
         m_db(a_db),
         m_mutex(),
         m_enable_locking(a_enable_locking),
-        m_conf_dir(),
-        m_challenge(a_challenge)
+        m_conf_dir()
 {
+        // -------------------------------------------------
         // Initialize the mutex
-        if(m_enable_locking)
+        // -------------------------------------------------
+        if (m_enable_locking)
         {
                 pthread_mutex_init(&m_mutex, NULL);
         }
@@ -70,8 +68,10 @@ scopes_configs::~scopes_configs()
                 delete it->second;
                 it->second = NULL;
         }
+        // -------------------------------------------------
         // destroy mutex
-        if(m_enable_locking)
+        // -------------------------------------------------
+        if (m_enable_locking)
         {
                 pthread_mutex_destroy(&m_mutex);
         }
@@ -104,23 +104,37 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                         case '0' ... '9':
                         case '_':
                         {
-                                // valid path name to consider
+                                // -------------------------
+                                // valid path name to 
+                                // consider
+                                // -------------------------
                                 const char* l_found = NULL;
                                 l_found = ::strcasestr(a_dirent->d_name, ".scopes.json");
+                                // -------------------------
                                 // look for the .conf suffix
+                                // -------------------------
                                 if (l_found == NULL)
                                 {
-                                        // not a .scopes.json file
+                                        // -----------------
+                                        // look for the 
+                                        // .conf suffix
+                                        // -----------------
                                         //NDBG_PRINT("Failed to find .scopes.json suffix\n");
                                         goto done;
                                 }
                                 if (::strlen(l_found) != 12)
                                 {
-                                        // failed to find .scopes.json right at the end
+                                        // -----------------
+                                        // failed to find 
+                                        // .scopes.json
+                                        // right at the end
+                                        // -----------------
                                        // NDBG_PRINT("found in the wrong place. %zu", ::strlen(l_found));
                                         goto done;
                                 }
+                                // -------------------------
                                 // we want this file
+                                // -------------------------
                                 return 1;
                                 break;
                         }
@@ -141,7 +155,7 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                                 &l_conf_list,
                                 is_conf_file::compare,
                                 alphasort);
-        if(l_num_files < 0)
+        if (l_num_files < 0)
         {
                 WAFLZ_PERROR(m_err_msg, "Failed to load scope config  Reason: failed to scan profile directory: %s: %s",
                              a_dir_path,
@@ -159,7 +173,7 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                 // find first
                 // -----------------------------------------
                 size_t l_pos = l_file_name.find_first_of('.');
-                if(l_pos == std::string::npos)
+                if (l_pos == std::string::npos)
                 {
                         WAFLZ_PERROR(m_err_msg,"Invalid filename %s\n", l_file_name.c_str());
                         for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
@@ -171,7 +185,7 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                 // -----------------------------------------
                 uint64_t l_id;
                 l_s = convert_hex_to_uint(l_id, l_file_name.substr(0, l_pos).c_str());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         WAFLZ_PERROR(m_err_msg,"conversion to uint failed\n");
                         for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
@@ -186,7 +200,7 @@ int32_t scopes_configs::load_dir(const char* a_dir_path, uint32_t a_dir_path_len
                 l_full_path.append("/");
                 l_full_path.append(l_conf_list[i_f]->d_name);
                 l_s = load_file(l_full_path.c_str(),l_full_path.length());
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
                         for (int i_f2 = 0; i_f2 < l_num_files; ++i_f2) free(l_conf_list[i_f2]);
                         free(l_conf_list);
@@ -209,21 +223,21 @@ int32_t scopes_configs::load_file(const char* a_file_path,
         char *l_buf = NULL;
         uint32_t l_buf_len;
         l_s = read_file(a_file_path, &l_buf, l_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, ":read_file[%s]: %s",
                              a_file_path,
                              ns_waflz::get_err_msg());
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }
         l_s = load(l_buf, l_buf_len);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
-                if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+                if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
                 return WAFLZ_STATUS_ERROR;
         }
-        if(l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
+        if (l_buf) { free(l_buf); l_buf = NULL; l_buf_len = 0;}
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -243,31 +257,31 @@ int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len, bool a_updat
         {
                 WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)\n",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!l_js->IsObject() &&
+        if (!l_js->IsObject() &&
            !l_js->IsArray())
         {
                 WAFLZ_PERROR(m_err_msg, "error parsing json");
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         // -------------------------------------------------
         // object
         // -------------------------------------------------
-        if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
-        if(l_js->IsObject())
+        if (l_js->IsObject())
         {
                 int32_t l_s;
                 l_s = load((void *)l_js, a_update);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(l_js) { delete l_js; l_js = NULL; }
-                        if(m_enable_locking)
+                        if (l_js) { delete l_js; l_js = NULL; }
+                        if (m_enable_locking)
                         {
                                 pthread_mutex_unlock(&m_mutex);
                         }
@@ -277,17 +291,17 @@ int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len, bool a_updat
         // -------------------------------------------------
         // array
         // -------------------------------------------------
-        else if(l_js->IsArray())
+        else if (l_js->IsArray())
         {
-                for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
+                for (uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
                         int32_t l_s;
                         l_s = load((void *)&l_e, a_update);
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
-                                if(l_js) { delete l_js; l_js = NULL; }
-                                if(m_enable_locking)
+                                if (l_js) { delete l_js; l_js = NULL; }
+                                if (m_enable_locking)
                                 {
                                        pthread_mutex_unlock(&m_mutex);
                                 }
@@ -295,8 +309,8 @@ int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len, bool a_updat
                         }
                 }
         }
-        if(l_js) { delete l_js; l_js = NULL; }
-        if(m_enable_locking)
+        if (l_js) { delete l_js; l_js = NULL; }
+        if (m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
         }
@@ -309,25 +323,25 @@ int32_t scopes_configs::load(const char *a_buf, uint32_t a_buf_len, bool a_updat
 //! ----------------------------------------------------------------------------
 int32_t scopes_configs::load(void* a_js, bool a_update)
 {
-        if(!a_js)
+        if (!a_js)
         {
                 WAFLZ_PERROR(m_err_msg, "a_js == NULL");
                 return WAFLZ_STATUS_ERROR;                
         }
 
-        scopes *l_scopes = new scopes(m_engine, m_db, m_challenge);
+        scopes *l_scopes = new scopes(m_engine, m_db);
         int32_t l_s;
         l_s = l_scopes->load(a_js, m_conf_dir);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", l_scopes->get_err_msg());
-                if(l_scopes) { delete l_scopes; l_scopes = NULL;}
+                if (l_scopes) { delete l_scopes; l_scopes = NULL;}
                 return WAFLZ_STATUS_ERROR;                
         }
         uint64_t l_cust_id = 0;
         std::string& l_id_str = l_scopes->get_cust_id();
         l_s = convert_hex_to_uint(l_cust_id, l_id_str.c_str());
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "performing convert_hex_to_uint for %s\n", l_id_str.c_str());
                 return WAFLZ_STATUS_ERROR;
@@ -340,12 +354,12 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
         // -------------------------------------------------
         // found existing scope
         // -------------------------------------------------
-        if((i_scopes != m_cust_id_scopes_map.end()) &&
+        if ((i_scopes != m_cust_id_scopes_map.end()) &&
             i_scopes->second != NULL)
         {
                 const waflz_pb::scope_config* l_new_pb = l_scopes->get_pb();
                 const waflz_pb::scope_config* l_old_pb = i_scopes->second->get_pb();
-                if((l_old_pb != NULL) &&
+                if ((l_old_pb != NULL) &&
                    (l_new_pb != NULL) &&
                    (l_old_pb->has_last_modified_date()) &&
                    (l_new_pb->has_last_modified_date()))
@@ -354,7 +368,7 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
                                                                     CONFIG_DATE_FORMAT);
                         uint64_t l_config_epoch = get_epoch_seconds(l_new_pb->last_modified_date().c_str(),
                                                                     CONFIG_DATE_FORMAT);
-                        if(l_loaded_epoch >= l_config_epoch)
+                        if (l_loaded_epoch >= l_config_epoch)
                         {
                                 // Delete the newly created scope
                                 delete l_scopes;
@@ -370,13 +384,13 @@ int32_t scopes_configs::load(void* a_js, bool a_update)
         // -------------------------------------------------
         // if update
         // -------------------------------------------------
-        if(a_update)
+        if (a_update)
         {
                 // -----------------------------------------
                 // skip updating scope that haven't
                 // already been loaded.
                 // -----------------------------------------
-                if(l_scopes)
+                if (l_scopes)
                 {
                         delete l_scopes;
                         l_scopes = NULL;
@@ -403,13 +417,76 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
                                 const rqst_ctx_callbacks *a_callbacks,
                                 rqst_ctx **ao_rqst_ctx)
 {
-        if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
         // -------------------------------------------------
         // get scopes for id
         // -------------------------------------------------
+        ns_waflz::scopes *l_scopes = NULL;
+        l_scopes = get_scopes(a_id);
+        if (!l_scopes)
+        {
+                if (m_enable_locking)
+                {
+                        pthread_mutex_unlock(&m_mutex);
+                }
+                return WAFLZ_STATUS_OK;
+        }
+        // -------------------------------------------------
+        // process
+        // -------------------------------------------------
+        const waflz_pb::enforcement *l_enf = NULL;
+        int32_t l_s;
+        l_s = l_scopes->process(&l_enf,
+                                ao_audit_event,
+                                ao_prod_event,
+                                a_ctx,
+                                a_part_mk,
+                                a_callbacks,
+                                ao_rqst_ctx);
+        if (l_s != WAFLZ_STATUS_OK)
+        {
+                if (m_enable_locking)
+                {
+                        pthread_mutex_unlock(&m_mutex);
+                }
+                return l_s;
+        }
+        // -------------------------------------------------
+        // create enforcement copy...
+        // -------------------------------------------------
+        if (l_enf)
+        {
+                *ao_enf = new waflz_pb::enforcement();
+                (*ao_enf)->CopyFrom(*l_enf);
+        }
+        if (m_enable_locking)
+        {
+                pthread_mutex_unlock(&m_mutex);
+        }
+        return WAFLZ_STATUS_OK;
+}
+
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+int32_t scopes_configs::process_response(waflz_pb::enforcement **ao_enf,
+                                waflz_pb::event **ao_audit_event,
+                                waflz_pb::event **ao_prod_event,
+                                void *a_ctx,
+                                uint64_t a_id,
+                                part_mk_t a_part_mk,
+                                const resp_ctx_callbacks *a_callbacks,
+                                resp_ctx **ao_resp_ctx)
+{
+        if(m_enable_locking)
+        {
+                pthread_mutex_lock(&m_mutex);
+        }
         ns_waflz::scopes *l_scopes = NULL;
         l_scopes = get_scopes(a_id);
         if(!l_scopes)
@@ -421,11 +498,11 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
                 return WAFLZ_STATUS_OK;
         }
         // -------------------------------------------------
-        // process
+        // process response
         // -------------------------------------------------
         const waflz_pb::enforcement *l_enf = NULL;
         int32_t l_s;
-        l_s = l_scopes->process(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_rqst_ctx);
+        l_s = l_scopes->process_response(&l_enf, ao_audit_event, ao_prod_event, a_ctx, a_part_mk, a_callbacks, ao_resp_ctx);
         if(l_s != WAFLZ_STATUS_OK)
         {
                 if(m_enable_locking)
@@ -448,6 +525,7 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
         }
         return WAFLZ_STATUS_OK;
 }
+
 //! ----------------------------------------------------------------------------
 //! \details TODO
 //! \return  TODO
@@ -455,16 +533,16 @@ int32_t scopes_configs::process(waflz_pb::enforcement **ao_enf,
 //! ----------------------------------------------------------------------------
 void scopes_configs::get_first_id(uint64_t &ao_id)
 {
-        if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
         ao_id = 0;
-        if(m_cust_id_scopes_map.size())
+        if (m_cust_id_scopes_map.size())
         {
                 ao_id = m_cust_id_scopes_map.begin()->first;
         }
-        if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
         }
@@ -476,7 +554,7 @@ void scopes_configs::get_first_id(uint64_t &ao_id)
 //! ----------------------------------------------------------------------------
 void scopes_configs::get_rand_id(uint64_t &ao_id)
 {
-        if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
@@ -487,7 +565,7 @@ void scopes_configs::get_rand_id(uint64_t &ao_id)
         cust_id_scopes_map_t::const_iterator i_i = m_cust_id_scopes_map.begin();
         std::advance(i_i, l_idx);
         ao_id = i_i->first;
-        if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
         }
@@ -517,7 +595,7 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
                                        rqst_ctx* a_ctx,
                                        uint64_t a_cust_id)
 {
-        if(!a_ctx)
+        if (!a_ctx)
         {
                 return WAFLZ_STATUS_OK;
         }
@@ -525,7 +603,7 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         // -------------------------------------------------
         // Get the matched limit
         // -------------------------------------------------
-        if(a_ctx->m_limit)
+        if (a_ctx->m_limit)
         {
                 waflz_pb::limit *l_ev_limit = l_at->mutable_limit();
                 // TODO -only copy in meta -ie exclude enforcement body info...
@@ -533,7 +611,7 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
                 // -----------------------------------------
                 // copy in first enf
                 // -----------------------------------------
-                if(a_ctx->m_limit->has_action())
+                if (a_ctx->m_limit->has_action())
                 {
                         l_at->mutable_action()->CopyFrom(a_ctx->m_limit->action());
                 }
@@ -541,11 +619,11 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         // -------------------------------------------------
         // Get the matched limit and timestamp of config
         // -------------------------------------------------
-        if(a_ctx->m_limit)
+        if (a_ctx->m_limit)
         {
                 waflz_pb::limit *l_ev_limit = l_at->mutable_limit();
                 l_ev_limit->CopyFrom(*(a_ctx->m_limit));
-                if(a_ctx->m_limit->has_last_modified_date())
+                if (a_ctx->m_limit->has_last_modified_date())
                 {
                         l_at->set_config_last_modified(a_ctx->m_limit->last_modified_date());
                 }
@@ -568,26 +646,26 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         //TRC_DEBUG("setting headers\n");
 #define _SET_HEADER(_header, _val) do { \
         l_d.m_data = _header; \
-        l_d.m_len = sizeof(_header); \
-        data_map_t::const_iterator i_h = l_hm.find(l_d); \
-        if(i_h != l_hm.end()) \
+        l_d.m_len = sizeof(_header) - 1; \
+        data_unordered_map_t::const_iterator i_h = l_hm.find(l_d); \
+        if (i_h != l_hm.end()) \
         { \
                 l_headers->set_##_val(i_h->second.m_data, i_h->second.m_len); \
         } \
-} while(0)
+} while (0)
 #define _SET_IF_EXIST_STR(_field, _proto) do { \
-        if(a_ctx->_field.m_data && \
+        if (a_ctx->_field.m_data && \
            a_ctx->_field.m_len) { \
                 l_request_info->set_##_proto(a_ctx->_field.m_data, a_ctx->_field.m_len); \
-        } } while(0)
+        } } while (0)
 #define _SET_IF_EXIST_INT(_field, _proto) do { \
                 l_request_info->set_##_proto(a_ctx->_field); \
-        } while(0)
+        } while (0)
         // -------------------------------------------------
         // headers...
         // -------------------------------------------------
         waflz_pb::request_info::common_header_t* l_headers = l_request_info->mutable_common_header();
-        const data_map_t &l_hm = a_ctx->m_header_map;
+        const data_unordered_map_t &l_hm = a_ctx->m_header_map;
         data_t l_d;
         _SET_HEADER("Referer", referer);
         _SET_HEADER("User-Agent", user_agent);
@@ -621,10 +699,11 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         if (i_scopes != m_cust_id_scopes_map.end())
         {
                 i_scopes = m_cust_id_scopes_map.find(a_cust_id);
-                if(i_scopes->second)
+                if (i_scopes->second)
                 {
                         waflz_pb::limit *l_limit = l_at->mutable_limit();
                         l_limit->set_account_type(i_scopes->second->get_account_type());
+                        l_limit->set_partner_id(i_scopes->second->get_partner_id());
                 }
         }
         // -------------------------------------------------
@@ -633,36 +712,18 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
         // init_phase_1. do a lookup for country and
         // city name.
         // -------------------------------------------------
-        int32_t l_s;
-        if(a_ctx->m_geo_cn2.m_data &&
-           a_ctx->m_geo_cn2.m_len > 0)
+        if (a_ctx->m_geo_data.m_geo_cn2.m_data &&
+           a_ctx->m_geo_data.m_geo_cn2.m_len > 0)
         {
-                l_at->set_geoip_country_code2(a_ctx->m_geo_cn2.m_data, a_ctx->m_geo_cn2.m_len);
+                l_at->set_geoip_country_code2(
+                        a_ctx->m_geo_data.m_geo_cn2.m_data,
+                        a_ctx->m_geo_data.m_geo_cn2.m_len
+                );
         }
-        geoip2_mmdb& l_geoip2_mmdb = m_engine.get_geoip2_mmdb();
-        data_t l_cn_name;
-        data_t l_city_name;
-        l_cn_name.m_data = NULL;
-        l_city_name.m_data = NULL;
-        l_cn_name.m_len = 0;
-        l_city_name.m_len = 0;
-        double l_lat = 0.000000;
-        double l_longit = 0.000000;
-        l_s = l_geoip2_mmdb.get_geoip_data(&l_cn_name.m_data,
-                                          l_cn_name.m_len,
-                                          &l_city_name.m_data,
-                                          l_city_name.m_len,
-                                          l_lat,
-                                          l_longit,
-                                          a_ctx->m_src_addr.m_data,
-                                          a_ctx->m_src_addr.m_len);
-        if(l_s != WAFLZ_STATUS_ERROR)
-        {
-                l_at->set_geoip_country_name(l_cn_name.m_data, l_cn_name.m_len);
-                l_at->set_geoip_city_name(l_city_name.m_data, l_city_name.m_len);
-                l_at->set_geoip_latitude(l_lat);
-                l_at->set_geoip_longitude(l_longit);
-        }
+        l_at->set_geoip_country_name(a_ctx->m_geo_data.m_cn_name.m_data, a_ctx->m_geo_data.m_cn_name.m_len);
+        l_at->set_geoip_city_name(a_ctx->m_geo_data.m_city_name.m_data, a_ctx->m_geo_data.m_city_name.m_len);
+        l_at->set_geoip_latitude(a_ctx->m_geo_data.m_lat);
+        l_at->set_geoip_longitude(a_ctx->m_geo_data.m_long);
         // -------------------------------------------------
         // done...
         // -------------------------------------------------
@@ -672,23 +733,23 @@ int32_t scopes_configs::generate_alert(waflz_pb::alert** ao_alert,
 //! ----------------------------------------------------------------------------
 //! \details check if customer has scopes.
 //! \return  true: if id exists in map
-//           false: if id is missing in either map
+//!          false: if id is missing in either map
 //! \param   a_cust_id: unsigned integer customer id.
 //! ----------------------------------------------------------------------------
 bool scopes_configs::check_id(uint64_t a_cust_id)
 {
         cust_id_scopes_map_t::iterator i_scopes;
         bool l_ret = false;
-        if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
         i_scopes = m_cust_id_scopes_map.find(a_cust_id);
-        if(i_scopes != m_cust_id_scopes_map.end())
+        if (i_scopes != m_cust_id_scopes_map.end())
         {
                 l_ret = true;
         }
-        if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
         }
@@ -704,35 +765,36 @@ int32_t scopes_configs::load_limit(void* a_js)
         int32_t l_s;
         ns_waflz::limit* l_limit = new limit(m_db);
         l_s = l_limit->load(a_js);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "limit loading failed");
-                if(l_limit) { delete l_limit;l_limit = NULL; }
+                if (l_limit) { delete l_limit;l_limit = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         uint64_t l_id;
         const std::string& l_cust_id = l_limit->get_cust_id();
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
-                if(l_limit) { delete l_limit;l_limit = NULL; }
+                if (l_limit) { delete l_limit;l_limit = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         cust_id_scopes_map_t::iterator i_scopes;
         i_scopes = m_cust_id_scopes_map.find(l_id);
-        if(i_scopes == m_cust_id_scopes_map.end())
+        if (i_scopes == m_cust_id_scopes_map.end())
         {
-
+                // -----------------------------------------
                 // Not linked to scopes, no need to load
-                if(l_limit) { delete l_limit; l_limit = NULL; }
+                // -----------------------------------------
+                if (l_limit) { delete l_limit; l_limit = NULL; }
                 return WAFLZ_STATUS_OK;
         }
         l_s = i_scopes->second->load_limit(l_limit);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
-                if(l_limit) { delete l_limit; l_limit = NULL; }
+                if (l_limit) { delete l_limit; l_limit = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
@@ -754,59 +816,59 @@ int32_t scopes_configs::load_limit(const char* a_buf, uint32_t a_buf_len)
         {
                 WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!l_js->IsObject() &&
+        if (!l_js->IsObject() &&
            !l_js->IsArray())
         {
                 WAFLZ_PERROR(m_err_msg, "error parsing json");
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         int32_t l_s;
-       if(m_enable_locking)
+       if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
         // -------------------------------------------------
         // object
         // -------------------------------------------------
-        if(l_js->IsObject())
+        if (l_js->IsObject())
         {
                 l_s = load_limit(l_js);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(m_enable_locking)
+                        if (m_enable_locking)
                         {
                                 pthread_mutex_unlock(&m_mutex);
                         }
-                        if(l_js) { delete l_js; l_js = NULL;}
+                        if (l_js) { delete l_js; l_js = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
         }
         // -------------------------------------------------
         // array
         // -------------------------------------------------
-        else if(l_js->IsArray())
+        else if (l_js->IsArray())
         {
-                for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
+                for (uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
                         l_s = load_limit((void*)&l_e);
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
-                                if(m_enable_locking)
+                                if (m_enable_locking)
                                 {
                                         pthread_mutex_unlock(&m_mutex);
                                 }
-                                if(l_js) { delete l_js; l_js = NULL;}
+                                if (l_js) { delete l_js; l_js = NULL;}
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
         }
-        if(l_js) { delete l_js; l_js = NULL;}
-        if(m_enable_locking)
+        if (l_js) { delete l_js; l_js = NULL;}
+        if (m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
         }
@@ -822,35 +884,36 @@ int32_t scopes_configs::load_acl(void* a_js)
         int32_t l_s;
         ns_waflz::acl* l_acl = new acl(m_engine);
         l_s = l_acl->load(a_js);
-         if(l_s != WAFLZ_STATUS_OK)
+         if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "acl loading failed");
-                if(l_acl) { delete l_acl;l_acl = NULL; }
+                if (l_acl) { delete l_acl;l_acl = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         uint64_t l_id;
         const std::string& l_cust_id = l_acl->get_cust_id();
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
-                if(l_acl) { delete l_acl;l_acl = NULL; }
+                if (l_acl) { delete l_acl;l_acl = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         cust_id_scopes_map_t::iterator i_scopes;
         i_scopes = m_cust_id_scopes_map.find(l_id);
-        if(i_scopes == m_cust_id_scopes_map.end())
+        if (i_scopes == m_cust_id_scopes_map.end())
         {
-
+                // -----------------------------------------
                 // Not linked to scopes, no need to load
-                if(l_acl) { delete l_acl; l_acl = NULL; }
+                // -----------------------------------------
+                if (l_acl) { delete l_acl; l_acl = NULL; }
                 return WAFLZ_STATUS_OK;
         }
         l_s = i_scopes->second->load_acl(l_acl);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
-                if(l_acl) { delete l_acl; l_acl = NULL; }
+                if (l_acl) { delete l_acl; l_acl = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
@@ -872,59 +935,59 @@ int32_t scopes_configs::load_acl(const char* a_buf, uint32_t a_buf_len)
         {
                 WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!l_js->IsObject() &&
+        if (!l_js->IsObject() &&
            !l_js->IsArray())
         {
                 WAFLZ_PERROR(m_err_msg, "error parsing json");
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         int32_t l_s;
-       if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
         // -------------------------------------------------
         // object
         // -------------------------------------------------
-        if(l_js->IsObject())
+        if (l_js->IsObject())
         {
                 l_s = load_acl(l_js);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(m_enable_locking)
+                        if (m_enable_locking)
                         {
                                 pthread_mutex_unlock(&m_mutex);
                         }
-                        if(l_js) { delete l_js; l_js = NULL;}
+                        if (l_js) { delete l_js; l_js = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
         }
         // -------------------------------------------------
         // array
         // -------------------------------------------------
-        else if(l_js->IsArray())
+        else if (l_js->IsArray())
         {
-                for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
+                for (uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
                         l_s = load_acl((void*)&l_e);
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
-                                if(m_enable_locking)
+                                if (m_enable_locking)
                                 {
                                         pthread_mutex_unlock(&m_mutex);
                                 }
-                                if(l_js) { delete l_js; l_js = NULL;}
+                                if (l_js) { delete l_js; l_js = NULL;}
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
         }
-        if(l_js) { delete l_js; l_js = NULL; }
-        if(m_enable_locking)
+        if (l_js) { delete l_js; l_js = NULL; }
+        if (m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
         }
@@ -940,34 +1003,35 @@ int32_t scopes_configs::load_rules(void* a_js)
         int32_t l_s;
         ns_waflz::rules* l_rules = new rules(m_engine);
         l_s = l_rules->load(a_js);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
-                if(l_rules) { delete l_rules; l_rules = NULL;}
+                if (l_rules) { delete l_rules; l_rules = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         uint64_t l_id;
         const std::string& l_cust_id = l_rules->get_cust_id();
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
-                if(l_rules) { delete l_rules; l_rules = NULL; }
+                if (l_rules) { delete l_rules; l_rules = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }       
         cust_id_scopes_map_t::iterator i_scopes;
         i_scopes = m_cust_id_scopes_map.find(l_id);
-        if(i_scopes == m_cust_id_scopes_map.end())
+        if (i_scopes == m_cust_id_scopes_map.end())
         {
-
+                // -----------------------------------------
                 // Not linked to scopes, no need to load
-                if(l_rules) { delete l_rules; l_rules = NULL; }
+                // -----------------------------------------
+                if (l_rules) { delete l_rules; l_rules = NULL; }
                 return WAFLZ_STATUS_OK;
         }
         l_s = i_scopes->second->load_rules(l_rules);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
-                if(l_rules) { delete l_rules; l_rules = NULL; }
+                if (l_rules) { delete l_rules; l_rules = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
@@ -989,291 +1053,59 @@ int32_t scopes_configs::load_rules(const char* a_buf, uint32_t a_buf_len)
         {
                 WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!l_js->IsObject() &&
+        if (!l_js->IsObject() &&
            !l_js->IsArray())
         {
                 WAFLZ_PERROR(m_err_msg, "error parsing json");
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         int32_t l_s;
-       if(m_enable_locking)
+       if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
         // -------------------------------------------------
         // object
         // -------------------------------------------------
-        if(l_js->IsObject())
+        if (l_js->IsObject())
         {
                 l_s = load_rules(l_js);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(m_enable_locking)
+                        if (m_enable_locking)
                         {
                                 pthread_mutex_unlock(&m_mutex);
                         }
-                        if(l_js) { delete l_js; l_js = NULL;}
+                        if (l_js) { delete l_js; l_js = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
         }
         // -------------------------------------------------
         // array
         // -------------------------------------------------
-        else if(l_js->IsArray())
+        else if (l_js->IsArray())
         {
-                for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
+                for (uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
                         l_s = load_rules((void*)&l_e);
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
-                                if(m_enable_locking)
+                                if (m_enable_locking)
                                 {
                                         pthread_mutex_unlock(&m_mutex);
                                 }
-                                if(l_js) { delete l_js; l_js = NULL;}
+                                if (l_js) { delete l_js; l_js = NULL;}
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
         }
-        if(l_js) { delete l_js; l_js = NULL;}
-        if(m_enable_locking)
-        {
-                pthread_mutex_unlock(&m_mutex);
-        }
-        return WAFLZ_STATUS_OK;
-}
-//! ----------------------------------------------------------------------------
-//! \details update custom bots config
-//! \return  TODO
-//! \param   TODO
-//! ----------------------------------------------------------------------------
-int32_t scopes_configs::load_bots(void* a_js)
-{
-        int32_t l_s;
-        ns_waflz::bots* l_bots = new bots(m_engine, m_challenge);
-        l_s = l_bots->load(a_js);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(l_bots) { delete l_bots; l_bots = NULL;}
-                return WAFLZ_STATUS_ERROR;
-        }
-        uint64_t l_id;
-        const std::string& l_cust_id = l_bots->get_cust_id();
-        l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
-                if(l_bots) { delete l_bots; l_bots = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }       
-        cust_id_scopes_map_t::iterator i_scopes;
-        i_scopes = m_cust_id_scopes_map.find(l_id);
-        if(i_scopes == m_cust_id_scopes_map.end())
-        {
-                // Not linked to scopes, no need to load
-                if(l_bots) { delete l_bots; l_bots = NULL; }
-                return WAFLZ_STATUS_OK;
-        }
-        l_s = i_scopes->second->load_bots(l_bots);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
-                if(l_bots) { delete l_bots; l_bots = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        return WAFLZ_STATUS_OK;
-}
-//! ----------------------------------------------------------------------------
-//! \details update custom bots config
-//! \return  TODO
-//! \param   TODO
-//! ----------------------------------------------------------------------------
-int32_t scopes_configs::load_bots(const char* a_buf, uint32_t a_buf_len)
-{
-        // -------------------------------------------------
-        // parse
-        // -------------------------------------------------
-        rapidjson::Document *l_js = new rapidjson::Document();
-        rapidjson::ParseResult l_ok;
-        l_ok = l_js->Parse(a_buf, a_buf_len);
-        if (!l_ok)
-        {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
-                             rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
-                if(l_js) { delete l_js; l_js = NULL;}
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(!l_js->IsObject() &&
-           !l_js->IsArray())
-        {
-                WAFLZ_PERROR(m_err_msg, "error parsing json");
-                if(l_js) { delete l_js; l_js = NULL;}
-                return WAFLZ_STATUS_ERROR;
-        }
-        int32_t l_s;
-        if(m_enable_locking)
-        {
-                pthread_mutex_lock(&m_mutex);
-        }
-        // -------------------------------------------------
-        // object
-        // -------------------------------------------------
-        if(l_js->IsObject())
-        {
-                l_s = load_bots(l_js);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        if(m_enable_locking)
-                        {
-                                pthread_mutex_unlock(&m_mutex);
-                        }
-                        if(l_js) { delete l_js; l_js = NULL;}
-                        return WAFLZ_STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // array
-        // -------------------------------------------------
-        else if(l_js->IsArray())
-        {
-                for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
-                {
-                        rapidjson::Value &l_e = (*l_js)[i_e];
-                        l_s = load_bots((void*)&l_e);
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                if(m_enable_locking)
-                                {
-                                        pthread_mutex_unlock(&m_mutex);
-                                }
-                                if(l_js) { delete l_js; l_js = NULL;}
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-        }
-        if(l_js) { delete l_js; l_js = NULL;}
-        if(m_enable_locking)
-        {
-                pthread_mutex_unlock(&m_mutex);
-        }
-        return WAFLZ_STATUS_OK;
-}
-//! ----------------------------------------------------------------------------
-//! \details update bot manager config
-//! \return  TODO
-//! \param   TODO
-//! ----------------------------------------------------------------------------
-int32_t scopes_configs::load_bot_manager(void* a_js)
-{
-        int32_t l_s;
-        ns_waflz::bot_manager* l_bot_manager = new bot_manager(m_engine, m_challenge);
-        l_s = l_bot_manager->load(a_js, m_conf_dir);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                if(l_bot_manager) { delete l_bot_manager; l_bot_manager = NULL;}
-                return WAFLZ_STATUS_ERROR;
-        }
-        uint64_t l_id;
-        const std::string& l_cust_id = l_bot_manager->get_cust_id();
-        l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
-                if(l_bot_manager) { delete l_bot_manager; l_bot_manager = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        cust_id_scopes_map_t::iterator i_scopes;
-        i_scopes = m_cust_id_scopes_map.find(l_id);
-        if(i_scopes == m_cust_id_scopes_map.end())
-        {
-                // Not linked to scopes, no need to load
-                if(l_bot_manager) { delete l_bot_manager; l_bot_manager = NULL; }
-                return WAFLZ_STATUS_OK;
-        }
-        l_s = i_scopes->second->load_bot_manager(l_bot_manager);
-        if(l_s != WAFLZ_STATUS_OK)
-        {
-                WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
-                if(l_bot_manager) { delete l_bot_manager; l_bot_manager = NULL; }
-                return WAFLZ_STATUS_ERROR;
-        }
-        return WAFLZ_STATUS_OK;
-}
-//! ----------------------------------------------------------------------------
-//! \details update custom bots config
-//! \return  TODO
-//! \param   TODO
-//! ----------------------------------------------------------------------------
-int32_t scopes_configs::load_bot_manager(const char* a_buf, uint32_t a_buf_len)
-{
-        // -------------------------------------------------
-        // parse
-        // -------------------------------------------------
-        rapidjson::Document *l_js = new rapidjson::Document();
-        rapidjson::ParseResult l_ok;
-        l_ok = l_js->Parse(a_buf, a_buf_len);
-        if (!l_ok)
-        {
-                WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
-                             rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
-                if(l_js) { delete l_js; l_js = NULL;}
-                return WAFLZ_STATUS_ERROR;
-        }
-        if(!l_js->IsObject() &&
-           !l_js->IsArray())
-        {
-                WAFLZ_PERROR(m_err_msg, "error parsing json");
-                if(l_js) { delete l_js; l_js = NULL;}
-                return WAFLZ_STATUS_ERROR;
-        }
-        int32_t l_s;
-        if(m_enable_locking)
-        {
-                pthread_mutex_lock(&m_mutex);
-        }
-        // -------------------------------------------------
-        // object
-        // -------------------------------------------------
-        if(l_js->IsObject())
-        {
-                l_s = load_bots(l_js);
-                if(l_s != WAFLZ_STATUS_OK)
-                {
-                        if(m_enable_locking)
-                        {
-                                pthread_mutex_unlock(&m_mutex);
-                        }
-                        if(l_js) { delete l_js; l_js = NULL;}
-                        return WAFLZ_STATUS_ERROR;
-                }
-        }
-        // -------------------------------------------------
-        // array
-        // -------------------------------------------------
-        else if(l_js->IsArray())
-        {
-                for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
-                {
-                        rapidjson::Value &l_e = (*l_js)[i_e];
-                        l_s = load_bot_manager((void*)&l_e);
-                        if(l_s != WAFLZ_STATUS_OK)
-                        {
-                                if(m_enable_locking)
-                                {
-                                        pthread_mutex_unlock(&m_mutex);
-                                }
-                                if(l_js) { delete l_js; l_js = NULL;}
-                                return WAFLZ_STATUS_ERROR;
-                        }
-                }
-        }
-        if(l_js) { delete l_js; l_js = NULL;}
-        if(m_enable_locking)
+        if (l_js) { delete l_js; l_js = NULL;}
+        if (m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
         }
@@ -1289,35 +1121,36 @@ int32_t scopes_configs::load_profile(void* a_js)
         int32_t l_s;
         ns_waflz::profile* l_profile = new profile(m_engine);
         l_s = l_profile->load(a_js);
-         if(l_s != WAFLZ_STATUS_OK)
+         if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "profile loading failed");
-                if(l_profile) { delete l_profile;l_profile = NULL; }
+                if (l_profile) { delete l_profile;l_profile = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         uint64_t l_id;
         const std::string& l_cust_id = l_profile->get_cust_id();
         l_s = ns_waflz::convert_hex_to_uint(l_id, l_cust_id.c_str());
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg,"conversion to uint failed for %s\n", l_cust_id.c_str());
-                if(l_profile) { delete l_profile;l_profile = NULL; }
+                if (l_profile) { delete l_profile;l_profile = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         cust_id_scopes_map_t::iterator i_scopes;
         i_scopes = m_cust_id_scopes_map.find(l_id);
-        if(i_scopes == m_cust_id_scopes_map.end())
+        if (i_scopes == m_cust_id_scopes_map.end())
         {
-
+                // -----------------------------------------
                 // Not linked to scopes, no need to load
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                // -----------------------------------------
+                if (l_profile) { delete l_profile; l_profile = NULL; }
                 return WAFLZ_STATUS_OK;
         }
         l_s = i_scopes->second->load_profile(l_profile);
-        if(l_s != WAFLZ_STATUS_OK)
+        if (l_s != WAFLZ_STATUS_OK)
         {
                 WAFLZ_PERROR(m_err_msg, "%s", i_scopes->second->get_err_msg());
-                if(l_profile) { delete l_profile; l_profile = NULL; }
+                if (l_profile) { delete l_profile; l_profile = NULL; }
                 return WAFLZ_STATUS_ERROR;
         }
         return WAFLZ_STATUS_OK;
@@ -1339,59 +1172,59 @@ int32_t scopes_configs::load_profile(const char* a_buf, uint32_t a_buf_len)
         {
                 WAFLZ_PERROR(m_err_msg, "JSON parse error: %s (%d)",
                              rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
-        if(!l_js->IsObject() &&
+        if (!l_js->IsObject() &&
            !l_js->IsArray())
         {
                 WAFLZ_PERROR(m_err_msg, "error parsing json");
-                if(l_js) { delete l_js; l_js = NULL;}
+                if (l_js) { delete l_js; l_js = NULL;}
                 return WAFLZ_STATUS_ERROR;
         }
         int32_t l_s;
-        if(m_enable_locking)
+        if (m_enable_locking)
         {
                 pthread_mutex_lock(&m_mutex);
         }
         // -------------------------------------------------
         // object
         // -------------------------------------------------
-        if(l_js->IsObject())
+        if (l_js->IsObject())
         {
                 l_s = load_profile(l_js);
-                if(l_s != WAFLZ_STATUS_OK)
+                if (l_s != WAFLZ_STATUS_OK)
                 {
-                        if(m_enable_locking)
+                        if (m_enable_locking)
                         {
                                 pthread_mutex_unlock(&m_mutex);
                         }
-                        if(l_js) { delete l_js; l_js = NULL;}
+                        if (l_js) { delete l_js; l_js = NULL;}
                         return WAFLZ_STATUS_ERROR;
                 }
         }
         // -------------------------------------------------
         // array
         // -------------------------------------------------
-        else if(l_js->IsArray())
+        else if (l_js->IsArray())
         {
-                for(uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
+                for (uint32_t i_e = 0; i_e < l_js->Size(); ++i_e)
                 {
                         rapidjson::Value &l_e = (*l_js)[i_e];
                         l_s = load_profile((void*)&l_e);
-                        if(l_s != WAFLZ_STATUS_OK)
+                        if (l_s != WAFLZ_STATUS_OK)
                         {
-                                if(m_enable_locking)
+                                if (m_enable_locking)
                                 {
                                         pthread_mutex_unlock(&m_mutex);
                                 }
-                                if(l_js) { delete l_js; l_js = NULL;}
+                                if (l_js) { delete l_js; l_js = NULL;}
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
         }
-        if(l_js) { delete l_js; l_js = NULL;}
-        if(m_enable_locking)
+        if (l_js) { delete l_js; l_js = NULL;}
+        if (m_enable_locking)
         {
                 pthread_mutex_unlock(&m_mutex);
         }

@@ -51,6 +51,8 @@ message profile {
                 // -----------------------------------------
                 optional uint32 paranoia_level = 550;
                 optional uint32 anomaly_threshold = 560;
+                optional uint32 outbound_anomaly_threshold = 561;
+                optional uint32 outbound_paranoia_level = 562;
                 // -----------------------------------------
                 // logging
                 // -----------------------------------------

@@ -928,9 +928,50 @@ TEST_CASE( "acl test", "[acl]" )
                 s_host = NULL;
                 s_method = "GET";
                 s_header_content_length = NULL;
+                // *****************************************
+                // -----------------------------------------
+                //      allow_anon  C H E C K
+                // -----------------------------------------
+                // *****************************************
+                // -----------------------------------------
+                // validate block
+                // -----------------------------------------
+                s_method = "GET";
+                s_host = "www.google.com";
+                s_test_header = NULL;
+                l_rqst_ctx = new ns_waflz::rqst_ctx(l_ctx, DEFAULT_BODY_SIZE_MAX, &s_callbacks);
+                // -----------------------------------------
+                // fake proxy but allow anony
+                // -----------------------------------------
+                l_rqst_ctx->m_geo_data.m_is_anonymous_proxy = true;
+                // l_acl->set_allow_anonymous_proxy(true);
+                // -----------------------------------------
+                // validate block
+                // -----------------------------------------
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event == NULL));
+                // -----------------------------------------
+                // now dont allow
+                // -----------------------------------------
+                l_rqst_ctx->m_geo_data.m_is_anonymous_proxy = true;
+                l_acl->set_allow_anonymous_proxy(false);
+                // -----------------------------------------
+                // validate block
+                // -----------------------------------------
+                l_s = l_acl->process(&l_event, l_wl, l_ctx, &l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_event != NULL));
+                REQUIRE((l_event->sub_event_size() >= 1));
+                REQUIRE((l_event->sub_event(0).rule_id() == 80014));
+                REQUIRE((l_event->sub_event(0).has_rule_msg()));
+                REQUIRE((l_event->sub_event(0).rule_msg() == "Anonymous Proxy not allowed"));
+                if(l_rqst_ctx) { delete l_rqst_ctx; l_rqst_ctx = NULL; }
+                if(l_event) { delete l_event; l_event = NULL; }
                 // -----------------------------------------
                 // cleanup
                 // -----------------------------------------
+                l_acl->set_allow_anonymous_proxy(true);
                 if(l_acl)
                 {
                         delete l_acl;

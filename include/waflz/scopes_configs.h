@@ -14,8 +14,8 @@
 //! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "waflz/limit.h"
-#include "waflz/challenge.h"
 #include "waflz/rqst_ctx.h"
+#include "waflz/resp_ctx.h"
 #include <pthread.h>
 #include <string>
 #include <set>
@@ -60,8 +60,6 @@ public:
         int32_t load_acl(const char* a_buf, uint32_t a_buf_len);
         int32_t load_limit(const char* a_buf, uint32_t a_buf_len);
         int32_t load_rules(const char* a_buf, uint32_t a_buf_len);
-        int32_t load_bot_manager(const char* a_buf, uint32_t a_buf_len);
-        int32_t load_bots(const char* a_buf, uint32_t a_buf_len);
         int32_t load_profile(const char* a_buf, uint32_t a_buf_len);
         int32_t process(waflz_pb::enforcement **ao_enf,
                         waflz_pb::event **ao_audit_event,
@@ -71,6 +69,14 @@ public:
                         part_mk_t a_part_mk,
                         const rqst_ctx_callbacks *a_callbacks,
                         rqst_ctx **ao_rqst_ctx);
+        int32_t process_response(waflz_pb::enforcement **ao_enf,
+                        waflz_pb::event **ao_audit_event,
+                        waflz_pb::event **ao_prod_event,
+                        void *a_ctx,
+                        uint64_t a_id,
+                        part_mk_t a_part_mk,
+                        const resp_ctx_callbacks *a_callbacks,
+                        resp_ctx **ao_resp_ctx);
         bool check_id(uint64_t a_cust_id);
         const char *get_err_msg(void) { return m_err_msg; }
         int32_t generate_alert(waflz_pb::alert** ao_alert, rqst_ctx* a_ctx, uint64_t a_cust_id);
@@ -78,7 +84,9 @@ public:
         void set_conf_dir(const std::string& a_conf_dir) { m_conf_dir = a_conf_dir; }
         void get_first_id(uint64_t &ao_id);
         void get_rand_id(uint64_t &ao_id);
-        scopes_configs(engine& a_engine, kv_db& a_db, challenge& a_challenge, bool a_enable_locking);
+        scopes_configs(engine& a_engine,
+                       kv_db& a_db,
+                       bool a_enable_locking);
         ~scopes_configs();
 private:
         // -------------------------------------------------
@@ -92,8 +100,6 @@ private:
         int32_t load_acl(void* a_js);
         int32_t load_limit(void* a_js);
         int32_t load_rules(void* a_js);
-        int32_t load_bots(void* a_js);
-        int32_t load_bot_manager(void* a_js);
         int32_t load_profile(void* a_js);
         // -------------------------------------------------
         // Private members
@@ -105,10 +111,6 @@ private:
         pthread_mutex_t m_mutex;
         bool m_enable_locking;
         std::string m_conf_dir;
-        // -------------------------------------------------
-        // bot challenge
-        // -------------------------------------------------
-        challenge& m_challenge;
 };
 }
 #endif

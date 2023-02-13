@@ -32,8 +32,6 @@
     },
     "acl_audit_action": null,
     "acl_audit_id": null,
-    "bots_prod_id": null,
-    "bots_prod_action": null,
     "rules_prod_id": "ZrLf3KkQ",
     "rules_prod_action": {
       "id": "zeAXrllT",
@@ -65,6 +63,8 @@
       "type": "EM",
       "value": "test.com"
     },
+    "use_spoof_ip_header": true,
+    "spoof_ip_header": "spoof_header",
     "path": {
       "is_negated": false,
       "type": "GLOB",
@@ -98,7 +98,7 @@
     },
     "rules_audit_id":"0gG8osWJ",
     "rules_audit_action":{},
-    "profile_prod_id":"YrLf3KkQ",
+    "profile_prod_id":"Ab98JXk",
     "profile_prod_action": {
       "id": "zeAXrllT",
       "name": "ACTION",
@@ -138,8 +138,6 @@
     }],
     "acl_audit_action": null,
     "acl_audit_id": null,
-    "bots_prod_id": null,
-    "bots_prod_action": null,
     "acl_prod_id":"5wOgfHWR",
     "acl_prod_action":{
           "name": "acl-action",

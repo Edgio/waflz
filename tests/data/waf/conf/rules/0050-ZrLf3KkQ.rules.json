@@ -73,7 +73,50 @@
           }
         ]
       }
-    }
+    },
+    {
+     "sec_rule" : {
+        "action" : {
+           "action_type" : "BLOCK",
+           "id" : "66000019",
+           "msg" : "testing request bodies in custom rules",
+           "phase" : 2,
+           "t" : [
+              "NONE"
+           ]
+        },
+        "chained_rule" : [],
+        "id" : "cgWk7m5R",
+        "name" : "thanks daniallo",
+        "operator" : {
+           "is_negated" : false,
+           "type" : "CONTAINS",
+           "value" : "ps654321"
+        },
+        "variable" : [
+           {
+              "is_count": false,
+              "match": [
+                  {
+                      "value" : "password"
+
+                  }
+              ],
+              "type": "ARGS_POST"
+           },
+           {
+              "is_count": false,
+              "match": [
+                  {
+                      "value" : "/*"
+
+                  }
+              ],
+              "type": "XML"
+           }
+        ]
+     }
+  }
   ],
   "id": "ZrLf3KkQ",
   "customer_id":"0050",

@@ -43,6 +43,7 @@ typedef struct _node {
 #ifdef AC_DEBUG
         uint32_t m_id;
 #endif
+        std::string m_match_str;
         bool m_last;
         struct _node *m_parent;
         struct _node *m_fail;
@@ -54,6 +55,7 @@ typedef struct _node {
 #ifdef AC_DEBUG
                 m_id(),
 #endif
+                m_match_str(""),
                 m_last(false),
                 m_parent(NULL),
                 m_fail(NULL),
@@ -87,7 +89,6 @@ typedef struct _node {
                             i_e != m_edge_map->end();
                             ++i_e)
                         {
-                                if(!i_e->second) { continue; }
                                 i_e->second->traverse_action(a_cb, a_top_down);
                         }
                 }
@@ -412,6 +413,7 @@ int32_t ac::add(const char *a_buf, uint32_t a_len)
                         {
                                 l_child->m_last = true;
                         }
+                        l_child->m_match_str = std::string(l_buf,l_len);
                 }
                 // -----------------------------------------
                 // add node to parent
@@ -456,7 +458,6 @@ int32_t ac::finalize(void)
                     i_e != m_root->m_edge_map->end();
                     ++i_e)
                 {
-                        if(!i_e->second) continue;
                         i_e->second->m_fail = m_root;
                         l_node_stack_1->push(std::make_pair(i_e->first, i_e->second));
                 }
@@ -475,9 +476,8 @@ int32_t ac::finalize(void)
                         char_t l_c = l_e.first;
                         l_node_stack_1->pop();
                         // ---------------------------------
-                        // set fail node
+                        // fail node root for leaves
                         // ---------------------------------
-                        l_n->m_fail = m_root;
                         if(l_n->m_parent != m_root)
                         {
                                 l_n->m_fail = edge_for_code(l_n->m_parent->m_fail, l_c);
@@ -486,13 +486,15 @@ int32_t ac::finalize(void)
                                         l_n->m_fail = m_root;
                                 }
                         }
+                        // ---------------------------------
+                        // 
+                        // ---------------------------------
                         if(l_n->m_edge_map)
                         {
                                 for(edge_map_t::iterator i_e = l_n->m_edge_map->begin();
                                     i_e != l_n->m_edge_map->end();
                                     ++i_e)
                                 {
-                                        if(!i_e->second) continue;
                                         l_node_stack_2->push(std::make_pair(i_e->first, i_e->second));
                                 }
                         }
@@ -522,7 +524,7 @@ int32_t ac::finalize(void)
         // -------------------------------------------------
         // connect matches
         // -------------------------------------------------
-        connect_matches(m_root);
+        //connect_matches(m_root);
         m_finalized = true;
         return WAFLZ_STATUS_OK;
 }
@@ -531,7 +533,7 @@ int32_t ac::finalize(void)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data,
+bool ac::find(const char *a_buf, uint32_t a_len, std::string& ao_str_match, match_cb_t a_cb, void *a_data,
               bool a_override_case_sensitive)
 {
         if(!m_finalized)
@@ -581,6 +583,7 @@ bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data,
                         l_n = l_next;
                         if(l_n->m_last)
                         {
+                                ao_str_match = l_n->m_match_str;
                                 if(a_cb)
                                 {
                                         int32_t l_s;
@@ -607,9 +610,9 @@ bool ac::find(const char *a_buf, uint32_t a_len, match_cb_t a_cb, void *a_data,
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
-bool ac::find_first(const char *a_buf, uint32_t a_len, bool a_override_case_sensitive)
+bool ac::find_first(const char *a_buf, uint32_t a_len, std::string& ao_str_match, bool a_override_case_sensitive)
 {
-        return find(a_buf, a_len, match_handler_find_first, NULL, a_override_case_sensitive);
+        return find(a_buf, a_len, ao_str_match, match_handler_find_first, NULL, a_override_case_sensitive);
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -632,6 +635,7 @@ void ac::display(void)
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
+/*
 void ac::connect_matches(node_t *a_node)
 {
         if(!a_node ||
@@ -672,6 +676,7 @@ void ac::connect_matches(node_t *a_node)
                 connect_matches(i_e->second);
         }
 }
+*/
 //! ----------------------------------------------------------------------------
 //! ****************************************************************************
 //!                            U T I L I T I E S

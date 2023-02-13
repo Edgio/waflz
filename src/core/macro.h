@@ -13,6 +13,7 @@
 //! includes
 //! ----------------------------------------------------------------------------
 #include "waflz/rqst_ctx.h"
+#include "waflz/resp_ctx.h"
 #include "op/regex.h"
 #include <list>
 #include <string>
@@ -42,7 +43,8 @@ public:
         bool has(const std::string &a_str);
         int32_t operator () (std::string &ao_exp,
                              const std::string& a_str,
-                             rqst_ctx *a_ctx);
+                             rqst_ctx *a_ctx,
+                             resp_ctx *a_res_ctx);
 private:
         // -------------------------------------------------
         // private methods

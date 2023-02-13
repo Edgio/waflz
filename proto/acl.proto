@@ -38,6 +38,7 @@ message acl {
         optional lists_t user_agent = 106;
         optional lists_asn_t asn = 107;
         optional lists_t sd_iso = 114;
+        optional bool allow_anonymous_proxy = 115;
         // -------------------------------------------------
         // request properties
         // -------------------------------------------------

@@ -144,27 +144,44 @@ def test_asn_condition_group(setup_waflz_server):
     # Make 2 request in 2 sec from Japan IP.
     # 3rd request should get rate limited
     # ------------------------------------------------------
-    l_uri = G_TEST_HOST+'/test.html'
+    l_uri = G_TEST_HOST+'/test.txt?version=2.2.2'
     l_headers = {'host': 'limitzasn.com',
                  'waf-scopes-id': '0053',
                  'x-waflz-ip':'202.32.115.5'}
-    for x in range(2):
-        l_r = requests.get(l_uri, headers=l_headers)
-        assert l_r.status_code == 200
-
+    # ------------------------------------------------------
+    # Make 2 request in 2 sec from Japan IP & different file
+    # ext, .txt and .js. They both should contribute to counts
+    # because of condition groups
+    # ------------------------------------------------------
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_uri = G_TEST_HOST+'/test.js?version=2.2.2'
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    # ------------------------------------------------------
+    # 3rd request should get rate limited
+    # ------------------------------------------------------
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 403
     assert l_r.text == 'asn ddos enforcement\n'
-
-    # Make a request from US ip for the same 
-    # scope during enforcement
+     # ------------------------------------------------------
+    # 4rd request should go through because of diff file_ext
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    # ------------------------------------------------------
+    # Make a request from US ip & different file_ext for
+    # the same scope during enforcement
     # window. Request should get through
+    # ------------------------------------------------------
     l_headers['x-waflz-ip'] = '34.200.39.53'
     l_r = requests.get(l_uri, headers=l_headers)
     assert l_r.status_code == 200
 
     # Change to US ip and make requests above threshold.
     # Requests shouldn't get blocked
+    l_uri = G_TEST_HOST+'/test.html'
     l_headers['x-waflz-ip'] = '34.200.39.53'
     for x in range(5):
         l_r = requests.get(l_uri, headers=l_headers)

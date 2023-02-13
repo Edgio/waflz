@@ -1,4 +1,5 @@
 {
+  "allow_anonymous_proxy": false, 
   "allowed_http_methods": [
     "GET",
     "POST",

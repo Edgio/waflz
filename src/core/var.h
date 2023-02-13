@@ -22,10 +22,14 @@ class rqst_ctx;
 //! types
 //! ----------------------------------------------------------------------------
 typedef int32_t (*get_var_t)(const_arg_list_t &, uint32_t &, const waflz_pb::variable_t &, rqst_ctx *);
+typedef int32_t (*get_resp_var_t)(const_arg_list_t &, uint32_t &, const waflz_pb::variable_t &, resp_ctx *);
+
 //! ----------------------------------------------------------------------------
 //! prototypes
 //! ----------------------------------------------------------------------------
 void init_var_cb_vector(void);
+void init_resp_var_cb_vector(void);
 get_var_t get_var_cb(waflz_pb::variable_t_type_t a_type);
+get_resp_var_t get_resp_var_cb(waflz_pb::variable_t_type_t a_type);
 }
 #endif

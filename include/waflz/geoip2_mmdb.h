@@ -14,6 +14,7 @@
 //! ----------------------------------------------------------------------------
 #ifdef __cplusplus
 #include "waflz/def.h"
+#include "waflz/rqst_ctx.h"
 #include <string>
 #endif
 #ifndef __cplusplus
@@ -23,6 +24,7 @@ typedef struct geoip2_mmdb_t geoip2_mmdb;
 //! fwd decl's
 //! ----------------------------------------------------------------------------
 struct MMDB_s;
+struct MMDB_lookup_result_s;
 #ifdef __cplusplus
 namespace ns_waflz {
 
@@ -38,20 +40,33 @@ public:
         ~geoip2_mmdb();
         int32_t init(const std::string& a_city_mmdb_path,
                      const std::string& a_asn_mmdb_path);
+        inline int32_t city_db_initialized();
+        inline int32_t asn_db_initialized();
         // -------------------------------------------------
         //                  D B   O P S
         // -------------------------------------------------
-        int32_t get_country(const char **ao_buf, uint32_t &ao_buf_len,
-                            const char *a_ip, uint32_t a_ip_len);
-        int32_t get_sd_isos(const char **ao_sd1_buf, uint32_t &ao_sd1_buf_len,
-                            const char **ao_sd2_buf, uint32_t &ao_sd2_buf_len,
-                            const char *a_ip, uint32_t a_ip_len);
-        int32_t get_asn(uint32_t &ao_asn, const char *a_ip, uint32_t a_ip_len);
-        int32_t get_geoip_data(const char **ao_cn_name, uint32_t &ao_cn_name_len,
-                               const char **ao_city_name, uint32_t &ao_city_name_len,
-                               double &ao_lat,
-                               double &ao_longit,
-                               const char *a_ip, uint32_t a_ip_len);
+        int32_t mmdb_lookup(const MMDB_s* a_mmdb,
+                            ::MMDB_lookup_result_s* ao_ls,
+                            data_t* a_ip);
+        int32_t get_country(MMDB_lookup_result_s*, data_t*);
+        int32_t get_registered_country(MMDB_lookup_result_s*, data_t*);
+        int32_t get_country_name(MMDB_lookup_result_s* a_db,
+                                 data_t* ao_cn);
+        int32_t get_city_name(MMDB_lookup_result_s* a_db,
+                              data_t* ao_cn);
+        int32_t get_sd_isos(MMDB_lookup_result_s*, data_t*,
+                            data_t*);
+        int32_t get_anonymous_trait(MMDB_lookup_result_s*,
+                                    bool*);
+        int32_t get_coords(MMDB_lookup_result_s* a_db,
+                           double* ao_lat, double* ao_long);
+        int32_t get_asn(MMDB_lookup_result_s*, uint32_t*);
+        int32_t get_geo_data(geoip_data* ao_geo_data,
+                             data_t* a_ip);
+        int32_t get_city_data(geoip_data* ao_geo_data,
+                              data_t* a_ip);
+        int32_t get_asn_data(geoip_data* ao_geo_data,
+                             data_t* a_ip);
         // -------------------------------------------------
         //                G E T T E R S
         // -------------------------------------------------
@@ -63,7 +78,9 @@ private:
         // -------------------------------------------------
         // Private methods
         // -------------------------------------------------
+        // -------------------------------------------------
         // Disallow copy/assign
+        // -------------------------------------------------
         geoip2_mmdb(const geoip2_mmdb &);
         geoip2_mmdb& operator=(const geoip2_mmdb &);
         // -------------------------------------------------
@@ -83,6 +100,6 @@ int32_t init_db(geoip2_mmdb *a_geoip2_mmdb, char * a_city_mmdb_path, char *a_asn
 int32_t cleanup_db(geoip2_mmdb *a_geoip);
 #ifdef __cplusplus
 }
-}// namespace
+} // namespace
 #endif
 #endif

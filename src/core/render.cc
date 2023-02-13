@@ -40,6 +40,8 @@ typedef enum {
         FIELD_BOT_PROB,
         FIELD_BOT_JS,
         FIELD_AN,
+        FIELD_RECAPTCHA_SITE_KEY,
+        FIELD_RECAPTCHA_ACTION_NAME
 } field_t;
 //! ----------------------------------------------------------------------------
 //! Types
@@ -79,7 +81,11 @@ const str_field_map_t::value_type g_str_field_map_pairs[]= {
         str_field_map_t::value_type("BOT-PROB", FIELD_BOT_PROB),
         str_field_map_t::value_type("BOT_PROB", FIELD_BOT_PROB),
         str_field_map_t::value_type("BOT-JS", FIELD_BOT_JS),
-        str_field_map_t::value_type("BOT_JS", FIELD_BOT_JS)
+        str_field_map_t::value_type("BOT_JS", FIELD_BOT_JS),
+        str_field_map_t::value_type("RECAPTCHA_SITE_KEY", FIELD_RECAPTCHA_SITE_KEY),
+        str_field_map_t::value_type("RECAPTCHA_SITE_KEY", FIELD_RECAPTCHA_SITE_KEY),
+        str_field_map_t::value_type("RECAPTCHA_ACTION_NAME", FIELD_RECAPTCHA_ACTION_NAME),
+        str_field_map_t::value_type("RECAPTCHA_ACTION_NAME", FIELD_RECAPTCHA_ACTION_NAME),
 };
 const str_field_map_t g_str_field_map(g_str_field_map_pairs,
                                       g_str_field_map_pairs + (sizeof(g_str_field_map_pairs)/sizeof(g_str_field_map_pairs[0])));
@@ -387,8 +393,8 @@ static int32_t rr_render(char* ao_buf,
                         }
 #define _GET_HEADER(_header) do { \
         l_d.m_data = _header; \
-        l_d.m_len = sizeof(_header); \
-        data_map_t::const_iterator i_h = a_ctx->m_header_map.find(l_d); \
+        l_d.m_len = sizeof(_header) - 1; \
+        data_unordered_map_t::const_iterator i_h = a_ctx->m_header_map.find(l_d); \
         if(i_h != a_ctx->m_header_map.end()) \
         { \
                 l_v.m_data = i_h->second.m_data; \
@@ -449,42 +455,6 @@ static int32_t rr_render(char* ao_buf,
                                 l_buf += a_ctx->m_token.m_len;
                         }
                         break;
-                }
-               // ------------------------------------------
-                // FIELD_BOT_PROB
-                // -----------------------------------------
-                case FIELD_BOT_PROB:
-                {
-                        if(!a_ctx ||
-                           a_ctx->m_bot_ch.empty())
-                        {
-                                break;
-                        }
-                        ao_len += a_ctx->m_bot_ch.length();
-                        if(ao_buf)
-                        {
-                                memcpy(l_buf, a_ctx->m_bot_ch.c_str(), a_ctx->m_bot_ch.length());
-                                l_buf += a_ctx->m_bot_ch.length();
-                        }
-                        break;
-                }
-                // -----------------------------------------
-                // FIELD_BOT_JS
-                // -----------------------------------------
-                case FIELD_BOT_JS:
-                {
-                     if(!a_ctx ||
-                        a_ctx->m_bot_js.empty())
-                     {
-                              break;
-                     }
-                     ao_len += a_ctx->m_bot_js.length();
-                     if(ao_buf)
-                     {
-                             memcpy(l_buf, a_ctx->m_bot_js.c_str(), a_ctx->m_bot_js.length());
-                             l_buf += a_ctx->m_bot_js.length();
-                     }
-                     break;
                 }
                 // -----------------------------------------
                 // default

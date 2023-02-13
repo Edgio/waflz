@@ -77,12 +77,15 @@ public:
         ~ac();
         int32_t add(const char *a_buf, uint32_t a_len);
         int32_t finalize(void);
-        bool find(const char *a_buf, uint32_t a_len, match_cb_t a_cb,
+        bool find(const char *a_buf, uint32_t a_len,
+                  std::string& ao_str_match, 
+                  match_cb_t a_cb,
                   void *a_data,
                   bool a_override_case_sensitive =
                       false); //!< override case sensitive
 
         bool find_first(const char *a_buf, uint32_t a_len,
+                        std::string& ao_str_match,
                         bool a_override_case_sensitive =
                             false); //!< override case sensitive
 

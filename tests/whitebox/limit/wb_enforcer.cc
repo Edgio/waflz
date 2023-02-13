@@ -543,15 +543,15 @@ TEST_CASE( "enforcer test", "[enforcer]" ) {
                 ns_waflz::rqst_ctx l_ctx(NULL, 0, NULL);
                 l_e.update_start_time();
                 // verify match
-                l_ctx.m_geo_cn2.m_data = "US";
-                l_ctx.m_geo_cn2.m_len = strlen("US");
+                l_ctx.m_geo_data.m_geo_cn2.m_data = "US";
+                l_ctx.m_geo_data.m_geo_cn2.m_len = strlen("US");
                 l_s = l_e.process(&l_enfx, &l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_enfx != NULL));
                 REQUIRE((l_enfx->id() == "caa9be38-35cf-465c-bf61-7e99f2eea30bAAFD"));
                 // verify no match
-                l_ctx.m_geo_cn2.m_data = "NA";
-                l_ctx.m_geo_cn2.m_len = strlen("NA");
+                l_ctx.m_geo_data.m_geo_cn2.m_data = "NA";
+                l_ctx.m_geo_data.m_geo_cn2.m_len = strlen("NA");
                 l_s = l_e.process(&l_enfx, &l_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_enfx == NULL));

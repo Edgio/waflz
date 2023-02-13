@@ -48,7 +48,7 @@ void time_set_max_resolution_us(uint32_t a_us)
 static __inline__ uint64_t get_rdtsc64()
 {
         uint64_t tm;
-#if defined(__arm__) && defined(__linux__)
+#if (defined(__arm__) || defined(__aarch64__)) && defined(__linux__)
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
         tm = ts.tv_sec;

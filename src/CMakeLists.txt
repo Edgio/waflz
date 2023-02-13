@@ -147,9 +147,8 @@ SET(SRCS
     core/scopes.cc
     core/scopes_configs.cc
     core/rules.cc
-    core/bots.cc
-    core/bot_manager.cc
-    core/challenge.cc
+    core/resp_ctx.cc
+    core/render_resp.cc
     # ------------------------------------------------------
     # limit
     # ------------------------------------------------------
@@ -203,7 +202,6 @@ SET(HDRS
     ${CMAKE_SOURCE_DIR}/include/waflz/acl.h
     ${CMAKE_SOURCE_DIR}/include/waflz/arg.h
     ${CMAKE_SOURCE_DIR}/include/waflz/atomic.h
-    ${CMAKE_SOURCE_DIR}/include/waflz/challenge.h
     ${CMAKE_SOURCE_DIR}/include/waflz/city.h
     ${CMAKE_SOURCE_DIR}/include/waflz/config_parser.h
     ${CMAKE_SOURCE_DIR}/include/waflz/def.h
@@ -214,14 +212,14 @@ SET(HDRS
     ${CMAKE_SOURCE_DIR}/include/waflz/render.h
     ${CMAKE_SOURCE_DIR}/include/waflz/rqst_ctx.h
     ${CMAKE_SOURCE_DIR}/include/waflz/rules.h
-    ${CMAKE_SOURCE_DIR}/include/waflz/bots.h
-    ${CMAKE_SOURCE_DIR}/include/waflz/bot_manager.h
     ${CMAKE_SOURCE_DIR}/include/waflz/scopes_configs.h
     ${CMAKE_SOURCE_DIR}/include/waflz/scopes.h
     ${CMAKE_SOURCE_DIR}/include/waflz/trace.h
     ${CMAKE_SOURCE_DIR}/include/waflz/waf.h
     ${CMAKE_SOURCE_DIR}/include/waflz/waflz.h
     ${CMAKE_SOURCE_DIR}/include/waflz/string_util.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/resp_ctx.h
+    ${CMAKE_SOURCE_DIR}/include/waflz/render_resp.h
     # ------------------------------------------------------
     # db
     # ------------------------------------------------------
@@ -238,7 +236,6 @@ SET(HDRS
     # ------------------------------------------------------
     ${CMAKE_BINARY_DIR}/proto/acl.pb.h
     ${CMAKE_BINARY_DIR}/proto/action.pb.h
-    ${CMAKE_BINARY_DIR}/proto/bot_manager.pb.h
     ${CMAKE_BINARY_DIR}/proto/event.pb.h
     ${CMAKE_BINARY_DIR}/proto/limit.pb.h
     ${CMAKE_BINARY_DIR}/proto/profile.pb.h
@@ -249,6 +246,7 @@ SET(HDRS
     # support
     # ------------------------------------------------------
     ${CMAKE_SOURCE_DIR}/src/support/file_util.h
+
 
 )
 if(BUILD_REDIS)

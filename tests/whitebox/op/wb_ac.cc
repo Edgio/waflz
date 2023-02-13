@@ -198,17 +198,18 @@ TEST_CASE( "ac basic test", "[ac_basic]" ) {
                 l_ac->finalize();
                 //l_ac->display();
                 bool l_s;
-                l_s = l_ac->find_first("cat", strlen("cat"));
+                std::string l_match_str;
+                l_s = l_ac->find_first("cat", strlen("cat"), l_match_str);
                 REQUIRE((l_s == true));
-                l_s = l_ac->find_first("ca", strlen("ca"));
+                l_s = l_ac->find_first("ca", strlen("ca"), l_match_str);
                 REQUIRE((l_s == false));
-                l_s = l_ac->find_first("cax", strlen("cax"));
+                l_s = l_ac->find_first("cax", strlen("cax"), l_match_str);
                 REQUIRE((l_s == false));
-                l_s = l_ac->find_first("car", strlen("car"));
+                l_s = l_ac->find_first("car", strlen("car"), l_match_str);
                 REQUIRE((l_s == true));
-                l_s = l_ac->find_first("fox", strlen("fox"));
+                l_s = l_ac->find_first("fox", strlen("fox"), l_match_str);
                 REQUIRE((l_s == true));
-                l_s = l_ac->find_first("fex", strlen("fex"));
+                l_s = l_ac->find_first("fex", strlen("fex"), l_match_str);
                 REQUIRE((l_s == false));
                 // clean up
                 if(l_ac)
@@ -234,8 +235,10 @@ TEST_CASE( "ac basic test", "[ac_basic]" ) {
                 //l_ac->display();
                 bool l_s;
                 uint32_t l_match_count = 0;
+                std::string l_match_str;
                 l_s = l_ac->find("cat and dog and fart and foxes are cool faxes",
                                  strlen("cat and dog and fart and foxes are cool faxes"),
+                                 l_match_str,
                                  match_handler,
                                  &l_match_count);
                 REQUIRE((l_s == true));
@@ -263,18 +266,34 @@ TEST_CASE( "ac basic test", "[ac_basic]" ) {
                 l_ac->finalize();
                 //l_ac->display();
                 bool l_s;
-                l_s = l_ac->find_first(G_USER_AGENT_LIST[23], strlen(G_USER_AGENT_LIST[23]));
-                REQUIRE((l_s == true));
-                l_s = l_ac->find_first("X-EC-Precache", strlen("X-EC-Precache"));
-                REQUIRE((l_s == true));
-                l_s = l_ac->find_first("X-EC-Precachd", strlen("X-EC-Precachd"));
-                REQUIRE((l_s == false));
+                std::string l_match_str;
+                l_s = l_ac->find_first(G_USER_AGENT_LIST[23], strlen(G_USER_AGENT_LIST[23]), l_match_str);
+                REQUIRE(l_s == true);
+                REQUIRE(l_match_str == G_USER_AGENT_LIST[23]);
+                l_s = l_ac->find_first("X-EC-Precache", strlen("X-EC-Precache"), l_match_str);
+                REQUIRE(l_s == true);
+                REQUIRE(l_match_str == "X-EC-Precache");
+                l_s = l_ac->find_first("X-EC-Precachd", strlen("X-EC-Precachd"), l_match_str);
+                REQUIRE(l_s == false);
                 l_s = l_ac->find_first("Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
-                                strlen("Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"));
-                REQUIRE((l_s == true));
+                                strlen("Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"),
+                                l_match_str);
+                REQUIRE(l_s == true);
+                REQUIRE(l_match_str == "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36");
                 l_s = l_ac->find_first("Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3203.94 Safari/537.36",
-                                strlen("Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3203.94 Safari/537.36"));
-                REQUIRE((l_s == false));
+                                strlen("Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3203.94 Safari/537.36"),
+                                l_match_str);
+                REQUIRE(l_s == false);
+                l_s = l_ac->find_first("I'm cool CDN-ECST blahblahblah HI MOM!",
+                                strlen("I'm cool CDN-ECST blahblahblah HI MOM!"),
+                                l_match_str);
+                REQUIRE(l_s == true);
+                REQUIRE(l_match_str == "CDN-ECST");
+                l_s = l_ac->find_first("I'm pretending to be Amazon CloudFront :)",
+                                strlen("I'm pretending to be Amazon CloudFront :)"),
+                                l_match_str);
+                REQUIRE(l_s == true);
+                REQUIRE(l_match_str == "Amazon CloudFront");
                 // clean up
                 if(l_ac)
                 {

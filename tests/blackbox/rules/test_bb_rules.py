@@ -25,7 +25,7 @@ def run_command(command):
 # ------------------------------------------------------------------------------
 # fixture
 # ------------------------------------------------------------------------------
-@pytest.fixture(scope='module')
+@pytest.fixture
 def setup_waflz_server():
     # ------------------------------------------------------
     # setup
@@ -47,6 +47,34 @@ def setup_waflz_server():
     # yield...
     # ------------------------------------------------------
     yield setup_waflz_server
+    # ------------------------------------------------------
+    # tear down
+    # ------------------------------------------------------
+    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
+    time.sleep(0.5)
+# ------------------------------------------------------------------------------
+# fixture
+# ------------------------------------------------------------------------------
+@pytest.fixture
+def setup_waflz_server_rules():
+    # ------------------------------------------------------
+    # setup
+    # ------------------------------------------------------
+    l_cwd = os.getcwd()
+    l_file_path = os.path.dirname(os.path.abspath(__file__))
+    l_rules_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_ua.rules.json'))
+    l_geoip2city_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-City.mmdb'))
+    l_geoip2ISP_path = os.path.realpath(os.path.join(l_file_path, '../../data/waf/db/GeoLite2-ASN.mmdb'))
+    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
+    l_subproc = subprocess.Popen([l_waflz_server_path,
+                                  '-g', l_geoip2city_path,
+                                  '-s', l_geoip2ISP_path,
+                                  '-e', l_rules_path])
+    time.sleep(1)
+    # ------------------------------------------------------
+    # yield...
+    # ------------------------------------------------------
+    yield setup_waflz_server_rules
     # ------------------------------------------------------
     # tear down
     # ------------------------------------------------------
@@ -180,33 +208,25 @@ def test_bb_rule_target_update_xml_var(setup_waflz_server):
     assert 'status' in l_r_json
     assert l_r_json['status'] == 'ok'
 # ------------------------------------------------------------------------------
-# fixture
+# test_bb_without_rule_target_update_fail
 # ------------------------------------------------------------------------------
-@pytest.fixture(scope='module')
-def setup_waflz_server_rules():
-    # ------------------------------------------------------
-    # setup
-    # ------------------------------------------------------
-    l_cwd = os.getcwd()
-    l_file_path = os.path.dirname(os.path.abspath(__file__))
-    l_rules_path = os.path.realpath(os.path.join(l_file_path, 'test_bb_ua.rules.json'))
-    l_waflz_server_path = os.path.abspath(os.path.join(l_file_path, '../../../build/util/waflz_server/waflz_server'))
-    l_subproc = subprocess.Popen([l_waflz_server_path,
-                                  '-e', l_rules_path])
-    time.sleep(1)
-    # ------------------------------------------------------
-    # yield...
-    # ------------------------------------------------------
-    yield setup_waflz_server_rules
-    # ------------------------------------------------------
-    # tear down
-    # ------------------------------------------------------
-    l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
-    time.sleep(0.5)
+def test_bb_custom_rule_sd_iso(setup_waflz_server_rules):
+    l_uri = G_TEST_HOST
+    l_headers = {
+        'Host': 'example.com',
+        'x-waflz-ip': '188.31.121.90'
+    }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    #print(json.dumps(l_r_json,indent=4))
+    assert l_r_json['rule_intercept_status'] == 403
+    assert 'Request SD_ISO Comes from GB' in l_r_json['rule_msg']
+    assert '2020-10-06T18:18:09.329793Z' in l_r_json['config_last_modified']
 # ------------------------------------------------------------------------------
 # test_bb_without_rule_target_update_fail
 # ------------------------------------------------------------------------------
-@pytest.mark.skip(reason='quarantine -some issue with requests behaviors')
 def test_bb_rule_ua(setup_waflz_server_rules):
     l_uri = G_TEST_HOST
     l_headers = {
@@ -221,3 +241,19 @@ def test_bb_rule_ua(setup_waflz_server_rules):
     assert l_r_json['rule_intercept_status'] == 403
     assert 'Request User-Agent is bananas' in l_r_json['rule_msg']
     assert '2020-10-06T18:18:09.329793Z' in l_r_json['config_last_modified']
+# ------------------------------------------------------------------------------
+# test_bb_rule_streq_values
+# ------------------------------------------------------------------------------
+def test_bb_rule_streq_values(setup_waflz_server_rules):
+    l_uri = G_TEST_HOST
+    l_headers = {
+        'Host': 'example.com',
+        'User-Agent': "test3"
+    }
+    l_r = requests.get(l_uri, headers=l_headers)
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['rule_intercept_status'] == 403
+    assert len(l_r_json['sub_event']) > 0
+    assert l_r_json['sub_event'][0]['rule_id'] == 231548
+    assert 'Request user-agent found in values' in l_r_json['rule_msg']

@@ -34,6 +34,8 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include "waflz/trace.h"
+#include "support/time_util.h"
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------
@@ -467,6 +469,109 @@ int32_t profile::validate(void)
         }
         return WAFLZ_STATUS_OK;
 }
+
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
+int32_t profile::process_response(waflz_pb::event **ao_event,
+                         void *a_ctx,
+                         part_mk_t a_part_mk,
+                         resp_ctx **ao_resp_ctx)
+{
+        if(!ao_event)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_event == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        *ao_event = NULL;
+        int32_t l_s;
+        // -------------------------------------------------
+        // create new if null
+        // -------------------------------------------------
+        resp_ctx *l_resp_ctx = NULL;
+        if(ao_resp_ctx &&
+           *ao_resp_ctx)
+        {
+                l_resp_ctx = *ao_resp_ctx;
+        }
+        if(!l_resp_ctx)
+        {
+                WAFLZ_PERROR(m_err_msg, "ao_resp_ctx == NULL");
+                return WAFLZ_STATUS_ERROR;
+        }
+        if(m_waf->get_request_body_in_memory_limit() > 0)
+        {
+                l_resp_ctx->set_body_max_len(m_waf->get_request_body_in_memory_limit());
+        }
+        // -------------------------------------------------
+        // run phase 3 init
+        // -------------------------------------------------
+        l_s = l_resp_ctx->init_phase_3();
+        if(l_s != WAFLZ_STATUS_OK)
+        {
+                WAFLZ_PERROR(m_err_msg, "performing resp_ctx::init_phase_3");
+                if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+                return WAFLZ_STATUS_ERROR;
+        }
+        waflz_pb::event *l_event = NULL;
+        // -------------------------------------------------
+        // process waf...
+        // -------------------------------------------------
+        if(a_part_mk & PART_MK_WAF)
+        {
+                l_s = m_waf->process_response(&l_event, a_ctx, &l_resp_ctx);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "%s", m_waf->get_err_msg());
+                        if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        // -------------------------------------------------
+        // We got an event
+        // -------------------------------------------------
+        if(l_event)
+        {
+                l_s = l_resp_ctx->append_resp_info(*l_event);
+                if(l_s != WAFLZ_STATUS_OK)
+                {
+                        WAFLZ_PERROR(m_err_msg, "performing resp_ctx::append_rqst_info");
+                        if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+                        return WAFLZ_STATUS_ERROR;
+                }
+                l_event->set_rule_intercept_status(403);
+                l_event->set_waf_profile_id(m_pb->id());
+                l_event->set_waf_profile_name(m_pb->name());
+                if(!m_resp_header_name.empty())
+                {
+                        l_event->set_response_header_name(get_resp_header_name());
+                }
+                else
+                {
+                        // -------------------------------------------------
+                        // general settings
+                        // -------------------------------------------------
+                        if (m_pb->has_general_settings() && m_pb->general_settings().has_response_header_name())
+                        {
+                                // -------------------------------------------------
+                                // set resp header name in event
+                                // -------------------------------------------------
+                                m_resp_header_name = m_pb->general_settings().response_header_name();
+                                l_event->set_response_header_name(m_resp_header_name);
+                        }
+                }
+                if(m_pb->has_last_modified_date())
+                {
+                        l_event->set_config_last_modified(m_pb->last_modified_date());
+                }
+                *ao_event = l_event;
+        }
+        if(!ao_resp_ctx && l_resp_ctx) { delete l_resp_ctx; l_resp_ctx = NULL; }
+        return WAFLZ_STATUS_OK;
+}
+
 //! ----------------------------------------------------------------------------
 //! \details TODO
 //! \return  TODO
@@ -502,8 +607,6 @@ int32_t profile::process(waflz_pb::event **ao_event,
         {
                 l_rqst_ctx->set_body_max_len(m_waf->get_request_body_in_memory_limit());
         }
-        l_rqst_ctx->set_parse_xml(m_waf->get_parse_xml());
-        l_rqst_ctx->set_parse_json(m_waf->get_parse_json());
         // -------------------------------------------------
         // run phase 1 init
         // -------------------------------------------------

@@ -52,6 +52,10 @@ public:
         const std::string& get_cust_id(void) { return m_cust_id; }
         const std::string& get_name(void) { return m_name; }
         //: ------------------------------------------------
+        //:               S E T T E R S
+        //: ------------------------------------------------
+        void set_allow_anonymous_proxy(bool value) { m_allow_anonymous_proxy = value; }
+        //: ------------------------------------------------
         //: \details Get last error message string
         //: \return  last error message (in buffer)
         //: ------------------------------------------------
@@ -80,9 +84,14 @@ private:
         // private methods
         // -------------------------------------------------
         int32_t init();
+        // -------------------------------------------------
         // disallow copy/assign
+        // -------------------------------------------------
         acl(const acl &);
         acl& operator=(const acl &);
+        // -------------------------------------------------
+        // process information
+        // -------------------------------------------------
         int32_t process_whitelist(bool &ao_match, rqst_ctx &a_ctx);
         int32_t process_accesslist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
         int32_t process_blacklist(waflz_pb::event **ao_event, rqst_ctx &a_ctx);
@@ -101,47 +110,74 @@ private:
         std::string m_cust_id;
         std::string m_name;
         std::string m_resp_header_name;
+        bool m_allow_anonymous_proxy;
+        // -------------------------------------------------
         // ip
+        // -------------------------------------------------
         nms *m_ip_whitelist;
         nms *m_ip_accesslist;
         nms *m_ip_blacklist;
+        // -------------------------------------------------
         // country
+        // -------------------------------------------------
         stri_set_t m_country_whitelist;
         stri_set_t m_country_accesslist;
         stri_set_t m_country_blacklist;
+        // -------------------------------------------------
         // asn
+        // -------------------------------------------------
         asn_set_t m_asn_whitelist;
         asn_set_t m_asn_accesslist;
         asn_set_t m_asn_blacklist;
+        // -------------------------------------------------
         // SD_ISO
+        // -------------------------------------------------
         stri_set_t m_sd_iso_whitelist;
         stri_set_t m_sd_iso_accesslist;
         stri_set_t m_sd_iso_blacklist;
+        // -------------------------------------------------
         // url
+        // -------------------------------------------------
         regex *m_url_rx_whitelist;
         regex *m_url_rx_accesslist;
         regex *m_url_rx_blacklist;
+        // -------------------------------------------------
         // user-agent
+        // -------------------------------------------------
         regex *m_ua_rx_whitelist;
         regex *m_ua_rx_accesslist;
         regex *m_ua_rx_blacklist;
+        // -------------------------------------------------
         // referer
+        // -------------------------------------------------
         regex *m_referer_rx_whitelist;
         regex *m_referer_rx_accesslist;
         regex *m_referer_rx_blacklist;
+        // -------------------------------------------------
         // cookie
+        // -------------------------------------------------
         regex *m_cookie_rx_whitelist;
         regex *m_cookie_rx_accesslist;
         regex *m_cookie_rx_blacklist;
+        // -------------------------------------------------
         // methods
+        // -------------------------------------------------
         stri_set_t m_allowed_http_methods;
+        // -------------------------------------------------
         // protocol versions
+        // -------------------------------------------------
         stri_set_t m_allowed_http_versions;
+        // -------------------------------------------------
         // content types
+        // -------------------------------------------------
         stri_set_t m_allowed_request_content_types;
+        // -------------------------------------------------
         // extensions
+        // -------------------------------------------------
         stri_set_t m_disallowed_extensions;
+        // -------------------------------------------------
         // headers
+        // -------------------------------------------------
         stri_set_t m_disallowed_headers;
 };
 }

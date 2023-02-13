@@ -26,6 +26,8 @@
 #include <string.h>
 #include <map>
 #include <limits.h>
+#include "waflz/trace.h"
+#include "support/time_util.h"
 //! ----------------------------------------------------------------------------
 //! macros
 //! ----------------------------------------------------------------------------
@@ -39,7 +41,7 @@
         std::string l_sv_var; \
         if(a_macro && \
            a_macro->has(l_val)) { \
-                int32_t l_s = (*a_macro)(l_sv_var, l_val, a_ctx); \
+                int32_t l_s = (*a_macro)(l_sv_var, l_val, a_ctx, a_res_ctx); \
                 if(l_s != WAFLZ_STATUS_OK) { return WAFLZ_STATUS_ERROR; } \
                 l_val_ref = &l_sv_var; \
         }
@@ -56,7 +58,8 @@
                                       const char* a_buf, \
                                       const uint32_t a_len, \
                                       macro* a_macro, \
-                                      rqst_ctx *a_ctx)
+                                      rqst_ctx *a_ctx, \
+                                      resp_ctx *a_res_ctx)
 namespace ns_waflz {
 
 //! ----------------------------------------------------------------------------
@@ -64,9 +67,16 @@ namespace ns_waflz {
 //! \param:   A context(output)
 //! \return:  True if a tx that uses tolower() was called.
 //! ----------------------------------------------------------------------------
-static bool check_if_tolower_tx_was_applied(ns_waflz::rqst_ctx *a_ctx) {
-        return (a_ctx->m_src_asn_str.m_tx_applied & ns_waflz::TX_APPLIED_TOLOWER) ||
+static bool check_if_tolower_tx_was_applied(ns_waflz::rqst_ctx *a_ctx, ns_waflz::resp_ctx *a_res_ctx) {
+        if(a_ctx)
+        {
+                return (a_ctx->m_src_asn_str.m_tx_applied & ns_waflz::TX_APPLIED_TOLOWER) ||
                 (a_ctx->m_src_asn_str.m_tx_applied & ns_waflz::TX_APPLIED_CMDLINE);
+        }
+        else
+        {
+                return false;
+        }
 }
 //! ----------------------------------------------------------------------------
 //! ****************************************************************************
@@ -97,6 +107,10 @@ OP(EQ)
         // -------------------------------------------------
         long int l_in_val;
         char *l_end_ptr = NULL;
+        if(strcmp(a_buf, "BOT_SCORE") == 0)
+        {
+                l_in_val = a_len;
+        }
         l_in_val = strntol(a_buf, a_len, &l_end_ptr, 10);
         if((l_in_val == LONG_MAX) ||
            (l_in_val == LONG_MIN))
@@ -149,7 +163,14 @@ OP(GE)
         // -------------------------------------------------
         long int l_in_val;
         char *l_end_ptr = NULL;
-        l_in_val = strntol(a_buf, a_len, &l_end_ptr, 10);
+        if(strcmp(a_buf, "BOT_SCORE") == 0)
+        {
+                l_in_val = a_len;
+        }
+        else
+        {
+                l_in_val = strntol(a_buf, a_len, &l_end_ptr, 10);
+        }
         if((l_in_val == LONG_MAX) ||
            (l_in_val == LONG_MIN))
         {
@@ -205,6 +226,10 @@ OP(GT)
         // since there is no transformation t:length on input buf
         // The length is specified in a_len
         if(strcmp(a_buf, "ARGS_COMBINED_SIZE") == 0)
+        {
+                l_in_val = a_len;
+        }
+        else if(strcmp(a_buf, "BOT_SCORE") == 0)
         {
                 l_in_val = a_len;
         }
@@ -270,6 +295,10 @@ OP(LT)
         {
                 l_in_val = a_len;
         }
+        else if(strcmp(a_buf, "BOT_SCORE") == 0)
+        {
+                l_in_val = a_len;
+        }
         else
         {
                 l_in_val = strntol(a_buf, a_len, &l_end_ptr, 10);
@@ -331,6 +360,10 @@ OP(LE)
         // since there is no transformation t:length on input buf
         // The length is specified in a_len
         if(strcmp(a_buf, "ARGS_COMBINED_SIZE") == 0)
+        {
+                l_in_val = a_len;
+        }
+        else if(strcmp(a_buf, "BOT_SCORE") == 0)
         {
                 l_in_val = a_len;
         }
@@ -550,6 +583,20 @@ OP(ENDSWITH)
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
+//! \details: compares the std::string to the char* given
+//! \return:  True if the strings are equal. otherwise False
+//! \param:   a_looking : the given string
+//! \param:   a_hav_data: the string needed to match
+//! \param:   a_hav_len : the length of the string needed to match
+//! ----------------------------------------------------------------------------
+bool _streq(const std::string *a_looking, const char *a_hav_data, uint32_t a_hav_len)
+{
+        if (a_looking->length() != a_hav_len) { return false; }
+        int32_t l_s =
+            strncmp(a_looking->c_str(), a_hav_data, a_looking->length());
+        return l_s == 0;
+}
+//! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
@@ -557,29 +604,47 @@ OP(ENDSWITH)
 OP(STREQ)
 {
         ao_match = false;
-        if(!a_buf ||
+        // -------------------------------------------------
+        // no string - no match
+        // -------------------------------------------------
+        if (!a_buf ||
            !a_len)
         {
                 return WAFLZ_STATUS_OK;
         }
-        if(!a_op.has_value())
+        // -------------------------------------------------
+        // nothing in op to compare - no match
+        // -------------------------------------------------
+        if (!a_op.has_value() && a_op.values_size() == 0)
         {
                 return WAFLZ_STATUS_OK;
         }
-        const std::string &l_val = a_op.value();
-        EXPAND_MACRO(l_val);
         // -------------------------------------------------
-        // find
+        // single value case
         // -------------------------------------------------
-        if(l_val_ref->length() != a_len)
+        if (a_op.has_value())
         {
+                const std::string &l_val = a_op.value();
+                EXPAND_MACRO(l_val);
+                // -----------------------------------------
+                // find
+                // -----------------------------------------
+                ao_match = _streq(l_val_ref, a_buf, a_len);
+                SET_IF_NEGATED();
                 return WAFLZ_STATUS_OK;
         }
-        int32_t l_s;
-        l_s = strncmp(l_val_ref->c_str(), a_buf, l_val_ref->length());
-        if(l_s == 0)
+        // -------------------------------------------------
+        // multi-value case
+        // -------------------------------------------------
+        for ( int32_t index = 0; index < a_op.values_size(); index++ )
         {
-                ao_match = true;
+                const std::string &l_val = a_op.values(index);
+                EXPAND_MACRO(l_val);
+                // -----------------------------------------
+                // find
+                // -----------------------------------------
+                ao_match = _streq(l_val_ref, a_buf, a_len);
+                if ( ao_match ) { break; }
         }
         SET_IF_NEGATED();
         return WAFLZ_STATUS_OK;
@@ -779,8 +844,17 @@ OP(PM)
         // -------------------------------------------------
         ac *l_ac = (ac *)(a_op._reserved_1());
         bool l_match = false;
-        const bool l_tolower_applied = check_if_tolower_tx_was_applied(a_ctx);
-        l_match = l_ac->find_first(a_buf, a_len, l_tolower_applied);
+        std::string l_match_str;
+        const bool l_tolower_applied = check_if_tolower_tx_was_applied(a_ctx, a_res_ctx);
+        l_match = l_ac->find_first(a_buf, a_len, l_match_str, l_tolower_applied);
+        if (a_ctx)
+        {
+                a_ctx->m_cx_tx_map["0"] = l_match_str;
+        }
+        else if(a_res_ctx)
+        {
+                a_res_ctx->m_cx_tx_map["0"] = l_match_str;
+        }
         //NDBG_PRINT("l_tolower_applied - %d\n", l_tolower_applied);
         if(l_match)
         {
@@ -813,8 +887,17 @@ OP(PMF)
         // -------------------------------------------------
         ac *l_ac = (ac *)(a_op._reserved_1());
         bool l_match = false;
-        const bool l_tolower_applied = check_if_tolower_tx_was_applied(a_ctx);
-        l_match = l_ac->find_first(a_buf, a_len, l_tolower_applied);
+        std::string l_match_str;
+        const bool l_tolower_applied = check_if_tolower_tx_was_applied(a_ctx, a_res_ctx);
+        l_match = l_ac->find_first(a_buf, a_len, l_match_str, l_tolower_applied);
+        if(a_ctx)
+        {
+                a_ctx->m_cx_tx_map["0"] = l_match_str;
+        }
+        else if(a_res_ctx)
+        {
+                a_res_ctx->m_cx_tx_map["0"] = l_match_str;
+        }
         //NDBG_PRINT("l_tolower_applied - %d\n", l_tolower_applied);
         if(l_match)
         {
@@ -847,8 +930,17 @@ OP(PMFROMFILE)
         // -------------------------------------------------
         ac *l_ac = (ac *)(a_op._reserved_1());
         bool l_match = false;
-        const bool l_tolower_applied = check_if_tolower_tx_was_applied(a_ctx);
-        l_match = l_ac->find_first(a_buf, a_len, l_tolower_applied);
+        std::string l_match_str;
+        const bool l_tolower_applied = check_if_tolower_tx_was_applied(a_ctx, a_res_ctx);
+        l_match = l_ac->find_first(a_buf, a_len, l_match_str, l_tolower_applied);
+        if(a_ctx)
+        {
+                a_ctx->m_cx_tx_map["0"] = l_match_str;
+        }
+        else if(a_res_ctx)
+        {
+                a_res_ctx->m_cx_tx_map["0"] = l_match_str;
+        }
         //NDBG_PRINT("l_tolower_applied - %d\n", l_tolower_applied);
         if(l_match)
         {
@@ -890,8 +982,15 @@ OP(RX)
                     ++i_d)
                 {
                         l_capture.assign((*i_d).m_data, (*i_d).m_len);
-                        a_ctx->m_cx_tx_map[to_string(l_index)] = l_capture;
-                        //NDBG_PRINT("setting TX.%d = %s\n", l_index, l_capture.c_str());
+                        if(a_ctx)
+                        {
+                                a_ctx->m_cx_tx_map[to_string(l_index)] = l_capture;
+                        }
+                        else if(a_res_ctx)
+                        {
+                                a_res_ctx->m_cx_tx_map[to_string(l_index)] = l_capture;
+                        }
+                       
                         ++l_index;
                 }
                 ao_match = true;
@@ -1063,8 +1162,16 @@ OP(VERIFYCC)
         // -------------------------------------------------
         if(l_cc_valid)
         {
-                a_ctx->m_cx_tx_map["1"] = l_match_str;
-                ao_match = true;
+                if(a_ctx)
+                {
+                        a_ctx->m_cx_tx_map["1"] = l_match_str;
+                        ao_match = true;
+                }
+                else if(a_res_ctx)
+                {
+                        a_res_ctx->m_cx_tx_map["1"] = l_match_str;
+                        ao_match = true;
+                }
         }
         //NDBG_PRINT("CC: check status: %d\n", l_cc_valid);
         SET_IF_NEGATED();

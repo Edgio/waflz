@@ -10,6 +10,7 @@ import sys
 import json
 import time
 import requests
+import datetime
 import base64
 import time
 # ------------------------------------------------------------------------------
@@ -133,6 +134,28 @@ def setup_waflz_server_action():
     # ------------------------------------------------------
     l_code, l_out, l_err = run_command('kill -9 %d'%(l_subproc.pid))
     time.sleep(0.5)
+# ------------------------------------------------------------------------------
+# update profile
+# ------------------------------------------------------------------------------
+def update_profile(profile):
+    # ------------------------------------------------------
+    # update profile
+    # ------------------------------------------------------
+    profile['last_modified_date'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+    l_url = f'{G_TEST_HOST}/update_profile'
+    l_headers = {'Content-Type': 'application/json',
+                 'waf-scopes-id': '0050'}
+    l_r = requests.post(l_url,
+                        headers=l_headers,
+                        data=json.dumps(profile))
+    # ------------------------------------------------------
+    # assert update worked
+    # ------------------------------------------------------
+    assert l_r.status_code == 200
+    # ------------------------------------------------------
+    # sleep so next update will work
+    # ------------------------------------------------------
+    time.sleep(1)
 # ------------------------------------------------------------------------------
 # an 0050
 # ------------------------------------------------------------------------------
@@ -626,17 +649,78 @@ def test_chained_custom_rules_in_scopes(setup_waflz_server_action):
     assert l_r.status_code == 403
     assert l_r.text == 'response from chained custom rules\n'
 # ------------------------------------------------------------------------------
-# custom rules test json body parsing
+# test spoof header works
 # ------------------------------------------------------------------------------
-def test_custom_rules_body_parsing_in_scopes(setup_waflz_server_action):
+def test_spoof_header(setup_waflz_server_single):
     # ------------------------------------------------------
     # create request
     # ------------------------------------------------------
     l_uri = G_TEST_HOST+'/test.html'
-    l_headers = {'host': 'bodytest.com',
-                 'user-agent': 'monkey',
-                 'Content-Type': 'application/json',
-                 'waf-scopes-id': '0052'}
+    l_headers = {
+        'host': 'test.com',
+        'x-waflz-ip': '2.2.2.2'
+    }
+    # ------------------------------------------------------
+    # send request that should be blocked by ip
+    # ------------------------------------------------------
+    l_r = requests.get(l_uri, headers=l_headers)
+    # ------------------------------------------------------
+    # assert blocked by ip
+    # ------------------------------------------------------
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile']['rule_msg'] == 'Blacklist IP match'
+    assert l_r_json['audit_profile']['geoip_asn'] == 3215
+    # ------------------------------------------------------
+    # add spoof ip header that still gets blocked
+    # ------------------------------------------------------
+    l_headers['spoof_header'] = '101.191.255.255'
+    # ------------------------------------------------------
+    # send request with spoofed ip
+    # ------------------------------------------------------
+    l_r = requests.get(l_uri, headers=l_headers)
+    # ------------------------------------------------------
+    # assert that ip was spoofed was blocked
+    # ------------------------------------------------------
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert l_r_json['audit_profile']['rule_msg'] == 'Blacklist Subdivision match'
+    # ------------------------------------------------------
+    # add spoof ip header 
+    # ------------------------------------------------------
+    l_headers['spoof_header'] = '1.1.1.1'
+    # ------------------------------------------------------
+    # send request with spoofed ip
+    # ------------------------------------------------------
+    l_r = requests.get(l_uri, headers=l_headers)
+    # ------------------------------------------------------
+    # assert that ip was spoofed and not blocked
+    # ------------------------------------------------------
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert 'audit_profile' in l_r_json
+    assert not l_r_json['audit_profile']
+# ------------------------------------------------------------------------------
+# test parser behavior
+# ------------------------------------------------------------------------------
+def test_scopes_parser_behavior(setup_waflz_server_single):
+    # ------------------------------------------------------
+    # create request
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {
+        'Host': 'test.com',
+        'user-agent': 'monkey',
+        'Content-Type': 'application/json',
+        'waf-scopes-id': '0050'
+    }
+    # ------------------------------------------------------
+    # scenario 1: All profiles have all parser turned on
+    # ------------------------------------------------------
+    # ------------------------------------------------------
+    # Test custom rules: Both audit and prod custom rules
+    # should fire
+    # ------------------------------------------------------
     l_body = {
         'email' : 'ps.switch.delivery@gmail.com',
         'origin' : 'mobile',
@@ -645,35 +729,199 @@ def test_custom_rules_body_parsing_in_scopes(setup_waflz_server_action):
     l_r = requests.post(l_uri,
                         headers=l_headers,
                         data=json.dumps(l_body))
-    assert l_r.status_code == 403
+    assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    l_event = l_r_json['prod_profile']
-    #-------------------------------------------------------
-    # check we have an event
+    assert 'audit_profile' in l_r_json
+    l_audit_event = l_r_json['audit_profile']
+    l_prod_event = l_r_json['prod_profile']
+    assert l_audit_event['rule_intercept_status'] == 403
+    assert l_audit_event['rule_msg'] == 'testing request bodies in custom rules'
+    assert l_prod_event['rule_intercept_status'] == 403
+    assert l_prod_event['rule_msg'] == 'testing request bodies in custom rules'
     # ------------------------------------------------------
-    assert l_event['rule_intercept_status'] == 403
-    assert l_event['rule_msg'] == 'testing request bodies in custom rules'
-    assert l_event['sub_event'][0]['rule_op_param'] == 'ps654321'
-    #-------------------------------------------------------
-    # test an xml
+    # both audit and prod profiles should fire as well
     # ------------------------------------------------------
-    l_body = """<?xml version="1.0" encoding="UTF-8"?>
-    <body>
-        <email>ps.switch.delivery@gmail.com</email>
-        <origin>mobile</origin>
-        <password>ps654321</password>
-    </body>
-    """
-    l_headers = {'host': 'bodytest.com',
-                 'user-agent': 'monkey',
-                 'Content-Type': 'text/xml',
-                 'waf-scopes-id': '0052'}
+    l_body = { 'PARAMETER1': 'PARAMETER',
+                'PARAMETER': 'PARAMETER:\'4\' UNION SELECT 31337,name COLLATE Arabic_CI_AS FROM master..sysdatabases--'
+             }
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {
+        'Host': 'test.com',
+        'user-agent': 'monkey',
+        'Content-Type': 'application/json',
+        'waf-scopes-id': '0050'
+    }
     l_r = requests.post(l_uri,
                         headers=l_headers,
-                        data=l_body)
-    assert l_r.status_code == 403
+                        data=json.dumps(l_body))
+    assert l_r.status_code == 200
     l_r_json = l_r.json()
     assert len(l_r_json) > 0
-    assert l_event['rule_msg'] == 'testing request bodies in custom rules'
-    assert l_event['sub_event'][0]['rule_op_param'] == 'ps654321'
+    assert 'audit_profile' in l_r_json
+    l_audit_event = l_r_json['audit_profile']
+    l_prod_event = l_r_json['prod_profile']
+    assert l_audit_event['rule_intercept_status'] == 403
+    assert l_audit_event['rule_msg'] == 'Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: '
+    assert l_prod_event['rule_intercept_status'] == 403
+    assert l_prod_event['rule_msg'] == 'Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: '
+    # ------------------------------------------------------
+    # scenario 2: Audit profile parser off
+    # ------------------------------------------------------
+    l_audit_profile_path = os.path.realpath(os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '../../data/waf/conf/profile/0050-YrLf3KkQ.wafprof.json'
+    ))
+    l_audit_profile = None
+    with open(l_audit_profile_path, 'r') as file_handler:
+        l_audit_profile = json.loads(file_handler.read());
+    l_audit_profile['general_settings']['json_parser'] = False
+    update_profile(l_audit_profile)
+    # ------------------------------------------------------
+    # Test custom rules: Both audit and prod custom rules
+    # should fire, Audit should not fire, prod should fire
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {
+        'Host': 'test.com',
+        'user-agent': 'monkey',
+        'Content-Type': 'application/json',
+        'waf-scopes-id': '0050'
+    }
+    l_body = {
+        'email' : 'ps.switch.delivery@gmail.com',
+        'origin' : 'mobile',
+        'password' : 'ps654321'
+    }
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=json.dumps(l_body))
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert 'audit_profile' in l_r_json
+    l_audit_event = l_r_json['audit_profile']
+    l_prod_event = l_r_json['prod_profile']
+    assert l_audit_event['rule_intercept_status'] == 403
+    assert l_audit_event['rule_msg'] == 'testing request bodies in custom rules'
+    assert l_prod_event['rule_intercept_status'] == 403
+    assert l_prod_event['rule_msg'] == 'testing request bodies in custom rules'
+    # ------------------------------------------------------
+    # test managed profiles. Audit should not fire, prod should
+    # ------------------------------------------------------
+    l_body = { 'PARAMETER1': 'PARAMETER',
+                'PARAMETER': 'PARAMETER:\'4\' UNION SELECT 31337,name COLLATE Arabic_CI_AS FROM master..sysdatabases--'
+             }
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {
+        'Host': 'test.com',
+        'user-agent': 'monkey',
+        'Content-Type': 'application/json',
+        'waf-scopes-id': '0050'
+    }
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=json.dumps(l_body))
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert 'audit_profile' in l_r_json
+    l_audit_event = l_r_json['audit_profile']
+    l_prod_event = l_r_json['prod_profile']
+    assert l_audit_event is None
+    assert l_prod_event['rule_intercept_status'] == 403
+    assert l_prod_event['rule_msg'] == 'Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: '
+    # ------------------------------------------------------
+    # scenario 3: both profile parser turned off
+    # ------------------------------------------------------
+    l_prod_profile_path = os.path.realpath(os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '../../data/waf/conf/profile/0050-Ab98JXk.wafprof.json'
+    ))
+    l_prod_profile = None
+    with open(l_prod_profile_path, 'r') as file_handler:
+        l_prod_profile = json.loads(file_handler.read());
+    l_prod_profile['general_settings']['json_parser'] = False
+    update_profile(l_prod_profile)
+    #-------------------------------------------------------
+    # check we get event from both  custom rules again
+    # ------------------------------------------------------
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {
+        'Host': 'test.com',
+        'user-agent': 'monkey',
+        'Content-Type': 'application/json',
+        'waf-scopes-id': '0050'
+    }
+    l_body = {
+        'email' : 'ps.switch.delivery@gmail.com',
+        'origin' : 'mobile',
+        'password' : 'ps654321'
+    }
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=json.dumps(l_body))
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert 'audit_profile' in l_r_json
+    l_audit_event = l_r_json['audit_profile']
+    l_prod_event = l_r_json['prod_profile']
+    assert l_audit_event['rule_intercept_status'] == 403
+    assert l_audit_event['rule_msg'] == 'testing request bodies in custom rules'
+    assert l_prod_event['rule_intercept_status'] == 403
+    assert l_prod_event['rule_msg'] == 'testing request bodies in custom rules'
+    # ------------------------------------------------------
+    # niether of the profiles should fire
+    # ------------------------------------------------------
+    l_body = { 'PARAMETER1': 'PARAMETER',
+                'PARAMETER': 'PARAMETER:\'4\' UNION SELECT 31337,name COLLATE Arabic_CI_AS FROM master..sysdatabases--'
+             }
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {
+        'Host': 'test.com',
+        'user-agent': 'monkey',
+        'Content-Type': 'application/json',
+        'waf-scopes-id': '0050'
+    }
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=json.dumps(l_body))
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert 'audit_profile' in l_r_json
+    l_audit_event = l_r_json['audit_profile']
+    l_prod_event = l_r_json['prod_profile']
+    assert l_audit_event is None
+    assert l_prod_event is None
+    # ------------------------------------------------------
+    # scenario 3: Audit profile parser on, prod parser off
+    # ------------------------------------------------------
+    l_audit_profile['general_settings']['json_parser'] = True
+    update_profile(l_audit_profile)
+    # ------------------------------------------------------
+    # Audit profile should alert, prod should not
+    # ------------------------------------------------------
+    l_body = { 'PARAMETER1': 'PARAMETER',
+                'PARAMETER': 'PARAMETER:\'4\' UNION SELECT 31337,name COLLATE Arabic_CI_AS FROM master..sysdatabases--'
+             }
+    l_uri = G_TEST_HOST+'/test.html'
+    l_headers = {
+        'Host': 'test.com',
+        'user-agent': 'monkey',
+        'Content-Type': 'application/json',
+        'waf-scopes-id': '0050'
+    }
+    l_r = requests.post(l_uri,
+                        headers=l_headers,
+                        data=json.dumps(l_body))
+    assert l_r.status_code == 200
+    l_r_json = l_r.json()
+    assert len(l_r_json) > 0
+    assert 'audit_profile' in l_r_json
+    l_audit_event = l_r_json['audit_profile']
+    l_prod_event = l_r_json['prod_profile']
+    assert l_audit_event['rule_intercept_status'] == 403
+    assert l_audit_event['rule_msg'] == 'Inbound Anomaly Score Exceeded (Total Score: 5): Last Matched Message: '
+    assert l_prod_event is None

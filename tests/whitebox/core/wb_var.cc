@@ -299,6 +299,18 @@ TEST_CASE( "test var", "[var]" ) {
                 uint32_t l_count = 0;
                 uint32_t i_idx = 0;
                 // -----------------------------------------
+                // check inspect body flag. Turn it off
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = false;
+                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 2));
+                // -----------------------------------------
+                // check inspect body flag. Turn it on
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = true;
+                // -----------------------------------------
                 // get all
                 // -----------------------------------------
                 l_al.clear();
@@ -377,6 +389,18 @@ TEST_CASE( "test var", "[var]" ) {
                 int32_t l_s;
                 uint32_t l_count = 0;
                 uint32_t i_idx = 0;
+                // -----------------------------------------
+                // check inspect body flag. Turn it off
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = false;
+                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 2));
+                // -----------------------------------------
+                // check inspect body flag. Turn it on
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = true;
                 // -----------------------------------------
                 // get all
                 // -----------------------------------------
@@ -612,6 +636,18 @@ TEST_CASE( "test var", "[var]" ) {
                 uint32_t l_count = 0;
                 uint32_t i_idx = 0;
                 // -----------------------------------------
+                // check inspect body flag. Turn it off
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = false;
+                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 0));
+                // -----------------------------------------
+                // check inspect body flag. Turn it on
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = true;
+                // -----------------------------------------
                 // get all
                 // -----------------------------------------
                 l_al.clear();
@@ -690,9 +726,17 @@ TEST_CASE( "test var", "[var]" ) {
                 uint32_t l_count = 0;
                 uint32_t i_idx = 0;
                 // -----------------------------------------
-                // get all
+                // check inspect body flag. Turn it off
                 // -----------------------------------------
-                l_al.clear();
+                l_rqst_ctx->m_inspect_body = false;
+                                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 0));
+                // -----------------------------------------
+                // check inspect body flag. Turn it on
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = true;
                 l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
                 REQUIRE((l_s == WAFLZ_STATUS_OK));
                 REQUIRE((l_al.size() == 3));
@@ -1762,6 +1806,18 @@ TEST_CASE( "test var", "[var]" ) {
                 l_rqst_ctx->init_phase_1(l_geoip2_mmdb);
                 l_rqst_ctx->init_phase_2(l_ctype_parser_map);
                 // -----------------------------------------
+                // check inspect body flag. Turn it off
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = false;
+                                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 0));
+                // -----------------------------------------
+                // check inspect body flag. Turn it on
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = true;
+                // -----------------------------------------
                 // get all
                 // -----------------------------------------
                 l_al.clear();
@@ -1910,6 +1966,18 @@ TEST_CASE( "test var", "[var]" ) {
                 int32_t l_s;
                 uint32_t l_count = 0;
                 uint32_t i_idx = 0;
+                // -----------------------------------------
+                // check inspect body flag. Turn it off
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = false;
+                                l_al.clear();
+                l_s = l_cb(l_al, l_count, *l_var, l_rqst_ctx);
+                REQUIRE((l_s == WAFLZ_STATUS_OK));
+                REQUIRE((l_al.size() == 0));
+                // -----------------------------------------
+                // check inspect body flag. Turn it on
+                // -----------------------------------------
+                l_rqst_ctx->m_inspect_body = true;
                 // -----------------------------------------
                 // get all
                 // -----------------------------------------

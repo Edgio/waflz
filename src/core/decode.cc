@@ -1498,7 +1498,7 @@ int32_t utf8_to_unicode(char **ao_buf,
                         // ---------------------------------
                         // encoding
                         // ---------------------------------
-                        l_data += sprintf(l_data, "%%u%04x", l_d);
+                        l_data += snprintf(l_data, a_buf_len, "%%u%04x", l_d);
                 }
                 // -----------------------------------------
                 // if first byte begins with binary 1110 it
@@ -1522,7 +1522,7 @@ int32_t utf8_to_unicode(char **ao_buf,
                         // ---------------------------------
                         // encoding
                         // ---------------------------------
-                        l_data += sprintf(l_data, "%%u%04x", l_d);
+                        l_data += snprintf(l_data, a_buf_len, "%%u%04x", l_d);
                 }
                 // -----------------------------------------
                 // If first byte begins with binary 11110 it
@@ -1555,7 +1555,7 @@ int32_t utf8_to_unicode(char **ao_buf,
                         // ---------------------------------
                         // encoding
                         // ---------------------------------
-                        l_data += sprintf(l_data, "%%u%04x", l_d);
+                        l_data += snprintf(l_data, a_buf_len, "%%u%04x", l_d);
                 }
                 // -----------------------------------------
                 // any other first byte is invalid (RFC 3629)

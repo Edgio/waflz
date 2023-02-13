@@ -16,7 +16,7 @@ build:
   before_script:
     - cat /etc/lsb-release
     - apt-get update
-    - apt-get install -y sudo lsb-release apt-transport-https ca-certificates curl git python3 python3-pip build-essential software-properties-common cmake
+    - apt-get install -y sudo lsb-release apt-transport-https ca-certificates git python3 python3-pip build-essential software-properties-common cmake
     - apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev rapidjson-dev
     - python3 -m pip install --upgrade pip
     - pip install -r requirements.txt

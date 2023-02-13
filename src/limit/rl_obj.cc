@@ -467,7 +467,7 @@ int32_t rl_obj::process_condition_group(bool &ao_matched,
                               l_buf,
                               l_tgt,
                               a_ctx);
-                //TRC_DEBUG("l_data: %.*s\n", l_data_len, l_data);
+                //WFLZ_TRC_ALL("l_data: %.*s\n", l_data_len, l_data);
                 if(l_s != WAFLZ_STATUS_OK)
                 {
                         // TODO log error reason
@@ -620,8 +620,8 @@ int32_t rl_obj::extract(const char **ao_data,
                 data_t l_d;
                 l_d.m_data = l_val.c_str();
                 l_d.m_len = l_val.length();
-                const data_map_t &l_map = a_ctx->m_header_map;
-                const data_map_t::const_iterator i_d = l_map.find(l_d);
+                const data_unordered_map_t &l_map = a_ctx->m_header_map;
+                const data_unordered_map_t::const_iterator i_d = l_map.find(l_d);
                 if(i_d == l_map.end())
                 {
                         break;
@@ -657,8 +657,8 @@ int32_t rl_obj::extract(const char **ao_data,
                         data_t l_d;
                         l_d.m_data = l_val.c_str();
                         l_d.m_len = l_val.length();
-                        const data_map_t &l_map = a_ctx->m_header_map;
-                        const data_map_t::const_iterator i_d = l_map.find(l_d);
+                        const data_unordered_map_t &l_map = a_ctx->m_header_map;
+                        const data_unordered_map_t::const_iterator i_d = l_map.find(l_d);
                         if(i_d == l_map.end())
                         {
                                 break;
@@ -677,32 +677,25 @@ int32_t rl_obj::extract(const char **ao_data,
         // -------------------------------------------------
         case waflz_pb::condition_target_t::FILE_EXT:
         {
-                _SET_W_CTX(m_uri);
+                _SET_W_CTX(m_file_ext);
                 if(!(*ao_data) ||
                     !ao_data_len)
                 {
                         break;
                 }
                 // -----------------------------------------
-                // TODO -inefficient
-                // just search in original str returned by
-                // s_get_rqst_uri_cb
+                // Legacy hack: RL configs don't accept '.'
+                // in file extensions. We have strip out the
+                // first byte. m_file_ext will give you a
+                // '.html', but OP expects a match on 'html'
+                // move the pointer by 1 place and adjust len
                 // -----------------------------------------
-                std::string l_uri;
-                l_uri.append(*ao_data, ao_data_len);
-                size_t l_pos;
-                l_pos = l_uri.rfind(".");
-                if(l_pos == std::string::npos)
+                if ((ao_data_len > 1) &&
+                   (*ao_data[0] == '.'))
                 {
-                        break;
+                        ++*ao_data;
+                        --ao_data_len;
                 }
-                ao_buf = l_uri.substr(l_pos + 1);
-                if(ao_buf.empty())
-                {
-                        break;
-                }
-                *ao_data = ao_buf.c_str();
-                ao_data_len = ao_buf.length();
                 break;
         }
         // -------------------------------------------------
@@ -710,7 +703,7 @@ int32_t rl_obj::extract(const char **ao_data,
         // -------------------------------------------------
         case waflz_pb::condition_target_t::GEO:
         {
-                _SET_W_CTX(m_geo_cn2);
+                _SET_W_CTX(m_geo_data.m_geo_cn2);
                 std::string l_cn(*ao_data, ao_data_len);
                 break;
         }

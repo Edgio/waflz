@@ -27,6 +27,7 @@ message enforcement {
                 IGNORE_REDIRECT_302 = 14;
                 IGNORE_CUSTOM_RESPONSE = 15;
                 IGNORE_DROP_REQUEST = 16;
+                RECAPTCHA = 17;
         }
         message header_t {
                 optional string key = 1;
@@ -54,5 +55,7 @@ message enforcement {
         optional string response_body = 103;
         // cookie expiry
         optional uint32 valid_for_sec = 200;
+        optional type_t failed_action_type = 201;
 }
+
 

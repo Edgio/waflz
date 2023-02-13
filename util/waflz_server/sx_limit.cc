@@ -38,8 +38,8 @@
 //! ----------------------------------------------------------------------------
 #define _GET_HEADER(_header) do { \
         l_d.m_data = _header; \
-        l_d.m_len = sizeof(_header); \
-        ns_waflz::data_map_t::const_iterator i_h = a_ctx->m_header_map.find(l_d); \
+        l_d.m_len = sizeof(_header) - 1; \
+        ns_waflz::data_unordered_map_t::const_iterator i_h = a_ctx->m_header_map.find(l_d); \
         if(i_h != a_ctx->m_header_map.end()) { \
                 l_v.m_data = i_h->second.m_data; \
                 l_v.m_len = i_h->second.m_len; \

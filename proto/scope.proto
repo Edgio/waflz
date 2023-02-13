@@ -32,6 +32,11 @@ message scope {
         // -------------------------------------------------
         optional string id = 1;
         optional string name = 2;
+        optional bool use_spoof_ip_header = 3;
+        optional string spoof_ip_header = 4;
+        optional string recaptcha_site_key = 5;
+        optional string recaptcha_secret_key = 6;
+        optional string recaptcha_action_name = 7;
         // -------------------------------------------------
         // scope
         // -------------------------------------------------
@@ -71,16 +76,16 @@ message scope {
         optional uint64 _profile_prod__reserved = 3110;
         optional enforcement profile_prod_action = 3120;
         // -------------------------------------------------
-        // bots_prod_id and action - to be deprecated
+        // api_gw
         // -------------------------------------------------
-        optional string bots_prod_id = 3121;
-        optional uint64 _bots_prod__reserved = 3122;
-        optional enforcement bots_prod_action = 3123;
-        // -------------------------------------------------
-        // bot_manager_config
-        // -------------------------------------------------
-        optional string bot_manager_config_id = 3124;
-        optional uint64 _bot_manager_config__reserved = 3125;
+        // audit
+        optional string api_gw_audit_id = 3200;
+        optional uint64 _api_gw_audit__reserved = 3210;
+        optional enforcement api_gw_audit_action = 3220;
+        // prod
+        optional string api_gw_prod_id = 3230;
+        optional uint64 _api_gw_prod__reserved = 3240;
+        optional enforcement api_gw_prod_action = 3250;
         // -------------------------------------------------
         // limits
         // -------------------------------------------------

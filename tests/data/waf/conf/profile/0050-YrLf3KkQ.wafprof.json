@@ -37,6 +37,7 @@
       "application/x-amf",
       "application/json"
     ],
+    "xml_capture_xxe" : true,
     "max_num_args": 3,
     "total_arg_length": 64000,
     "process_response_body": false,

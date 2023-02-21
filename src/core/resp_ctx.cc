@@ -19,6 +19,7 @@
 #include "support/file_util.h"
 #include "support/time_util.h"
 #include "core/decode.h"
+#include <climits>
 #include <stdlib.h>
 #include <string.h>
 //! ----------------------------------------------------------------------------
@@ -71,7 +72,7 @@ resp_ctx::resp_ctx(void *a_ctx,
         m_callbacks(a_callbacks),
         m_ctx(a_ctx)
 {
-    
+
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO

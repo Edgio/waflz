@@ -158,7 +158,7 @@ int32_t engine::init()
 {
         int32_t l_s;
         // -------------------------------------------------
-        // 
+        //
         // -------------------------------------------------
 
         // -------------------------------------------------
@@ -501,7 +501,7 @@ int32_t engine::compile(compiled_config_t& ao_cx_cfg,
                                 l_s = create_nms_from_file(&l_nms, l_f_path);
                                 if (l_s != WAFLZ_STATUS_OK)
                                 {
-                                        WAFLZ_PERROR(m_err_msg, "Failed to create nms from file %s %s", 
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create nms from file %s %s",
 							l_rule->operator_().value().c_str(), strerror(errno));
                                         return WAFLZ_STATUS_ERROR;
                                 }
@@ -519,7 +519,7 @@ int32_t engine::compile(compiled_config_t& ao_cx_cfg,
                                 l_s = create_ac_from_str(&l_ac, l_rule->operator_().value());
                                 if (l_s != WAFLZ_STATUS_OK)
                                 {
-                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from string %s %s", 
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from string %s %s",
 							l_rule->operator_().value().c_str(), strerror(errno));
                                         return WAFLZ_STATUS_ERROR;
                                 }
@@ -540,7 +540,7 @@ int32_t engine::compile(compiled_config_t& ao_cx_cfg,
                                 l_s = create_ac_from_file(&l_ac, l_f_path);
                                 if (l_s != WAFLZ_STATUS_OK)
                                 {
-                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from file %s %s", 
+                                        WAFLZ_PERROR(m_err_msg, "Failed to create ac from file %s %s",
 							l_rule->operator_().value().c_str(), strerror(errno));
                                         return WAFLZ_STATUS_ERROR;
                                 }

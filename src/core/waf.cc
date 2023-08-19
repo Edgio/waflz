@@ -92,7 +92,7 @@ waf::waf(engine &a_engine):
         m_ruleset_dir(),
         m_paranoia_level(1),
         m_no_log_matched(false),
-	m_scrubber(),
+        m_log_scrubber(),
         m_parse_xml(true),
         m_parse_json(true)
 {
@@ -2332,6 +2332,47 @@ int32_t waf::process_match(waflz_pb::event** ao_event,
         }
         else
         {
+
+		for(std::list <scrubber_t>::const_iterator i_s = m_log_scrubber.begin();
+		    i_s != m_log_scrubber.end();
+		    ++i_s)
+		{
+			// go through each log scrubber and see if we need to replace this logged value
+			const scrubber_t& l_scrubber = *i_s;
+			if(false == l_scrubber.m_match_var_type.empty())
+			{
+				// we only wanna scrub specific types of variables
+				if(a_ctx.m_cx_matched_var_name.substr(0, a_ctx.m_cx_matched_var_name.find(":")) != l_scrubber.m_match_var_type)
+				{
+					// the type prefix in the name of the matched var
+					// eg "REQUEST_COOKIES" in "REQUEST_COOKIES:AV894Kt2TSumQQrJwe-8mzmyREO"
+					// doesn't match the type specified in the scrubber
+
+					// this scrubber doesn't apply
+					continue;
+				}
+			}
+			// either no type specifier or type specifier matches
+			if(l_scrubber.m_match_var_name_set)
+			{
+				if(false == l_scrubber.m_match_var_name.FullMatch(a_ctx.m_cx_matched_var_name.substr(a_ctx.m_cx_matched_var_name.find(":")+1)))
+				{
+					// provided regex does not match
+					continue;
+				}
+			}
+			// either no match var name regex specifier or it matches
+
+			// time to scrubbadubdub
+			if(l_scrubber.m_search.GlobalReplace(l_scrubber.m_replace, &a_ctx.m_cx_matched_var))
+			{
+				// squeaky clean
+
+				// assume only one scrubbing is required per matched variable?
+				break;
+			}
+		}
+
                 l_m_var->set_value(a_ctx.m_cx_matched_var.c_str(), CAP_LEN(a_ctx.m_cx_matched_var.length()));
         }
         return WAFLZ_STATUS_OK;
@@ -2749,6 +2790,47 @@ int32_t waf::process_resp_match(waflz_pb::event** ao_event,
         }
         else
         {
+
+		for(std::list <scrubber_t>::const_iterator i_s = m_log_scrubber.begin();
+		    i_s != m_log_scrubber.end();
+		    ++i_s)
+		{
+			// go through each log scrubber and see if we need to replace this logged value
+			const scrubber_t& l_scrubber = *i_s;
+			if(false == l_scrubber.m_match_var_type.empty())
+			{
+				// we only wanna scrub specific types of variables
+				if(a_ctx.m_cx_matched_var_name.substr(0, a_ctx.m_cx_matched_var_name.find(":")) != l_scrubber.m_match_var_type)
+				{
+					// the type prefix in the name of the matched var
+					// eg "REQUEST_COOKIES" in "REQUEST_COOKIES:AV894Kt2TSumQQrJwe-8mzmyREO"
+					// doesn't match the type specified in the scrubber
+
+					// this scrubber doesn't apply
+					continue;
+				}
+			}
+			// either no type specifier or type specifier matches
+			if(l_scrubber.m_match_var_name_set)
+			{
+				if(false == l_scrubber.m_match_var_name.FullMatch(a_ctx.m_cx_matched_var_name.substr(a_ctx.m_cx_matched_var_name.find(":")+1)))
+				{
+					// provided regex does not match
+					continue;
+				}
+			}
+			// either no match var name regex specifier or it matches
+
+			// time to scrubbadubdub
+			if(l_scrubber.m_search.GlobalReplace(l_scrubber.m_replace, &a_ctx.m_cx_matched_var))
+			{
+				// squeaky clean
+
+				// assume only one scrubbing is required per matched variable?
+				break;
+			}
+		}
+
                 l_m_var->set_value(a_ctx.m_cx_matched_var.c_str(), CAP_LEN(a_ctx.m_cx_matched_var.length()));
         }
         return WAFLZ_STATUS_OK;

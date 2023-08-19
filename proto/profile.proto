@@ -9,9 +9,10 @@ message profile {
         // scrubber settings
         // -------------------------------------------------
         message scrubber_t {
-                optional string match_on = 1;
-                optional string search = 2;
-                optional string replace = 3;
+                optional string match_var_type = 1; // TODO: Flip this to use the type in the proto, not a string..
+                optional string match_var_name = 2;
+                optional string search = 3;
+                optional string replace = 4;
         }
         // -------------------------------------------------
         // general settings

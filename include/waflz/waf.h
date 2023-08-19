@@ -93,9 +93,15 @@ typedef struct _compiled_config {
 } compiled_config_t;
 	typedef struct _scrubber
 	{
-		pcrecpp::RE m_search;
-		std::string m_replace;
+		std::string m_match_var_type;   // eg REQUEST_COOKIES
+		bool m_match_var_name_set;      // eg true
+		pcrecpp::RE m_match_var_name;   // eg AV894Kt2TSumQQrJwe-8mzmyREO.*
+		pcrecpp::RE m_search;           // eg S23|A23.*
+		std::string m_replace;          // eg Redacted
 		_scrubber(const std::string &a_search, const std::string &a_replace):
+			m_match_var_type(),
+			m_match_var_name_set(false),
+			m_match_var_name(""),
 			m_search(a_search,
 				 pcrecpp::RE_Options()
 				 .set_multiline(true)
@@ -138,7 +144,7 @@ public:
         void set_parse_xml( const bool &a_parse_xml) { m_parse_xml = a_parse_xml; }
         void set_parse_json( const bool &a_parse_json) { m_parse_json = a_parse_json; }
         void set_no_log_matched( const bool &a_no_log_matched) { m_no_log_matched = a_no_log_matched; }
-	void add_log_scrubber(const std::string &a_search, const std::string &a_replace) { m_scrubber.push_back(scrubber_t(a_search, a_replace)); }
+	void add_log_scrubber(const scrubber_t &a_scrubber) { m_log_scrubber.push_back(a_scrubber); }
         uint32_t get_paranoia_level(void) { return m_paranoia_level; }
         bool get_parse_xml(void) { return m_parse_xml; }
         bool get_parse_json(void) { return m_parse_json; }
@@ -201,7 +207,7 @@ private:
         std::string m_ruleset_dir;
         uint32_t m_paranoia_level;
         bool m_no_log_matched;
-	std::list <scrubber_t> m_scrubber;
+	std::list <scrubber_t> m_log_scrubber;
         bool m_parse_xml;
         bool m_parse_json;
 #endif

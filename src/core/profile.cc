@@ -321,7 +321,22 @@ int32_t profile::init(void)
         {
 		// for each scrubber
 		const waflz_pb::profile_scrubber_t& l_r = l_gs.log_scrubber(i_q);
-		m_waf->add_log_scrubber(l_r.search(), l_r.replace());
+		scrubber_t l_scrubber(l_r.search(), l_r.replace());
+		if(l_r.has_match_var_type())
+		{
+			l_scrubber.m_match_var_type = l_r.match_var_type();
+		}
+		if(l_r.has_match_var_name())
+		{
+			l_scrubber.m_match_var_name_set = true;
+			l_scrubber.m_match_var_name = pcrecpp::RE(l_r.match_var_name(),
+								  pcrecpp::RE_Options()
+								  .set_multiline(true)
+								  .set_dotall(true)
+								  .set_match_limit(_WAFLZ_PCRE_MATCH_LIMIT)
+								  .set_match_limit_recursion(_WAFLZ_PCRE_MATCH_LIMIT_RECURSION));
+		}
+		m_waf->add_log_scrubber(l_scrubber);
         }
 
         // -------------------------------------------------

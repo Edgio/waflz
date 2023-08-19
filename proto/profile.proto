@@ -6,14 +6,6 @@ import "acl.proto";
 //: ----------------------------------------------------------------------------
 message profile {
         // -------------------------------------------------
-        // scrubber settings
-        // -------------------------------------------------
-        message scrubber_t {
-                optional string match_on = 1;
-                optional string search = 2;
-                optional string replace = 3;
-        }
-        // -------------------------------------------------
         // general settings
         // -------------------------------------------------
         message general_settings_t {
@@ -54,7 +46,6 @@ message profile {
                 optional bool json_parser = 506;
                 optional bool xml_capture_xxe = 520;
                 optional bool no_log_matched = 530;
-                repeated scrubber_t log_scrubber = 531;
                 // -----------------------------------------
                 // scoring
                 // -----------------------------------------
@@ -89,7 +80,7 @@ message profile {
         // -------------------------------------------------
         message disabled_rule_t {
                 optional string policy_id = 1;
-                optional string rule_id = 2;
+                optional string rule_id = 2;                
         }
         // -------------------------------------------------
         // properties

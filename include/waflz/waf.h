@@ -18,13 +18,10 @@
 #include "waflz/rqst_ctx.h"
 #include "waflz/resp_ctx.h"
 #include <set>
-#include <pcrecpp.h>
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------
 #define WAFLZ_NATIVE_ANOMALY_MODE 1
-#define _WAFLZ_PCRE_MATCH_LIMIT 1000
-#define _WAFLZ_PCRE_MATCH_LIMIT_RECURSION 1000
 //! ----------------------------------------------------------------------------
 //! fwd decl's -proto
 //! ----------------------------------------------------------------------------
@@ -91,21 +88,6 @@ typedef struct _compiled_config {
         {}
         ~_compiled_config();
 } compiled_config_t;
-	typedef struct _scrubber
-	{
-		pcrecpp::RE m_search;
-		std::string m_replace;
-		_scrubber(const std::string &a_search, const std::string &a_replace):
-			m_search(a_search,
-				 pcrecpp::RE_Options()
-				 .set_multiline(true)
-				 .set_dotall(true)
-				 .set_match_limit(_WAFLZ_PCRE_MATCH_LIMIT)
-				 .set_match_limit_recursion(_WAFLZ_PCRE_MATCH_LIMIT_RECURSION)),
-			m_replace(a_replace)
-		{}
-		~_scrubber(){}
-	} scrubber_t;
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! ----------------------------------------------------------------------------
@@ -138,7 +120,6 @@ public:
         void set_parse_xml( const bool &a_parse_xml) { m_parse_xml = a_parse_xml; }
         void set_parse_json( const bool &a_parse_json) { m_parse_json = a_parse_json; }
         void set_no_log_matched( const bool &a_no_log_matched) { m_no_log_matched = a_no_log_matched; }
-	void add_log_scrubber(const std::string &a_search, const std::string &a_replace) { m_scrubber.push_back(scrubber_t(a_search, a_replace)); }
         uint32_t get_paranoia_level(void) { return m_paranoia_level; }
         bool get_parse_xml(void) { return m_parse_xml; }
         bool get_parse_json(void) { return m_parse_json; }
@@ -201,7 +182,6 @@ private:
         std::string m_ruleset_dir;
         uint32_t m_paranoia_level;
         bool m_no_log_matched;
-	std::list <scrubber_t> m_scrubber;
         bool m_parse_xml;
         bool m_parse_json;
 #endif

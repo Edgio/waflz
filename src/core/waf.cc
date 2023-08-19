@@ -92,7 +92,6 @@ waf::waf(engine &a_engine):
         m_ruleset_dir(),
         m_paranoia_level(1),
         m_no_log_matched(false),
-	m_scrubber(),
         m_parse_xml(true),
         m_parse_json(true)
 {
@@ -3540,7 +3539,7 @@ report:
         // -------------------------------------------------
         // add meta
         // -------------------------------------------------
-        waflz_pb::event &l_event = **ao_event;
+        waflz_pb::event &l_event = **ao_event;      
         if(l_event.sub_event_size())
         {
                 const ::waflz_pb::event& l_se = l_event.sub_event(l_event.sub_event_size() - 1);

@@ -106,10 +106,10 @@ if(BUILD_CUSTOM_OPENSSL)
   LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/lib")
 endif()
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre pcrecpp protobuf xml2)
+  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre protobuf xml2)
 endif()
 if(BUILD_REDHAT)
-  set(LIBRARIES ${LIBRARIES} ssl crypto pcre pcrecpp protobuf xml2)
+  set(LIBRARIES ${LIBRARIES} ssl crypto pcre protobuf xml2)
   add_definitions(-DWAFLZ_PCRE_INFO_FLAGS_MISSING)
 endif()
 # ------------------------------------------------------------------------------
@@ -134,7 +134,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
   INCLUDE_DIRECTORIES(/usr/local/opt/protobuf/include)
   INCLUDE_DIRECTORIES(/usr/local/opt/pcre/include)
-  INCLUDE_DIRECTORIES(/usr/local/opt/pcrecpp/include)
   INCLUDE_DIRECTORIES(/usr/local/opt/libxml2/include)
   INCLUDE_DIRECTORIES(/usr/local/opt/rapidjson/include)
   # --------------------------------------------------------
@@ -143,7 +142,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   LINK_DIRECTORIES(/usr/local/opt/openssl/lib)
   LINK_DIRECTORIES(/usr/local/opt/protobuf/lib)
   LINK_DIRECTORIES(/usr/local/opt/pcre/lib)
-  LINK_DIRECTORIES(/usr/local/opt/pcrecpp/lib)
   LINK_DIRECTORIES(/usr/local/opt/libxml2/lib)
   # --------------------------------------------------------
   # if redis
@@ -208,11 +206,10 @@ if(BUILD_UBUNTU)
   endif()
   fail_if_not_found_library(libcrypto.a)
   fail_if_not_found_library(libpcre.a)
-  fail_if_not_found_library(pcrecpp)
   fail_if_not_found_library(libprotobuf.a)
   # --------------------------------------------------------
   # if rate-limiting check for kv db libs
-  # --------------------------------------------------------
+  # --------------------------------------------------------  
   if(BUILD_REDIS)
     fail_if_not_found_library(libhiredis.a)
   endif()

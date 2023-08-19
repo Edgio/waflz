@@ -324,7 +324,7 @@ int32_t profile::init(void)
 		scrubber_t l_scrubber(l_r.search(), l_r.replace());
 		if(l_r.has_match_var_type())
 		{
-			l_scrubber.m_match_var_type = l_r.match_var_type();
+			l_scrubber.m_match_var_type = waflz_pb::variable_t_type_t_descriptor()->FindValueByNumber(l_r.match_var_type())->name();
 		}
 		if(l_r.has_match_var_name())
 		{

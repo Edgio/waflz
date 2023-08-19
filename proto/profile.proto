@@ -1,6 +1,7 @@
 syntax = "proto2";
 package waflz_pb;
 import "acl.proto";
+import "rule.proto";
 //: ----------------------------------------------------------------------------
 //: waf profile
 //: ----------------------------------------------------------------------------
@@ -9,7 +10,7 @@ message profile {
         // scrubber settings
         // -------------------------------------------------
         message scrubber_t {
-                optional string match_var_type = 1; // TODO: Flip this to use the type in the proto, not a string..
+                optional variable_t.type_t match_var_type = 1;
                 optional string match_var_name = 2;
                 optional string search = 3;
                 optional string replace = 4;

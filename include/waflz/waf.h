@@ -96,7 +96,7 @@ typedef struct _compiled_config {
 		std::string m_match_var_type;   // eg REQUEST_COOKIES
 		bool m_match_var_name_set;      // eg true
 		pcrecpp::RE m_match_var_name;   // eg AV894Kt2TSumQQrJwe-8mzmyREO.*
-		pcrecpp::RE m_search;           // eg S23|A23.*
+		pcrecpp::RE m_search;           // eg (S23|A23).*
 		std::string m_replace;          // eg Redacted
 		_scrubber(const std::string &a_search, const std::string &a_replace):
 			m_match_var_type(),

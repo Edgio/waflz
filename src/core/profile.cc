@@ -290,26 +290,40 @@ int32_t profile::init(void)
         m_waf->set_name(m_name);
         m_waf->set_paranoia_level(m_paranoia_level);
         // -------------------------------------------------
+	const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
+        // -------------------------------------------------
         // json parser
         // -------------------------------------------------
-        if(m_pb->general_settings().has_json_parser())
+        if(l_gs.has_json_parser())
         {
-                m_waf->set_parse_json(m_pb->general_settings().json_parser());
+                m_waf->set_parse_json(l_gs.json_parser());
         }
         // -------------------------------------------------
         // xml parser
         // -------------------------------------------------
-        if(m_pb->general_settings().has_xml_parser())
+        if(l_gs.has_xml_parser())
         {
-                m_waf->set_parse_xml(m_pb->general_settings().xml_parser());
+                m_waf->set_parse_xml(l_gs.xml_parser());
         }
         // -------------------------------------------------
         // Don't log matched data
         // -------------------------------------------------
-        if(m_pb->general_settings().has_no_log_matched())
+        if(l_gs.has_no_log_matched())
         {
-                m_waf->set_no_log_matched(m_pb->general_settings().no_log_matched());
+                m_waf->set_no_log_matched(l_gs.no_log_matched());
         }
+        // -------------------------------------------------
+        // scrub matched data
+        // -------------------------------------------------
+        for(int32_t i_q = 0;
+            i_q < l_gs.log_scrubber_size();
+            ++i_q)
+        {
+		// for each scrubber
+		const waflz_pb::profile_scrubber_t& l_r = l_gs.log_scrubber(i_q);
+		m_waf->add_log_scrubber(l_r.search(), l_r.replace());
+        }
+
         // -------------------------------------------------
         // init
         // -------------------------------------------------
@@ -323,8 +337,6 @@ int32_t profile::init(void)
         // *************************************************
         //                  I G N O R E
         // *************************************************
-        // -------------------------------------------------
-        const ::waflz_pb::profile_general_settings_t& l_gs = m_pb->general_settings();
         // -------------------------------------------------
         // ignore query args
         // -------------------------------------------------

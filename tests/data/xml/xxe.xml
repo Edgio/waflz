@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [
+<!ENTITY writer "Donald Duck.">
+<!ENTITY copyright "Copyright W3Schools.">
+<!ENTITY xxe SYSTEM "file:///etc/passwd">
+]>
+<body>
+  <type>default</type>
+  <way>my_cool_method</way>
+  <person>
+    <name>joeblow</name>
+    <email>who@what.com</email>
+    <!-- <hash>abc1234</hash> -->
+  </person>
+  <thing>BONKERS</thing>
+  <thang>EATATJOES</thang>
+  <reference>BANANAS</reference>
+</body>

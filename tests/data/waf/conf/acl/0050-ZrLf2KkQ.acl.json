@@ -1,0 +1,62 @@
+{
+	"id": "ZrLf2KkQ",
+	"customer_id":"0050",
+	"name": "my cool acl",
+	"last_modified_date": "2019-04-18T19:48:25.142172Z",
+	"url": {
+		"whitelist": ["robots.txt"],
+		"accesslist": [],
+		"blacklist": ["/prod.html"]
+	},
+	"asn": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"ip": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"sd_iso": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"user_agent": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": ["gizoogle"]
+	},
+	"referer": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"country": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+    "allowed_http_methods": [
+      "GET",
+      "HEAD",
+      "POST",
+      "PROPFIND",
+      "PUT"
+    ],
+    "allowed_request_content_types": [
+      "application/json",
+      "application/x-amf",
+      "application/x-www-form-urlencoded",
+      "application/xml",
+      "multipart/form-data",
+      "text/xml",
+      "text/plain"
+    ],
+    "allowed_http_versions": [
+      "HTTP/1.0",
+      "HTTP/1.1",
+      "HTTP/2.0"
+    ]
+}

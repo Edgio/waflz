@@ -1,0 +1,61 @@
+{
+	"id": "5wOgfHWR",
+	"name": "my cool acl",
+	"allow_anonymous_proxy": false,
+	"url": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": ["/audit.html"]
+	},
+	"asn": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"ip": {
+		"whitelist": ["1.1.1.1"],
+		"accesslist": [],
+		"blacklist": ["2.2.2.2"]
+	},
+	"sd_iso": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": ["AU-NSW"]
+	},
+	"user_agent": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": ["gizoogle"]
+	},
+	"referer": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+	"country": {
+		"whitelist": [],
+		"accesslist": [],
+		"blacklist": []
+	},
+    "allowed_http_methods": [
+      "GET",
+      "HEAD",
+      "POST",
+      "PROPFIND",
+      "PUT"
+    ],
+    "allowed_request_content_types": [
+      "application/json",
+      "application/x-amf",
+      "application/x-www-form-urlencoded",
+      "application/xml",
+      "multipart/form-data",
+      "text/xml",
+      "text/plain"
+    ],
+    "allowed_http_versions": [
+      "HTTP/1.0",
+      "HTTP/1.1",
+      "HTTP/2.0"
+    ]
+}

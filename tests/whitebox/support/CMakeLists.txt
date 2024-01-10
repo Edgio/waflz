@@ -1,0 +1,5 @@
+add_waflz_wb_test(file_util)
+add_waflz_wb_test(string_util)
+add_waflz_wb_test(time_util)
+add_waflz_wb_test(geoip2_mmdb)
+add_waflz_wb_test(md5)

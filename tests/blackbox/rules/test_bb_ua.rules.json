@@ -1,0 +1,193 @@
+{
+  "customer_id": "DEADDEAD",
+  "directive": [
+    {
+      "sec_rule": {
+        "action": {
+          "action_type": "BLOCK",
+          "id": "43253463",
+          "msg": "Request User-Agent is bananas",
+          "phase": 2,
+          "setvar": [
+            {
+              "op": "INCREMENT",
+              "scope": "TX",
+              "val": "%{tx.warning_anomaly_score}",
+              "var": "anomaly_score_pl1"
+            },
+            {
+              "op": "ASSIGN",
+              "scope": "TX",
+              "val": "%{rule.msg}",
+              "var": "msg"
+            }
+          ],
+          "t": [
+            "NONE"
+          ]
+        },
+        "id": "6Mjj5Psy",
+        "name": "banana_rule",
+        "operator": {
+          "is_negated": false,
+          "is_regex": false,
+          "type": "CONTAINS",
+          "value": "bananas"
+        },
+        "variable": [
+          {
+            "is_count": false,
+            "match": [
+              {
+                "is_negated": false,
+                "is_regex": false,
+                "value": "User-Agent"
+              }
+            ],
+            "type": "REQUEST_HEADERS"
+          }
+        ]
+      }
+    },
+    {
+      "sec_rule": {
+          "variable": [
+              {
+                  "type": "SD_ISO",
+                  "match": [
+                      {
+                          "is_negated": false,
+                          "is_regex": false
+                      }
+                  ],
+                  "is_count": false
+              }
+          ],
+          "operator": {
+              "type": "CONTAINS",
+              "value": "GB-",
+              "is_regex": false,
+              "is_negated": false
+          },
+          "action": {
+            "action_type": "BLOCK",
+            "id": "43253463",
+            "msg": "Request SD_ISO Comes from GB",
+            "phase": 2,
+            "setvar": [
+              {
+                "op": "INCREMENT",
+                "scope": "TX",
+                "val": "%{tx.warning_anomaly_score}",
+                "var": "anomaly_score_pl1"
+              },
+              {
+                "op": "ASSIGN",
+                "scope": "TX",
+                "val": "%{rule.msg}",
+                "var": "msg"
+              }
+            ],
+            "t": [
+              "NONE"
+            ]
+          },
+          "hidden": false
+      }
+    },
+    {
+      "sec_rule": {
+        "variable": [
+          {
+            "is_count": false,
+            "match": [
+              {
+                "is_negated": false,
+                "is_regex": false,
+                "value": "User-Agent"
+              }
+            ],
+            "type": "REQUEST_HEADERS"
+          }
+        ],
+        "operator": {
+          "type": "STREQ",
+          "values": [
+            "test1",
+            "test2",
+            "test3"
+          ],
+          "is_regex": false,
+          "is_negated": false
+        },
+        "action": {
+          "action_type": "BLOCK",
+          "id": "231548",
+          "msg": "Request user-agent found in values",
+          "phase": 1,
+          "setvar": [
+            {
+              "op": "INCREMENT",
+              "scope": "TX",
+              "val": "%{tx.warning_anomaly_score}",
+              "var": "anomaly_score_pl1"
+            },
+            {
+              "op": "ASSIGN",
+              "scope": "TX",
+              "val": "%{rule.msg}",
+              "var": "msg"
+            }
+          ],
+          "t": [
+            "NONE"
+          ]
+        },
+        "hidden": false
+      }
+    },
+    {
+      "sec_rule": {
+          "variable": [
+              {
+                  "type": "JA3",
+                  "is_count": false
+              }
+          ],
+          "operator": {
+              "type": "CONTAINS",
+              "value": "4f62",
+              "is_regex": false,
+              "is_negated": false
+          },
+          "action": {
+              "id": "960008",
+              "msg": "ja3 is fishy",
+              "action_type": "BLOCK",
+              "phase": 2,
+              "setvar": [
+                  {
+                      "scope": "TX",
+                      "var": "msg",
+                      "op": "ASSIGN",
+                      "val": "%{rule.msg}"
+                  },
+                  {
+                    "op": "INCREMENT",
+                    "scope": "TX",
+                    "val": "%{tx.warning_anomaly_score}",
+                    "var": "anomaly_score_pl1"
+                  }
+              ],
+              "t": [
+                  "NONE"
+              ]
+          },
+          "hidden": false
+      }
+    }
+  ],
+  "id": "nTCd8ghw",
+  "last_modified_date": "2020-10-06T18:18:09.329793Z",
+  "name": "scopes_test_rules"
+}

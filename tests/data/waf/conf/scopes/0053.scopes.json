@@ -1,0 +1,111 @@
+{
+  "customer_id": "0053",
+  "account_type": "P",
+  "partner_id": "this_is_the_partner_id",
+  "id": "FoJWcYNO",
+  "last_modified_date": "2020-11-1T19:48:25.142172Z",
+  "last_modified_by": "revathi",
+  "scopes": [
+  {
+    "id": "Hcpx7mze",
+    "name": "limit 1st scope",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "limitz.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "limits":[{
+       "id":"BVHvz2nC",
+       "action":{
+          "id":"4hu9CMSK",
+          "name":"ddos-action",
+          "status": 403,
+          "duration_sec": 2,
+          "enf_type": "CUSTOM_RESPONSE",
+          "response_body_base64": "ZGRvcyBlbmZvcmNlbWVudCBmcm9tIGxpbWl0IGNvbmZpZwo="
+       }
+    }]
+  },
+  {
+    "id": "o6c5GHSg",
+    "name": "limit 2nd scope",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "Morelimitz.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "limits":[{
+       "id":"BVHvz2nC",
+       "action":{
+          "id":"mFwhkjoX",
+          "name":"ddos-action",
+          "status": 403,
+          "duration_sec": 2,
+          "enf_type": "CUSTOM_RESPONSE",
+          "response_body_base64": "ZGRvcyBlbmZvcmNlbWVudCBmcm9tIGxpbWl0IGNvbmZpZwo="
+       }
+    }]
+  },
+  {
+    "id": "S8Msly7D",
+    "name": "limit 3rd scope",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "limitzgeo.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "limits":[{
+       "id":"D5JapqwI",
+       "action":{
+          "id":"mFwhkjoX",
+          "name":"ddos-action",
+          "status": 403,
+          "duration_sec": 2,
+          "enf_type": "CUSTOM_RESPONSE",
+          "response_body_base64": "Z2VvIGRkb3MgZW5mb3JjZW1lbnQK"
+       }
+    }]
+  },
+  {
+    "id": "fbKAXYYX",
+    "name": "limit 4th scope",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "limitzasn.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "limits":[{
+       "id":"fbKAXYYX",
+       "action":{
+          "id":"mFwhkjoX",
+          "name":"ddos-action",
+          "status": 403,
+          "duration_sec": 2,
+          "enf_type": "CUSTOM_RESPONSE",
+          "response_body_base64": "YXNuIGRkb3MgZW5mb3JjZW1lbnQK"
+       }
+    }]
+  }
+]
+}
+

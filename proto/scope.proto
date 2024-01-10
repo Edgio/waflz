@@ -1,0 +1,142 @@
+syntax = "proto2";
+package waflz_pb;
+import "action.proto";
+//: ----------------------------------------------------------------------------
+//: operator
+//: ----------------------------------------------------------------------------
+message op_t {
+        enum type_t {
+                STREQ = 1;
+                RX = 2;
+                GLOB = 4;
+                EM = 5;
+                IPMATCH = 6;
+        }
+        optional type_t type = 1;
+        optional string value = 2;
+        optional bool is_regex = 3;
+        repeated string values = 4;
+        optional bool is_negated = 10;
+        optional bool is_case_insensitive = 11;
+        // -------------------------------------------------
+        // reserved for internal use
+        // -------------------------------------------------
+        optional uint64 _reserved_1 = 1000;
+}
+//: ----------------------------------------------------------------------------
+//: scope
+//: ----------------------------------------------------------------------------
+message scope {
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        optional string id = 1;
+        optional string name = 2;
+        optional bool use_spoof_ip_header = 3;
+        optional string spoof_ip_header = 4;
+        optional string recaptcha_site_key = 5;
+        optional string recaptcha_secret_key = 6;
+        optional string recaptcha_action_name = 7;
+        // -------------------------------------------------
+        // scope
+        // -------------------------------------------------
+        optional op_t host = 100;
+        optional op_t path = 101;
+        // -------------------------------------------------
+        // acl
+        // -------------------------------------------------
+        // audit
+        optional string acl_audit_id = 1000;
+        optional uint64 _acl_audit__reserved = 1010;
+        optional enforcement acl_audit_action = 1020;
+        // prod
+        optional string acl_prod_id = 1100;
+        optional uint64 _acl_prod__reserved = 1110;
+        optional enforcement acl_prod_action = 1120;
+        // -------------------------------------------------
+        // rules
+        // -------------------------------------------------
+        // audit
+        optional string rules_audit_id = 2000;
+        optional uint64 _rules_audit__reserved = 2010;
+        optional enforcement rules_audit_action = 2020;
+        // prod
+        optional string rules_prod_id = 2100;
+        optional uint64 _rules_prod__reserved = 2110;
+        optional enforcement rules_prod_action = 2120;
+        // -------------------------------------------------
+        // profile
+        // -------------------------------------------------
+        // audit
+        optional string profile_audit_id = 3000;
+        optional uint64 _profile_audit__reserved = 3010;
+        optional enforcement profile_audit_action = 3020;
+        // prod
+        optional string profile_prod_id = 3100;
+        optional uint64 _profile_prod__reserved = 3110;
+        optional enforcement profile_prod_action = 3120;
+        // -------------------------------------------------
+        // api_gw
+        // -------------------------------------------------
+        // audit
+        optional string api_gw_audit_id = 3200;
+        optional uint64 _api_gw_audit__reserved = 3210;
+        optional enforcement api_gw_audit_action = 3220;
+        // prod
+        optional string api_gw_prod_id = 3230;
+        optional uint64 _api_gw_prod__reserved = 3240;
+        optional enforcement api_gw_prod_action = 3250;
+        // -------------------------------------------------
+        // limits
+        // -------------------------------------------------
+        message limit_config {
+                optional string id = 1;
+                optional uint64 _reserved_1 = 10;
+                optional enforcement action = 20;
+        }
+        repeated limit_config limits = 4000;
+}
+//: ----------------------------------------------------------------------------
+//: scope
+//: ----------------------------------------------------------------------------
+message scope_config {
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        optional string version = 1;
+        optional string id = 2;
+        optional string name = 3;
+        optional string customer_id = 4;
+        optional string last_modified_date = 5;
+        optional string last_modified_by = 6;
+        optional string account_type = 7;
+	optional string partner_id = 8;
+        // -------------------------------------------------
+        // scopes
+        // -------------------------------------------------
+        repeated scope scopes = 1000;
+}
+//: ----------------------------------------------------------------------------
+//: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//:                   C H A L L E N G E   S E C T I O N
+//: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//: ----------------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
+//: problem
+//: ----------------------------------------------------------------------------
+message problem {
+        // -------------------------------------------------
+        // properties
+        // -------------------------------------------------
+        optional int32 id = 1;
+        // -------------------------------------------------
+        // challenge body
+        // -------------------------------------------------
+        optional string response_body_base64 = 100;
+}
+//: ----------------------------------------------------------------------------
+//: config
+//: ----------------------------------------------------------------------------
+message challenge {
+        repeated problem problems = 1;
+}

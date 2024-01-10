@@ -1,0 +1,55 @@
+name: waflz-ci
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-20.04, ubuntu-18.04, macos-latest]
+        build: [debug, release]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Install Ubuntu dependencies
+      if: matrix.os == 'ubuntu-22.04' || matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-18.04'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev libhiredis-dev libkyotocabinet-dev liblzma-dev rapidjson-dev
+
+    - name: Install macOS dependencies
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install cmake openssl protobuf libxml2 pcre kyoto-cabinet hiredis dpkg rapidjson
+
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+
+    - name: Install Python requirements
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run debug build script
+      if: matrix.build == 'debug' && matrix.os != 'macos-latest'
+      run: |
+        ./build.sh -a
+
+    - name: Run release build script
+      if: matrix.build == 'release'
+      run: |
+        ./build.sh

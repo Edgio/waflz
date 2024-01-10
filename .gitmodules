@@ -1,0 +1,4 @@
+[submodule "sub/is2"]
+	path = sub/is2
+	url = https://github.com/edgio/is2
+	branch = master

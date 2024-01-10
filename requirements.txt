@@ -1,0 +1,3 @@
+pytest>=3.0.4
+pytest-sugar>=0.8.0
+requests>=2.20.0

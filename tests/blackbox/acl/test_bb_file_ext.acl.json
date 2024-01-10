@@ -1,0 +1,101 @@
+{
+  "allowed_http_methods": [
+    "GET",
+    "POST",
+    "OPTIONS",
+    "HEAD",
+    "DELETE"
+  ],
+  "allowed_request_content_types": [
+    "application/x-www-form-urlencoded",
+    "multipart/form-data",
+    "text/xml",
+    "application/xml",
+    "application/x-amf",
+    "application/json"
+  ],
+  "country": {
+    "blacklist": [],
+    "whitelist": []
+  },
+  "customer_id": "DEADDEAD",
+  "disallowed_extensions": [
+    ".asa",
+    ".asax",
+    ".ascx",
+    ".axd",
+    ".backup",
+    ".bak",
+    ".bat",
+    ".cdx",
+    ".cer",
+    ".cfg",
+    ".cmd",
+    ".com",
+    ".config",
+    ".conf",
+    ".cs",
+    ".csproj",
+    ".csr",
+    ".dat",
+    ".db",
+    ".dbf",
+    ".dll",
+    ".dos",
+    ".htr",
+    ".htw",
+    ".ida",
+    ".idc",
+    ".idq",
+    ".inc",
+    ".ini",
+    ".key",
+    ".licx",
+    ".lnk",
+    ".log",
+    ".mdb",
+    ".old",
+    ".pass",
+    ".pdb",
+    ".pol",
+    ".printer",
+    ".pwd",
+    ".resources",
+    ".resx",
+    ".sql",
+    ".sys",
+    ".vb",
+    ".vbs",
+    ".vbproj",
+    ".vsdisco",
+    ".webinfo",
+    ".xsd",
+    ".xsx"
+  ],
+  "disallowed_headers": [],
+  "id": "q5Zb1axh",
+  "ip": {
+    "blacklist": [],
+    "whitelist": []
+  },
+  "last_modified_by": "test",
+  "last_modified_date": "2020-11-06T22:55:19.519528Z",
+  "max_file_size": 10,
+  "name": "WAF Demo Instance 1",
+  "referer": {
+    "blacklist": [],
+    "whitelist": []
+  },
+  "response_header_name": "X-EC-Security-Audit",
+  "url": {
+    "blacklist": [],
+    "whitelist": []
+  },
+  "user_agent": {
+    "blacklist": [
+      "Firefox"
+    ],
+    "whitelist": []
+  },
+  "version": "0.0.0"
+}

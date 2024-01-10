@@ -1,0 +1,32 @@
+{
+    "id": "fbKAXYYX",
+    "customer_id":"0053",
+    "num": 2,
+    "duration_sec":2,
+    "condition_groups":[
+        {
+            "conditions":[{
+                "op": {
+                    "is_negated":false,
+                    "type": "STREQ",
+                    "value": "2497"
+                },
+                "target":{
+                    "type": "REMOTE_ASN"
+                }
+            },
+            {
+                "target": {
+                    "type": "FILE_EXT"
+                },
+                "op": {
+                "type": "EM",
+                "values": ["txt","js"]
+                }
+            }
+            ]
+        }
+    ],
+    "last_modified_date": "2019-04-18T19:48:25.142172Z"
+}
+

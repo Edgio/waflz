@@ -1,0 +1,9 @@
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_BINARY_DIR}/proto
+)
+add_waflz_wb_test(rl_op)
+add_waflz_wb_test(enforcer)

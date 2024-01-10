@@ -1,0 +1,78 @@
+{
+  "customer_id": "0051",
+  "account_type": "P",
+  "partner_id": "this_is_the_partner_id",
+  "id":"xDre6J1c",
+  "last_modified_date": "2019-04-18T19:48:25.142172Z",
+  "last_modified_by": "Mr. bananas",
+  "scopes": [
+  {
+    "id": "bananas_id",
+    "name": "bananas.com scope",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "bananas.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "/test.html"
+    },
+    "acl_audit_action": null,
+    "acl_audit_id": null,
+    "rules_prod_id": "4fsYnj9c",
+    "rules_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64":"VGhpcyBpcyBmcm9tIEVNIHNjb3BlCg==",
+      "status": 403,
+      "type": "custom-response"
+    }
+  },
+  {
+    "id": "regex_host_id",
+    "name": ".*.regexhost.com scope",
+    "host": {
+      "is_negated": false,
+      "type": "RX",
+      "value": ".*.regexhost.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "RX",
+      "value": ".*/path.html"
+    },
+    "rules_prod_id": "4fsYnj9c",
+    "rules_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64":"VGhpcyBpcyBmcm9tIFJYIHNjb3BlCg==",
+      "status": 403,
+      "type": "custom-response"
+    }
+  },
+  {
+    "id": "any_host_id",
+    "name": "any host scope",
+    "host": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "GLOB",
+      "value": "*"
+    },
+    "rules_prod_id": "4fsYnj9c",
+    "rules_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64":"VGhpcyBpcyBmcm9tIEdMT0Igc2NvcGUK",
+      "status": 403,
+      "type": "custom-response"
+    }
+  }
+]
+}

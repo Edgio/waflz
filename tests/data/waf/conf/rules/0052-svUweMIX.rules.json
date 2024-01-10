@@ -1,0 +1,80 @@
+{
+  "id": "iKFDGi4i",
+  "directive": [
+    {
+      "sec_rule": {
+        "action": {
+          "action_type": "BLOCK",
+          "id": "hY41qM7f",
+          "msg": "Request User-Agent is ruletest",
+          "phase": 2,
+          "t": [
+            "LOWERCASE"
+          ]
+        },
+        "operator": {
+          "is_negated": false,
+          "is_regex": false,
+          "type": "CONTAINS",
+          "value": "rulestest"
+        },
+        "variable": [
+          {
+            "is_count": false,
+            "match": [
+              {
+                "is_negated": false,
+                "is_regex": false,
+                "value": "User-Agent"
+              }
+            ],
+            "type": "REQUEST_HEADERS"
+          }
+        ]
+      }
+    },
+    {
+         "sec_rule" : {
+            "action" : {
+               "action_type" : "BLOCK",
+               "id" : "66000019",
+               "msg" : "testing request bodies in custom rules",
+               "phase" : 2,
+               "t" : [
+                  "NONE"
+               ]
+            },
+            "chained_rule" : [],
+            "id" : "cgWk7m5R",
+            "name" : "thanks daniallo",
+            "operator" : {
+               "is_negated" : false,
+               "type" : "CONTAINS",
+               "value" : "ps654321"
+            },
+            "variable" : [
+               {
+                  "is_count": false,
+                  "match": [
+                      {
+                          "value" : "password"
+
+                      }
+                  ],
+                  "type": "ARGS_POST"
+               },
+               {
+                  "is_count": false,
+                  "match": [
+                      {
+                          "value" : "/*"
+
+                      }
+                  ],
+                  "type": "XML"
+               }
+            ]
+         }
+      }
+  ]
+}

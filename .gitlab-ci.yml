@@ -1,0 +1,66 @@
+---
+include:
+  - project: ci-tools/templates
+    file: /ec_arty.yml
+
+stages:
+  - build
+  - upload
+
+build:
+  only:
+    - tags
+    - master
+  stage: build
+  image: ubuntu:$UBUNTU_VERSION
+  before_script:
+    - cat /etc/lsb-release
+    - apt-get update
+    - apt-get install -y sudo lsb-release apt-transport-https ca-certificates git python3 python3-pip build-essential software-properties-common cmake
+    - apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev rapidjson-dev
+    - python3 -m pip install --upgrade pip
+    - pip install -r requirements.txt
+  script:
+    - |
+        if [[ ${TARGET} == "debug" ]]; then
+            ./build.sh -a
+        else
+            ./build.sh
+        fi
+    - DIST=$(lsb_release -s -c)
+    - mkdir -p output/${DIST}
+    - cp -va build/*.{deb,tar.gz} output/${DIST}
+    - chmod 755 output/${DIST}/*.{deb,tar.gz}
+  artifacts:
+    paths:
+      - output/
+    expire_in: 1 week
+  parallel:
+    matrix:
+      - UBUNTU_VERSION: ["18.04", "20.04"]
+        TARGET: [debug, release]
+
+arty:
+  extends: .ec_arty
+  only:
+    - tags
+  script:
+    - ls -l output
+    - |
+        for dir in output/*/; do
+            [ -d "${dir}" ] || break
+            DIST=$(basename ${dir})
+            for file in ${dir}*.tar.gz; do
+                [ -f "${file}" ] || break
+                ${AF_HELPER} upload generic --target ${AF_TEAM}/waflz/ "${file}"
+            done
+
+            for file in ${dir}*.deb; do
+                [ -f "${file}" ] || break
+                if [[ ! ${file} =~ .*-debug\.deb$ ]]; then
+                    for repo in ${AF_REPOS}; do
+                        ${AF_HELPER} upload debian --repo "${repo}" --dist "${DIST}" "${file}"
+                    done
+                fi
+            done
+        done

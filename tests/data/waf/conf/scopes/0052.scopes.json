@@ -1,0 +1,75 @@
+{
+  "customer_id": "0052",
+  "account_type": "P",
+  "partner_id": "this_is_the_partner_id",
+  "id":"3lTIzIqv",
+  "last_modified_date": "2019-04-18T19:48:25.142172Z",
+  "last_modified_by": "Mr. bananas",
+  "name": "To test different custom rules config",
+  "scopes": [
+  {
+    "id": "ImtYcpjF",
+    "name": "scope with default/basic custom rule",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "rulestest.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "/test.html"
+    },
+    "rules_prod_id": "svUweMIX",
+    "rules_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64":"YmFzaWMgY3VzdG9tIHJ1bGUgdHJpZ2dlcmVkCg==",
+      "status": 403,
+      "enf_type": "CUSTOM_RESPONSE"
+    }
+  },
+  {
+    "id": "1yhbrgGx",
+    "name": "scope with basic chained rule",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "chainedrulestest.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "/test.html"
+    },
+    "rules_prod_id": "7eWjgqLK",
+    "rules_prod_action": {
+      "id": "zeAXrllT",
+      "name": "ACTION",
+      "response_body_base64":"cmVzcG9uc2UgZnJvbSBjaGFpbmVkIGN1c3RvbSBydWxlcwo=",
+      "status": 403,
+      "enf_type": "CUSTOM_RESPONSE"
+    }
+  },
+  {
+    "id": "KlTjhs",
+    "name": "scope for testing bodies",
+    "host": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "bodytest.com"
+    },
+    "path": {
+      "is_negated": false,
+      "type": "EM",
+      "value": "/test.html"
+    },
+    "rules_prod_id": "svUweMIX",
+    "rules_prod_action": {
+      "id": "ekkame",
+      "name": "ACTION",
+      "enf_type": "BLOCK_REQUEST"
+    }
+  }
+]
+}

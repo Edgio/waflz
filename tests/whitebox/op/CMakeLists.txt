@@ -1,0 +1,5 @@
+add_waflz_wb_test(nms)
+add_waflz_wb_test(ac)
+add_waflz_wb_test(byte_range)
+add_waflz_wb_test(luhn)
+add_waflz_wb_test(regex)

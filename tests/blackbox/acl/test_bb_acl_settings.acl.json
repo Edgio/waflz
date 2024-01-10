@@ -1,0 +1,57 @@
+{
+  "allow_anonymous_proxy": false, 
+  "allowed_http_methods": [
+    "GET",
+    "POST",
+    "OPTIONS",
+    "HEAD",
+    "DELETE"
+  ],
+  "allowed_request_content_types": [
+    "application/x-www-form-urlencoded",
+    "multipart/form-data",
+    "text/xml",
+    "application/xml",
+    "application/x-amf",
+    "application/json"
+  ],
+  "disallowed_extensions": [
+    ".pwd"
+  ],
+  "country": {
+    "blacklist": [],
+    "whitelist": ["KR"]
+  },
+  "sd_iso": {
+    "blacklist": ["GB-LAN"],
+    "accesslist": ["AU-NSW","GB-EDH","GB-ENG"],
+    "whitelist": ["RU-MOW"]
+  },
+  "customer_id": "DEADDEAD",
+  "disallowed_extensions": [],
+  "disallowed_headers": [],
+  "id": "q5Zb1axh",
+  "ip": {
+    "blacklist": ["129.94.231.205"],
+    "whitelist": []
+  },
+  "last_modified_by": "test",
+  "last_modified_date": "2020-11-06T22:55:19.519528Z",
+  "max_file_size": 10,
+  "name": "WAF ACL",
+  "referer": {
+    "blacklist": [],
+    "whitelist": []
+  },
+  "response_header_name": "X-EC-Security-Audit",
+  "url": {
+    "blacklist": [],
+    "whitelist": []
+  },
+  "user_agent": {
+    "whitelist":  ["dogs are cool"],
+    "accesslist": [".* are cool"],
+    "blacklist":  ["cats are cool"]
+  },
+  "version": "0.0.0"
+}

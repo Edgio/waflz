@@ -1,0 +1,61 @@
+syntax = "proto2";
+package waflz_pb;
+//: ----------------------------------------------------------------------------
+//: enforcement
+//: ----------------------------------------------------------------------------
+message enforcement {
+        // -------------------------------------------------
+        // TODO make enf types in json line up
+        //      prefer all caps + underscores in
+        //      naming
+        // -------------------------------------------------
+        enum type_t {
+                REDIRECT_302 = 0;
+                REDIRECT_JS =1;
+                HASHCASH = 2;
+                CUSTOM_RESPONSE = 3;
+                DROP_REQUEST = 4;
+                DROP_CONNECTION = 5;
+                NOP = 6;
+                ALERT = 7;
+                BLOCK_REQUEST = 8;
+                BROWSER_CHALLENGE = 9;
+                NULL_ALERT = 10;
+                NULL_BLOCK = 11;
+                IGNORE_ALERT= 12;
+                IGNORE_BLOCK = 13;
+                IGNORE_REDIRECT_302 = 14;
+                IGNORE_CUSTOM_RESPONSE = 15;
+                IGNORE_DROP_REQUEST = 16;
+                RECAPTCHA = 17;
+        }
+        message header_t {
+                optional string key = 1;
+                optional string value = 2;
+        }
+        optional string id = 1;
+        optional string name = 2;
+        // -------------------------------------------------
+        // TODO make enf type string enum type_t
+        //      -see enum def above
+        // -------------------------------------------------
+        optional string type = 3;
+        optional float percentage = 4;
+        optional uint32 duration_sec = 5;
+        optional uint64 start_time_ms = 6;
+        optional string url = 7;
+        optional uint32 retry_after = 8;
+        optional bool display_default_error_page = 9;
+        optional type_t enf_type = 10;
+        optional bool is_custom_challenge = 11;
+        // Custom response
+        optional uint32 status = 100;
+        optional string response_body_base64 = 101;
+        repeated header_t response_headers = 102;
+        optional string response_body = 103;
+        // cookie expiry
+        optional uint32 valid_for_sec = 200;
+        optional type_t failed_action_type = 201;
+}
+
+

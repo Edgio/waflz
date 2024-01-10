@@ -1,0 +1,80 @@
+{
+  "directive": [
+    {
+      "sec_rule": {
+        "action": {
+          "action_type": "BLOCK",
+          "file": "0051-4fsYnj9c.rules",
+          "id": "960008",
+          "msg": "Request Missing a Host Header",
+          "phase": 2,
+          "rev": "2",
+          "severity": "4",
+          "t": [
+            "NONE"
+          ],
+          "ver": "OWASP_CRS/3.1.0"
+        },
+        "hidden": false,
+        "operator": {
+          "is_negated": false,
+          "is_regex": false,
+          "type": "EQ",
+          "value": "0"
+        },
+        "variable": [
+          {
+            "is_count": true,
+            "match": [
+              {
+                "is_negated": false,
+                "is_regex": false,
+                "value": "Host"
+              }
+            ],
+            "type": "REQUEST_HEADERS"
+          }
+        ]
+      }
+    },
+    {
+      "sec_rule": {
+        "action": {
+          "action_type": "BLOCK",
+          "file": "0051-4fsYnj9c.rules",
+          "id": "960008",
+          "msg": "Request User-Agent is bananas",
+          "phase": 1,
+          "rev": "2",
+          "severity": "4",
+          "t": [
+            "NONE"
+          ],
+          "ver": "OWASP_CRS/3.1.0"
+        },
+        "hidden": false,
+        "operator": {
+          "is_negated": false,
+          "is_regex": false,
+          "type": "CONTAINS",
+          "value": "bananas"
+        },
+        "variable": [
+          {
+            "is_count": false,
+            "match": [
+              {
+                "is_negated": false,
+                "is_regex": false,
+                "value": "User-Agent"
+              }
+            ],
+            "type": "REQUEST_HEADERS"
+          }
+        ]
+      }
+    }
+  ],
+  "ruleset_id": "__na__",
+  "ruleset_version": "__na__"
+}

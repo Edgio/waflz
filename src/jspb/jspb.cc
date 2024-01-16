@@ -508,14 +508,18 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_DOUBLE:
         {
                 JSPB_TRACE("case: double\n");
-                l_s = update_field(ao_msg,
-                                   a_ref,
-                                   a_field,
-                                   &google::protobuf::Reflection::SetDouble,
-                                   a_val,
-                                   &rapidjson::GenericValue<rapidjson::UTF8<> >::GetDouble,
-                                   &rapidjson::GenericValue<rapidjson::UTF8<> >::IsNumber,
-                                   "float");
+                l_s = update_field<
+                        void (google::protobuf::Reflection::*)(google::protobuf::Message*, const google::protobuf::FieldDescriptor*, double) const,
+                        double (rapidjson::GenericValue<rapidjson::UTF8<> >::*)() const,
+                        bool (rapidjson::GenericValue<rapidjson::UTF8<> >::*)() const>(
+                        ao_msg,
+                        a_ref,
+                        a_field,
+                        &google::protobuf::Reflection::SetDouble,
+                        a_val,
+                        &rapidjson::GenericValue<rapidjson::UTF8<> >::GetDouble,
+                        &rapidjson::GenericValue<rapidjson::UTF8<> >::IsNumber,
+                        "float");
                 break;
         }
         case google::protobuf::FieldDescriptor::TYPE_FLOAT:
@@ -605,14 +609,19 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_STRING:
         {
                 JSPB_TRACE("case: string\n");
-                l_s = update_field(ao_msg,
-                                   a_ref,
-                                   a_field,
-                                   &google::protobuf::Reflection::SetString,
-                                   a_val,
-                                   &rapidjson::GenericValue<rapidjson::UTF8<> >::GetString,
-                                   &rapidjson::GenericValue<rapidjson::UTF8<> >::IsString,
-                                   "string");
+                l_s = update_field<
+                        void (google::protobuf::Reflection::*)(google::protobuf::Message*, const google::protobuf::FieldDescriptor*, const std::string) const,
+                        const rapidjson::GenericValue<rapidjson::UTF8<>>::Ch* (rapidjson::GenericValue<rapidjson::UTF8<> >::*)() const,
+                        bool (rapidjson::GenericValue<rapidjson::UTF8<> >::*)() const
+                      >(
+                        ao_msg,
+                        a_ref,
+                        a_field,
+                        &google::protobuf::Reflection::SetString,
+                        a_val,
+                        &rapidjson::GenericValue<rapidjson::UTF8<> >::GetString,
+                        &rapidjson::GenericValue<rapidjson::UTF8<> >::IsString,
+                        "string");
                 break;
         }
         case google::protobuf::FieldDescriptor::TYPE_GROUP:

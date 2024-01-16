@@ -30,13 +30,9 @@ CHECK_CXX_COMPILER_FLAG(-Wno-error=nonnull-compare COMPILER_SUPPORTS_NONNULL)
 CHECK_CXX_COMPILER_FLAG(-std=c++14 COMPILER_SUPPORTS_CXX14)
 CHECK_CXX_COMPILER_FLAG(-std=c++11 COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG(-std=c++0x COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX14)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-elseif(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0x)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(COMPILER_SUPPORTS_CXX14)
   if(COMPILER_SUPPORTS_MISIDENT)
@@ -50,6 +46,22 @@ endif()
 # find protobuf package
 # ------------------------------------------------------------------------------
 find_package(Protobuf REQUIRED)
+# find_package(Protobuf CONFIG REQUIRED)
+# find_package(Protobuf CONFIG)
+# if(NOT Protobuf_FOUND)
+#   find_package(Protobuf REQUIRED)
+# endif()
+set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto")
+set(waflz_proto_files ${CMAKE_CURRENT_SOURCE_DIR}/proto/acl.proto)
+# set(waflz_proto_files ${CMAKE_CURRENT_SOURCE_DIR}/proto/acl.proto action.proto rule.proto profile.proto event.proto request_info.proto scope.proto limit.proto)
+add_library(proto-objects OBJECT "${CMAKE_CURRENT_SOURCE_DIR}/proto/acl.proto")
+protobuf_generate(
+  LANGUAGE cpp
+  TARGET proto-objects
+  IMPORT_DIRS ${PROTO_IMPORT_DIRS}
+  PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
+)
 # ------------------------------------------------------------------------------
 # Display the current settings
 # ------------------------------------------------------------------------------
@@ -154,7 +166,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # --------------------------------------------------------
   # cc flags
   # --------------------------------------------------------
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # ------------------------------------------------------------------------------
 # ASAN

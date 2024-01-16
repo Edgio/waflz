@@ -46,6 +46,22 @@ endif()
 # find protobuf package
 # ------------------------------------------------------------------------------
 find_package(Protobuf REQUIRED)
+# find_package(Protobuf CONFIG REQUIRED)
+# find_package(Protobuf CONFIG)
+# if(NOT Protobuf_FOUND)
+#   find_package(Protobuf REQUIRED)
+# endif()
+set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto")
+set(waflz_proto_files ${CMAKE_CURRENT_SOURCE_DIR}/proto/acl.proto)
+# set(waflz_proto_files ${CMAKE_CURRENT_SOURCE_DIR}/proto/acl.proto action.proto rule.proto profile.proto event.proto request_info.proto scope.proto limit.proto)
+add_library(proto-objects OBJECT "${CMAKE_CURRENT_SOURCE_DIR}/proto/acl.proto")
+protobuf_generate(
+  LANGUAGE cpp
+  TARGET proto-objects
+  IMPORT_DIRS ${PROTO_IMPORT_DIRS}
+  PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
+)
 # ------------------------------------------------------------------------------
 # Display the current settings
 # ------------------------------------------------------------------------------
@@ -150,7 +166,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # --------------------------------------------------------
   # cc flags
   # --------------------------------------------------------
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # ------------------------------------------------------------------------------
 # ASAN

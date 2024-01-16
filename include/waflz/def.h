@@ -26,6 +26,7 @@
 
 #if defined(__APPLE__) || defined(__darwin__)
   #include <strings.h>
+  #define RAPIDJSON_NOMEMBERITERATORCLASS 1
 #else
   #include <string.h>
 #endif

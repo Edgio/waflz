@@ -30,13 +30,9 @@ CHECK_CXX_COMPILER_FLAG(-Wno-error=nonnull-compare COMPILER_SUPPORTS_NONNULL)
 CHECK_CXX_COMPILER_FLAG(-std=c++14 COMPILER_SUPPORTS_CXX14)
 CHECK_CXX_COMPILER_FLAG(-std=c++11 COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG(-std=c++0x COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX14)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-elseif(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0x)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(COMPILER_SUPPORTS_CXX14)
   if(COMPILER_SUPPORTS_MISIDENT)
@@ -154,7 +150,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # --------------------------------------------------------
   # cc flags
   # --------------------------------------------------------
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # ------------------------------------------------------------------------------
 # ASAN

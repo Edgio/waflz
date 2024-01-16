@@ -12,6 +12,9 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+#if defined(__APPLE__) || defined(__darwin__)
+  #define RAPIDJSON_NOMEMBERITERATORCLASS 1
+#endif
 #include <google/protobuf/message.h>
 #include <rapidjson/document.h>
 //! ----------------------------------------------------------------------------

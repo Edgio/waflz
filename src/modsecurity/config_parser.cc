@@ -27,7 +27,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #include <regex.h>
 #include <set>
 #include <algorithm>
@@ -2461,37 +2462,57 @@ void config_parser::show_status(void)
 //! ----------------------------------------------------------------------------
 int32_t get_pcre_match_list(const char *a_regex, const char *a_str, match_list_t &ao_match_list)
 {
-        pcre *l_re;
-        const char *l_error;
-        int l_erroffset;
-        l_re = pcre_compile(a_regex,      // the pattern
-                            PCRE_ANCHORED,// options
-                            &l_error,     // for error message
-                            &l_erroffset, // for error offset
-                            0);           // use default character tables
-        if(!l_re)
+        PCRE2_SIZE l_erroffset = 0;
+        PCRE2_SIZE l_length = strlen(a_regex);
+        PCRE2_SPTR l_pattern = (PCRE2_SPTR) a_regex;
+        uint32_t options = PCRE2_ANCHORED;
+        int l_errorcode;
+        pcre2_code *l_re;
+        l_re = pcre2_compile(l_pattern,    // the pattern
+                             l_length,     // length of the pattern
+                             options,      // default options
+                             &l_errorcode, // for error code
+                             &l_erroffset, // for error offset
+                             nullptr);     // use default compile context
+        if(l_re == nullptr)
         {
-                NDBG_PRINT("pcre_compile failed (offset: %d), %s\n", l_erroffset, l_error);
+                PCRE2_UCHAR l_buffer[256];
+                pcre2_get_error_message(l_errorcode, l_buffer, sizeof(l_buffer));
+                NDBG_PRINT("pcre2_compile failed (offset: %d), %s\n", (int) l_erroffset, l_buffer);
+                return WAFLZ_STATUS_ERROR;
+        }
+        int l_rc;
+        l_rc = pcre2_jit_compile(l_re, PCRE2_JIT_COMPLETE);
+        if (l_rc != 0)
+        {
+                NDBG_PRINT("pcre2_jit_compile failed, %d\n", l_rc);
+                pcre2_code_free(l_re);
                 return WAFLZ_STATUS_ERROR;
         }
         uint32_t l_offset = 0;
+        PCRE2_SPTR l_str = (PCRE2_SPTR) a_str;
         uint32_t l_len = strlen(a_str);
-        int l_rc;
-        int l_ovector[100];
+        pcre2_match_data *l_match_data = pcre2_match_data_create_from_pattern(l_re, nullptr);
+        if (l_match_data == nullptr)
+        {
+                NDBG_PRINT("pcre2_match_data_create_from_pattern failed\n");
+                pcre2_code_free(l_re);
+                return WAFLZ_STATUS_ERROR;
+        }
         while (l_offset < l_len)
         {
-                l_rc = pcre_exec(l_re,                  // Compiled pattern
-                                 0,                     // Study
-                                 a_str,                 // str
-                                 l_len,                 // str len
-                                 l_offset,              // str offset
-                                 0,                     // options
-                                 l_ovector,             // output vector for substr info
-                                 sizeof(l_ovector));    // num elements in output vector
+                l_rc = pcre2_match(l_re,         // Compiled pattern
+                                   l_str,        // str
+                                   l_len,        // str len
+                                   l_offset,     // str offset
+                                   0,            // options
+                                   l_match_data, // output vector for substr info
+                                   nullptr);     // use default match context
                 if(l_rc < 0)
                 {
                         break;
                 }
+                PCRE2_SIZE *l_ovector = pcre2_get_ovector_pointer(l_match_data);
                 for(int i_match = 0; i_match < l_rc; ++i_match)
                 {
                         std::string l_match;
@@ -2501,6 +2522,8 @@ int32_t get_pcre_match_list(const char *a_regex, const char *a_str, match_list_t
                 }
                 l_offset = l_ovector[1];
         }
+        pcre2_match_data_free(l_match_data); // Release memory used for the match
+        pcre2_code_free(l_re);
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------

@@ -13,7 +13,8 @@
 //! includes
 //! ----------------------------------------------------------------------------
 #include "waflz/def.h"
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #include <string>
 //! ----------------------------------------------------------------------------
 //! fwd decl's
@@ -49,20 +50,12 @@ private:
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
-        pcre* m_regex;
-        pcre_extra* m_regex_study;
+        pcre2_code* m_regex;
+        pcre2_match_context* m_ctx;
         std::string m_regex_str;
         // err info
-        const char* m_err_ptr;
-        int m_err_off;
-        // -------------------------------------------------
-        // private static
-        // -------------------------------------------------
-#ifdef PCRE_STUDY_JIT_COMPILE
-        static const int s_pcre_study_options = PCRE_STUDY_JIT_COMPILE;
-#else
-        static const int s_pcre_study_options = 0;
-#endif
+        int m_err_ptr;
+        PCRE2_SIZE m_err_off;
 };
 }
 #endif

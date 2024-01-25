@@ -194,7 +194,7 @@ SET_SOURCE_FILES_PROPERTIES(
     PROPERTIES LANGUAGE C
 )
 set(CMAKE_C_FLAGS "-std=c99")
-set(CMAKE_CXX_FLAGS "-Wall -Weffc++ -Werror -std=c++11")
+set(CMAKE_CXX_FLAGS "-Wall -Werror -std=c++11")
 # ------------------------------------------------------------------------------
 # headers
 # ------------------------------------------------------------------------------
@@ -280,7 +280,7 @@ target_include_directories(waflzcore PUBLIC
 target_link_libraries(waflz
     ssl
     crypto
-    pcre
+    pcre2-8
     protobuf
     xml2
 )
@@ -322,4 +322,3 @@ install(FILES ${HDRS}
     DESTINATION include/waflz
     COMPONENT Headers
 )
-

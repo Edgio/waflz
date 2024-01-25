@@ -12,7 +12,8 @@
 //! ----------------------------------------------------------------------------
 #include "waflz/def.h"
 #include "regex.h"
-#include "pcre.h"
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include "pcre2.h"
 #include "support/ndebug.h"
 #include <string.h>
 #include <string>
@@ -24,18 +25,19 @@
 //! ----------------------------------------------------------------------------
 #define _WAFLZ_PCRE_MATCH_LIMIT 1000
 #define _WAFLZ_PCRE_MATCH_LIMIT_RECURSION 1000
+#define _WAFLZ_PCRE_GLOBAL_BUFFER_SIZE 256
 namespace ns_waflz
 {
+PCRE2_UCHAR g_buffer[_WAFLZ_PCRE_GLOBAL_BUFFER_SIZE];
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
 regex::regex(void):
-        m_regex(NULL),
-        m_regex_study(NULL),
-        m_regex_str(),
-        m_err_ptr(NULL),
+        m_regex(nullptr),
+        m_ctx(nullptr),
+        m_err_ptr(0),
         m_err_off(-1)
 {}
 //! ----------------------------------------------------------------------------
@@ -45,19 +47,15 @@ regex::regex(void):
 //! ----------------------------------------------------------------------------
 regex::~regex()
 {
-        if(m_regex)
+        if(m_regex != nullptr)
         {
-                pcre_free(m_regex);
-                m_regex = NULL;
+                pcre2_code_free(m_regex);
+                m_regex = nullptr;
         }
-        if(m_regex_study)
+        if (m_ctx != nullptr)
         {
-#ifdef PCRE_STUDY_JIT_COMPILE
-                pcre_free_study(m_regex_study);
-#else
-                pcre_free(m_regex_study);
-#endif
-                m_regex_study = NULL;
+                pcre2_match_context_free(m_ctx);
+                m_ctx = nullptr;
         }
 }
 //! ----------------------------------------------------------------------------
@@ -67,7 +65,7 @@ regex::~regex()
 //! ----------------------------------------------------------------------------
 void regex::get_err_info(const char** a_reason, int& a_offset)
 {
-        *a_reason = m_err_ptr;
+        *a_reason = (char*) g_buffer;
         a_offset = m_err_off;
 }
 //! ----------------------------------------------------------------------------
@@ -87,46 +85,30 @@ int32_t regex::init(const char* a_buf, uint32_t a_len)
         // -------------------------------------------------
         // compile
         // -------------------------------------------------
-        m_regex = pcre_compile(m_regex_str.c_str(),
-                               PCRE_DUPNAMES|PCRE_DOTALL|PCRE_MULTILINE,
-                               &m_err_ptr,
-                               &m_err_off,
-                               NULL);
-        if(!m_regex)
+        m_regex = pcre2_compile((PCRE2_SPTR) m_regex_str.c_str(),
+                                m_regex_str.length(),
+                                PCRE2_DUPNAMES|PCRE2_DOTALL|PCRE2_MULTILINE,
+                                &m_err_ptr,
+                                &m_err_off,
+                                nullptr);
+        if(m_regex == nullptr)
+        {
+                pcre2_get_error_message(m_err_ptr, g_buffer, sizeof(g_buffer));
+                return WAFLZ_STATUS_ERROR;
+        }
+        int l_rc;
+        l_rc = pcre2_jit_compile(m_regex, PCRE2_JIT_COMPLETE);
+        if (l_rc != 0)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // study
-        // -------------------------------------------------
-        m_regex_study = pcre_study(m_regex,
-                                   s_pcre_study_options,
-                                   &m_err_ptr);
-        // -------------------------------------------------
-        // if regex_study NULL not compiled with JIT
-        // check m_err_ptr for error
-        // -------------------------------------------------
-        if(m_err_ptr)
+        m_ctx = pcre2_match_context_create(nullptr);
+        if (m_ctx == nullptr)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        // -------------------------------------------------
-        // create study if nul
-        // -------------------------------------------------
-        if(!m_regex_study)
-        {
-                m_regex_study = (pcre_extra*)calloc(1, sizeof(pcre_extra));
-        }
-        // -------------------------------------------------
-        // set match limits
-        // -------------------------------------------------
-        m_regex_study->flags |= PCRE_EXTRA_MATCH_LIMIT;
-        m_regex_study->match_limit = _WAFLZ_PCRE_MATCH_LIMIT;
-        // -------------------------------------------------
-        // set recursion limit
-        // -------------------------------------------------
-        m_regex_study->flags |= PCRE_EXTRA_MATCH_LIMIT_RECURSION;
-        m_regex_study->match_limit_recursion = _WAFLZ_PCRE_MATCH_LIMIT_RECURSION;
+        pcre2_set_match_limit(m_ctx, _WAFLZ_PCRE_MATCH_LIMIT);
+        pcre2_set_recursion_limit(m_ctx, _WAFLZ_PCRE_MATCH_LIMIT_RECURSION);
         return WAFLZ_STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
@@ -148,29 +130,28 @@ int regex::compare(const char* a_buf, uint32_t a_len, std::string* ao_captured)
         // -----------------------------------------
         // match first only
         // -----------------------------------------
-        int l_ovecsize = 2;
-        int l_ovector[2] = {0};
         int l_s;
-        l_s = pcre_exec(m_regex,
-                        m_regex_study,
-                        a_buf,
-                        a_len,
-                        0,
-                        0,
-                        l_ovector,
-                        l_ovecsize);
-        if(l_s == PCRE_ERROR_MATCHLIMIT ||
-            l_s ==  PCRE_ERROR_RECURSIONLIMIT)
+        pcre2_match_data* l_match_data = nullptr;
+        if (m_regex != nullptr) {
+                l_match_data = pcre2_match_data_create_from_pattern(m_regex, nullptr);
+                if (l_match_data == nullptr)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
+        l_s = pcre2_match(m_regex,
+                          (PCRE2_SPTR) a_buf,
+                          a_len,
+                          0,
+                          0,
+                          l_match_data,
+                          m_ctx);
+        if(l_s == PCRE2_ERROR_MATCHLIMIT || l_s == PCRE2_ERROR_RECURSIONLIMIT)
         {
+                pcre2_match_data_free(l_match_data); // Release memory used for the match
                 return WAFLZ_STATUS_ERROR;
         }
-        // -----------------------------------------
-        // Match succeeded but ovector too small
-        // -----------------------------------------
-        if(l_s == 0)
-        {
-                l_s = l_ovecsize / 2;
-        }
+        PCRE2_SIZE* l_ovector = pcre2_get_ovector_pointer(l_match_data);
         // -----------------------------------------
         // optional save first capture...
         // -----------------------------------------
@@ -180,6 +161,7 @@ int regex::compare(const char* a_buf, uint32_t a_len, std::string* ao_captured)
                 ao_captured->assign(a_buf + l_ovector[0],
                                     (l_ovector[1] - l_ovector[0]));
         }
+        pcre2_match_data_free(l_match_data); // Release memory used for the match
         return l_s;
 }
 //! ----------------------------------------------------------------------------
@@ -193,32 +175,38 @@ int regex::compare_all(const char* a_buf, uint32_t a_len, data_list_t* ao_captur
         // No check for empty input
         // Input can be empty. e.g empty headers
         // -----------------------------------------
-        int l_ovecsize = 30;
-        int l_ovector[30] = {0};
         int l_s;
         int l_offset = 0;
         int l_ret_val = 0;
+        pcre2_match_data* l_match_data = nullptr;
+        if (m_regex != nullptr) {
+                l_match_data = pcre2_match_data_create_from_pattern(m_regex, nullptr);
+                if (l_match_data == nullptr)
+                {
+                        return WAFLZ_STATUS_ERROR;
+                }
+        }
         // -----------------------------------------
         // Get all matches
         // -----------------------------------------
         do
         {
-                l_s = pcre_exec(m_regex,
-                                m_regex_study,
-                                a_buf,
-                                a_len,
-                                l_offset,
-                                0,
-                                l_ovector,
-                                l_ovecsize);
-                if(l_s == PCRE_ERROR_MATCHLIMIT ||
-                    l_s ==  PCRE_ERROR_RECURSIONLIMIT)
+                l_s = pcre2_match(m_regex,
+                                  (PCRE2_SPTR) a_buf,
+                                  a_len,
+                                  l_offset,
+                                  0,
+                                  l_match_data,
+                                  m_ctx);
+                if(l_s == PCRE2_ERROR_MATCHLIMIT || l_s ==  PCRE2_ERROR_RECURSIONLIMIT)
                 {
+                        pcre2_match_data_free(l_match_data); // Release memory used for the match
                         return WAFLZ_STATUS_ERROR;
                 }
                 // ---------------------------------
                 // loop over matches
                 // ---------------------------------
+                PCRE2_SIZE* l_ovector = pcre2_get_ovector_pointer(l_match_data);
                 for(int i_t = 0; i_t < l_s; ++i_t)
                 {
                         l_ret_val++;
@@ -245,6 +233,7 @@ int regex::compare_all(const char* a_buf, uint32_t a_len, data_list_t* ao_captur
                         }
                 }
         } while (l_s > 0);
+        pcre2_match_data_free(l_match_data); // Release memory used for the match
         return l_ret_val;
 }
 //! ----------------------------------------------------------------------------
@@ -259,35 +248,23 @@ void regex::display(void)
         // -------------------------------------------------
         int l_s;
         UNUSED(l_s);
-#define _DISPLAY_PCRE_PROP(_what) do { \
-                int l_opt; \
-                l_s = pcre_fullinfo(m_regex, m_regex_study, _what, &l_opt); \
-                NDBG_OUTPUT(":%s: %d\n", #_what, l_opt); \
-        } while(0)
 #define _DISPLAY_PCRE_PROP_U(_what) do { \
                 uint32_t l_opt; \
-                l_s = pcre_fullinfo(m_regex, m_regex_study, _what, &l_opt); \
+                l_s = pcre2_pattern_info(m_regex, _what, &l_opt); \
                 NDBG_OUTPUT(":%s: %u\n", #_what, l_opt); \
         } while(0)
 #define _DISPLAY_PCRE_PROP_UL(_what) do { \
                 size_t l_opt; \
-                l_s = pcre_fullinfo(m_regex, m_regex_study, _what, &l_opt); \
+                l_s = pcre2_pattern_info(m_regex, _what, &l_opt); \
                 NDBG_OUTPUT(":%s: %lu\n", #_what, l_opt); \
         } while(0)
-        _DISPLAY_PCRE_PROP(PCRE_INFO_BACKREFMAX);
-        _DISPLAY_PCRE_PROP(PCRE_INFO_CAPTURECOUNT);
-        _DISPLAY_PCRE_PROP(PCRE_INFO_JIT);
-        _DISPLAY_PCRE_PROP_UL(PCRE_INFO_JITSIZE);
-        _DISPLAY_PCRE_PROP(PCRE_INFO_MINLENGTH);
-#ifndef WAFLZ_PCRE_INFO_FLAGS_MISSING
-        _DISPLAY_PCRE_PROP_U(PCRE_INFO_MATCHLIMIT);
-#endif
-        _DISPLAY_PCRE_PROP(PCRE_INFO_OPTIONS);
-        _DISPLAY_PCRE_PROP(PCRE_INFO_SIZE);
-        _DISPLAY_PCRE_PROP_UL(PCRE_INFO_STUDYSIZE);
-#ifndef WAFLZ_PCRE_INFO_FLAGS_MISSING
-        _DISPLAY_PCRE_PROP_UL(PCRE_INFO_RECURSIONLIMIT);
-#endif
-        _DISPLAY_PCRE_PROP(PCRE_INFO_REQUIREDCHAR);
+        _DISPLAY_PCRE_PROP_U(PCRE2_INFO_BACKREFMAX);
+        _DISPLAY_PCRE_PROP_U(PCRE2_INFO_CAPTURECOUNT);
+        _DISPLAY_PCRE_PROP_UL(PCRE2_INFO_JITSIZE);
+        _DISPLAY_PCRE_PROP_U(PCRE2_INFO_MINLENGTH);
+        _DISPLAY_PCRE_PROP_U(PCRE2_INFO_MATCHLIMIT);
+        _DISPLAY_PCRE_PROP_U(PCRE2_INFO_ARGOPTIONS);
+        _DISPLAY_PCRE_PROP_U(PCRE2_INFO_SIZE);
+        _DISPLAY_PCRE_PROP_UL(PCRE2_INFO_RECURSIONLIMIT);
 }
 }

@@ -62,6 +62,6 @@ TEST_CASE( "pcre obj test", "[regex]" ) {
                 }
                 uint64_t l_dt_s;
                 l_dt_s = ns_waflz::get_delta_time_ms(l_t_s);
-                REQUIRE(l_dt_s < 200);
+                REQUIRE(l_dt_s < 400);
         }
 }

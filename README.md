@@ -34,7 +34,7 @@ The open source standard implementation of the [ModSecurity Rules Engine](https:
 ##### Package Requirements
 
 ```sh
-$ sudo apt-get install -y libssl-dev libpcre3-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev python3-pip
+$ sudo apt-get install -y libssl-dev libpcre2-dev libxml2-dev libicu-dev protobuf-compiler libprotobuf-dev liblzma-dev python3-pip
 ```
 
 ##### Python Package Requirements
@@ -59,7 +59,7 @@ sudo make install
 
 ##### Package Requirements (with Homebrew)
 ```sh
-$ brew install cmake openssl protobuf libxml2 pcre dpkg rapidjson jq
+$ brew install cmake openssl protobuf libxml2 pcre2 dpkg rapidjson jq
 ```
 
 ##### Python Package Requirements
@@ -172,4 +172,3 @@ $ curl -s "http://localhost:12345/index.html" -H"Host:" | jq '.'
 ## License
 
 This project is licensed under the terms of the Apache 2.0 open source license. Please refer to the `LICENSE-2.0.txt` file for the full terms.
-

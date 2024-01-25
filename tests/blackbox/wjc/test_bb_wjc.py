@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''Test WAF Access settings'''
-#TODO: make so waflz_server only runs once and then can post to it 
+#TODO: make so waflz_server only runs once and then can post to it
 # ------------------------------------------------------------------------------
 # Imports
 # ------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ def test_bb_wjc_bad_regex(setup_wjc):
     #print(l_sp_stderr)
     #print('return code: %d'%(l_sp.returncode))
     assert l_sp.returncode != 0
-    assert l_sp_stderr == b'init failed for regex: \'**dogs[]\' in general_settings ignore list. Reason: nothing to repeat -offset: 0\n'
+    assert l_sp_stderr == b'init failed for regex: \'**dogs[]\' in general_settings ignore list. Reason: quantifier does not follow a repeatable item -offset: 0\n'
 # ------------------------------------------------------------------------------
 # test output with bad regex
 # ------------------------------------------------------------------------------

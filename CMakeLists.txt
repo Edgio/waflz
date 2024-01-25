@@ -106,10 +106,10 @@ if(BUILD_CUSTOM_OPENSSL)
   LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/lib")
 endif()
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre2 protobuf xml2)
+  set(LIBRARIES ${LIBRARIES} pthread ssl crypto pcre2-8 protobuf xml2)
 endif()
 if(BUILD_REDHAT)
-  set(LIBRARIES ${LIBRARIES} ssl crypto pcre2 protobuf xml2)
+  set(LIBRARIES ${LIBRARIES} ssl crypto pcre2-8 protobuf xml2)
 endif()
 # ------------------------------------------------------------------------------
 # special build case for CUSTOM_CAPLENMAX
